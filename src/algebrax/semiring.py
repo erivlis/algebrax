@@ -1,7 +1,5 @@
 import math
-from typing import Protocol, TypeVar
-
-V = TypeVar('V')
+from typing import Protocol
 
 __all__ = [
     'ArcticSemiring',
@@ -28,7 +26,7 @@ __all__ = [
 # region Protocol
 
 
-class Semiring(Protocol[V]):
+class Semiring[V](Protocol):
     """
     A Protocol defining a Semiring (S, +, *, 0, 1).
     Used to generalize linear algebra operations.
@@ -107,7 +105,7 @@ class Semiring(Protocol[V]):
 # region Arithmetic
 
 
-class StandardSemiring:
+class StandardSemiring(Semiring[float]):
     """
     The standard algebra over real numbers.
     (R, +, *, 0, 1)
@@ -122,27 +120,22 @@ class StandardSemiring:
     def one(self) -> float:
         return 1.0
 
-    @staticmethod
-    def add(a: float, b: float) -> float:
+    def add(self, a: float, b: float) -> float:
         return a + b
 
-    @staticmethod
-    def mul(a: float, b: float) -> float:
+    def mul(self, a: float, b: float) -> float:
         return a * b
 
-    @staticmethod
-    def nsum(a: float, n: int) -> float:
+    def nsum(self, a: float, n: int) -> float:
         # Standard semiring is a Ring, so negative n is allowed (subtraction).
         if n == 0:
             return 0.0
         return a * n
 
-    @staticmethod
-    def power(a: float, n: int) -> float:
-        return a**n
+    def power(self, a: float, n: int) -> float:
+        return a ** n
 
-    @staticmethod
-    def star(a: float) -> float:
+    def star(self, a: float) -> float:
         if a >= 1.0:
             return float('inf')
         return 1.0 / (1.0 - a)
@@ -154,7 +147,7 @@ class StandardSemiring:
 # region Optimization
 
 
-class TropicalSemiring:
+class TropicalSemiring(Semiring[float]):
     """
     The Min-Plus algebra.
     (R U {inf}, min, +, inf, 0)
@@ -169,16 +162,13 @@ class TropicalSemiring:
     def one(self) -> float:
         return 0.0
 
-    @staticmethod
-    def add(a: float, b: float) -> float:
+    def add(self, a: float, b: float) -> float:
         return min(a, b)
 
-    @staticmethod
-    def mul(a: float, b: float) -> float:
+    def mul(self, a: float, b: float) -> float:
         return a + b
 
-    @staticmethod
-    def nsum(a: float, n: int) -> float:
+    def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('TropicalSemiring does not support negative nsum')
         # Idempotent: min(a, a) = a
@@ -186,18 +176,16 @@ class TropicalSemiring:
             return float('inf')
         return a
 
-    @staticmethod
-    def power(a: float, n: int) -> float:
+    def power(self, a: float, n: int) -> float:
         return a * n
 
-    @staticmethod
-    def star(a: float) -> float:
+    def star(self, a: float) -> float:
         if a < 0.0:
             return float('-inf')
         return 0.0
 
 
-class ArcticSemiring:
+class ArcticSemiring(Semiring[float]):
     """
     The Max-Plus algebra.
     (R U {-inf}, max, +, -inf, 0)
@@ -212,16 +200,13 @@ class ArcticSemiring:
     def one(self) -> float:
         return 0.0
 
-    @staticmethod
-    def add(a: float, b: float) -> float:
+    def add(self, a: float, b: float) -> float:
         return max(a, b)
 
-    @staticmethod
-    def mul(a: float, b: float) -> float:
+    def mul(self, a: float, b: float) -> float:
         return a + b
 
-    @staticmethod
-    def nsum(a: float, n: int) -> float:
+    def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('ArcticSemiring does not support negative nsum')
         # Idempotent: max(a, a) = a
@@ -229,18 +214,16 @@ class ArcticSemiring:
             return float('-inf')
         return a
 
-    @staticmethod
-    def power(a: float, n: int) -> float:
+    def power(self, a: float, n: int) -> float:
         return a * n
 
-    @staticmethod
-    def star(a: float) -> float:
+    def star(self, a: float) -> float:
         if a > 0.0:
             return float('inf')
         return 0.0
 
 
-class ViterbiSemiring:
+class ViterbiSemiring(Semiring[float]):
     """
     The Max-Product algebra.
     ([0, 1], max, *, 0, 1)
@@ -255,16 +238,13 @@ class ViterbiSemiring:
     def one(self) -> float:
         return 1.0
 
-    @staticmethod
-    def add(a: float, b: float) -> float:
+    def add(self, a: float, b: float) -> float:
         return max(a, b)
 
-    @staticmethod
-    def mul(a: float, b: float) -> float:
+    def mul(self, a: float, b: float) -> float:
         return a * b
 
-    @staticmethod
-    def nsum(a: float, n: int) -> float:
+    def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('ViterbiSemiring does not support negative nsum')
         # Idempotent: max(a, a) = a
@@ -272,12 +252,10 @@ class ViterbiSemiring:
             return 0.0
         return a
 
-    @staticmethod
-    def power(a: float, n: int) -> float:
-        return a**n
+    def power(self, a: float, n: int) -> float:
+        return a ** n
 
-    @staticmethod
-    def star(a: float) -> float:
+    def star(self, a: float) -> float:
         return 1.0
 
 
@@ -288,7 +266,7 @@ class ReliabilitySemiring(ViterbiSemiring):
     """
 
 
-class BottleneckSemiring:
+class BottleneckSemiring(Semiring[float]):
     """
     The Max-Min algebra.
     (R, max, min, -inf, +inf)
@@ -303,16 +281,13 @@ class BottleneckSemiring:
     def one(self) -> float:
         return float('inf')
 
-    @staticmethod
-    def add(a: float, b: float) -> float:
+    def add(self, a: float, b: float) -> float:
         return max(a, b)
 
-    @staticmethod
-    def mul(a: float, b: float) -> float:
+    def mul(self, a: float, b: float) -> float:
         return min(a, b)
 
-    @staticmethod
-    def nsum(a: float, n: int) -> float:
+    def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('BottleneckSemiring does not support negative nsum')
         # Idempotent: max(a, a) = a
@@ -320,18 +295,16 @@ class BottleneckSemiring:
             return float('-inf')
         return a
 
-    @staticmethod
-    def power(a: float, n: int) -> float:
+    def power(self, a: float, n: int) -> float:
         if n == 0:
             return float('inf')
         return a
 
-    @staticmethod
-    def star(a: float) -> float:
+    def star(self, a: float) -> float:
         return float('inf')
 
 
-class MinTimesSemiring:
+class MinTimesSemiring(Semiring[float]):
     """
     The Min-Times algebra.
     (R U {inf}, min, *, inf, 1)
@@ -346,16 +319,13 @@ class MinTimesSemiring:
     def one(self) -> float:
         return 1.0
 
-    @staticmethod
-    def add(a: float, b: float) -> float:
+    def add(self, a: float, b: float) -> float:
         return min(a, b)
 
-    @staticmethod
-    def mul(a: float, b: float) -> float:
+    def mul(self, a: float, b: float) -> float:
         return a * b
 
-    @staticmethod
-    def nsum(a: float, n: int) -> float:
+    def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('MinTimesSemiring does not support negative nsum')
         # Idempotent: min(a, a) = a
@@ -363,12 +333,10 @@ class MinTimesSemiring:
             return float('inf')
         return a
 
-    @staticmethod
-    def power(a: float, n: int) -> float:
-        return a**n
+    def power(self, a: float, n: int) -> float:
+        return a ** n
 
-    @staticmethod
-    def star(a: float) -> float:
+    def star(self, a: float) -> float:
         if a < 1.0:
             return 0.0
         return 1.0
@@ -380,7 +348,7 @@ class MinTimesSemiring:
 # region Logic
 
 
-class BooleanSemiring:
+class BooleanSemiring(Semiring[bool]):
     """
     The Boolean algebra.
     ({T, F}, OR, AND, F, T)
@@ -395,16 +363,13 @@ class BooleanSemiring:
     def one(self) -> bool:
         return True
 
-    @staticmethod
-    def add(a: bool, b: bool) -> bool:
+    def add(self, a: bool, b: bool) -> bool:
         return a or b
 
-    @staticmethod
-    def mul(a: bool, b: bool) -> bool:
+    def mul(self, a: bool, b: bool) -> bool:
         return a and b
 
-    @staticmethod
-    def nsum(a: bool, n: int) -> bool:
+    def nsum(self, a: bool, n: int) -> bool:
         if n < 0:
             raise ValueError('BooleanSemiring does not support negative nsum')
         # Idempotent: a or a = a
@@ -412,18 +377,16 @@ class BooleanSemiring:
             return False
         return a
 
-    @staticmethod
-    def power(a: bool, n: int) -> bool:
+    def power(self, a: bool, n: int) -> bool:
         if n == 0:
             return True
         return a
 
-    @staticmethod
-    def star(a: bool) -> bool:
+    def star(self, a: bool) -> bool:
         return True
 
 
-class LukasiewiczSemiring:
+class LukasiewiczSemiring(Semiring[float]):
     """
     The Lukasiewicz algebra (Multi-valued Logic).
     ([0, 1], max, max(0, a+b-1), 0, 1)
@@ -438,16 +401,13 @@ class LukasiewiczSemiring:
     def one(self) -> float:
         return 1.0
 
-    @staticmethod
-    def add(a: float, b: float) -> float:
+    def add(self, a: float, b: float) -> float:
         return max(a, b)
 
-    @staticmethod
-    def mul(a: float, b: float) -> float:
+    def mul(self, a: float, b: float) -> float:
         return max(0.0, a + b - 1.0)
 
-    @staticmethod
-    def nsum(a: float, n: int) -> float:
+    def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('LukasiewiczSemiring does not support negative nsum')
         # Idempotent: max(a, a) = a
@@ -455,14 +415,12 @@ class LukasiewiczSemiring:
             return 0.0
         return a
 
-    @staticmethod
-    def power(a: float, n: int) -> float:
+    def power(self, a: float, n: int) -> float:
         if n == 0:
             return 1.0
         return max(0.0, n * a - (n - 1))
 
-    @staticmethod
-    def star(a: float) -> float:
+    def star(self, a: float) -> float:
         return 1.0
 
 
@@ -472,7 +430,7 @@ class LukasiewiczSemiring:
 # region Probability & Statistics
 
 
-class LogSemiring:
+class LogSemiring(Semiring[float]):
     """
     The Log-Sum-Exp algebra.
     (R U {-inf}, logaddexp, +, -inf, 0)
@@ -488,8 +446,7 @@ class LogSemiring:
     def one(self) -> float:
         return 0.0
 
-    @staticmethod
-    def add(a: float, b: float) -> float:
+    def add(self, a: float, b: float) -> float:
         # log(exp(a) + exp(b))
         if a == float('-inf'):
             return b
@@ -500,13 +457,11 @@ class LogSemiring:
         max_val = max(a, b)
         return max_val + math.log(math.exp(a - max_val) + math.exp(b - max_val))
 
-    @staticmethod
-    def mul(a: float, b: float) -> float:
+    def mul(self, a: float, b: float) -> float:
         # log(exp(a) * exp(b)) = a + b
         return a + b
 
-    @staticmethod
-    def nsum(a: float, n: int) -> float:
+    def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('LogSemiring does not support negative nsum')
         # log(n * exp(a)) = log(n) + a
@@ -516,18 +471,16 @@ class LogSemiring:
             return float('-inf')
         return a + math.log(n)
 
-    @staticmethod
-    def power(a: float, n: int) -> float:
+    def power(self, a: float, n: int) -> float:
         return a * n
 
-    @staticmethod
-    def star(a: float) -> float:
+    def star(self, a: float) -> float:
         if a >= 0.0:
             return float('inf')
         return -math.log1p(-math.exp(a))
 
 
-class ExpectationSemiring:
+class ExpectationSemiring(Semiring[tuple[float, float]]):
     """
     The First-Order Expectation Semiring.
     Values are pairs (prob, contribution).
@@ -550,42 +503,37 @@ class ExpectationSemiring:
     def one(self) -> tuple[float, float]:
         return 1.0, 0.0
 
-    @staticmethod
-    def add(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+    def add(self, a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
         return a[0] + b[0], a[1] + b[1]
 
-    @staticmethod
-    def mul(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+    def mul(self, a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
         # Product rule: E[XY] = E[X]Y + X E[Y] (sort of)
         # Actually: (p1*p2, p1*v2 + p2*v1)
         return a[0] * b[0], a[0] * b[1] + b[0] * a[1]
 
-    @staticmethod
-    def nsum(a: tuple[float, float], n: int) -> tuple[float, float]:
+    def nsum(self, a: tuple[float, float], n: int) -> tuple[float, float]:
         # Expectation semiring is a Ring (component-wise addition)
         # So negative n is allowed.
         if n == 0:
             return 0.0, 0.0
         return a[0] * n, a[1] * n
 
-    @staticmethod
-    def power(a: tuple[float, float], n: int) -> tuple[float, float]:
+    def power(self, a: tuple[float, float], n: int) -> tuple[float, float]:
         p, v = a
         if n == 0:
             return 1.0, 0.0
-        return p**n, n * (p ** (n - 1)) * v
+        return p ** n, n * (p ** (n - 1)) * v
 
-    @staticmethod
-    def star(a: tuple[float, float]) -> tuple[float, float]:
+    def star(self, a: tuple[float, float]) -> tuple[float, float]:
         p, v = a
         if p >= 1.0:
             return float('inf'), float('inf')
         p_star = 1.0 / (1.0 - p)
-        v_star = v * (p_star**2)
+        v_star = v * (p_star ** 2)
         return p_star, v_star
 
 
-class VarianceSemiring:
+class VarianceSemiring(Semiring[tuple[float, float, float, float]]):
     """
     The Second-Order Expectation Semiring (Li & Eisner, 2009).
     Values are 4-tuples (p, r, s, t).
@@ -612,16 +560,16 @@ class VarianceSemiring:
     def one(self) -> tuple[float, float, float, float]:
         return 1.0, 0.0, 0.0, 0.0
 
-    @staticmethod
-    def add(
-        a: tuple[float, float, float, float], b: tuple[float, float, float, float]
-    ) -> tuple[float, float, float, float]:
+    def add(self,
+            a: tuple[float, float, float, float],
+            b: tuple[float, float, float, float]
+            ) -> tuple[float, float, float, float]:
         return a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3]
 
-    @staticmethod
-    def mul(
-        a: tuple[float, float, float, float], b: tuple[float, float, float, float]
-    ) -> tuple[float, float, float, float]:
+    def mul(self,
+            a: tuple[float, float, float, float],
+            b: tuple[float, float, float, float]
+            ) -> tuple[float, float, float, float]:
         p1, r1, s1, t1 = a
         p2, r2, s2, t2 = b
 
@@ -639,27 +587,24 @@ class VarianceSemiring:
 
         return p, r, s, t
 
-    @staticmethod
-    def nsum(a: tuple[float, float, float, float], n: int) -> tuple[float, float, float, float]:
+    def nsum(self, a: tuple[float, float, float, float], n: int) -> tuple[float, float, float, float]:
         if n == 0:
             return 0.0, 0.0, 0.0, 0.0
         return a[0] * n, a[1] * n, a[2] * n, a[3] * n
 
-    @staticmethod
-    def power(a: tuple[float, float, float, float], n: int) -> tuple[float, float, float, float]:
+    def power(self, a: tuple[float, float, float, float], n: int) -> tuple[float, float, float, float]:
         if n == 0:
             return 1.0, 0.0, 0.0, 0.0
         res = (1.0, 0.0, 0.0, 0.0)
         base = a
         while n > 0:
             if n % 2 == 1:
-                res = VarianceSemiring.mul(res, base)
-            base = VarianceSemiring.mul(base, base)
+                res = self.mul(res, base)
+            base = self.mul(base, base)
             n //= 2
         return res
 
-    @staticmethod
-    def star(a: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
+    def star(self, a: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
         raise NotImplementedError('Kleene star not implemented for VarianceSemiring')
 
 
@@ -677,7 +622,7 @@ class DualNumberSemiring(ExpectationSemiring):
 # region Structures
 
 
-class StringSemiring:
+class StringSemiring(Semiring[set[str]]):
     """
     The Formal Language algebra.
     (P(Sigma*), Union, Concatenation, {}, {""})
@@ -693,19 +638,16 @@ class StringSemiring:
     def one(self) -> set[str]:
         return {''}
 
-    @staticmethod
-    def add(a: set[str], b: set[str]) -> set[str]:
+    def add(self, a: set[str], b: set[str]) -> set[str]:
         return a | b
 
-    @staticmethod
-    def mul(a: set[str], b: set[str]) -> set[str]:
+    def mul(self, a: set[str], b: set[str]) -> set[str]:
         # Concatenation of sets: {xy | x in a, y in b}
         if not a or not b:
             return set()
         return {x + y for x in a for y in b}
 
-    @staticmethod
-    def nsum(a: set[str], n: int) -> set[str]:
+    def nsum(self, a: set[str], n: int) -> set[str]:
         if n < 0:
             raise ValueError('StringSemiring does not support negative nsum')
         # Idempotent: a | a = a
@@ -713,8 +655,7 @@ class StringSemiring:
             return set()
         return a
 
-    @staticmethod
-    def power(a: set[str], n: int) -> set[str]:
+    def power(self, a: set[str], n: int) -> set[str]:
         if n == 0:
             return {''}
         if n == 1:
@@ -723,17 +664,16 @@ class StringSemiring:
         base = a
         while n > 0:
             if n % 2 == 1:
-                res = StringSemiring.mul(res, base)
-            base = StringSemiring.mul(base, base)
+                res = self.mul(res, base)
+            base = self.mul(base, base)
             n //= 2
         return res
 
-    @staticmethod
-    def star(a: set[str]) -> set[str]:
+    def star(self, a: set[str]) -> set[str]:
         raise NotImplementedError('Kleene star not supported for StringSemiring')
 
 
-class ProvenanceSemiring:
+class ProvenanceSemiring(Semiring[dict[tuple[str, ...], int]]):
     """
     The Polynomial Provenance Semiring N[X].
     Values are dictionaries mapping monomials (tuples of variables) to coefficients (counts).
@@ -750,16 +690,14 @@ class ProvenanceSemiring:
     def one(self) -> dict[tuple[str, ...], int]:
         return {(): 1}
 
-    @staticmethod
-    def add(a: dict[tuple[str, ...], int], b: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
+    def add(self, a: dict[tuple[str, ...], int], b: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
         # Polynomial addition: sum coefficients of like terms
         result = a.copy()
         for term, coeff in b.items():
             result[term] = result.get(term, 0) + coeff
         return result
 
-    @staticmethod
-    def mul(a: dict[tuple[str, ...], int], b: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
+    def mul(self, a: dict[tuple[str, ...], int], b: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
         # Polynomial multiplication: convolution of terms
         result = {}
         for term1, coeff1 in a.items():
@@ -770,33 +708,30 @@ class ProvenanceSemiring:
                 result[new_term] = result.get(new_term, 0) + new_coeff
         return result
 
-    @staticmethod
-    def nsum(a: dict[tuple[str, ...], int], n: int) -> dict[tuple[str, ...], int]:
+    def nsum(self, a: dict[tuple[str, ...], int], n: int) -> dict[tuple[str, ...], int]:
         if n < 0:
             raise ValueError('ProvenanceSemiring does not support negative nsum')
         if n == 0:
             return {}
         return {term: coeff * n for term, coeff in a.items()}
 
-    @staticmethod
-    def power(a: dict[tuple[str, ...], int], n: int) -> dict[tuple[str, ...], int]:
+    def power(self, a: dict[tuple[str, ...], int], n: int) -> dict[tuple[str, ...], int]:
         if n == 0:
             return {(): 1}
         res = {(): 1}
         base = a
         while n > 0:
             if n % 2 == 1:
-                res = ProvenanceSemiring.mul(res, base)
-            base = ProvenanceSemiring.mul(base, base)
+                res = self.mul(res, base)
+            base = self.mul(base, base)
             n //= 2
         return res
 
-    @staticmethod
-    def star(a: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
+    def star(self, a: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
         raise NotImplementedError('Kleene star not implemented for ProvenanceSemiring')
 
 
-class KCollapsedSemiring:
+class KCollapsedSemiring(Semiring[int]):
     """
     The K-Collapsed Natural Numbers.
     Values are integers in [0, K].
@@ -832,7 +767,7 @@ class KCollapsedSemiring:
             return 1
         # a^n in this semiring is min(k, a^n)
         # We can compute a^n normally and clamp.
-        return min(self.k, a**n)
+        return min(self.k, a ** n)
 
     def star(self, a: int) -> int:
         # 1 + a + a^2 + ...
@@ -843,7 +778,7 @@ class KCollapsedSemiring:
         return self.k
 
 
-class DigitalSemiring:
+class DigitalSemiring(Semiring[float | int]):
     """
     The Digital Semiring (W, (+), (*)).
     W = N U {inf}.
@@ -932,6 +867,5 @@ class DigitalSemiring:
 
     def star(self, a: float | int) -> float | int:
         raise NotImplementedError('Kleene star not implemented for DigitalSemiring')
-
 
 # endregion
