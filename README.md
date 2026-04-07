@@ -6,7 +6,7 @@ in Graph Theory, Signal Processing, and Physics.
 ## Features
 
 * **Semirings**: Tropical, Reliability, Bottleneck, Matrix, and more.
-* **Graph Algorithms**: Generic solvers for shortest path, connectivity, and flow.
+* **Graph Algorithms**: Generic solvers for: shortest path, connectivity, and flow.
 * **Matrix Operations**: Sparse matrix multiplication, transposition, and addition.
 * **Extensibility**: Easily define custom semirings for specialized applications.
 
