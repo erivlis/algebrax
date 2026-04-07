@@ -5,7 +5,7 @@ site_author = "Eran Rivlis"
 site_description = ""
 repo_url = "https://github.com/erivlis/algebrax"
 repo_name = "erivlis/algebrax"
-#license = "https://github.com/erivlis/algebra/LICENSE"
+#license = "https://github.com/erivlis/algebrax/LICENSE"
 extra_css = [
     "stylesheets/extra.css"
 ]
