@@ -5,8 +5,13 @@ description = "Algebraic Structures and Semirings for Python"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["math", "mathematics", "algebra", "semiring", "ring", "field", "group", "monoid", "mapping", "matrix"]
 authors = [
-    { name = "Eran Rivlis", email = "eran@rivlis.info" },
+    { name = "Eran Rivlis", email = "eran@rivlis.info" }
+]
+maintainers = [
+    { name = "Eran Rivlis", email = "eran@rivlis.info" }
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -23,15 +28,13 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
     "Typing :: Typed"
 ]
-keywords = ["algebra", "semiring", "ring", "field", "group", "monoid", "mapping", "matrix"]
 dependencies = [
     "mappingtools>=0.10.0"
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/erivlis/algebrax"
-"Repository" = "https://github.com/erivlis/algebrax.git"
-"Source" = "https://github.com/erivlis/algebrax.git"
+"Source Code" = "https://github.com/erivlis/algebrax.git"
 "Bug Tracker" = "https://github.com/erivlis/algebrax/issues"
 "Documentation" = "https://erivlis.github.io/algebrax"
 
@@ -39,7 +42,6 @@ dependencies = [
 [dependency-groups]
 dev = [
     "commitizen>=4.10.0",
-    "pipdeptree",
     "ruff",
     "ty",
     "uv"
