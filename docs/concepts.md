@@ -1,6 +1,6 @@
 # Algebraic Structures
 
-This document provides a theoretical overview of the algebraic structures used in `mappingtools.algebra`. Understanding
+This document provides a theoretical overview of the algebraic structures used in `algebrax`. Understanding
 these concepts helps clarify why certain operations are grouped together and how they generalize across different
 domains (graphs, logic, probability).
 
@@ -114,7 +114,7 @@ The `algebra.analysis` module implements concepts from DEC on graphs.
 | **Laplacian ($\Delta$)** | $\Delta = d^* d$             | `laplacian()`  | Heat diffusion rate               |
 
 **Note on Curl**:
-The Curl operator ($d_1$) maps 1-forms (edges) to 2-forms (faces). Since `mappingtools` operates on Graphs (nodes and
+The Curl operator ($d_1$) maps 1-forms (edges) to 2-forms (faces). Since `algebrax` operates on Graphs (nodes and
 edges only), there are no 2-forms (triangles/faces), so **Curl is undefined** (or trivially zero). To support Curl, the
 library would need to support Simplicial Complexes.
 
@@ -148,7 +148,7 @@ This abstraction allows the same `AlgebraicTrie` class to serve as:
 
 ## Why Semirings?
 
-`mappingtools` focuses heavily on **Semirings** because many discrete structures (graphs, automata, logic) do not
+`algebrax` focuses heavily on **Semirings** because many discrete structures (graphs, automata, logic) do not
 support subtraction or division.
 
 * **Shortest Path**: You cannot "un-take" a minimum. $a \oplus b = \min(a, b)$. If $a=5, b=3$, result is 3. You cannot
@@ -166,7 +166,7 @@ functions to solve:
 
 ## Why Not Clifford Algebra?
 
-While Clifford Algebra is powerful for geometry (rotations, physics), it is **not implemented** in `mappingtools`
+While Clifford Algebra is powerful for geometry (rotations, physics), it is **not implemented** in `algebrax`
 because:
 
 1. **Density**: Geometric products often mix all components (e.g., rotating a vector usually makes it dense). This

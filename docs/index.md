@@ -218,7 +218,7 @@ across varying densities and matrix sizes.
 | **60%** | 0.93x            | 0.8x              | 0.98x             | 1.06x             | 1.35x              |
 
 !!! tip "Conclusion"
-Use `mappingtools` when your data density is **below 50%**.
+Use `algebrax` when your data density is **below 50%**.
 For dense data, the overhead of dictionary hashing outweighs the benefit of skipping zeros.
 
 ### Benchmark Code
@@ -286,7 +286,7 @@ def run_benchmark(N, target_density, iterations):
     t_naive = timeit.timeit(lambda: naive_multiply(dense_A, dense_B), number=iterations)
     avg_naive = t_naive / iterations
 
-    # 2. MappingTools Sparse
+    # 2. algebrax Sparse
     t_sparse = timeit.timeit(lambda: dot(sparse_A, sparse_B, semiring=StandardSemiring()), number=iterations)
     avg_sparse = t_sparse / iterations
 
