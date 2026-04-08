@@ -12,15 +12,28 @@ extra_css = [
 nav = [
     { Start = [
         "index.md",
-        "installation.md",
-        "overview.md"
+        "concepts.md"
     ] },
-    { Reference = "reference.md" },
-    { Development = [
-        "design_decisions.md",
-        "development_guide.md",
-        "contributing.md",
-        "acknowledgements.md"
+    { Examples = [
+        { NLP = "examples/nlp/cyk_parsing.md" },
+        { Trie = "examples/trie/algebraic_trie.md" },
+        { Physics = [
+            "examples/physics/pagerank.md",
+            "examples/physics/graph_reynolds.md",
+            "examples/physics/fenchel_legendre.md"
+        ] },
+        { Semirings = [
+            "examples/semirings/semiring_matrix.md",
+            "examples/semirings/semiring_boolean.md",
+            "examples/semirings/semiring_digital.md",
+            "examples/semirings/semiring_viterbi.md",
+            "examples/semirings/semiring_standard.md",
+            "examples/semirings/semiring_tropical.md",
+            "examples/semirings/semiring_provenance.md",
+            "examples/semirings/semiring_convex_hull.md"
+        ] },
+        { Performance = "examples/performance/benchmark_matrix_mult.md" },
+        { Combinatorics = "examples/combinatorics/catalan.md" }
     ] }
 ]
 

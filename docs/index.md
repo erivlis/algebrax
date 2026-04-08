@@ -1,8 +1,4 @@
----
-icon: lucide/square-pi
----
-
-# Algebra
+# AlgebraX
 
 !!! Abstract
 The `algebrax` namespace provides mathematical primitives for sparse data structures, treating Python's
