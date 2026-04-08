@@ -1,5 +1,5 @@
 import math
-from typing import Protocol
+from typing import Protocol, TypeVar
 
 __all__ = [
     'ArcticSemiring',
@@ -25,8 +25,9 @@ __all__ = [
 
 # region Protocol
 
+V = TypeVar('V')
 
-class Semiring[V](Protocol):
+class Semiring(Protocol[V]):
     """
     A Protocol defining a Semiring (S, +, *, 0, 1).
     Used to generalize linear algebra operations.
