@@ -33,7 +33,6 @@ nav = [
         { Trie = ["guide/trie/algebraic_trie.md"] },
         { Physics = [
             "guide/physics/pagerank.md",
-            "guide/physics/graph_reynolds.md",
             "guide/physics/fenchel_legendre.md"
         ] },
         { Combinatorics = ["guide/combinatorics/catalan.md"] },
