@@ -2,16 +2,16 @@ import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 
-from algebrax.semiring import Semiring, StandardSemiring
+from algebrax.semiring import Semiring
 from algebrax.typing import K, N, SparseMatrix, SparseVector
 
 __all__ = [
     'divergence',
     'fenchel_legendre_transform',
+    'forman_ricci_curvature',
     'gaussian_kernel',
     'gradient',
     'laplacian',
-    'ollivier_ricci_curvature',
 ]
 
 
@@ -49,9 +49,9 @@ def divergence(flow: SparseMatrix) -> SparseVector:
 
 
 def fenchel_legendre_transform(
-    signal: SparseVector[K, N],
-    slope: N,
-    semiring: Semiring[N] | None = None,
+        signal: SparseVector[K, N],
+        slope: N,
+        semiring: Semiring[N] | None = None,
 ) -> N:
     """
     Compute the discrete Fenchel-Legendre transform (Slope Transform) of a signal at a specific slope.
@@ -98,6 +98,140 @@ def fenchel_legendre_transform(
             max_val = val
 
     return max_val
+
+
+def _is_graph_weighted(graph: SparseMatrix) -> bool:
+    for neighbors in graph.values():
+        for w in neighbors.values():
+            if w != 1 and w != 1.0:
+                return True
+    return False
+
+
+def _get_common_neighbors(graph: SparseMatrix, node_a: K, node_b: K) -> set[K]:
+    if node_a not in graph or node_b not in graph:
+        return set()
+    return set(graph[node_a].keys()) & set(graph[node_b].keys())
+
+
+def _adjacent_sum(neighbors: Mapping[K, float], exclude_node: K, w_e: float, w_node: float) -> float:
+    total = 0.0
+    for z, w_edge in neighbors.items():
+        if z != exclude_node:
+            denom = math.sqrt(w_e * w_edge)
+            if denom > 0:
+                total += w_node / denom
+    return total
+
+
+def _unweighted_forman_ricci(
+        graph: SparseMatrix,
+        degrees: dict[K, int],
+        augmented: bool,
+) -> dict[tuple[K, K], float]:
+    curvature = {}
+    for u, neighbors in graph.items():
+        for v in neighbors:
+            try:
+                should_process = u < v
+            except TypeError:
+                should_process = id(u) < id(v)
+
+            if not should_process:
+                continue
+
+            deg_u = degrees.get(u, 0)
+            deg_v = degrees.get(v, 0)
+            k = 4.0 - deg_u - deg_v
+            if augmented:
+                k += 3.0 * len(_get_common_neighbors(graph, u, v))
+            curvature[(u, v)] = float(k)
+    return curvature
+
+
+def _weighted_forman_ricci(
+        graph: SparseMatrix,
+        strengths: dict[K, float],
+        augmented: bool,
+) -> dict[tuple[K, K], float]:
+    curvature = {}
+    for u, neighbors in graph.items():
+        for v, w_uv in neighbors.items():
+            try:
+                should_process = u < v
+            except TypeError:
+                should_process = id(u) < id(v)
+
+            if not should_process:
+                continue
+
+            w_e = w_uv
+            if w_e == 0:
+                curvature[(u, v)] = 0.0
+                continue
+
+            w_u = strengths.get(u, 0.0)
+            w_v = strengths.get(v, 0.0)
+
+            sum_u = _adjacent_sum(graph[u], v, w_e, w_u)
+            sum_v = _adjacent_sum(graph[v], u, w_e, w_v)
+
+            k = w_e * ((w_u / w_e) + (w_v / w_e) - sum_u - sum_v)
+
+            if augmented:
+                tri_contrib = 0.0
+                for w in _get_common_neighbors(graph, u, v):
+                    w_vw = graph[v][w]
+                    w_wu = graph[w][u]
+                    w_f = (w_e * w_vw * w_wu) ** (1 / 3)
+                    if w_f > 0:
+                        tri_contrib += w_e / w_f
+                k += 3.0 * tri_contrib
+
+            curvature[(u, v)] = float(k)
+    return curvature
+
+
+def forman_ricci_curvature(
+        graph: SparseMatrix,
+        weighted: bool | None = None,
+        augmented: bool = True,
+) -> dict[tuple[K, K], float]:
+    """
+    Compute the Forman-Ricci Curvature for edges in a graph.
+
+    Forman-Ricci Curvature (FRC) is a discrete combinatorial analog of the Ricci
+    curvature on Riemannian manifolds. It measures the local divergence or cohesion
+    of flows along edges.
+
+    For an undirected edge e = (u, v) in an unweighted graph:
+    - 1D FRC: F(e) = 4 - deg(u) - deg(v)
+    - Augmented FRC (incorporating triangles): F(e) = 4 - deg(u) - deg(v) + 3 * tri(e)
+
+    For a weighted graph (Sreejith et al. formulation):
+    - F(e) = w_e * (w_u/w_e + w_v/w_e - sum_{e' ~ u} w_u/sqrt(w_e * w_e') - sum_{e' ~ v} w_v/sqrt(w_e * w_e'))
+      where node weights w_u and w_v default to node strengths (weighted degree).
+    - Augmented FRC: F_weighted_1D(e) + 3 * sum_{f > e} w_e / w_f
+      where the weight of a triangle face f = (u, v, w) is the geometric mean of its edge weights.
+
+    Args:
+        graph: Adjacency matrix (weighted or unweighted).
+        weighted: Whether to compute weighted curvature. If None, automatically detected
+                  based on whether any edge weights differ from 1.
+        augmented: Whether to include 2D triangle contributions (default is True).
+
+    Returns:
+        A dictionary mapping edges (u, v) (with u < v) to their curvature values.
+    """
+    if weighted is None:
+        weighted = _is_graph_weighted(graph)
+
+    if not weighted:
+        degrees = {u: len(neighbors) for u, neighbors in graph.items()}
+        return _unweighted_forman_ricci(graph, degrees, augmented)
+    else:
+        strengths = {u: sum(neighbors.values()) for u, neighbors in graph.items()}
+        return _weighted_forman_ricci(graph, strengths, augmented)
 
 
 def gaussian_kernel(distance_matrix: SparseMatrix, sigma: float = 1.0, threshold: float = 1e-6) -> SparseMatrix:
@@ -198,56 +332,3 @@ def laplacian(field: SparseVector, graph: SparseMatrix) -> SparseVector:
             result[u] = local_sum
 
     return dict(result)
-
-
-def ollivier_ricci_curvature(graph: SparseMatrix) -> dict[tuple[K, K], float]:
-    """
-    Compute the Ollivier-Ricci Curvature for edges in a graph.
-    Ric(xy) = 1 - W_1(m_x, m_y) / d(x, y)
-
-    Where W_1 is the Wasserstein distance (Earth Mover's Distance) between
-    probability measures m_x and m_y defined around nodes x and y.
-
-    Note: This is a simplified implementation approximating W_1 for sparse graphs.
-    Full computation requires a linear programming solver (e.g., scipy.optimize).
-    Here we use a greedy approximation or simple overlap for efficiency in pure Python.
-
-    Approximation: Jaccard-like overlap of neighborhoods.
-    Ric(xy) approx 1 - (1 - |N(x) n N(y)| / |N(x) u N(y)|) ... this is rough.
-
-    Let's implement a basic version based on "Forman-Ricci Curvature" which is
-    much faster and purely combinatorial (O(N) instead of O(N^3)).
-
-    Forman-Ricci Curvature for edge e=(u, v):
-    F(e) = 4 - deg(u) - deg(v)
-
-    Args:
-        graph: Adjacency matrix (weighted).
-
-    Returns:
-        A dictionary mapping edges (u, v) to their curvature values.
-    """
-    curvature = {}
-    degrees = {u: len(neighbors) for u, neighbors in graph.items()}
-
-    for u, neighbors in graph.items():
-        for v in neighbors:
-            if u < v:  # Undirected edge, process once
-                # Forman-Ricci Curvature (Combinatorial)
-                # F(e) = 4 - deg(u) - deg(v)
-                # This is a very rough proxy for "manifold curvature".
-                # Negative values -> Hyperbolic (Tree-like, Expander)
-                # Positive values -> Spherical (Clique-like, Cluster)
-                # Zero -> Euclidean (Grid)
-
-                # Refined Forman (accounting for triangles/weights is better but complex)
-                # Let's stick to the basic combinatorial definition.
-                deg_u = degrees.get(u, 0)
-                deg_v = degrees.get(v, 0)
-
-                # Standard Forman formula for unweighted graphs
-                k = 4 - deg_u - deg_v
-
-                curvature[(u, v)] = k
-
-    return curvature

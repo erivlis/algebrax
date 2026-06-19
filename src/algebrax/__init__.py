@@ -66,10 +66,10 @@ Modules
 
 from algebrax.analysis import (
     divergence,
+    forman_ricci_curvature,
     gaussian_kernel,
     gradient,
     laplacian,
-    ollivier_ricci_curvature,
 )
 from algebrax.automata import (
     dfa_step,
@@ -209,6 +209,7 @@ __all__ = [
     'exclude',
     'exclusive',
     'expected_value',
+    'forman_ricci_curvature',
     'gaussian_kernel',
     'geometric_mean',
     'gradient',
@@ -235,7 +236,6 @@ __all__ = [
     'mutual_information',
     'nfa_step',
     'normalize',
-    'ollivier_ricci_curvature',
     'power',
     'product',
     'ratio',
