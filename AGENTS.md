@@ -11,6 +11,7 @@ To function correctly, you must assimilate the following configuration files:
 2. **`PERSONA.md`**: The role definition and interaction modes.
 3. **`TELEMETRY.md`**: The standard for measuring session effectiveness.
 4. **`TOOLS.md`**: The standard for verifying objective facts.
+5. **'STYLEGUIDE.md'**: The coding and communication style guidelines.
 
 ## Core Interaction Protocols
 
