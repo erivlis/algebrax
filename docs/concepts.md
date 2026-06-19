@@ -262,7 +262,7 @@ The following table categorizes the functions in the `algebra` module by their *
 | `gradient`                 | Structural | Edge-based difference operator.                |
 | `divergence`               | Structural | Node-based flow operator.                      |
 | `eigen_centrality`         | Structural | Node importance ranking.                       |
-| `ollivier_ricci_curvature` | Metric     | Local curvature of the graph (Geometry).       |
+| `forman_ricci_curvature`   | Metric     | Local curvature of the graph (Geometry).       |
 
 ### 5. Signal Processing
 
