@@ -1,3 +1,7 @@
+---
+title: Provenance Semiring
+---
+
 # Provenance Semiring (History Tracking)
 
 The **Provenance Semiring** ($N[X]$) tracks *which* facts contributed to a result and *how many times*.

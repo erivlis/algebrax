@@ -1,6 +1,17 @@
-# AlgebraX
+---
+description: Explore the `algebrax` library, which provides algebraic structures and operations
+icon: lucide/info
+---
 
-!!! Abstract
+
+# Introduction
+
+!!! warning "Early Development"
+
+    This lib is in early development and subject to change.
+
+## Abstract
+
 The `algebrax` namespace provides mathematical primitives for sparse data structures, treating Python's
 native `dict` as a first-class algebraic object.
 
@@ -317,9 +328,11 @@ if __name__ == "__main__":
 
 ## Advanced Semirings (Matrix / Fiber Bundles)
 
-These semirings use **Matrices** as values, allowing for non-commutative operations. This models **Gauge Theory**, **Robotics Kinematics**, and **Currency Arbitrage**.
+These semirings use **Matrices** as values, allowing for non-commutative operations. This models **Gauge Theory**, *
+*Robotics Kinematics**, and **Currency Arbitrage**.
 
 !!! note "Dependency"
+
     This example requires `numpy`.
 
 <!-- name: test_matrix_semiring -->
@@ -328,6 +341,7 @@ These semirings use **Matrices** as values, allowing for non-commutative operati
 import numpy as np
 from algebrax.semiring import Semiring
 
+
 class MatrixSemiring(Semiring[np.ndarray]):
     """
     Models a Vector Bundle connection (Parallel Transport).
@@ -335,6 +349,7 @@ class MatrixSemiring(Semiring[np.ndarray]):
     Plus: Element-wise Min (Aggregation).
     Times: Matrix Multiplication (Composition).
     """
+
     def __init__(self, dim: int):
         self.dim = dim
 
@@ -354,7 +369,7 @@ class MatrixSemiring(Semiring[np.ndarray]):
     def mul(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         # Non-Commutative! Order matters.
         return a @ b
-    
+
     def nsum(self, a: np.ndarray, n: int) -> np.ndarray:
         # Scalar multiplication in Min-Plus is just 'a' (idempotent)
         # But for matrices, it's element-wise min n times... which is just 'a'.
@@ -371,7 +386,7 @@ class MatrixSemiring(Semiring[np.ndarray]):
             base = self.mul(base, base)
             n //= 2
         return res
-        
+
     def star(self, a: np.ndarray) -> np.ndarray:
         # Kleene star for matrices (I + A + A^2 + ...)
         # In Tropical Matrix semiring, this solves All-Pairs Shortest Path
@@ -379,15 +394,16 @@ class MatrixSemiring(Semiring[np.ndarray]):
         # For small N, we can just sum powers up to N.
         res = self.one
         term = a
-        for _ in range(self.dim): # A^dim is usually enough for convergence in graphs
-             res = self.add(res, term)
-             term = self.mul(term, a)
+        for _ in range(self.dim):  # A^dim is usually enough for convergence in graphs
+            res = self.add(res, term)
+            term = self.mul(term, a)
         return res
 
 
 # Usage: Currency Arbitrage / Coordinate Transform
 dim = 2
 ms = MatrixSemiring(dim)
+
 
 # Transformation A -> B (e.g., Rotate 90 degrees)
 # In Tropical context, this would be costs. Let's use standard matrix mul for rotation.
@@ -396,8 +412,11 @@ ms = MatrixSemiring(dim)
 class StandardMatrixSemiring(MatrixSemiring):
     @property
     def zero(self): return np.zeros((self.dim, self.dim))
+
     def add(self, a, b): return a + b
+
     def mul(self, a, b): return a @ b
+
 
 sms = StandardMatrixSemiring(2)
 rot90 = np.array([[0, -1], [1, 0]])
@@ -425,6 +444,7 @@ $Re_G = \frac{\text{Momentum}}{\text{Viscosity}} = \frac{\text{Total Flow}}{\tex
 import networkx as nx
 import numpy as np
 
+
 def calculate_graph_reynolds(G: nx.Graph, flow_dict: dict) -> float:
     """
     Calculates the 'Rivlis-Plesset Number' (Rp) for a network.
@@ -432,17 +452,18 @@ def calculate_graph_reynolds(G: nx.Graph, flow_dict: dict) -> float:
     # 1. Momentum (Total Flow)
     total_flow = sum(flow_dict.values())
     if total_flow == 0: return 0.0
-    
+
     # 2. Viscosity (Algebraic Connectivity / Fiedler Value)
     # High connectivity = Low drag (fluid moves easily).
     try:
         # weight='capacity' if edges have capacity
-        viscosity = nx.algebraic_connectivity(G) 
+        viscosity = nx.algebraic_connectivity(G)
     except:
-        viscosity = 0.001 # Disconnected graph
-        
+        viscosity = 0.001  # Disconnected graph
+
     # 3. Reynolds Calculation
     return total_flow / (viscosity + 1e-9)
+
 
 def analyze_stability(rp: float) -> str:
     if rp < 1000:
@@ -451,6 +472,7 @@ def analyze_stability(rp: float) -> str:
         return "Transitional (Wobbling)"
     else:
         return "Turbulent (Cavitation Imminent!)"
+
 
 # Simulation
 G = nx.grid_2d_graph(5, 5)
@@ -474,7 +496,7 @@ The "Fourier Transform" for the Min-Plus semiring. It analyzes the "slope conten
 from algebrax.analysis import fenchel_legendre_transform
 
 # A convex signal (like a potential well)
-signal = {0: 0, 1: 1, 2: 4, 3: 9} # f(x) = x^2
+signal = {0: 0, 1: 1, 2: 4, 3: 9}  # f(x) = x^2
 
 # Analyze slope at s=2
 # f*(s) = sup(s*x - f(x))

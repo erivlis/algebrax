@@ -1,6 +1,13 @@
+---
+title: Tropical Semiring
+---
+
 # Tropical Semiring (Shortest Path)
 
-The **Tropical Semiring** uses $(\min, +)$. Matrix multiplication becomes the shortest path algorithm.
+The **Tropical Semiring** uses $(\min, +)$.
+
+Matrix multiplication becomes the shortest path algorithm.
+
 
 <!-- name: test_tropical_semiring -->
 

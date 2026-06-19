@@ -1,10 +1,14 @@
+---
+title: Viterbi Semiring
+---
+
 # Viterbi Algorithm (Hidden Markov Models)
 
 The **Viterbi Algorithm** finds the most likely sequence of hidden states in a Hidden Markov Model (HMM).
 Algebraically, this is matrix multiplication over the **Max-Product Semiring** $(\max, \times)$.
 
-*   **Add**: $\max$ (Select the best path).
-*   **Mul**: $\times$ (Combine probabilities).
+* **Add**: $\max$ (Select the best path).
+* **Mul**: $\times$ (Combine probabilities).
 
 <!-- name: test_viterbi_semiring -->
 
@@ -45,19 +49,19 @@ for obs in obs_seq:
     for state, prob in current_probs.items():
         p_emit = emissions[state].get(obs, 0.0)
         after_emission[state] = semiring.mul(prob, p_emit)
-        
+
     # 2. Transition: Propagate to next state (Matrix Vector Mul)
     # next_state = current * transition_matrix
     # We use dot() but we need to format vectors as matrices for the library
     # or just do it manually for this vector-matrix step.
-    
+
     # Let's use the library's dot product.
     # Vector as 1xN matrix: {0: {'H': p1, 'F': p2}}
     vec_matrix = {0: after_emission}
-    
+
     # Transition matrix needs to be in the right format
     # transitions is already dict-of-dicts
-    
+
     next_step = dot(vec_matrix, transitions, semiring=semiring)
     current_probs = next_step[0]
 

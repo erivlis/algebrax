@@ -1,10 +1,18 @@
-# Algebraic Structures
+---
+title: Concepts
+description: Theoretical overview of the algebraic structures used in `algebrax`, including monoids, groups, semirings, and their applications in graph analysis, logic, and probability.
+icon: lucide/lightbulb
+---
+
+# Concepts
 
 This document provides a theoretical overview of the algebraic structures used in `algebrax`. Understanding
 these concepts helps clarify why certain operations are grouped together and how they generalize across different
 domains (graphs, logic, probability).
 
-## Hierarchy of Structures (Ordered by Complexity)
+## Algebraic Structures
+
+Hierarchy of Structures (Ordered by Complexity)
 
 ### 1. Monoid $(M, \cdot)$
 

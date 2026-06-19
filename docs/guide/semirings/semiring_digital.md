@@ -1,3 +1,7 @@
+---
+title: Digital Semiring
+---
+
 # Digital Semiring (Post-Quantum Cryptography)
 
 The **Digital Semiring** uses the sum of decimal digits to determine order.

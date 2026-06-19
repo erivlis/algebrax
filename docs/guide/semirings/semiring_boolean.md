@@ -1,10 +1,14 @@
+---
+title: Boolean Semiring
+---
+
 # Boolean Semiring (Reachability)
 
 The **Boolean Semiring** uses $(\lor, \land)$. It answers "Is there a path?" without counting them.
 Matrix multiplication yields the **Transitive Closure** (Reachability).
 
-*   **Add**: $\lor$ (OR)
-*   **Mul**: $\land$ (AND)
+* **Add**: $\lor$ (OR)
+* **Mul**: $\land$ (AND)
 
 <!-- name: test_boolean_semiring -->
 

@@ -1,3 +1,7 @@
+---
+title: Standard Semiring
+---
+
 # Standard Semiring (Linear Algebra)
 
 The default semiring uses standard arithmetic ($+, \times$).

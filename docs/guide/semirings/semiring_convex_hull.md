@@ -1,4 +1,8 @@
-# Custom Semiring: Convex Hull
+---
+title: Convex Hull Semiring
+---
+
+# Convex Hull Semiring (Multi-Objective Optimization)
 
 You can define your own semiring to solve specialized problems.
 
