@@ -2,6 +2,7 @@ import pytest
 
 from algebrax.analysis import (
     divergence,
+    fenchel_legendre_transform,
     forman_ricci_curvature,
     gaussian_kernel,
     gradient,
@@ -96,3 +97,31 @@ def test_forman_ricci_curvature():
 
     f_weighted_aug = forman_ricci_curvature(weighted_graph, augmented=True)
     assert f_weighted_aug[(0, 1)] == pytest.approx(3.0)
+
+
+def test_fenchel_legendre_transform():
+    from algebrax.semiring import ArcticSemiring, StandardSemiring, TropicalSemiring
+
+    # f(x) = x^2
+    signal = {0: 0.0, 1: 1.0, 2: 4.0, 3: 9.0}
+
+    # Standard / None semiring (fallback)
+    # f*(s) = sup_x (s*x - f(x))
+    # s = 2: max(2*0-0, 2*1-1, 2*2-4, 2*3-9) = max(0, 1, 0, -3) = 1.0
+    val_none = fenchel_legendre_transform(signal, slope=2.0)
+    assert val_none == 1.0
+
+    val_std = fenchel_legendre_transform(signal, slope=2.0, semiring=StandardSemiring())
+    assert val_std == 1.0
+
+    # Tropical (Min-Plus):
+    # f*(s) = min_x (s + x - f(x))
+    # s = 2: min(2+0-0, 2+1-1, 2+2-4, 2+3-9) = min(2, 2, 0, -4) = -4.0
+    val_trop = fenchel_legendre_transform(signal, slope=2.0, semiring=TropicalSemiring())
+    assert val_trop == -4.0
+
+    # Arctic (Max-Plus):
+    # f*(s) = max_x (s + x - f(x))
+    # s = 2: max(2+0-0, 2+1-1, 2+2-4, 2+3-9) = max(2, 2, 0, -4) = 2.0
+    val_arc = fenchel_legendre_transform(signal, slope=2.0, semiring=ArcticSemiring())
+    assert val_arc == 2.0

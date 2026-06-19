@@ -2,7 +2,7 @@ import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 
-from algebrax.semiring import Semiring
+from algebrax.semiring import Semiring, StandardSemiring, TropicalSemiring, ArcticSemiring, LogSemiring
 from algebrax.typing import K, N, SparseMatrix, SparseVector
 
 __all__ = [
@@ -57,47 +57,68 @@ def fenchel_legendre_transform(
     Compute the discrete Fenchel-Legendre transform (Slope Transform) of a signal at a specific slope.
     This is the Tropical/Idempotent analog of the Fourier Transform.
 
-    For Min-Plus Semiring (Tropical):
-        (F*)(s) = sup_x { <s, x> - F(x) }
-        But in Min-Plus algebra terms (where * is +, + is min):
-        This often corresponds to the convex conjugate.
+    If semiring is None (or StandardSemiring), we fall back to the standard convex conjugate:
+        f*(s) = sup_x { s * x - f(x) }
 
-    In the context of "Tropical Fourier Transform" for a periodic signal f:
-    F(s) = min_x ( f(x) - s*x )  (or similar depending on convention)
-
-    Here we implement the standard convex conjugate definition:
-    f*(s) = sup_x ( s*x - f(x) )
+    If a general semiring is provided, we compute the generalized Legendre-Fenchel transform:
+        f*(s) = \\bigoplus_x { s \\otimes x \\otimes f(x)^{-1} }
+    where \\bigoplus is semiring.add, \\otimes is semiring.mul, and f(x)^{-1} is the multiplicative inverse
+    of f(x) under the semiring's multiplication.
 
     Args:
         signal: The input signal (mapping from index/position to value).
         slope: The slope parameter (dual variable).
         semiring: The algebraic structure.
-                  If Tropical (Min-Plus), we use min/plus logic?
-                  Actually, the Fenchel transform is usually defined over the standard ring for the values.
-                  If we are strictly in Tropical Semiring, "integration" is min.
 
     Returns:
         The value of the transform at the given slope.
     """
-    # Standard Fenchel-Legendre: max(s*x - f(x))
-    # This detects "slope content".
+    if not signal:
+        if semiring is not None:
+            return semiring.zero
+        return float('-inf')
 
-    # If the signal is sparse, we iterate over defined points.
-    # We assume K (keys) are numeric (positions).
+    if semiring is None or isinstance(semiring, StandardSemiring):
+        max_val = float('-inf')
+        for x, fx in signal.items():
+            if not isinstance(x, (int, float)):
+                continue
+            val = slope * x - fx
+            if val > max_val:
+                max_val = val
+        if max_val == float('-inf'):
+            return semiring.zero if semiring is not None else float('-inf')
+        return max_val
 
-    max_val = float('-inf')
-
+    total = semiring.zero
+    first = True
     for x, fx in signal.items():
-        # We assume x is numeric (time/space index)
         if not isinstance(x, (int, float)):
             continue
 
-        # val = s*x - f(x)
-        val = slope * x - fx
-        if val > max_val:
-            max_val = val
+        try:
+            sx = semiring.mul(slope, x)
+        except Exception:
+            sx = semiring.mul(slope, type(slope)(x))
 
-    return max_val
+        if isinstance(semiring, (TropicalSemiring, ArcticSemiring, LogSemiring)):
+            # Multiplication is addition (+), so multiplicative inverse is negation (-fx).
+            inv_fx = -fx
+            term = semiring.mul(sx, inv_fx)
+        else:
+            try:
+                inv_fx = 1.0 / fx if fx != 0 else float('inf')
+                term = semiring.mul(sx, inv_fx)
+            except Exception:
+                term = sx - fx
+
+        if first:
+            total = term
+            first = False
+        else:
+            total = semiring.add(total, term)
+
+    return total
 
 
 def _is_graph_weighted(graph: SparseMatrix) -> bool:
