@@ -1,6 +1,6 @@
 [project]
 copyright = "Copyright &copy; 2026 Eran Rivlis"
-site_name = "AlgebrX"
+site_name = "AlgebraX"
 site_author = "Eran Rivlis"
 site_description = ""
 repo_url = "https://github.com/erivlis/algebrax"
@@ -18,26 +18,26 @@ nav = [
         "index.md",
         "concepts.md"
     ] },
-    { Examples = [
-        { NLP = "examples/nlp/cyk_parsing.md" },
-        { Trie = "examples/trie/algebraic_trie.md" },
-        { Physics = [
-            "examples/physics/pagerank.md",
-            "examples/physics/graph_reynolds.md",
-            "examples/physics/fenchel_legendre.md"
-        ] },
+    { Guide = [
         { Semirings = [
-            "examples/semirings/semiring_matrix.md",
-            "examples/semirings/semiring_boolean.md",
-            "examples/semirings/semiring_digital.md",
-            "examples/semirings/semiring_viterbi.md",
-            "examples/semirings/semiring_standard.md",
-            "examples/semirings/semiring_tropical.md",
-            "examples/semirings/semiring_provenance.md",
-            "examples/semirings/semiring_convex_hull.md"
+            "guide/semirings/semiring_standard.md",
+            "guide/semirings/semiring_tropical.md",
+            "guide/semirings/semiring_provenance.md",
+            "guide/semirings/semiring_digital.md",
+            "guide/semirings/semiring_convex_hull.md",
+            "guide/semirings/semiring_matrix.md",
+            "guide/semirings/semiring_boolean.md",
+            "guide/semirings/semiring_viterbi.md",
         ] },
-        { Performance = "examples/performance/benchmark_matrix_mult.md" },
-        { Combinatorics = "examples/combinatorics/catalan.md" }
+        { NLP = ["guide/nlp/cyk_parsing.md"] },
+        { Trie = ["guide/trie/algebraic_trie.md"] },
+        { Physics = [
+            "guide/physics/pagerank.md",
+            "guide/physics/graph_reynolds.md",
+            "guide/physics/fenchel_legendre.md"
+        ] },
+        { Combinatorics = ["guide/combinatorics/catalan.md"] },
+        { Performance = ["guide/performance/benchmark_matrix_mult.md"] }
     ] }
 ]
 
