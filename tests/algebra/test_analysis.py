@@ -64,18 +64,18 @@ def test_forman_ricci_curvature():
     graph = {0: {1: 1, 2: 1}, 1: {0: 1, 2: 1}, 2: {0: 1, 1: 1}}
 
     f_1d = forman_ricci_curvature(graph, augmented=False)
-    assert f_1d[(0, 1)] == 0.0
+    assert f_1d[(0, 1)] == pytest.approx(0.0)
 
     f_aug = forman_ricci_curvature(graph, augmented=True)
-    assert f_aug[(0, 1)] == 3.0
+    assert f_aug[(0, 1)] == pytest.approx(3.0)
 
     # 2. Unweighted Line 0-1-2-3
     # 1-2: deg(1)=2, deg(2)=2 -> 4 - 2 - 2 = 0
     # 0-1: deg(0)=1, deg(1)=2 -> 4 - 1 - 2 = 1
     line = {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {1: 1, 3: 1}, 3: {2: 1}}
     f_line = forman_ricci_curvature(line, augmented=True)
-    assert f_line[(0, 1)] == 1.0
-    assert f_line[(1, 2)] == 0.0
+    assert f_line[(0, 1)] == pytest.approx(1.0)
+    assert f_line[(1, 2)] == pytest.approx(0.0)
 
     # 3. Weighted Graph (with and without triangles)
     # 0-1: 2.0, 1-2: 2.0, 2-0: 2.0
@@ -109,19 +109,19 @@ def test_fenchel_legendre_transform():
     # f*(s) = sup_x (s*x - f(x))
     # s = 2: max(2*0-0, 2*1-1, 2*2-4, 2*3-9) = max(0, 1, 0, -3) = 1.0
     val_none = fenchel_legendre_transform(signal, slope=2.0)
-    assert val_none == 1.0
+    assert val_none == pytest.approx(1.0)
 
     val_std = fenchel_legendre_transform(signal, slope=2.0, semiring=StandardSemiring())
-    assert val_std == 1.0
+    assert val_std == pytest.approx(1.0)
 
     # Tropical (Min-Plus):
     # f*(s) = min_x (s + x - f(x))
     # s = 2: min(2+0-0, 2+1-1, 2+2-4, 2+3-9) = min(2, 2, 0, -4) = -4.0
     val_trop = fenchel_legendre_transform(signal, slope=2.0, semiring=TropicalSemiring())
-    assert val_trop == -4.0
+    assert val_trop == pytest.approx(-4.0)
 
     # Arctic (Max-Plus):
     # f*(s) = max_x (s + x - f(x))
     # s = 2: max(2+0-0, 2+1-1, 2+2-4, 2+3-9) = max(2, 2, 0, -4) = 2.0
     val_arc = fenchel_legendre_transform(signal, slope=2.0, semiring=ArcticSemiring())
-    assert val_arc == 2.0
+    assert val_arc == pytest.approx(2.0)
