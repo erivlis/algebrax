@@ -2,7 +2,7 @@ import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 
-from algebrax.semiring import Semiring, StandardSemiring, TropicalSemiring, ArcticSemiring, LogSemiring
+from algebrax.semiring import ArcticSemiring, LogSemiring, Semiring, StandardSemiring, TropicalSemiring
 from algebrax.typing import K, N, SparseMatrix, SparseVector
 
 __all__ = [
@@ -124,7 +124,7 @@ def fenchel_legendre_transform(
 def _is_graph_weighted(graph: SparseMatrix) -> bool:
     for neighbors in graph.values():
         for w in neighbors.values():
-            if w != 1 and w != 1.0:
+            if w != 1 and math.isclose(w,1.0):
                 return True
     return False
 
