@@ -1,5 +1,6 @@
 import pytest
 
+from algebrax import box_counting_dimension
 from algebrax.analysis import (
     gaussian_kernel,
     gradient,
@@ -30,7 +31,6 @@ from algebrax.probability import (
     mutual_information,
 )
 from algebrax.transforms import (
-    box_counting_dimension,
     convolve,
     dft,
     hilbert,

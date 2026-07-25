@@ -1,6 +1,7 @@
 import pytest
 
-from algebrax.sparsity import (
+from algebrax.metrics import (
+    box_counting_dimension,
     deepness,
     density,
     is_sparse,
@@ -124,3 +125,28 @@ def test_uniformness_empty_nested():
     # Depths: [2, 1]. Mean: 1.5.
     obj2 = {1: {2: {}}, 3: 3}
     assert uniformness(obj2) < 1.0
+
+
+def test_fractal():
+    # Line of 4 points: (0,), (1,), (2,), (3,)
+    # Box size 1: 4 boxes
+    # Box size 2: 2 boxes
+    # Box size 4: 1 box
+    # log(1/s): 0, -0.69, -1.38
+    # log(N): 1.38, 0.69, 0
+    # Slope should be exactly 1.0
+    points = {(i,): 1 for i in range(4)}
+    dim = box_counting_dimension(points, max_box_size=4)
+    assert dim == pytest.approx(1.0, 0.1)
+
+
+def test_fractal_empty():
+    assert box_counting_dimension({}) == pytest.approx(0.0)
+    assert box_counting_dimension({}, min_box_size=1) == pytest.approx(0.0)
+
+
+def test_fractal_single_point():
+    # 1 point -> dim 0
+    points = {(0,): 1}
+    dim = box_counting_dimension(points)
+    assert dim == pytest.approx(0.0)
