@@ -1,3 +1,11 @@
+## v0.2.1 (2026-07-25)
+
+### Refactor
+
+- Update import paths for density and fenchel_legendre_transform; improve consistency in module naming
+- Rename test files for consistency and clarity; remove unused tests
+- Renames sparsity.py to metrics.py and updates related references; improves documentation and consistency in algebrax terminology.
+
 ## v0.2.0 (2026-06-20)
 
 ### Feat
