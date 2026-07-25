@@ -1,3 +1,20 @@
+"""
+Formal languages operations and simulation functions.
+
+This module provides utility functions for simulating Deterministic and
+Nondeterministic Finite Automata, as well as performing individual transitions
+for each.
+
+Functions:
+- dfa_step: Handle a single transition step in a Deterministic Finite Automaton.
+- nfa_step: Handle a single transition step in a Nondeterministic Finite
+  Automaton or Probabilistic Automaton.
+- simulate_dfa: Simulate a DFA for a given input sequence.
+- simulate_nfa: Simulate an NFA or Probabilistic Automaton for a given input
+  sequence.
+
+"""
+
 from collections import defaultdict
 from collections.abc import Mapping
 

@@ -1,3 +1,26 @@
+"""
+This module provides functions to perform element-wise operations on mappings,
+leveraging arithmetic, geometric, and harmonic means, among other combination
+strategies. These utilities are designed to aid in sparse algebrax operations,
+handling missing keys with customizable default values.
+
+Exported Functions:
+- average: Compute element-wise arithmetic mean.
+- combine: Generic utility to apply an operation between two mappings.
+- difference: Element-wise subtraction.
+- exclude: Restrict mapping to keys not in the second mapping.
+- exclusive: Compute symmetric difference of mappings.
+- geometric_mean: Compute element-wise geometric mean.
+- harmonic_mean: Compute element-wise harmonic mean.
+- join: Combine all keys from two mappings with values merged.
+- mask: Filter a mapping, preserving values for a specific subset of keys.
+- meet: Restrict mapping to their shared keys, merging values.
+- product: Perform element-wise multiplication.
+- ratio: Compute ratio of values for shared keys.
+- symmetric_difference: Compute result based on keys exclusive to either map.
+"""
+
+
 from collections.abc import Callable, Iterable, Mapping, MutableMapping
 from typing import Any
 
@@ -53,7 +76,7 @@ def combine(
 
     Note on `default`:
         The default value for missing keys is `0`. This aligns with the library's
-        focus on sparse algebra where missing elements are treated as the additive
+        focus on sparse algebrax where missing elements are treated as the additive
         identity. If you are using `combine` for non-numeric types (e.g., strings
         or objects), you should explicitly pass `default=None` or another appropriate
         value to avoid TypeErrors or unexpected behavior.

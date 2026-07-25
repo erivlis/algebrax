@@ -1,8 +1,20 @@
+"""
+This module provides utility functions for analyzing and working with
+nested structures and collections. These functions calculate metrics
+such as depth, sparsity, density, uniformness, and wideness, primarily
+focused on nested mappings or sparse data representations.
+
+The exported functions allow detailed analysis of collection structures,
+providing insights for various applications such as data structure
+optimization or performance analysis for sparse objects.
+"""
+
 import math
 from collections.abc import Mapping, Sized
 from typing import Any
 
 __all__ = [
+    'box_counting_dimension',
     'count_elements',
     'deepness',
     'density',
@@ -28,6 +40,83 @@ def _get_leaf_depths(obj: Any, current_depth: int = 0, accumulator: list[int] | 
         accumulator.append(current_depth)
 
     return accumulator
+
+
+def box_counting_dimension(
+        points: Mapping[tuple[int, ...], float | int],
+        min_box_size: int = 1,
+        max_box_size: int | None = None,
+) -> float | int:
+    """
+    Estimate the Box-Counting Dimension (Minkowski-Bouligand dimension) of a sparse set of points.
+    D = - lim (log N(e) / log e) as e -> 0.
+
+    Here, we compute the slope of log(N(s)) vs log(1/s) for a range of box sizes s.
+
+    Args:
+        points: A mapping where keys are coordinates (tuples of ints). Values are ignored.
+        min_box_size: Minimum box size to consider.
+        max_box_size: Maximum box size to consider. If None, defaults to extent // 2.
+
+    Returns:
+        The estimated fractal dimension (slope of the linear regression).
+    """
+    if not points:
+        return 0.0
+
+    # Extract coordinates
+    coords = list(points.keys())
+
+    # Determine dimensionality and extent
+    dim = len(coords[0])
+    mins = [min(c[d] for c in coords) for d in range(dim)]
+    maxs = [max(c[d] for c in coords) for d in range(dim)]
+    extent = max(maxs[d] - mins[d] for d in range(dim))
+
+    if max_box_size is None:
+        max_box_size = max(1, extent // 2)
+
+    # Collect (log(1/s), log(N(s))) pairs
+    # We use box sizes that are powers of 2 or just linear steps?
+    # Powers of 2 are standard for efficiency.
+
+    sizes = []
+    s = min_box_size
+    while s <= max_box_size:
+        sizes.append(s)
+        s *= 2
+
+    if len(sizes) < 2:
+        return 0.0  # Not enough data points for regression
+
+    log_inv_s = []
+    log_n = []
+
+    for s in sizes:
+        # Count occupied boxes
+        boxes = set()
+        for c in coords:
+            # Map coordinate to box index
+            box_idx = tuple((c[d] - mins[d]) // s for d in range(dim))
+            boxes.add(box_idx)
+
+        count = len(boxes)
+        # count is always > 0 because points is not empty
+        log_inv_s.append(math.log(1.0 / s))
+        log_n.append(math.log(count))
+
+    # Linear Regression to find slope D
+    # D = Cov(X, Y) / Var(X)
+    n_points = len(log_inv_s)
+
+    mean_x = sum(log_inv_s) / n_points
+    mean_y = sum(log_n) / n_points
+
+    cov_xy = sum((log_inv_s[i] - mean_x) * (log_n[i] - mean_y) for i in range(n_points))
+    var_x = sum((log_inv_s[i] - mean_x) ** 2 for i in range(n_points))
+
+    # var_x cannot be 0 because sizes are distinct powers of 2
+    return cov_xy / var_x
 
 
 def count_elements(obj: Sized) -> int:

@@ -1,3 +1,14 @@
+"""
+A module that defines various semirings and their properties.
+
+This module includes the implementation of the `Semiring` protocol,
+as well as specific semiring implementations such as the Standard,
+Tropical, Arctic, and Boolean semirings. These semirings generalize
+algebraic operations for diverse mathematical and computational
+purposes, including optimization, graph theory, and reliability
+analysis.
+"""
+
 import math
 from typing import Protocol, TypeVar
 
@@ -30,7 +41,7 @@ V = TypeVar('V')
 class Semiring(Protocol[V]):
     """
     A Protocol defining a Semiring (S, +, *, 0, 1).
-    Used to generalize linear algebra operations.
+    Used to generalize linear algebrax operations.
     """
 
     @property
@@ -108,7 +119,7 @@ class Semiring(Protocol[V]):
 
 class StandardSemiring(Semiring[float]):
     """
-    The standard algebra over real numbers.
+    The standard algebrax over real numbers.
     (R, +, *, 0, 1)
     Used for: Standard Linear Algebra, Physics.
     """
@@ -150,7 +161,7 @@ class StandardSemiring(Semiring[float]):
 
 class TropicalSemiring(Semiring[float]):
     """
-    The Min-Plus algebra.
+    The Min-Plus algebrax.
     (R U {inf}, min, +, inf, 0)
     Used for: Shortest Path problems (Graph Theory).
     """
@@ -188,7 +199,7 @@ class TropicalSemiring(Semiring[float]):
 
 class ArcticSemiring(Semiring[float]):
     """
-    The Max-Plus algebra.
+    The Max-Plus algebrax.
     (R U {-inf}, max, +, -inf, 0)
     Used for: Longest Path problems, Viterbi decoding in log-domain.
     """
@@ -226,7 +237,7 @@ class ArcticSemiring(Semiring[float]):
 
 class ViterbiSemiring(Semiring[float]):
     """
-    The Max-Product algebra.
+    The Max-Product algebrax.
     ([0, 1], max, *, 0, 1)
     Used for: Most Likely Path (HMMs).
     """
@@ -269,7 +280,7 @@ class ReliabilitySemiring(ViterbiSemiring):
 
 class BottleneckSemiring(Semiring[float]):
     """
-    The Max-Min algebra.
+    The Max-Min algebrax.
     (R, max, min, -inf, +inf)
     Used for: Maximum Capacity Path (Widest Path).
     """
@@ -307,7 +318,7 @@ class BottleneckSemiring(Semiring[float]):
 
 class MinTimesSemiring(Semiring[float]):
     """
-    The Min-Times algebra.
+    The Min-Times algebrax.
     (R U {inf}, min, *, inf, 1)
     Used for: Finding the least probable path.
     """
@@ -351,7 +362,7 @@ class MinTimesSemiring(Semiring[float]):
 
 class BooleanSemiring(Semiring[bool]):
     """
-    The Boolean algebra.
+    The Boolean algebrax.
     ({T, F}, OR, AND, F, T)
     Used for: Reachability, Transitive Closure.
     """
@@ -389,7 +400,7 @@ class BooleanSemiring(Semiring[bool]):
 
 class LukasiewiczSemiring(Semiring[float]):
     """
-    The Lukasiewicz algebra (Multi-valued Logic).
+    The Lukasiewicz algebrax (Multi-valued Logic).
     ([0, 1], max, max(0, a+b-1), 0, 1)
     Used for: Fuzzy Logic.
     """
@@ -433,7 +444,7 @@ class LukasiewiczSemiring(Semiring[float]):
 
 class LogSemiring(Semiring[float]):
     """
-    The Log-Sum-Exp algebra.
+    The Log-Sum-Exp algebrax.
     (R U {-inf}, logaddexp, +, -inf, 0)
     Used for: Probabilistic inference in log-domain (avoids underflow).
     Values represent log-probabilities.
@@ -625,7 +636,7 @@ class DualNumberSemiring(ExpectationSemiring):
 
 class StringSemiring(Semiring[set[str]]):
     """
-    The Formal Language algebra.
+    The Formal Language algebrax.
     (P(Sigma*), Union, Concatenation, {}, {""})
     Used for: Regular Expressions, Path Languages.
     Values are Sets of Strings.

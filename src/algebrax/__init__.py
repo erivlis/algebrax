@@ -24,7 +24,7 @@ Comparison with Other Libraries
 3. **`pandas`**:
    - **Domain**: Tabular Data Analysis.
    - **Pros**: Excellent for time-series and labeled data.
-   - **Cons**: Not optimized for general mathematical algebra (e.g., matrix multiplication).
+   - **Cons**: Not optimized for general mathematical algebrax (e.g., matrix multiplication).
    - **Use Case**: Data cleaning, ETL, statistical analysis.
 
 4. **`algebrax` (This Library)**:
@@ -58,8 +58,8 @@ Modules
 *   **`transforms`**: Signal Processing (DFT, Convolution).
 *   **`automata`**: Finite State Machines.
 *   **`group`**: Permutations.
-*   **`sparsity`**: Metrics and checks.
-*   **`semiring`**: Generalized algebra (Tropical, Boolean, String).
+*   **`metrics`**: Metrics and checks.
+*   **`semiring`**: Generalized algebrax (Tropical, Boolean, String).
 *   **`trie`**: Algebraic Tries (Sparse Tensors).
 *   **`typing`**: Type aliases for sparse/dense structures.
 """
@@ -115,6 +115,15 @@ from algebrax.matrix import (
     transpose,
     vec_mat,
 )
+from algebrax.metrics import (
+    box_counting_dimension,
+    deepness,
+    density,
+    is_sparse,
+    sparsity,
+    uniformness,
+    wideness,
+)
 from algebrax.probability import (
     bayes_update,
     cross_entropy,
@@ -142,21 +151,15 @@ from algebrax.semiring import (
     TropicalSemiring,
     ViterbiSemiring,
 )
-from algebrax.sparsity import (
-    deepness,
-    density,
-    is_sparse,
-    sparsity,
-    uniformness,
-    wideness,
-)
 from algebrax.transforms import (
-    box_counting_dimension,
     convolve,
     dft,
+    gelfand_transform,
     hilbert,
     idft,
+    legendre_fenchel,
     lorentz_boost,
+    walsh_hadamard,
     z_transform,
 )
 from algebrax.trie import AlgebraicTrie
@@ -211,6 +214,7 @@ __all__ = [
     'expected_value',
     'forman_ricci_curvature',
     'gaussian_kernel',
+    'gelfand_transform',
     'geometric_mean',
     'gradient',
     'harmonic_mean',
@@ -225,6 +229,7 @@ __all__ = [
     'kronecker_delta',
     'kurtosis',
     'laplacian',
+    'legendre_fenchel',
     'lorentz_boost',
     'marginalize',
     'markov_steady_state',
@@ -252,6 +257,7 @@ __all__ = [
     'uniformness',
     'variance',
     'vec_mat',
+    'walsh_hadamard',
     'wideness',
     'z_transform',
 ]

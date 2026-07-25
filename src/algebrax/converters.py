@@ -1,3 +1,22 @@
+"""
+A collection of functions for working with dense and sparse representations of vectors,
+matrices, tensors, and related utilities.
+
+This module provides methods to convert between dense and sparse formats for vectors,
+matrices, and tensors, as well as sampling utility functions for constructing sparse
+representations.
+
+Exported Functions:
+- dense_to_sparse_vector: Converts a dense vector to a sparse representation.
+- sparse_to_dense_vector: Converts a sparse vector to a dense representation.
+- dense_to_sparse_matrix: Converts a dense matrix to a sparse representation.
+- sparse_to_dense_matrix: Converts a sparse matrix to a dense representation.
+- dense_to_sparse_tensor: Converts a dense tensor to a sparse representation.
+- sparse_to_dense_tensor: Converts a sparse tensor to a dense representation.
+- sample: Samples values from a function over a finite domain to create a sparse vector.
+- sample_tensor: Samples values from a multidimensional function over a grid to create a sparse tensor.
+"""
+
 import itertools
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any

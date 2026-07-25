@@ -1,8 +1,8 @@
 """
-Type definitions for the algebra namespace.
+Type definitions for the algebrax namespace.
 
 This module provides generic type variables and type aliases used throughout
-the algebra submodules to ensure consistent type hinting for sparse and dense
+the algebrax submodules to ensure consistent type hinting for sparse and dense
 data structures.
 """
 

@@ -1,3 +1,17 @@
+"""
+A Trie (Prefix Tree) enabling algebraic operations over a Semiring.
+
+This module provides an implementation of an AlgebraicTrie, which differs from
+a standard Trie by allowing algebraic operations such as summation over stored
+values. The Trie behaves as an infinite-dimensional sparse tensor, where paths
+are sequences of keys and values are combined using the provided Semiring's
+algebraic operations.
+
+Classes:
+    AlgebraicTrie: A mutable mapping structure combining Trie functionality
+    with algebraic operations over a Semiring.
+"""
+
 from collections import defaultdict
 from collections.abc import Iterable, MutableMapping
 from typing import Generic, TypeVar

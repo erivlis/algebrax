@@ -1,13 +1,35 @@
+"""
+Analyze edge curvature via discrete combinatorics. Supports weighted and unweighted
+graphs, with optional augmentation based on triangle contributions.
+
+This method abstracts curvature calculation for both weighted and unweighted
+graphs. It captures the notion of Ricci curvature locally, reflecting flow
+expansion/contraction by considering topological or geometrical graph features.
+
+Args:
+    graph (SparseMatrix): Representation of the graph structure where edges are
+        stored using a sparse matrix format/mapping.
+    weighted (bool | None): Whether to compute weighted Forman-Ricci curvature.
+        Defaults to None, which determines weighting based on edge properties:
+            - True: Use weights explicitly.
+            - False: Assume unweighted graph (1 for all edges).
+    augmented (bool): Whether to include triangle-based adjustments in the
+        curvature calculation. Defaults to True. Relevant for both weighted
+        and unweighted variants, boosting edges shared in small cliques.
+
+Returns:
+    dict[tuple[K, K], float]: Dictionary where keys are edge pairs (u, v) and
+        values are their computed Forman-Ricci curvature values.
+"""
+
 import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 
-from algebrax.semiring import ArcticSemiring, LogSemiring, Semiring, StandardSemiring, TropicalSemiring
-from algebrax.typing import K, N, SparseMatrix, SparseVector
+from algebrax.typing import K, SparseMatrix, SparseVector
 
 __all__ = [
     'divergence',
-    'fenchel_legendre_transform',
     'forman_ricci_curvature',
     'gaussian_kernel',
     'gradient',
@@ -46,79 +68,6 @@ def divergence(flow: SparseMatrix) -> SparseVector:
             result[v] -= val
 
     return dict(result)
-
-
-def fenchel_legendre_transform(
-        signal: SparseVector[K, N],
-        slope: N,
-        semiring: Semiring[N] | None = None,
-) -> N:
-    """
-    Compute the discrete Fenchel-Legendre transform (Slope Transform) of a signal at a specific slope.
-    This is the Tropical/Idempotent analog of the Fourier Transform.
-
-    If semiring is None (or StandardSemiring), we fall back to the standard convex conjugate:
-        f*(s) = sup_x { s * x - f(x) }
-
-    If a general semiring is provided, we compute the generalized Legendre-Fenchel transform:
-        f*(s) = \\bigoplus_x { s \\otimes x \\otimes f(x)^{-1} }
-    where \\bigoplus is semiring.add, \\otimes is semiring.mul, and f(x)^{-1} is the multiplicative inverse
-    of f(x) under the semiring's multiplication.
-
-    Args:
-        signal: The input signal (mapping from index/position to value).
-        slope: The slope parameter (dual variable).
-        semiring: The algebraic structure.
-
-    Returns:
-        The value of the transform at the given slope.
-    """
-    if not signal:
-        if semiring is not None:
-            return semiring.zero
-        return float('-inf')
-
-    if semiring is None or isinstance(semiring, StandardSemiring):
-        max_val = float('-inf')
-        for x, fx in signal.items():
-            if not isinstance(x, (int, float)):
-                continue
-            val = slope * x - fx
-            if val > max_val:
-                max_val = val
-        if max_val == float('-inf'):
-            return semiring.zero if semiring is not None else float('-inf')
-        return max_val
-
-    total = semiring.zero
-    first = True
-    for x, fx in signal.items():
-        if not isinstance(x, (int, float)):
-            continue
-
-        try:
-            sx = semiring.mul(slope, x)
-        except Exception:
-            sx = semiring.mul(slope, type(slope)(x))
-
-        if isinstance(semiring, (TropicalSemiring, ArcticSemiring, LogSemiring)):
-            # Multiplication is addition (+), so multiplicative inverse is negation (-fx).
-            inv_fx = -fx
-            term = semiring.mul(sx, inv_fx)
-        else:
-            try:
-                inv_fx = 1.0 / fx if fx != 0 else float('inf')
-                term = semiring.mul(sx, inv_fx)
-            except Exception:
-                term = sx - fx
-
-        if first:
-            total = term
-            first = False
-        else:
-            total = semiring.add(total, term)
-
-    return total
 
 
 def _is_graph_weighted(graph: SparseMatrix) -> bool:

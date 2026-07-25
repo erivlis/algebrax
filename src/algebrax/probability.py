@@ -1,3 +1,12 @@
+"""
+Statistical and probabilistic functions for sparse data representations.
+
+This module provides functions for computing various statistical and
+information-theoretic measures, such as entropy, mutual information,
+Kullback-Leibler divergence, and Bayesian updates. It also includes tools
+for working with Markov chains and marginalizing probability distributions.
+"""
+
 import math
 from collections import defaultdict
 
