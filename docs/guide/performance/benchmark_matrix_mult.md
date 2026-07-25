@@ -34,7 +34,7 @@ import random
 from algebrax.semiring import StandardSemiring
 from algebrax.matrix import dot
 from algebrax.converters import sparse_to_dense_matrix
-from algebrax.sparsity import density as calculate_density
+from algebrax.metrics import density as calculate_density
 
 
 def generate_sparse_matrix(rows, cols, density=0.1):
