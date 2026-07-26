@@ -10,7 +10,11 @@ analysis.
 """
 
 import math
-from typing import Protocol, TypeVar
+import operator
+from collections.abc import Callable
+from typing import Generic, Protocol, TypeVar
+
+from algebrax.typing import K, SparseVector
 
 __all__ = [
     'ArcticSemiring',
@@ -20,9 +24,12 @@ __all__ = [
     'DualNumberSemiring',
     'ExpectationSemiring',
     'KCollapsedSemiring',
+    'KnotSemiring',
     'LogSemiring',
     'LukasiewiczSemiring',
     'MinTimesSemiring',
+    'MonoidAlgebraSemiring',
+    'PolynomialSemiring',
     'ProvenanceSemiring',
     'ReliabilitySemiring',
     'Semiring',
@@ -33,10 +40,10 @@ __all__ = [
     'ViterbiSemiring',
 ]
 
-
 # region Protocol
 
 V = TypeVar('V')
+
 
 class Semiring(Protocol[V]):
     """
@@ -116,41 +123,55 @@ class Semiring(Protocol[V]):
 
 # region Arithmetic
 
+T_num = TypeVar('T_num', bound=float | int | complex)
 
-class StandardSemiring(Semiring[float]):
+
+class StandardSemiring(Semiring[T_num], Generic[T_num]):
     """
-    The standard algebrax over real numbers.
+    The standard algebrax over real numbers, integers, or complex numbers.
     (R, +, *, 0, 1)
     Used for: Standard Linear Algebra, Physics.
     """
 
-    @property
-    def zero(self) -> float:
-        return 0.0
+    def __init__(self, dtype: type[T_num] = float):
+        self._dtype = dtype
+        self._zero = self._dtype(0)
+        self._one = self._dtype(1)
 
     @property
-    def one(self) -> float:
-        return 1.0
+    def zero(self) -> T_num:
+        return self._zero
 
-    def add(self, a: float, b: float) -> float:
-        return a + b
+    @property
+    def one(self) -> T_num:
+        return self._one
 
-    def mul(self, a: float, b: float) -> float:
-        return a * b
+    add = staticmethod(operator.add)
+    mul = staticmethod(operator.mul)
 
-    def nsum(self, a: float, n: int) -> float:
+    def nsum(self, a: T_num, n: int) -> T_num:
         # Standard semiring is a Ring, so negative n is allowed (subtraction).
         if n == 0:
-            return 0.0
+            return self.zero
         return a * n
 
-    def power(self, a: float, n: int) -> float:
+    def power(self, a: T_num, n: int) -> T_num:
         return a ** n
 
-    def star(self, a: float) -> float:
-        if a >= 1.0:
-            return float('inf')
-        return 1.0 / (1.0 - a)
+    def star(self, a: T_num) -> T_num:
+        """
+        Geometric series sum: 1 / (1 - a).
+        Converges for |a| < 1.
+        """
+        if self._dtype is int:
+            if a == 0:
+                return 1
+            raise ValueError('Star operation on StandardSemiring[int] is only defined for a=0.')
+
+        if abs(a) >= 1:
+            return self._dtype('inf') if self._dtype is float else complex('inf')
+
+        return self.one / (self.one - a)
 
 
 # endregion
@@ -572,16 +593,14 @@ class VarianceSemiring(Semiring[tuple[float, float, float, float]]):
     def one(self) -> tuple[float, float, float, float]:
         return 1.0, 0.0, 0.0, 0.0
 
-    def add(self,
-            a: tuple[float, float, float, float],
-            b: tuple[float, float, float, float]
-            ) -> tuple[float, float, float, float]:
+    def add(
+            self, a: tuple[float, float, float, float], b: tuple[float, float, float, float]
+    ) -> tuple[float, float, float, float]:
         return a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3]
 
-    def mul(self,
-            a: tuple[float, float, float, float],
-            b: tuple[float, float, float, float]
-            ) -> tuple[float, float, float, float]:
+    def mul(
+            self, a: tuple[float, float, float, float], b: tuple[float, float, float, float]
+    ) -> tuple[float, float, float, float]:
         p1, r1, s1, t1 = a
         p2, r2, s2, t2 = b
 
@@ -683,64 +702,6 @@ class StringSemiring(Semiring[set[str]]):
 
     def star(self, a: set[str]) -> set[str]:
         raise NotImplementedError('Kleene star not supported for StringSemiring')
-
-
-class ProvenanceSemiring(Semiring[dict[tuple[str, ...], int]]):
-    """
-    The Polynomial Provenance Semiring N[X].
-    Values are dictionaries mapping monomials (tuples of variables) to coefficients (counts).
-    Example: {('x', 'y'): 2, ('z',): 1} represents 2xy + z.
-
-    Used for: Tracking which facts contributed to a result and how many times.
-    """
-
-    @property
-    def zero(self) -> dict[tuple[str, ...], int]:
-        return {}
-
-    @property
-    def one(self) -> dict[tuple[str, ...], int]:
-        return {(): 1}
-
-    def add(self, a: dict[tuple[str, ...], int], b: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
-        # Polynomial addition: sum coefficients of like terms
-        result = a.copy()
-        for term, coeff in b.items():
-            result[term] = result.get(term, 0) + coeff
-        return result
-
-    def mul(self, a: dict[tuple[str, ...], int], b: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
-        # Polynomial multiplication: convolution of terms
-        result = {}
-        for term1, coeff1 in a.items():
-            for term2, coeff2 in b.items():
-                # Multiply terms: concatenate tuples (sorted for canonical form)
-                new_term = tuple(sorted(term1 + term2))
-                new_coeff = coeff1 * coeff2
-                result[new_term] = result.get(new_term, 0) + new_coeff
-        return result
-
-    def nsum(self, a: dict[tuple[str, ...], int], n: int) -> dict[tuple[str, ...], int]:
-        if n < 0:
-            raise ValueError('ProvenanceSemiring does not support negative nsum')
-        if n == 0:
-            return {}
-        return {term: coeff * n for term, coeff in a.items()}
-
-    def power(self, a: dict[tuple[str, ...], int], n: int) -> dict[tuple[str, ...], int]:
-        if n == 0:
-            return {(): 1}
-        res = {(): 1}
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.mul(res, base)
-            base = self.mul(base, base)
-            n //= 2
-        return res
-
-    def star(self, a: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
-        raise NotImplementedError('Kleene star not implemented for ProvenanceSemiring')
 
 
 class KCollapsedSemiring(Semiring[int]):
@@ -879,5 +840,177 @@ class DigitalSemiring(Semiring[float | int]):
 
     def star(self, a: float | int) -> float | int:
         raise NotImplementedError('Kleene star not implemented for DigitalSemiring')
+
+
+T = TypeVar('T', bound=float | int | complex)
+
+
+class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Generic[K, T]):
+    """
+    The Monoid Algebra Semiring R[M] over a generic coefficient semiring R and monoid M.
+    Values are formal linear combinations sum_{m in M} a_m m, represented as sparse mappings
+    from key (monoid element m) to coefficient (a_m in R).
+
+    - Addition: Elementwise coefficient addition in R.
+    - Multiplication: Convolution using monoid multiplication (key_op) and coefficient multiplication in R.
+    - Additive Identity (zero): The empty mapping {}.
+    - Multiplicative Identity (one): {zero_key: coeff_semiring.one}.
+    """
+
+    def __init__(
+            self,
+            coeff_semiring: Semiring[T],
+            key_op: Callable[[K, K], K] = operator.add,
+            zero_key: K = 0,
+    ):
+        self.coeff_semiring = coeff_semiring
+        self.key_op = key_op
+        self.zero_key = zero_key
+
+    @property
+    def zero(self) -> SparseVector[K, T]:
+        return {}
+
+    @property
+    def one(self) -> SparseVector[K, T]:
+        return {self.zero_key: self.coeff_semiring.one}
+
+    def add(self, a: SparseVector[K, T], b: SparseVector[K, T]) -> SparseVector[K, T]:
+        result = dict(a)
+        coeff_add = self.coeff_semiring.add
+        zero = self.coeff_semiring.zero
+        for exp, coeff in b.items():
+            new_coeff = coeff_add(result.get(exp, zero), coeff)
+            if new_coeff == zero:
+                result.pop(exp, None)
+            else:
+                result[exp] = new_coeff
+        return result
+
+    def mul(self, a: SparseVector[K, T], b: SparseVector[K, T]) -> SparseVector[K, T]:
+        if not a or not b:
+            return {}
+
+        result: dict[K, T] = {}
+        key_op = self.key_op
+        coeff_mul = self.coeff_semiring.mul
+        coeff_add = self.coeff_semiring.add
+        zero = self.coeff_semiring.zero
+
+        for e1, c1 in a.items():
+            for e2, c2 in b.items():
+                new_key = key_op(e1, e2)
+                new_coeff = coeff_mul(c1, c2)
+
+                current_coeff = result.get(new_key, zero)
+                sum_coeff = coeff_add(current_coeff, new_coeff)
+
+                if sum_coeff == zero:
+                    result.pop(new_key, None)
+                else:
+                    result[new_key] = sum_coeff
+        return result
+
+    def nsum(self, a: SparseVector[K, T], n: int) -> SparseVector[K, T]:
+        if n == 0:
+            return {}
+        result = {}
+        coeff_nsum = self.coeff_semiring.nsum
+        zero = self.coeff_semiring.zero
+        for exp, coeff in a.items():
+            scaled = coeff_nsum(coeff, n)
+            if scaled != zero:
+                result[exp] = scaled
+        return result
+
+    def star(self, a: SparseVector[K, T]) -> SparseVector[K, T]:
+        raise NotImplementedError('Kleene star not implemented for MonoidAlgebraSemiring')
+
+
+class KnotSemiring(MonoidAlgebraSemiring[str, T], Generic[T]):
+    """
+    The Knot Semiring (Skein Module) over a generic coefficient semiring.
+    Subclass of MonoidAlgebraSemiring where keys are knot strings and multiplication is the connected sum (#).
+
+    - Addition: Formal sum of knots.
+    - Multiplication: Connected sum (#) distributed over formal sums.
+    - Additive Identity (zero): Empty mapping (no knots).
+    - Multiplicative Identity (one): The unknot 'U' with coefficient one.
+
+    Knot Representation:
+    - Prime knots are represented by their standard notation (e.g., '3_1', '4_1').
+    - The unknot is 'U'.
+    - Composite knots are represented by joining prime knot names with '#'.
+      The order is canonicalized by sorting.
+      Example: The connected sum of '3_1' and '4_1' is '3_1#4_1'.
+    """
+
+    @staticmethod
+    def _combine_knots(k1: str, k2: str) -> str:
+        """Helper to compute the connected sum of two knot identifiers."""
+        if k1 == 'U':
+            return k2
+        if k2 == 'U':
+            return k1
+
+        # For commutativity, sort the prime knot components.
+        parts = k1.split('#') + k2.split('#')
+        return '#'.join(sorted(parts))
+
+    def __init__(self, coeff_semiring: Semiring[T] = StandardSemiring(int)):
+        super().__init__(
+            coeff_semiring=coeff_semiring,
+            key_op=self._combine_knots,
+            zero_key='U',
+        )
+
+
+class PolynomialSemiring(MonoidAlgebraSemiring[int, T], Generic[T]):
+    """
+    Univariate Polynomial Semiring R[x] over a coefficient semiring R.
+    Specialized subclass of MonoidAlgebraSemiring where keys are non-negative integer exponents (N_0, +).
+    """
+
+    def __init__(self, coeff_semiring: Semiring[T]):
+        super().__init__(coeff_semiring, key_op=operator.add, zero_key=0)
+
+
+class ProvenanceSemiring(MonoidAlgebraSemiring[tuple[str, ...], int]):
+    """
+    The Polynomial Provenance Semiring N[X].
+    Subclass of MonoidAlgebraSemiring where keys are sorted tuples of variable names (monomials)
+    and coefficients are occurrence counts in N.
+    Example: {('x', 'y'): 2, ('z',): 1} represents 2xy + z.
+
+    Used for: Tracking which facts contributed to a result and how many times.
+    """
+
+    @staticmethod
+    def _combine_monomials(t1: tuple[str, ...], t2: tuple[str, ...]) -> tuple[str, ...]:
+        """Multiply two monomials by concatenating and sorting variable names."""
+        return tuple(sorted(t1 + t2))
+
+    def __init__(self, coeff_semiring: Semiring[int] = StandardSemiring(int)):
+        super().__init__(
+            coeff_semiring=coeff_semiring,
+            key_op=self._combine_monomials,
+            zero_key=(),
+        )
+
+    def mul(self, a: dict[tuple[str, ...], int], b: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
+        result: dict[tuple[str, ...], int] = {}
+        if not a or not b:
+            return {}
+
+        for term1, coeff1 in a.items():
+            for term2, coeff2 in b.items():
+                new_term = tuple(sorted(term1 + term2))
+                new_coeff = coeff1 * coeff2
+                val = result.get(new_term, 0) + new_coeff
+                if val == 0:
+                    result.pop(new_term, None)
+                else:
+                    result[new_term] = val
+        return result
 
 # endregion
