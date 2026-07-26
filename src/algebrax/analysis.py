@@ -73,7 +73,7 @@ def divergence(flow: SparseMatrix) -> SparseVector:
 def _is_graph_weighted(graph: SparseMatrix) -> bool:
     for neighbors in graph.values():
         for w in neighbors.values():
-            if w != 1 and math.isclose(w, 1.0):
+            if not math.isclose(w, 1.0):
                 return True
     return False
 
