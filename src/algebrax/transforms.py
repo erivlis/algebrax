@@ -23,11 +23,18 @@ transforms, Lorentz boosts, and estimation of fractal dimensions.
 
 import cmath
 import math
-from collections import defaultdict
+import operator
 from collections.abc import Callable, Mapping
 from typing import TypeVar
 
-from algebrax.semiring import ArcticSemiring, LogSemiring, Semiring, StandardSemiring, TropicalSemiring
+from algebrax.semiring import (
+    ArcticSemiring,
+    LogSemiring,
+    MonoidAlgebraSemiring,
+    Semiring,
+    StandardSemiring,
+    TropicalSemiring,
+)
 from algebrax.typing import K, N, SparseVector
 
 C = TypeVar('C')  # Character key type
@@ -50,33 +57,33 @@ __all__ = [
 
 
 def convolve(
-    f: Mapping[K, N],
-    g: Mapping[K, N],
-    key_op: Callable[[K, K], K] = lambda x, y: x + y,
-) -> dict[K, N]:
+        f: SparseVector[K, N],
+        g: SparseVector[K, N],
+        key_op: Callable[[K, K], K] = operator.add,
+        semiring: Semiring[N] | None = None,
+) -> SparseVector[K, N]:
     """
-    Compute the discrete convolution of two mappings.
-    h[z] = sum(f[x] * g[y]) where key_op(x, y) == z.
+    Compute the discrete convolution of two sparse signals/mappings using MonoidAlgebraSemiring.
+    h[z] = \\bigoplus f[x] \\otimes g[y] where key_op(x, y) == z.
 
     By default, assumes keys are additive (e.g., integers, vectors).
     This generalizes to Group Convolution if key_op is the group operation.
+    If semiring is None (or StandardSemiring), standard coefficient arithmetic is used.
 
     Args:
         f: First mapping (signal).
         g: Second mapping (kernel).
         key_op: Function to combine keys (default: addition).
+        semiring: Semiring for coefficient arithmetic (default: StandardSemiring).
 
     Returns:
         The convolved mapping.
     """
-    result = defaultdict(int)
-    for k1, v1 in f.items():
-        for k2, v2 in g.items():
-            new_key = key_op(k1, k2)
-            result[new_key] += v1 * v2
+    if semiring is None:
+        semiring = StandardSemiring[float]()
 
-    # Remove zeros to maintain sparsity
-    return {k: v for k, v in result.items() if v != 0}
+    monoid_semiring = MonoidAlgebraSemiring(semiring, key_op=key_op)
+    return monoid_semiring.mul(f, g)
 
 
 # endregion
@@ -86,8 +93,8 @@ def convolve(
 
 
 def dft(
-    signal: SparseVector[int, N],
-    n: int | None = None,
+        signal: SparseVector[int, N],
+        n: int | None = None,
 ) -> dict[int, complex]:
     """
     Compute the Discrete Fourier Transform (DFT) of a sparse signal.
@@ -129,8 +136,8 @@ def dft(
 
 
 def idft(
-    spectrum: Mapping[int, complex],
-    n: int | None = None,
+        spectrum: Mapping[int, complex],
+        n: int | None = None,
 ) -> dict[int, complex]:
     """
     Compute the Inverse Discrete Fourier Transform (IDFT).
@@ -168,8 +175,8 @@ def idft(
 
 
 def hilbert(
-    signal: SparseVector[int, float],
-    n: int | None = None,
+        signal: SparseVector[int, float],
+        n: int | None = None,
 ) -> dict[int, complex]:
     """
     Compute the analytic signal using the Hilbert transform.
@@ -228,9 +235,9 @@ def hilbert(
 
 
 def legendre_fenchel(
-    signal: SparseVector[K, N],
-    slope: N,
-    semiring: Semiring[N] | None = None,
+        signal: SparseVector[K, N],
+        slope: N,
+        semiring: Semiring[N] | None = None,
 ) -> N:
     """
     Compute the discrete Fenchel-Legendre transform (Slope Transform) of a signal at a specific slope.
@@ -303,8 +310,8 @@ def legendre_fenchel(
 
 
 def walsh_hadamard(
-    signal: SparseVector[int, N],
-    n: int | None = None,
+        signal: SparseVector[int, N],
+        n: int | None = None,
 ) -> dict[int, float]:
     """
     Compute the Discrete Walsh-Hadamard Transform (WHT) of a sparse signal.
@@ -348,9 +355,9 @@ def walsh_hadamard(
 
 
 def gelfand_transform(
-    signal: Mapping[K, N],
-    characters: Mapping[C, Callable[[K], N]],
-    semiring: Semiring[N] | None = None,
+        signal: Mapping[K, N],
+        characters: Mapping[C, Callable[[K], N]],
+        semiring: Semiring[N] | None = None,
 ) -> dict[C, N]:
     """
     Compute the generalized Gelfand transform of a sparse signal over a set of characters.
@@ -396,9 +403,9 @@ def gelfand_transform(
 
 
 def z_transform(
-    signal: SparseVector[int, N],
-    z: N,
-    semiring: Semiring[N] | None = None,
+        signal: SparseVector[int, N],
+        z: N,
+        semiring: Semiring[N] | None = None,
 ) -> N:
     """
     Compute the unilateral Z-transform at a specific point z.
@@ -427,7 +434,7 @@ def z_transform(
         result = 0j
         for n, val in signal.items():
             if n >= 0:
-                result += val * (z**-n)
+                result += val * (z ** -n)
         return result
 
     if isinstance(semiring, (TropicalSemiring, ArcticSemiring, LogSemiring)):
@@ -446,7 +453,7 @@ def z_transform(
                 z_pow = semiring.power(z_inv, n)
                 term = semiring.mul(val, z_pow)
             except Exception:
-                z_pow = z_inv**n
+                z_pow = z_inv ** n
                 term = val * z_pow
 
             total = semiring.add(total, term)
@@ -461,9 +468,9 @@ def z_transform(
 
 
 def lorentz_boost(
-    vector: SparseVector[int, float],
-    beta: float,
-    axis: int = 1,
+        vector: SparseVector[int, float],
+        beta: float,
+        axis: int = 1,
 ) -> SparseVector[int, float]:
     """
     Apply a Lorentz boost to a 4-vector (or D-vector).
@@ -480,7 +487,7 @@ def lorentz_boost(
     if abs(beta) >= 1:
         raise ValueError('Beta must be less than 1 (speed of light).')
 
-    gamma = 1.0 / (1.0 - beta**2) ** 0.5
+    gamma = 1.0 / (1.0 - beta ** 2) ** 0.5
 
     t = vector.get(0, 0.0)
     x = vector.get(axis, 0.0)
@@ -504,8 +511,8 @@ def lorentz_boost(
 
 
 def permute_tensor(
-    tensor: Mapping[tuple, N],
-    permutation: tuple[int, ...],
+        tensor: Mapping[tuple, N],
+        permutation: tuple[int, ...],
 ) -> Mapping[tuple, N]:
     """
     Permute the dimensions of a sparse tensor.
@@ -523,6 +530,5 @@ def permute_tensor(
         new_coords = tuple(coords[i] for i in permutation)
         result[new_coords] = val
     return result
-
 
 # endregion
