@@ -47,6 +47,7 @@ __all__ = [
 
 # region Vector
 
+
 def dense_to_sparse_vector(
     vector: Sequence[V],
     default: V = 0,
@@ -92,10 +93,12 @@ def sparse_to_dense_vector(
             result[k] = v
     return result
 
+
 # endregion
 
 
 # region Matrix
+
 
 def dense_to_sparse_matrix(
     matrix: Sequence[Sequence[V]],
@@ -159,10 +162,12 @@ def sparse_to_dense_matrix(
 
     return result
 
+
 # endregion
 
 
 # region Tensor
+
 
 def dense_to_sparse_tensor(
     tensor: Sequence[Any],
@@ -276,10 +281,12 @@ def sparse_to_dense_tensor(
 
     return result
 
+
 # endregion
 
 
 # region Sampling
+
 
 def sample(
     func: Callable[[K], V],
@@ -333,10 +340,12 @@ def sample_tensor(
     # Convert to nested mapping
     return flat_to_nested(flat)
 
+
 # endregion
 
 
 # region Flattening
+
 
 def flat_to_nested(
     mapping: Mapping[tuple, V],
@@ -407,5 +416,6 @@ def nested_to_flat(
 
     _recurse(nested)
     return result
+
 
 # endregion

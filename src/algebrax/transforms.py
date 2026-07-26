@@ -397,9 +397,9 @@ def gelfand_transform(
 
 def z_transform(
     signal: SparseVector[int, N],
-    z: complex | N,
+    z: N,
     semiring: Semiring[N] | None = None,
-) -> complex | N:
+) -> N:
     """
     Compute the unilateral Z-transform at a specific point z.
     X(z) = sum_{n=0}^{inf} x[n] * z^{-n}

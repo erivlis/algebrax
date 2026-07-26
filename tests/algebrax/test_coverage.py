@@ -93,45 +93,45 @@ def test_laplacian_zero_sum():
 
 def test_dfa_step_missing():
     # State 'q0' not in transitions
-    assert dfa_step("q0", "a", {}) is None
+    assert dfa_step('q0', 'a', {}) is None
 
 
 def test_nfa_step_missing():
     # State 'q0' not in transitions
-    assert nfa_step({"q0": 1.0}, "a", {}) == {}
+    assert nfa_step({'q0': 1.0}, 'a', {}) == {}
 
 
 def test_simulate_dfa_list_input():
-    trans = {0: {"a": 1}}
+    trans = {0: {'a': 1}}
     # Pass a list explicitly to hit the 'else' branch
-    assert simulate_dfa(0, ["a"], trans) == 1
+    assert simulate_dfa(0, ['a'], trans) == 1
 
 
 def test_simulate_dfa_mapping_input():
-    trans = {0: {"a": 1, "b": 2}, 1: {"b": 2}}
+    trans = {0: {'a': 1, 'b': 2}, 1: {'b': 2}}
     # Pass a mapping {time: symbol}
     # 0->a (to 1), 1->b (to 2)
-    seq = {0: "a", 10: "b"}
+    seq = {0: 'a', 10: 'b'}
     assert simulate_dfa(0, seq, trans) == 2
 
 
 def test_simulate_nfa_list_input():
-    trans = {0: {"a": {1: 1.0}}}
+    trans = {0: {'a': {1: 1.0}}}
     # Pass a list explicitly to hit the 'else' branch
-    assert simulate_nfa({0: 1.0}, ["a"], trans) == {1: 1.0}
+    assert simulate_nfa({0: 1.0}, ['a'], trans) == {1: 1.0}
 
 
 def test_simulate_nfa_mapping_input():
-    trans = {0: {"a": {1: 1.0}}}
-    seq = {5: "a"}
+    trans = {0: {'a': {1: 1.0}}}
+    seq = {5: 'a'}
     assert simulate_nfa({0: 1.0}, seq, trans) == {1: 1.0}
 
 
 def test_simulate_nfa_break():
     # Path dies
-    trans = {0: {"a": {1: 1.0}}}
+    trans = {0: {'a': {1: 1.0}}}
     # Input 'b' -> no transition -> empty state -> break
-    res = simulate_nfa({0: 1.0}, ["b", "a"], trans)
+    res = simulate_nfa({0: 1.0}, ['b', 'a'], trans)
     assert res == {}
 
 
@@ -372,3 +372,39 @@ def test_mutual_information_empty_row():
     # Row 0 exists but is empty
     joint = {0: {}}
     assert mutual_information(joint) == pytest.approx(0.0)
+
+
+def test_top_level_reexports_completeness():
+    import algebrax
+    import algebrax.analysis
+    import algebrax.automata
+    import algebrax.converters
+    import algebrax.group
+    import algebrax.matrix
+    import algebrax.metrics
+    import algebrax.semiring
+    import algebrax.transforms
+    import algebrax.trie
+    import algebrax.typing
+
+    submodules = [
+        algebrax.analysis,
+        algebrax.automata,
+        algebrax.converters,
+        algebrax.group,
+        algebrax.matrix,
+        algebrax.metrics,
+        algebrax.semiring,
+        algebrax.transforms,
+        algebrax.trie,
+        algebrax.typing,
+    ]
+
+    all_exported = set(algebrax.__all__)
+    for mod in submodules:
+        if hasattr(mod, '__all__'):
+            for symbol in mod.__all__:
+                # Skip internal TypeVars (e.g. A, B, K, N, T, V, T_num)
+                if mod is algebrax.typing and (len(symbol) == 1 or symbol == 'T_num'):
+                    continue
+                assert symbol in all_exported, f"Symbol '{symbol}' from {mod.__name__} is missing in algebrax.__all__"

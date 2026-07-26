@@ -20,7 +20,6 @@ Exported Functions:
 - symmetric_difference: Compute result based on keys exclusive to either map.
 """
 
-
 from collections.abc import Callable, Iterable, Mapping, MutableMapping
 from typing import Any
 

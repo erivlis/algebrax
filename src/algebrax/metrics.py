@@ -43,9 +43,9 @@ def _get_leaf_depths(obj: Any, current_depth: int = 0, accumulator: list[int] | 
 
 
 def box_counting_dimension(
-        points: Mapping[tuple[int, ...], float | int],
-        min_box_size: int = 1,
-        max_box_size: int | None = None,
+    points: Mapping[tuple[int, ...], float | int],
+    min_box_size: int = 1,
+    max_box_size: int | None = None,
 ) -> float | int:
     """
     Estimate the Box-Counting Dimension (Minkowski-Bouligand dimension) of a sparse set of points.

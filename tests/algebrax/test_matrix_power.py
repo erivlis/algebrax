@@ -10,6 +10,7 @@ def test_matrix_power_identity():
 
     assert identity == {0: {0: 1}, 1: {1: 1}}
 
+
 def test_matrix_power_one():
     """Test that M^1 is M."""
     m = {0: {0: 2, 1: 3}, 1: {0: 4, 1: 5}}
@@ -18,6 +19,7 @@ def test_matrix_power_one():
     # power might return sparse structure (missing zeros), but input is dense-ish
     # Let's check equality. power() implementation constructs new dicts.
     assert m1 == m
+
 
 def test_matrix_power_fibonacci():
     """
@@ -43,6 +45,7 @@ def test_matrix_power_fibonacci():
     q10 = power(q_matrix, 10)
     assert q10[0][1] == 55
 
+
 def test_matrix_power_graph_paths():
     """
     Test that (Adj)^k[i][j] counts paths of length k from i to j.
@@ -52,11 +55,7 @@ def test_matrix_power_graph_paths():
     Cycle: 0->1->2->0 (Length 3)
     """
     # Adjacency matrix
-    adj = {
-        0: {1: 1},
-        1: {2: 1},
-        2: {0: 1}
-    }
+    adj = {0: {1: 1}, 1: {2: 1}, 2: {0: 1}}
 
     # 3 steps: Should be identity (paths of length 3 are loops)
     adj3 = power(adj, 3)
@@ -68,6 +67,7 @@ def test_matrix_power_graph_paths():
     # In 4 steps: 0->1->2->0->1. So adj4[0][1] should be 1.
     adj4 = power(adj, 4)
     assert adj4[0][1] == 1
+
 
 def test_matrix_power_negative_raises():
     """Test that negative exponent raises ValueError."""

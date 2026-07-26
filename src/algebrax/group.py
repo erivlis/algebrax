@@ -5,6 +5,7 @@ This module provides utility functions for manipulating mappings (dictionaries),
 those representing permutations. These functions include the ability to compose mappings,
 invert mappings, and compute the signature (parity) of a permutation.
 """
+
 from collections.abc import Mapping
 from typing import Any
 

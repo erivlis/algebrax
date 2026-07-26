@@ -73,7 +73,7 @@ def divergence(flow: SparseMatrix) -> SparseVector:
 def _is_graph_weighted(graph: SparseMatrix) -> bool:
     for neighbors in graph.values():
         for w in neighbors.values():
-            if w != 1 and math.isclose(w,1.0):
+            if w != 1 and math.isclose(w, 1.0):
                 return True
     return False
 
@@ -95,9 +95,9 @@ def _adjacent_sum(neighbors: Mapping[K, float], exclude_node: K, w_e: float, w_n
 
 
 def _unweighted_forman_ricci(
-        graph: SparseMatrix,
-        degrees: dict[K, int],
-        augmented: bool,
+    graph: SparseMatrix,
+    degrees: dict[K, int],
+    augmented: bool,
 ) -> dict[tuple[K, K], float]:
     curvature = {}
     for u, neighbors in graph.items():
@@ -120,9 +120,9 @@ def _unweighted_forman_ricci(
 
 
 def _weighted_forman_ricci(
-        graph: SparseMatrix,
-        strengths: dict[K, float],
-        augmented: bool,
+    graph: SparseMatrix,
+    strengths: dict[K, float],
+    augmented: bool,
 ) -> dict[tuple[K, K], float]:
     curvature = {}
     for u, neighbors in graph.items():
@@ -163,9 +163,9 @@ def _weighted_forman_ricci(
 
 
 def forman_ricci_curvature(
-        graph: SparseMatrix,
-        weighted: bool | None = None,
-        augmented: bool = True,
+    graph: SparseMatrix,
+    weighted: bool | None = None,
+    augmented: bool = True,
 ) -> dict[tuple[K, K], float]:
     """
     Compute the Forman-Ricci Curvature for edges in a graph.

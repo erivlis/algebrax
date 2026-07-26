@@ -64,7 +64,7 @@ def test_inverse():
 
 def test_inverse_singular_raises():
     m = {0: {0: 1, 1: 2}, 1: {0: 2, 1: 4}}  # Det = 0
-    with pytest.warns(PerformanceWarning), pytest.raises(ValueError, match="singular"):
+    with pytest.warns(PerformanceWarning), pytest.raises(ValueError, match='singular'):
         inverse(m)
 
 

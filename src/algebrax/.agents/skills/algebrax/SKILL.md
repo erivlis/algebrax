@@ -30,7 +30,7 @@ result = dot(v1, v2)  # -> 6
 # Shortest-path-style multiplication using the Tropical Semiring
 m1 = {0: {1: 2}, 1: {2: 3}}
 m2 = {1: {2: 1}, 2: {0: 4}}
-path_result = dot(m1, m2, semiring=TropicalSemiring) # -> {0: {2: 3}}
+path_result = dot(m1, m2, semiring=TropicalSemiring)  # -> {0: {2: 3}}
 ```
 
 ### Graph Analysis (`algebrax.analysis`)
@@ -57,14 +57,14 @@ Work with probability distributions represented as dictionaries.
 from algebrax.probability import normalize, bayes_update, entropy
 
 prior = {'sunny': 0.6, 'rainy': 0.4}
-likelihood = {'sunny': 0.1, 'rainy': 0.8} # P(cloudy | weather)
+likelihood = {'sunny': 0.1, 'rainy': 0.8}  # P(cloudy | weather)
 
 # Get the posterior probability of weather given clouds
 posterior = bayes_update(prior, likelihood)
-normalized_posterior = normalize(posterior) # -> {'sunny': 0.157..., 'rainy': 0.842...}
+normalized_posterior = normalize(posterior)  # -> {'sunny': 0.157..., 'rainy': 0.842...}
 
 # Calculate entropy
-h = entropy(normalized_posterior) # -> 0.63...
+h = entropy(normalized_posterior)  # -> 0.63...
 ```
 
 ## Advanced Semiring Usage
@@ -80,10 +80,7 @@ from algebrax.semiring import ProvenanceSemiring
 from algebrax.matrix import dot
 
 # Graph with labeled edges
-graph = {
-    0: {1: {('x',): 1}, 2: {('z',): 1}},
-    1: {2: {('y',): 1}}
-}
+graph = {0: {1: {('x',): 1}, 2: {('z',): 1}}, 1: {2: {('y',): 1}}}
 
 # Find paths of length 2
 paths_len_2 = dot(graph, graph, semiring=ProvenanceSemiring())
@@ -99,11 +96,11 @@ from algebrax.trie import AlgebraicTrie
 from algebrax.semiring import StandardSemiring
 
 trie = AlgebraicTrie(StandardSemiring)
-trie.add(["home", "user", "docs"], 1)
-trie.add(["home", "user", "pics"], 1)
+trie.add(['home', 'user', 'docs'], 1)
+trie.add(['home', 'user', 'pics'], 1)
 
 # Sum all paths under "home/user"
-count = trie.contract(["home", "user"]) # -> 2.0
+count = trie.contract(['home', 'user'])  # -> 2.0
 ```
 
 ## Theoretical Concepts

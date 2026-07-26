@@ -13,8 +13,9 @@ def test_dfa():
     assert dfa_step(0, 'a', trans) == 1
     assert dfa_step(0, 'b', trans) is None
 
-    assert simulate_dfa(0, "ab", trans) == 2
-    assert simulate_dfa(0, "ac", trans) is None
+    assert simulate_dfa(0, 'ab', trans) == 2
+    assert simulate_dfa(0, 'ac', trans) is None
+
 
 def test_nfa():
     # 0 --a--> 0 (0.5)
@@ -26,5 +27,5 @@ def test_nfa():
     assert next_state == {0: 0.5, 1: 0.5}
 
     # Simulate
-    final = simulate_nfa(start, "a", trans)
+    final = simulate_nfa(start, 'a', trans)
     assert final == {0: 0.5, 1: 0.5}
