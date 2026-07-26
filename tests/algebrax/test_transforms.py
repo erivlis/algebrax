@@ -15,14 +15,28 @@ from algebrax.transforms import (
 
 
 def test_convolve():
-    # [1, 2] * [1, 1] = [1, 3, 2]
-    # 0: 1*1=1
-    # 1: 1*1 + 2*1 = 3
-    # 2: 2*1 = 2
+    from algebrax.semiring import TropicalSemiring
+
+    # Standard polynomial-style convolution (default key_op: x + y)
     f = {0: 1, 1: 2}
     g = {0: 1, 1: 1}
     h = convolve(f, g)
     assert h == {0: 1, 1: 3, 2: 2}
+
+    # Custom key_op (e.g. string concatenation)
+    f_str = {'a': 2, 'b': 3}
+    g_str = {'x': 1, 'y': 4}
+    h_str = convolve(f_str, g_str, key_op=lambda k1, k2: k1 + k2)
+    assert h_str == {'ax': 2, 'ay': 8, 'bx': 3, 'by': 12}
+
+    # Group / modular key_op with TropicalSemiring (Min-Plus)
+    # f[x] + g[y] combined via min
+    h_trop = convolve(f, g, semiring=TropicalSemiring())
+    # 0+0=0 (1+1=2), 0+1=1 (1+1=2), 1+0=1 (2+1=3), 1+1=2 (2+1=3)
+    # min at 0: 2
+    # min at 1: min(2, 3) = 2
+    # min at 2: 3
+    assert h_trop == {0: 2.0, 1: 2.0, 2: 3.0}
 
 
 def test_dft_idft():

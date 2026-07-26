@@ -6,8 +6,13 @@ from algebrax.matrix.core import dot, power
 from algebrax.semiring import (
     BooleanSemiring,
     BottleneckSemiring,
+    KnotSemiring,
     LogSemiring,
+    MonoidAlgebraSemiring,
+    PolynomialSemiring,
+    ProvenanceSemiring,
     ReliabilitySemiring,
+    StandardSemiring,
     StringSemiring,
     TropicalSemiring,
 )
@@ -168,3 +173,57 @@ def test_reliability_semiring():
     assert semiring.mul(0.5, 0.5) == pytest.approx(0.25)  # mul
     assert semiring.zero == pytest.approx(0.0)
     assert semiring.one == pytest.approx(1.0)
+
+
+def test_polynomial_semiring():
+    poly_semiring = PolynomialSemiring(StandardSemiring[int]())
+
+    # P1(x) = 1 + 2x  -> {0: 1, 1: 2}
+    # P2(x) = 3 + 4x  -> {0: 3, 1: 4}
+    # Addition: 4 + 6x -> {0: 4, 1: 6}
+    # Multiplication: (1+2x)(3+4x) = 3 + 10x + 8x^2 -> {0: 3, 1: 10, 2: 8}
+    p1 = {0: 1, 1: 2}
+    p2 = {0: 3, 1: 4}
+
+    assert poly_semiring.add(p1, p2) == {0: 4, 1: 6}
+    assert poly_semiring.mul(p1, p2) == {0: 3, 1: 10, 2: 8}
+    assert poly_semiring.zero == {}
+    assert poly_semiring.one == {0: 1}
+
+    # Generalized MonoidAlgebraSemiring over custom string key_op
+    poly_str = MonoidAlgebraSemiring(StandardSemiring[int](), key_op=lambda a, b: a + b, zero_key='')
+    assert poly_str.mul({'a': 2}, {'b': 3}) == {'ab': 6}
+    assert poly_str.one == {'': 1}
+
+
+def test_knot_semiring():
+    knot_semiring = KnotSemiring(StandardSemiring[int]())
+
+    # K1 = 2 * '3_1' + 'U'
+    # K2 = '4_1'
+    # Connected sum K1 # K2 = 2 * '3_1#4_1' + '4_1'
+    k1 = {'3_1': 2, 'U': 1}
+    k2 = {'4_1': 1}
+
+    res_mul = knot_semiring.mul(k1, k2)
+    assert res_mul == {'3_1#4_1': 2, '4_1': 1}
+
+    res_add = knot_semiring.add(k1, k2)
+    assert res_add == {'3_1': 2, 'U': 1, '4_1': 1}
+    assert knot_semiring.zero == {}
+    assert knot_semiring.one == {'U': 1}
+
+
+def test_provenance_semiring():
+    prov = ProvenanceSemiring()
+
+    # Expression 1: 2*x*y + z -> {('x', 'y'): 2, ('z',): 1}
+    # Expression 2: 3*w       -> {('w',): 3}
+    # Multiplication: (2xy + z) * 3w = 6wxyz + 3wz -> {('w', 'x', 'y'): 6, ('w', 'z'): 3}
+    e1 = {('x', 'y'): 2, ('z',): 1}
+    e2 = {('w',): 3}
+
+    res_mul = prov.mul(e1, e2)
+    assert res_mul == {('w', 'x', 'y'): 6, ('w', 'z'): 3}
+    assert prov.zero == {}
+    assert prov.one == {(): 1}
