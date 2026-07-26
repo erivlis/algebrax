@@ -1,3 +1,15 @@
+## v0.3.0 (2026-07-26)
+
+### Feat
+
+- Introduces MonoidAlgebraSemiring and generalizes StandardSemiring.
+
+### Refactor
+
+- Exposes MonoidAlgebraSemiring and other semirings for convolve.
+- Refactors `convolve` to use `MonoidAlgebraSemiring`.
+- Standardizes code style, simplifies Z-transform types, adds re-export test.
+
 ## v0.2.1 (2026-07-25)
 
 ### Refactor
