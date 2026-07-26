@@ -270,3 +270,168 @@ def test_gelfand_transform():
     # Empty inputs
     assert gelfand_transform({}, characters) == {}
     assert gelfand_transform(signal, {}) == {}
+
+
+def test_convolve_empty():
+    assert convolve({}, {}) == {}
+
+
+def test_dft_threshold():
+    sig = {0: 1e-10}
+    assert dft(sig) == {}
+
+
+def test_idft_threshold():
+    spec = {0: 1e-10}
+    assert idft(spec) == {}
+
+
+def test_hilbert_threshold():
+    sig = {0: 1e-10}
+    assert hilbert(sig) == {}
+
+
+def test_lorentz_zero_result():
+    vec = {0: 0.0, 1: 0.0}
+    res = lorentz_boost(vec, beta=0.5)
+    assert res == {}
+
+
+def test_z_transform_negative_n():
+    sig = {-1: 1}
+    assert z_transform(sig, 1) == 0j
+
+
+def test_z_transform_mixed_n():
+    sig = {-1: 1, 0: 1}
+    assert z_transform(sig, 1) == pytest.approx(1.0)
+
+
+def test_z_transform_empty():
+    assert z_transform({}, 1) == 0j
+
+
+def test_transforms_edge_cases():
+    from algebrax.semiring import StandardSemiring, TropicalSemiring
+
+    assert legendre_fenchel({}, slope=2.0, semiring=TropicalSemiring()) == float('inf')
+    assert legendre_fenchel({'non_num': 1}, slope=2.0) == float('-inf')
+    assert legendre_fenchel({1: 2.0}, slope=2.0, semiring=TropicalSemiring()) == 1.0
+
+    assert walsh_hadamard({}) == {}
+    assert walsh_hadamard({1: 2.0}) == {0: 2.0, 1: -2.0}
+    with pytest.raises(ValueError, match='power of 2'):
+        walsh_hadamard({1: 2.0}, n=3)
+
+    signal = {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0}
+    freq = dft(signal, n=4)
+    rec = idft(freq, n=4)
+    assert rec[0] == pytest.approx(1.0)
+
+    h = hilbert(signal, n=4)
+    assert len(h) == 4
+
+    v = {0: 1.0, 1: 0.0}
+    v_boosted = lorentz_boost(v, beta=0.5)
+    assert 0 in v_boosted
+    assert 1 in v_boosted
+
+    tensor = {(0, 1): 5.0, (1, 2): 10.0}
+    permuted = permute_tensor(tensor, permutation=(1, 0))
+    assert permuted == {(1, 0): 5.0, (2, 1): 10.0}
+
+    f = {'a': 2.0, 'b': 3.0}
+    characters = {'c1': lambda k: 1.0, 'c2': lambda k: -1.0 if k == 'b' else 1.0}
+    gt = gelfand_transform(f, characters)
+    assert len(gt) == 2
+
+    gt_semiring = gelfand_transform(f, characters, semiring=TropicalSemiring())
+    assert len(gt_semiring) == 2
+
+    assert z_transform({}, z=1.0, semiring=TropicalSemiring()) == float('inf')
+    z_res = z_transform(signal, z=2.0)
+    assert isinstance(z_res, (int, float, complex))
+    z_res_trop = z_transform({1: 2.0, 2: 3.0}, z=1.0, semiring=TropicalSemiring())
+    assert z_res_trop == 1.0
+
+    lf = legendre_fenchel({1: 2.0}, slope=2.0, semiring=StandardSemiring(float))
+    assert lf == pytest.approx(0.0)
+
+    gt_zero = gelfand_transform({'a': 1.0}, {'c1': lambda k: 0.0}, semiring=StandardSemiring(float))
+    assert gt_zero == {}
+
+    zt_std = z_transform({1: 2.0}, z=2.0, semiring=StandardSemiring(float))
+    assert zt_std == pytest.approx(1.0)
+
+
+def test_transforms_branch_coverage():
+    from algebrax.semiring import BooleanSemiring, Semiring, StandardSemiring, TropicalSemiring
+    from algebrax.transforms import gelfand_transform, legendre_fenchel, z_transform
+
+    assert legendre_fenchel({}, slope=2.0) == float('-inf')
+    assert legendre_fenchel({'non_num': 1}, slope=2.0, semiring=BooleanSemiring()) is False
+
+    class NonFloat:
+        def __mul__(self, other):
+            return self
+
+        def __rmul__(self, other):
+            return self
+
+        def __radd__(self, other):
+            return self
+
+        def __abs__(self):
+            raise TypeError()
+
+        def __eq__(self, other):
+            return True
+
+    gt_nonfloat = gelfand_transform({'a': 1}, {'c': lambda k: NonFloat()}, semiring=StandardSemiring())
+    assert gt_nonfloat == {}
+
+    gt_zero = gelfand_transform({'a': True}, {'c': lambda k: False}, semiring=BooleanSemiring())
+    assert gt_zero == {}
+
+    class CustomSlopeSemiring(Semiring[float]):
+        @property
+        def zero(self):
+            return 0.0
+
+        @property
+        def one(self):
+            return 1.0
+
+        def add(self, a, b):
+            return a + b
+
+        def mul(self, a, b):
+            if isinstance(b, int):
+                raise TypeError()
+            if b == 0.5:
+                raise TypeError()
+            return float(a) * float(b)
+
+        def power(self, a, n):
+            raise RuntimeError()
+
+    assert legendre_fenchel({1: 2.0}, slope=2.0, semiring=CustomSlopeSemiring()) == 0.0
+    assert z_transform({1: 2.0}, z=2.0, semiring=CustomSlopeSemiring()) == pytest.approx(1.0)
+
+    class NonDivisibleZSemiring(Semiring[str]):
+        @property
+        def zero(self):
+            return ''
+
+        @property
+        def one(self):
+            return '1'
+
+        def add(self, a, b):
+            return a + b
+
+        def mul(self, a, b):
+            return a + b
+
+    assert z_transform({1: 'a'}, z='z', semiring=NonDivisibleZSemiring()) == 'a1z'
+    assert z_transform({-1: 1.0}, z=2.0, semiring=TropicalSemiring()) == float('inf')

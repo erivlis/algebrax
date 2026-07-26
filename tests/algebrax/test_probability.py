@@ -281,3 +281,60 @@ def test_mode():
 def test_mode_empty():
     with pytest.raises(ValueError):
         mode({})
+
+
+def test_cross_entropy_empty():
+    assert cross_entropy({}, {}) == pytest.approx(0.0)
+
+
+def test_kl_divergence_empty():
+    assert kl_divergence({}, {}) == pytest.approx(0.0)
+
+
+def test_markov_steady_state_single_node():
+    p_matrix = {0: {0: 1.0}}
+    ss = markov_steady_state(p_matrix)
+    assert ss == {0: 1.0}
+
+
+def test_markov_steady_state_zero_iterations():
+    p_matrix = {0: {0: 1.0}}
+    ss = markov_steady_state(p_matrix, iterations=0)
+    assert ss == {0: 1.0}
+
+
+def test_markov_steady_state_no_convergence():
+    p_matrix = {0: {1: 1.0}, 1: {0: 1.0}}
+    ss = markov_steady_state(p_matrix, iterations=2, tolerance=0.1)
+    assert ss[0] == pytest.approx(0.5)
+    assert ss[1] == pytest.approx(0.5)
+
+
+def test_mutual_information_zeros():
+    joint = {0: {0: 0.0}}
+    assert mutual_information(joint) == pytest.approx(0.0)
+
+
+def test_mutual_information_empty_row():
+    joint = {0: {}}
+    assert mutual_information(joint) == pytest.approx(0.0)
+
+
+def test_probability_edge_branches():
+    from algebrax.probability import entropy, marginalize
+
+    assert entropy({}) == 0.0
+    assert marginalize({}) == {}
+    assert marginalize({}, axis=1) == {}
+
+
+def test_probability_branch_coverage():
+    from algebrax.probability import cross_entropy, kl_divergence, markov_steady_state
+
+    assert cross_entropy({0: 0.0}, {0: 1.0}) == 0.0
+    assert kl_divergence({0: 0.0}, {0: 1.0}) == 0.0
+    assert markov_steady_state({0: {0: 1.0}}, iterations=10, tolerance=1.0) == {0: 1.0}
+    assert len(markov_steady_state({0: {1: 1.0}, 1: {0: 1.0}}, iterations=3, tolerance=0.001)) == 2
+    assert markov_steady_state({0: {0: 0.9, 1: 0.1}, 1: {0: 0.5, 1: 0.5}}, iterations=20, tolerance=1e-5)[
+        0
+    ] == pytest.approx(0.8333333333333334, abs=1e-4)

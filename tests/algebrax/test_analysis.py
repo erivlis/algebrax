@@ -96,3 +96,99 @@ def test_forman_ricci_curvature():
 
     f_weighted_aug = forman_ricci_curvature(weighted_graph, augmented=True)
     assert f_weighted_aug[(0, 1)] == pytest.approx(3.0)
+
+
+def test_gaussian_kernel_empty():
+    assert gaussian_kernel({}) == {}
+
+
+def test_gaussian_kernel_threshold():
+    dist = {0: {1: 10.0}}
+    sim = gaussian_kernel(dist, sigma=1.0, threshold=0.1)
+    assert sim == {}
+
+
+def test_gradient_missing_keys():
+    field = {0: 0, 1: 10}
+    graph = {0: [1], 2: [0]}
+    grad = gradient(field, graph)
+    assert 2 not in grad
+    assert grad[0][1] == 10
+
+
+def test_gradient_neighbor_missing():
+    field = {0: 0}
+    graph = {0: [2]}
+    grad = gradient(field, graph)
+    assert grad == {}
+
+
+def test_laplacian_missing_keys():
+    field = {0: 0}
+    graph = {0: {1: 1}, 2: {0: 1}}
+    lap = laplacian(field, graph)
+    assert lap == {}
+
+
+def test_laplacian_zero_sum():
+    field = {0: 10, 1: 10}
+    graph = {0: {1: 1}}
+    lap = laplacian(field, graph)
+    assert lap == {}
+
+
+def test_box_counting_no_coords():
+    from algebrax import box_counting_dimension
+
+    assert box_counting_dimension({}) == pytest.approx(0.0)
+
+
+def test_forman_ricci_weighted_and_uncomparable_nodes():
+    g_weighted = {
+        0: {1: 2.0, 2: 4.0},
+        1: {0: 2.0, 2: 3.0},
+        2: {0: 4.0, 1: 3.0},
+    }
+    frc_explicit = forman_ricci_curvature(g_weighted, weighted=True, augmented=True)
+    frc_auto = forman_ricci_curvature(g_weighted, weighted=None, augmented=True)
+    assert frc_explicit == frc_auto
+    assert len(frc_explicit) == 3
+
+    g_zero = {0: {1: 0.0}, 1: {0: 0.0}}
+    frc_zero = forman_ricci_curvature(g_zero, weighted=True)
+    assert frc_zero[(0, 1)] == 0.0
+
+    class CustomNode:
+        def __init__(self, val):
+            self.val = val
+
+    n1 = CustomNode(1)
+    n2 = CustomNode(2)
+    g_custom = {n1: {n2: 1.0}, n2: {n1: 1.0}}
+    frc_custom = forman_ricci_curvature(g_custom, weighted=False)
+    assert len(frc_custom) == 1
+
+
+def test_analysis_edge_branches():
+    from algebrax.analysis import _get_common_neighbors, _is_graph_weighted
+
+    assert _get_common_neighbors({0: {1: 1.0}}, 0, 999) == set()
+    assert not _is_graph_weighted({0: {1: 1.0}})
+    assert _is_graph_weighted({0: {1: 2.0}})
+
+    class CustomNode:
+        pass
+
+    c1, c2 = CustomNode(), CustomNode()
+    g_custom_weighted = {c1: {c2: 2.0}, c2: {c1: 2.0}}
+    assert len(forman_ricci_curvature(g_custom_weighted, weighted=True)) == 1
+
+
+def test_analysis_branch_coverage():
+    g = {
+        0: {1: 1.0, 2: 0.0},
+        1: {0: 1.0, 2: 1.0},
+        2: {0: 0.0, 1: 1.0},
+    }
+    frc = forman_ricci_curvature(g, weighted=True, augmented=True)
+    assert len(frc) == 3

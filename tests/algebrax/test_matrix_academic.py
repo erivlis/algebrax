@@ -116,6 +116,62 @@ def test_eigen_centrality_zero_matrix():
     # Our implementation normalizes.
     m = {0: {}, 1: {}}
     ec = eigen_centrality(m)
-    # Should return initial uniform vector if norm becomes 0
     assert ec[0] == pytest.approx(0.5)
     assert ec[1] == pytest.approx(0.5)
+
+
+def test_determinant_pivot_swap():
+    m = {0: {1: 1}, 1: {0: 1}}
+    with pytest.warns(PerformanceWarning):
+        assert determinant(m) == -1
+
+
+def test_determinant_already_triangular():
+    m = {0: {0: 1, 1: 1}, 1: {1: 1}}
+    with pytest.warns(PerformanceWarning):
+        assert determinant(m) == 1
+
+
+def test_determinant_dense():
+    m = {0: {0: 1, 1: 1, 2: 1}, 1: {0: 1, 1: 2, 2: 2}, 2: {0: 1, 1: 2, 2: 3}}
+    with pytest.warns(PerformanceWarning):
+        assert determinant(m) == 1
+
+
+def test_determinant_singular_after_elimination():
+    m = {0: {0: 1, 1: 1}, 1: {0: 1, 1: 1}}
+    with pytest.warns(PerformanceWarning):
+        assert determinant(m) == 0
+
+
+def test_inverse_scalar_loop():
+    m = {0: {0: 2}}
+    with pytest.warns(PerformanceWarning):
+        inv = inverse(m)
+    assert inv == {0: {0: 0.5}}
+
+
+def test_eigen_centrality_zero_iterations():
+    m = {0: {1: 1}, 1: {0: 1}}
+    ec = eigen_centrality(m, iterations=0)
+    assert ec[0] == pytest.approx(0.5)
+    assert ec[1] == pytest.approx(0.5)
+
+
+def test_cofactor_with_zero_minors():
+    m = {0: {0: 1}, 1: {1: 1}, 2: {2: 1}}
+    with pytest.warns(PerformanceWarning):
+        c = cofactor(m)
+    assert c == {0: {0: 1}, 1: {1: 1}, 2: {2: 1}}
+
+
+def test_determinant_1x1_branch():
+    with pytest.warns(PerformanceWarning):
+        assert determinant({0: {0: 5.0}}) == 5.0
+
+
+def test_determinant_n_out_of_bounds():
+    with pytest.warns(PerformanceWarning):
+        assert determinant({10: {0: 1}}, n=2) == 0
+    with pytest.warns(PerformanceWarning):
+        assert determinant({0: {10: 1}}, n=2) == 0

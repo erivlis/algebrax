@@ -223,3 +223,46 @@ def test_flat_to_nested_conflict():
     # Final: {0: 1}
     nested2 = flat_to_nested(flat2)
     assert nested2 == {0: 1}
+
+
+def test_converters_edge_cases():
+    from algebrax.converters import (
+        dense_to_sparse_tensor,
+        flat_to_nested,
+        nested_to_flat,
+        sample,
+        sample_tensor,
+        sparse_to_dense_tensor,
+    )
+
+    dense_tensor = [[[1.0, 0.0], [0.0, 2.0]]]
+    sparse_t = dense_to_sparse_tensor(dense_tensor)
+    assert sparse_t == {0: {0: {0: 1.0}, 1: {1: 2.0}}}
+    dense_rec = sparse_to_dense_tensor(sparse_t, shape=(1, 2, 2))
+    assert dense_rec == dense_tensor
+
+    nested = {'a': {'b': 1, 'c': 2}}
+    flat = nested_to_flat(nested)
+    assert flat[('a', 'b')] == 1
+    rec_nested = flat_to_nested(flat)
+    assert rec_nested == nested
+
+    sampled = sample(lambda x: x * 2, domain=[1, 2, 3])
+    assert sampled == {1: 2, 2: 4, 3: 6}
+
+    sampled_t = sample_tensor(lambda coords: coords[0] + coords[1], ranges=[[0, 1], [0, 1]], default=None)
+    assert sampled_t == {0: {0: 0, 1: 1}, 1: {0: 1, 1: 2}}
+
+    assert sparse_to_dense_tensor({}) == []
+
+
+def test_converters_branch_coverage():
+    from algebrax.converters import dense_to_sparse_tensor, sparse_to_dense_tensor
+
+    assert dense_to_sparse_tensor([5], default=0) == {0: 5}
+    assert dense_to_sparse_tensor([0, [1]], default=0) == {1: {0: 1}}
+    assert dense_to_sparse_tensor([[0, 0]], default=0) == {}
+    assert dense_to_sparse_tensor(['hello'], default='') == {0: 'hello'}
+    assert dense_to_sparse_tensor([''], default='') == {}
+    assert sparse_to_dense_tensor(42) == 42
+    assert sparse_to_dense_tensor({10: 1.0}, shape=(2,)) == [0, 0]

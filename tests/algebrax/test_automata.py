@@ -29,3 +29,39 @@ def test_nfa():
     # Simulate
     final = simulate_nfa(start, 'a', trans)
     assert final == {0: 0.5, 1: 0.5}
+
+
+def test_dfa_step_missing():
+    assert dfa_step('q0', 'a', {}) is None
+
+
+def test_nfa_step_missing():
+    assert nfa_step({'q0': 1.0}, 'a', {}) == {}
+
+
+def test_simulate_dfa_list_input():
+    trans = {0: {'a': 1}}
+    assert simulate_dfa(0, ['a'], trans) == 1
+
+
+def test_simulate_dfa_mapping_input():
+    trans = {0: {'a': 1, 'b': 2}, 1: {'b': 2}}
+    seq = {0: 'a', 10: 'b'}
+    assert simulate_dfa(0, seq, trans) == 2
+
+
+def test_simulate_nfa_list_input():
+    trans = {0: {'a': {1: 1.0}}}
+    assert simulate_nfa({0: 1.0}, ['a'], trans) == {1: 1.0}
+
+
+def test_simulate_nfa_mapping_input():
+    trans = {0: {'a': {1: 1.0}}}
+    seq = {5: 'a'}
+    assert simulate_nfa({0: 1.0}, seq, trans) == {1: 1.0}
+
+
+def test_simulate_nfa_break():
+    trans = {0: {'a': {1: 1.0}}}
+    res = simulate_nfa({0: 1.0}, ['b', 'a'], trans)
+    assert res == {}

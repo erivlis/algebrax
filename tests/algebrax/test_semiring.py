@@ -227,3 +227,324 @@ def test_provenance_semiring():
     assert res_mul == {('w', 'x', 'y'): 6, ('w', 'z'): 3}
     assert prov.zero == {}
     assert prov.one == {(): 1}
+
+
+def test_monoid_algebra_nsum():
+    poly = PolynomialSemiring(StandardSemiring[int]())
+    p = {0: 1, 1: 2}
+    assert poly.nsum(p, 0) == {}
+    assert poly.nsum(p, 3) == {0: 3, 1: 6}
+
+
+def test_top_level_reexports_completeness():
+    import algebrax
+    import algebrax.analysis
+    import algebrax.automata
+    import algebrax.converters
+    import algebrax.group
+    import algebrax.matrix
+    import algebrax.metrics
+    import algebrax.semiring
+    import algebrax.transforms
+    import algebrax.trie
+    import algebrax.typing
+
+    submodules = [
+        algebrax.analysis,
+        algebrax.automata,
+        algebrax.converters,
+        algebrax.group,
+        algebrax.matrix,
+        algebrax.metrics,
+        algebrax.semiring,
+        algebrax.transforms,
+        algebrax.trie,
+        algebrax.typing,
+    ]
+
+    all_exported = set(algebrax.__all__)
+    for mod in submodules:
+        if hasattr(mod, '__all__'):
+            for symbol in mod.__all__:
+                if mod is algebrax.typing and (len(symbol) == 1 or symbol == 'T_num'):
+                    continue
+                assert symbol in all_exported, f"Symbol '{symbol}' from {mod.__name__} is missing in algebrax.__all__"
+
+
+def test_semiring_protocol_default_implementations():
+    from algebrax.semiring import Semiring
+
+    class DummySemiring(Semiring[int]):
+        @property
+        def zero(self) -> int:
+            return 0
+
+        @property
+        def one(self) -> int:
+            return 1
+
+        def add(self, a: int, b: int) -> int:
+            return a + b
+
+        def mul(self, a: int, b: int) -> int:
+            return a * b
+
+    s = DummySemiring()
+    with pytest.raises(ValueError, match='nsum requires non-negative n'):
+        s.nsum(5, -1)
+    assert s.nsum(5, 0) == 0
+    assert s.nsum(5, 1) == 5
+    assert s.nsum(3, 4) == 12
+
+    with pytest.raises(ValueError, match='power requires non-negative n'):
+        s.power(5, -1)
+    assert s.power(5, 0) == 1
+    assert s.power(5, 1) == 5
+    assert s.power(2, 4) == 16
+
+
+def test_standard_semiring_methods():
+    s_int = StandardSemiring(int)
+    assert s_int.nsum(5, 0) == 0
+    assert s_int.nsum(5, 3) == 15
+    assert s_int.nsum(5, -2) == -10
+    assert s_int.power(3, 2) == 9
+    assert s_int.star(0) == 1
+    with pytest.raises(ValueError):
+        s_int.star(1)
+
+    s_float = StandardSemiring(float)
+    assert s_float.star(0.5) == pytest.approx(2.0)
+    assert s_float.star(1.5) == float('inf')
+
+
+def test_tropical_semiring_methods():
+    s = TropicalSemiring()
+    with pytest.raises(ValueError):
+        s.nsum(5.0, -1)
+    assert s.nsum(5.0, 0) == float('inf')
+    assert s.nsum(5.0, 3) == 5.0
+    assert s.power(2.0, 4) == 8.0
+    assert s.star(-1.0) == float('-inf')
+    assert s.star(1.0) == 0.0
+
+
+def test_arctic_semiring_methods():
+    from algebrax.semiring import ArcticSemiring
+
+    s = ArcticSemiring()
+    with pytest.raises(ValueError):
+        s.nsum(5.0, -1)
+    assert s.nsum(5.0, 0) == float('-inf')
+    assert s.nsum(5.0, 3) == 5.0
+    assert s.power(2.0, 4) == 8.0
+    assert s.star(1.0) == float('inf')
+    assert s.star(-1.0) == 0.0
+
+
+def test_viterbi_semiring_methods():
+    from algebrax.semiring import ViterbiSemiring
+
+    s = ViterbiSemiring()
+    with pytest.raises(ValueError):
+        s.nsum(0.5, -1)
+    assert s.nsum(0.5, 0) == 0.0
+    assert s.nsum(0.5, 3) == 0.5
+    assert s.power(0.5, 3) == pytest.approx(0.125)
+    assert s.star(0.5) == 1.0
+
+
+def test_all_specialized_semirings_coverage():
+    from algebrax.semiring import (
+        ArcticSemiring,
+        DigitalSemiring,
+        DualNumberSemiring,
+        ExpectationSemiring,
+        KCollapsedSemiring,
+        LukasiewiczSemiring,
+        MinTimesSemiring,
+        VarianceSemiring,
+    )
+
+    log_s = LogSemiring()
+    assert log_s.zero == float('-inf')
+    assert log_s.one == 0.0
+    assert log_s.add(0.0, 0.0) > 0.0
+    assert log_s.mul(2.0, 3.0) == 5.0
+    with pytest.raises(ValueError):
+        log_s.nsum(1.0, -1)
+    assert log_s.nsum(1.0, 0) == float('-inf')
+    assert log_s.nsum(float('-inf'), 2) == float('-inf')
+    assert log_s.nsum(1.0, 2) > 1.0
+    assert log_s.power(2.0, 3) == 6.0
+    assert log_s.star(1.0) == float('inf')
+    assert log_s.star(-1.0) == pytest.approx(-math.log1p(-math.exp(-1.0)))
+
+    b_s = BooleanSemiring()
+    assert b_s.zero is False
+    assert b_s.one is True
+    assert b_s.add(True, False) is True
+    assert b_s.mul(True, False) is False
+    with pytest.raises(ValueError):
+        b_s.nsum(True, -1)
+    assert b_s.nsum(True, 0) is False
+    assert b_s.nsum(True, 2) is True
+    assert b_s.power(True, 0) is True
+    assert b_s.power(True, 2) is True
+    assert b_s.star(False) is True
+
+    bot_s = BottleneckSemiring()
+    assert bot_s.zero == float('-inf')
+    assert bot_s.one == float('inf')
+    assert bot_s.add(3.0, 5.0) == 5.0
+    assert bot_s.mul(3.0, 5.0) == 3.0
+    with pytest.raises(ValueError):
+        bot_s.nsum(3.0, -1)
+    assert bot_s.nsum(3.0, 0) == float('-inf')
+    assert bot_s.nsum(3.0, 2) == 3.0
+    assert bot_s.power(3.0, 0) == float('inf')
+    assert bot_s.power(3.0, 2) == 3.0
+    assert bot_s.star(3.0) == float('inf')
+
+    dig_s = DigitalSemiring()
+    assert dig_s.zero == 0
+    assert dig_s.one == float('inf')
+    assert dig_s.add(12, 34) == 34
+    assert dig_s.add(34, 12) == 34
+    assert dig_s.add(12, 21) == 21
+    assert dig_s.add(float('inf'), 12) == float('inf')
+    assert dig_s.mul(12, 34) == 12
+    assert dig_s.mul(34, 12) == 12
+    assert dig_s.mul(12, 21) == 12
+    assert dig_s.mul(float('inf'), 12) == 12
+    assert dig_s.nsum(5, 0) == 0
+    assert dig_s.nsum(5, 2) == 5
+    assert dig_s.power(5, 0) == float('inf')
+    assert dig_s.power(5, 1) == 5
+    assert dig_s.power(5, 2) == 5
+    with pytest.raises(NotImplementedError):
+        dig_s.star(5)
+
+    str_s = StringSemiring()
+    assert str_s.zero == set()
+    assert str_s.one == {''}
+    assert str_s.add({'a'}, {'b'}) == {'a', 'b'}
+    assert str_s.mul({'a'}, {'b'}) == {'ab'}
+    with pytest.raises(ValueError):
+        str_s.nsum({'a'}, -1)
+    assert str_s.nsum({'a'}, 0) == set()
+    assert str_s.nsum({'a'}, 2) == {'a'}
+    assert str_s.power({'a'}, 0) == {''}
+    assert str_s.power({'a'}, 1) == {'a'}
+    assert str_s.power({'a'}, 2) == {'aa'}
+    with pytest.raises(NotImplementedError):
+        str_s.star({'a'})
+
+    dual_s = DualNumberSemiring()
+    assert dual_s.zero == (0.0, 0.0)
+    assert dual_s.one == (1.0, 0.0)
+    assert dual_s.add((1.0, 2.0), (3.0, 4.0)) == (4.0, 6.0)
+    assert dual_s.mul((1.0, 2.0), (3.0, 4.0)) == (3.0, 10.0)
+    assert dual_s.nsum((1.0, 2.0), -1) == (-1.0, -2.0)
+    assert dual_s.nsum((1.0, 2.0), 0) == (0.0, 0.0)
+    assert dual_s.nsum((1.0, 2.0), 2) == (2.0, 4.0)
+    assert dual_s.power((2.0, 3.0), 2) == (4.0, 12.0)
+    assert dual_s.star((0.5, 1.0)) == (2.0, 4.0)
+
+    exp_s = ExpectationSemiring()
+    assert exp_s.zero == (0.0, 0.0)
+    assert exp_s.one == (1.0, 0.0)
+    assert exp_s.add((1.0, 2.0), (3.0, 4.0)) == (4.0, 6.0)
+    assert exp_s.mul((2.0, 3.0), (4.0, 5.0)) == (8.0, 22.0)
+    assert exp_s.nsum((1.0, 2.0), 0) == (0.0, 0.0)
+    assert exp_s.nsum((1.0, 2.0), 3) == (3.0, 6.0)
+    assert exp_s.power((2.0, 3.0), 0) == (1.0, 0.0)
+    assert exp_s.power((2.0, 3.0), 2) == (4.0, 12.0)
+    assert exp_s.star((0.5, 1.0)) == (2.0, 4.0)
+    assert exp_s.star((1.5, 1.0)) == (float('inf'), float('inf'))
+
+    var_s = VarianceSemiring()
+    assert var_s.zero == (0.0, 0.0, 0.0, 0.0)
+    assert var_s.one == (1.0, 0.0, 0.0, 0.0)
+    assert var_s.add((1.0, 2.0, 3.0, 4.0), (5.0, 6.0, 7.0, 8.0)) == (6.0, 8.0, 10.0, 12.0)
+    assert var_s.mul((1.0, 2.0, 3.0, 4.0), (5.0, 6.0, 7.0, 8.0))[0] == 5.0
+    assert var_s.nsum((1.0, 2.0, 3.0, 4.0), 0) == (0.0, 0.0, 0.0, 0.0)
+    assert var_s.nsum((1.0, 2.0, 3.0, 4.0), 2) == (2.0, 4.0, 6.0, 8.0)
+    assert var_s.power((2.0, 1.0, 1.0, 1.0), 0) == (1.0, 0.0, 0.0, 0.0)
+    assert var_s.power((2.0, 1.0, 1.0, 1.0), 2)[0] == 4.0
+    with pytest.raises(NotImplementedError):
+        var_s.star((1.0, 1.0, 1.0, 1.0))
+
+    luk_s = LukasiewiczSemiring()
+    assert luk_s.zero == 0.0
+    assert luk_s.one == 1.0
+    assert luk_s.add(0.4, 0.7) == 0.7
+    assert luk_s.mul(0.6, 0.7) == pytest.approx(0.3)
+    with pytest.raises(ValueError):
+        luk_s.nsum(0.5, -1)
+    assert luk_s.nsum(0.5, 0) == 0.0
+    assert luk_s.nsum(0.5, 2) == 0.5
+    assert luk_s.power(0.5, 0) == 1.0
+    assert luk_s.power(0.5, 2) == 0.0
+    assert luk_s.star(0.5) == 1.0
+
+    mt_s = MinTimesSemiring()
+    assert mt_s.zero == float('inf')
+    assert mt_s.one == 1.0
+    assert mt_s.add(3.0, 5.0) == 3.0
+    assert mt_s.mul(3.0, 5.0) == 15.0
+    with pytest.raises(ValueError):
+        mt_s.nsum(3.0, -1)
+    assert mt_s.nsum(3.0, 0) == float('inf')
+    assert mt_s.nsum(3.0, 2) == 3.0
+    assert mt_s.power(3.0, 2) == 9.0
+    assert mt_s.star(0.5) == 0.0
+    assert mt_s.star(1.5) == 1.0
+
+    k_s = KCollapsedSemiring(k=5)
+    assert k_s.zero == 0
+    assert k_s.one == 1
+    assert k_s.add(3, 4) == 5
+    assert k_s.mul(2, 3) == 5
+    with pytest.raises(ValueError):
+        k_s.nsum(2, -1)
+    assert k_s.nsum(2, 0) == 0
+    assert k_s.nsum(2, 3) == 5
+    assert k_s.power(2, 0) == 1
+    assert k_s.power(2, 3) == 5
+    assert k_s.star(0) == 1
+    assert k_s.star(2) == 5
+
+    mon_s = MonoidAlgebraSemiring(StandardSemiring(int))
+    with pytest.raises(NotImplementedError):
+        mon_s.star({})
+    a = {'x': 5}
+    b = {'x': -5}
+    assert mon_s.add(a, b) == {}
+    assert mon_s.mul(a, {'y': 0}) == {}
+
+
+def test_semiring_edge_branches():
+    from algebrax.semiring import ArcticSemiring, DigitalSemiring, KnotSemiring
+
+    assert ArcticSemiring().nsum(5.0, 3) == 5.0
+    assert DigitalSemiring._digit_sum(0) == 0
+
+    knot = KnotSemiring(StandardSemiring[int]())
+    assert knot._combine_knots('U', 'U') == 'U'
+    assert knot._combine_knots('U', '3_1') == '3_1'
+    assert knot._combine_knots('3_1', 'U') == '3_1'
+
+
+def test_semiring_branch_coverage():
+    from algebrax.semiring import ArcticSemiring, PolynomialSemiring, ProvenanceSemiring, StandardSemiring
+
+    assert ArcticSemiring().one == 0.0
+    poly = PolynomialSemiring(StandardSemiring(int))
+    assert poly.nsum({0: 0}, 2) == {}
+
+    prov = ProvenanceSemiring()
+    assert prov.mul({}, {('x',): 1}) == {}
+    assert prov.mul({('x',): 1}, {}) == {}
+    assert prov.mul({('x',): 1}, {('x',): 0}) == {}
+    assert ProvenanceSemiring._combine_monomials(('a',), ('b',)) == ('a', 'b')

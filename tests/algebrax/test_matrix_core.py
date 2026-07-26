@@ -104,3 +104,45 @@ def test_vec_mat_cancellation():
 def test_kronecker():
     assert kronecker_delta(1, 1) == 1
     assert kronecker_delta(1, 2) == 0
+
+
+def test_add_empty():
+    assert add({}, {}) == {}
+
+
+def test_add_empty_rows():
+    m1 = {0: {}}
+    m2 = {0: {}}
+    assert add(m1, m2) == {}
+
+
+def test_dot_empty():
+    assert dot({}, {}) == {}
+
+
+def test_dot_empty_rows():
+    m1 = {0: {}}
+    m2 = {0: {}}
+    assert dot(m1, m2) == {}
+
+
+def test_vec_mat_empty():
+    assert vec_mat({}, {}) == {}
+
+
+def test_power_zero():
+    from algebrax.matrix.core import power
+
+    assert power({0: {0: 2.0}}, 0) == {0: {0: 1.0}}
+
+
+def test_matrix_core_branch_coverage():
+    from algebrax.matrix.core import block, block_diag, mat_vec, slice_matrix, vec_mat
+    from algebrax.semiring import TropicalSemiring
+
+    assert mat_vec({0: {0: 2.0}}, {0: 1.0}, semiring=TropicalSemiring()) == {0: 3.0}
+    assert vec_mat({0: 1.0}, {0: {0: 2.0}}, semiring=TropicalSemiring()) == {0: 3.0}
+    assert vec_mat({0: 1.0}, {99: {0: 1.0}}) == {}
+    assert slice_matrix({0: {1: 2}}, rows=[99], cols=[1]) == {}
+    assert block({0: {10: 1.0}}, slice(0, 1), slice(0, 5)) == {}
+    assert block_diag([{0: {}}]) == {0: {}}
