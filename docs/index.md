@@ -3,7 +3,6 @@ description: Explore the `algebrax` library, which provides algebraic structures
 icon: lucide/info
 ---
 
-
 # Introduction
 
 !!! warning "Early Development"
@@ -12,14 +11,14 @@ icon: lucide/info
 
 ## Abstract
 
-The `algebrax` namespace provides mathematical primitives for sparse data structures, treating Python's
-native `dict` as a first-class algebraic object.
+The `algebrax` namespace provides mathematical primitives for sparse data structures, treating Python's native `dict` as
+a first-class algebraic object.
 
 ## Semirings
 
-A **Semiring** is an algebraic structure equipped with two operations: Addition ($\oplus$) and
-Multiplication ($\otimes$).
-By swapping the semiring, you can reuse the same algorithm (e.g., matrix multiplication) to solve different problems.
+A **Semiring** is an algebraic structure equipped with two operations: Addition ($\oplus$) and Multiplication
+($\otimes$). By swapping the semiring, you can reuse the same algorithm (e.g., matrix multiplication) to solve different
+problems.
 
 ### Standard Semiring (Linear Algebra)
 
@@ -72,8 +71,8 @@ print(paths_len_2[0][2])
 
 ### Provenance Semiring (History Tracking)
 
-The **Provenance Semiring** ($N[X]$) tracks *which* facts contributed to a result and *how many times*.
-Values are polynomials where variables represent edges or facts.
+The **Provenance Semiring** ($N[X]$) tracks *which* facts contributed to a result and *how many times*. Values are
+polynomials where variables represent edges or facts.
 
 <!-- name: test_provenance_semiring -->
 
@@ -101,8 +100,8 @@ print(paths_len_2[0][2])
 
 ### Digital Semiring (Post-Quantum Cryptography)
 
-The **Digital Semiring** uses the sum of decimal digits to determine order.
-It is used in cryptographic protocols (Huang et al., 2024).
+The **Digital Semiring** uses the sum of decimal digits to determine order. It is used in cryptographic protocols (Huang
+et al., 2024).
 
 * **Add:** Larger digit sum wins.
 * **Mul:** Smaller digit sum wins.
@@ -124,12 +123,93 @@ print(S.mul(123, 45))
 # output: 123
 ```
 
+### Monoid Algebra Semiring (Formal Sums & Monoid Convolution)
+
+The **MonoidAlgebraSemiring** $R[M]$ provides a master algebraic structure for formal linear combinations $\sum a_m m$
+over any monoid $M$ and coefficient semiring $R$. It serves as the parent base class for `PolynomialSemiring` ($R[x]$),
+`KnotSemiring` ($R[\text{Knots}]$), and `ProvenanceSemiring` ($\mathbb{N}[X]$).
+
+* **Values:** Mappings from monoid element to coefficient.
+* **Add:** Element-wise coefficient addition in $R$.
+* **Mul:** Discrete convolution using monoid multiplication `key_op`.
+
+<!-- name: test_monoid_algebra_semiring -->
+
+```python
+from algebrax.semiring import MonoidAlgebraSemiring, StandardSemiring
+
+# Formal sum over string concatenation monoid
+string_algebra = MonoidAlgebraSemiring(StandardSemiring(int), key_op=lambda a, b: a + b, zero_key="")
+
+# (2x + 3y) * (4z) = 8xz + 12yz
+res = string_algebra.mul({'x': 2, 'y': 3}, {'z': 4})
+print(res)
+# output: {'xz': 8, 'yz': 12}
+```
+
+### Polynomial Semiring (Signal Processing)
+
+The **Polynomial Semiring** treats sparse mappings `{exponent: coeff}` as polynomials and defines multiplication as
+convolution.
+
+* **Values:** Mappings from exponent to coefficient (e.g., `{0: 1, 1: 2, 2: 3}` for $1 + 2x + 3x^2$).
+* **Add:** Element-wise coefficient addition.
+* **Mul:** Convolution using monoid addition of exponents.
+
+<!-- name: test_polynomial_semiring -->
+
+```python
+from algebrax.semiring import PolynomialSemiring, StandardSemiring
+
+# Semiring over integer-coefficient polynomials
+poly_semiring = PolynomialSemiring(StandardSemiring(int))
+
+# p1(x) = 1 + 2x
+p1 = {0: 1, 1: 2}
+
+# p2(x) = 3 + 4x^2
+p2 = {0: 3, 2: 4}
+
+# p1 * p2 = (1 + 2x)(3 + 4x^2) = 3 + 6x + 4x^2 + 8x^3
+result = poly_semiring.mul(p1, p2)
+print(result)
+# output: {0: 3, 1: 6, 2: 4, 3: 8}
+```
+
+### Knot Semiring (Topological Algebra)
+
+The **Knot Semiring** provides an algebraic structure for working with formal linear combinations of knots, often called
+a Skein Module.
+
+* **Values:** Formal sums of knots (e.g., `{'3_1': 2, '4_1': -1}`).
+* **Add:** Formal addition of sums.
+* **Mul:** Connected sum (`#`) of knots.
+
+<!-- name: test_knot_semiring -->
+
+```python
+from algebrax.semiring import KnotSemiring
+
+S = KnotSemiring()
+
+# a = 2 * (3_1) + 1 * (4_1)
+a = {'3_1': 2, '4_1': 1}
+
+# b = 1 * (3_1)
+b = {'3_1': 1}
+
+# a * b = (2*3_1 + 4_1) # 3_1 = 2*(3_1#3_1) + 1*(4_1#3_1)
+result = S.mul(a, b)
+print(result)
+# output: {'3_1#3_1': 2, '3_1#4_1': 1}
+```
+
 ### Custom Semiring: Convex Hull
 
 You can define your own semiring to solve specialized problems.
 
-Here is an example of the **Convex Hull Semiring** (Dyer, 2013, http://arxiv.org/pdf/1307.3675.pdf),
-used for multi-objective optimization.
+Here is an example of the **Convex Hull Semiring** (Dyer, 2013, http://arxiv.org/pdf/1307.3675.pdf), used for
+multi-objective optimization.
 
 * **Values:** Sets of points (polytopes).
 * **Add:** Convex Hull of Union.
@@ -138,7 +218,6 @@ used for multi-objective optimization.
 <!-- name: test_convex_hull_semiring -->
 
 ```python linenums="1"
-from typing import Set
 from algebrax.semiring import Semiring
 
 # Simple 1D Convex Hull (Intervals)
@@ -208,14 +287,13 @@ print(count)
 
 ## Performance
 
-The `algebrax` module is optimized for **Sparse Data**.
-While Python dictionaries have overhead compared to C-arrays, the algorithmic advantage of sparsity often outweighs the
-constant-factor overhead.
+The `algebrax` module is optimized for **Sparse Data**. While Python dictionaries have overhead compared to C-arrays,
+the algorithmic advantage of sparsity often outweighs the constant-factor overhead.
 
 ### The Crossover Point
 
-Below is a benchmark comparing `algebrax.matrix.dot` against a naive $O(N^3)$ list-of-lists multiplication
-across varying densities and matrix sizes.
+Below is a benchmark comparing `algebrax.matrix.dot` against a naive $O (N^3)$ list-of-lists multiplication across
+varying densities and matrix sizes.
 
 **Scenario:** Matrix Multiplication ($N \times N$).
 
@@ -229,8 +307,8 @@ across varying densities and matrix sizes.
 | **60%** | 0.93x            | 0.8x              | 0.98x             | 1.06x             | 1.35x              |
 
 !!! tip "Conclusion"
-Use `algebrax` when your data density is **below 50%**.
-For dense data, the overhead of dictionary hashing outweighs the benefit of skipping zeros.
+Use `algebrax` when your data density is **below 50%**. For dense data, the overhead of dictionary hashing outweighs the
+benefit of skipping zeros.
 
 ### Benchmark Code
 
@@ -428,65 +506,7 @@ print("Rotation 180:\n", rot180)
 
 ## Physics & Signal Processing
 
-Using algebraic concepts to analyze graph stability and flow.
-
-### Graph Reynolds Number
-
-A metric derived from Fluid Dynamics (Rayleigh-Plesset) to predict "Turbulence" (Congestion) in a network.
-$Re_G = \frac{\text{Momentum}}{\text{Viscosity}} = \frac{\text{Total Flow}}{\text{Algebraic Connectivity}}$
-
-!!! note "Dependency"
-    This example requires `networkx` and `numpy`.
-
-<!-- name: test_graph_reynolds -->
-
-```python linenums="1"
-import networkx as nx
-import numpy as np
-
-
-def calculate_graph_reynolds(G: nx.Graph, flow_dict: dict) -> float:
-    """
-    Calculates the 'Rivlis-Plesset Number' (Rp) for a network.
-    """
-    # 1. Momentum (Total Flow)
-    total_flow = sum(flow_dict.values())
-    if total_flow == 0: return 0.0
-
-    # 2. Viscosity (Algebraic Connectivity / Fiedler Value)
-    # High connectivity = Low drag (fluid moves easily).
-    try:
-        # weight='capacity' if edges have capacity
-        viscosity = nx.algebraic_connectivity(G)
-    except:
-        viscosity = 0.001  # Disconnected graph
-
-    # 3. Reynolds Calculation
-    return total_flow / (viscosity + 1e-9)
-
-
-def analyze_stability(rp: float) -> str:
-    if rp < 1000:
-        return "Laminar Flow (Stable)"
-    elif 1000 <= rp < 2000:
-        return "Transitional (Wobbling)"
-    else:
-        return "Turbulent (Cavitation Imminent!)"
-
-
-# Simulation
-G = nx.grid_2d_graph(5, 5)
-flow_laminar = {e: 0.1 for e in G.edges()}
-flow_turbulent = {e: 5000.0 for e in G.edges()}
-
-rp_lam = calculate_graph_reynolds(G, flow_laminar)
-rp_turb = calculate_graph_reynolds(G, flow_turbulent)
-
-print(f"Scenario A: {analyze_stability(rp_lam)}")
-print(f"Scenario B: {analyze_stability(rp_turb)}")
-```
-
-### Fenchel-Legendre Transform (Tropical Fourier)
+### Legendre-Fenchel Transform (Tropical Fourier)
 
 The "Fourier Transform" for the Min-Plus semiring. It analyzes the "slope content" of a signal.
 
@@ -504,4 +524,21 @@ signal = {0: 0, 1: 1, 2: 4, 3: 9}  # f(x) = x^2
 # at s=2: max(2*0-0, 2*1-1, 2*2-4, 2*3-9) = max(0, 1, 0, -3) = 1
 val = legendre_fenchel(signal, slope=2)
 print(f"Convex Conjugate at slope 2: {val}")
+```
+
+### Walsh-Hadamard Transform (Boolean Hypercube Parity)
+
+The **Walsh-Hadamard Transform** computes orthogonal hypercube transformations over $\mathbb{Z}_2^n$ using bitwise XOR
+parity.
+
+<!-- name: test_walsh_hadamard_transform -->
+
+```python linenums="1"
+from algebrax.transforms import walsh_hadamard
+
+# Signal on 2-bit hypercube (Z_2^2)
+f = {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0}
+wht = walsh_hadamard(f, n_bits=2)
+print(wht)
+# output: {0: 10.0, 1: -4.0, 2: -2.0, 3: 0.0}
 ```

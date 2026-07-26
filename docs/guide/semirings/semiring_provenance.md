@@ -4,8 +4,8 @@ title: Provenance Semiring
 
 # Provenance Semiring (History Tracking)
 
-The **Provenance Semiring** ($N[X]$) tracks *which* facts contributed to a result and *how many times*.
-Values are polynomials where variables represent edges or facts.
+The **Provenance Semiring** ($\mathbb{N}[X]$) is a specialized subclass of the [Monoid Algebra Semiring](semiring_monoid_algebra.md) that tracks *which* facts contributed to a result and *how many times*.
+Values are multivariate polynomials represented as mappings from sorted variable tuples (monomials) to occurrence counts in $\mathbb{N}$.
 
 <!-- name: test_provenance_semiring -->
 

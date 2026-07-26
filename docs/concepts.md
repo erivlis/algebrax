@@ -59,12 +59,16 @@ A set $S$ with two operations, Addition ($\oplus$) and Multiplication ($\otimes$
 
 **Crucially**: Semirings do **not** require additive inverses (subtraction) or multiplicative inverses (division).
 
-**Examples in Library** (`algebra.semiring`):
+**Examples in Library** (`algebrax.semiring`):
 
 * **Standard**: $(\mathbb{R}, +, \times)$. Standard Matrix Multiplication.
 * **Tropical**: $(\mathbb{R} \cup \{\infty\}, \min, +)$. Shortest Path algorithms.
 * **Boolean**: $(\{T, F\}, \lor, \land)$. Reachability / Transitive Closure.
-* **Viterbi**: $([0, 1], \max, \times)$. Most likely path in HMMs.
+* **Viterbi / Reliability**: $([0, 1], \max, \times)$. Most likely path in HMMs and network reliability.
+* **Monoid Algebra**: $(\sum a_m m, \oplus, \otimes)$. General formal sum $R[M]$ over monoid $M$.
+* **Polynomial**: Univariate polynomial ring $R[x]$ over $(\mathbb{N}_0, +)$. Signal processing (FIR filters).
+* **Knot**: Skein module $R[\text{Knots}]$ over connected sum ($\#$). Topological invariants.
+* **Provenance**: Polynomial ring $\mathbb{N}[X]$ over tuple monomials. Database history tracking.
 
 ### 5. Ring $(R, +, \cdot)$
 
@@ -187,8 +191,8 @@ because:
 
 ## Functional Taxonomy
 
-The following table categorizes the functions in the `algebra` module by their **Domain** (Meaning) and **Operation Type
-**.
+The following table categorizes the functions in the `algebra` module by their **Domain** (Meaning) and
+**Operation Type**.
 
 ### Legend
 
@@ -268,14 +272,17 @@ The following table categorizes the functions in the `algebra` module by their *
 
 *Input: Mappings as Time Series or Signals*
 
-| Function                 | Type       | Meaning                                                   |
-|:-------------------------|:-----------|:----------------------------------------------------------|
-| `convolve`               | Structural | Signal convolution ($f * g$).                             |
-| `dft` / `idft`           | Structural | Discrete Fourier Transform (Time $\leftrightarrow$ Freq). |
-| `z_transform`            | Structural | Z-Transform (Discrete Laplace).                           |
-| `hilbert`                | Structural | Hilbert Transform (Analytic Signal).                      |
-| `lorentz_boost`          | Structural | Relativistic coordinate transformation.                   |
-| `box_counting_dimension` | Metric     | Fractal dimension of the signal.                          |
+| Function                 | Type       | Meaning                                                     |
+|:-------------------------|:-----------|:------------------------------------------------------------|
+| `convolve`               | Structural | Discrete convolution / polynomial multiplication ($f * g$). |
+| `dft` / `idft`           | Structural | Discrete Fourier Transform (Time $\leftrightarrow$ Freq).   |
+| `walsh_hadamard`         | Structural | Walsh-Hadamard Transform (Orthogonal Hadamard mapping).     |
+| `gelfand_transform`      | Structural | Generalized character evaluation over monoid algebras.      |
+| `legendre_fenchel`       | Structural | Fenchel-Legendre transform (Slope transform).               |
+| `z_transform`            | Structural | Z-Transform (Discrete Laplace / Semiring power series).     |
+| `hilbert`                | Structural | Hilbert Transform (Analytic Signal).                        |
+| `lorentz_boost`          | Structural | Relativistic coordinate transformation.                     |
+| `box_counting_dimension` | Metric     | Fractal dimension of the signal.                            |
 
 ### 6. Group Theory
 
@@ -311,9 +318,8 @@ The following table categorizes the functions in the `algebra` module by their *
 
 ### 9. Algebraic Structures
 
-*Input: Semirings and Tries*
+*Input: Tries & Higher-Order Structures*
 
-| Function/Class  | Type      | Meaning                                                    |
-|:----------------|:----------|:-----------------------------------------------------------|
-| `AlgebraicTrie` | Structure | Sparse Tensor / Prefix Tree over a Semiring.               |
-| `Semiring`      | Protocol  | Defines $(+, \times)$ operations for algebraic structures. |
+| Function/Class  | Type      | Meaning                                      |
+|:----------------|:----------|:---------------------------------------------|
+| `AlgebraicTrie` | Structure | Sparse Tensor / Prefix Tree over a Semiring. |

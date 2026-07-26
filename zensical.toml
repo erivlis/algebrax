@@ -22,6 +22,9 @@ nav = [
         { Semirings = [
             "guide/semirings/semiring_standard.md",
             "guide/semirings/semiring_tropical.md",
+            "guide/semirings/semiring_monoid_algebra.md",
+            "guide/semirings/semiring_polynomial.md",
+            "guide/semirings/semiring_knot.md",
             "guide/semirings/semiring_provenance.md",
             "guide/semirings/semiring_digital.md",
             "guide/semirings/semiring_convex_hull.md",
