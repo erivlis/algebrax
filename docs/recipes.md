@@ -60,6 +60,14 @@ The [`reciepes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) folder
 
 ---
 
+### Vibration & Structural Analysis
+* **Files**: [`vibration_structural_analysis.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/vibration_structural_analysis.py) | [`vibration_structural_analysis.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/vibration_structural_analysis.ipynb)
+* **Run**: `uv run reciepes/vibration_structural_analysis.py`
+* **Components**: `group.compose`, `group.signature`, `matrix.academic.determinant`, `transforms.hilbert`
+* **Summary**: Models rotational and reflectional permutation symmetries (`compose`, `signature`) across turbine assemblies, evaluates mechanical stiffness determinants (`determinant`), and extracts instantaneous vibration amplitude envelopes (`hilbert`) for fatigue detection.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
