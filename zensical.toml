@@ -16,7 +16,8 @@ extra_javascript = [
 nav = [
     { Start = [
         "index.md",
-        "concepts.md"
+        "concepts.md",
+        "recipes.md"
     ] },
     { Guide = [
         { Semirings = [
