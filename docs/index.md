@@ -5,10 +5,6 @@ icon: lucide/info
 
 # Introduction
 
-!!! warning "Early Development"
-
-    This lib is in early development and subject to change.
-
 ## Abstract
 
 The `algebrax` namespace provides mathematical primitives for sparse data structures, treating Python's native `dict` as
@@ -307,8 +303,9 @@ varying densities and matrix sizes.
 | **60%** | 0.93x            | 0.8x              | 0.98x             | 1.06x             | 1.35x              |
 
 !!! tip "Conclusion"
-Use `algebrax` when your data density is **below 50%**. For dense data, the overhead of dictionary hashing outweighs the
-benefit of skipping zeros.
+
+    Use `algebrax` when your data density is **below 50%**. For dense data, the overhead of dictionary hashing outweighs
+    the benefit of skipping zeros.
 
 ### Benchmark Code
 
