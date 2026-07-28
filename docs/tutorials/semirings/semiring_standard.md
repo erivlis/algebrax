@@ -1,5 +1,6 @@
 ---
 title: Standard Semiring
+description: Standard Semiring for linear algebra operations.
 ---
 
 # Standard Semiring (Linear Algebra)

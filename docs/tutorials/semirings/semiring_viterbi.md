@@ -1,11 +1,12 @@
 ---
 title: Viterbi Semiring
+description: Viterbi Semiring for finding the most likely sequence of hidden states in a Hidden Markov Model.
 ---
 
 # Viterbi Algorithm (Hidden Markov Models)
 
-The **Viterbi Algorithm** finds the most likely sequence of hidden states in a Hidden Markov Model (HMM).
-Algebraically, this is matrix multiplication over the **Max-Product Semiring** $(\max, \times)$.
+The **Viterbi Algorithm** finds the most likely sequence of hidden states in a Hidden Markov Model (HMM). Algebraically,
+this is matrix multiplication over the **Max-Product Semiring** $(\max, \times)$.
 
 * **Add**: $\max$ (Select the best path).
 * **Mul**: $\times$ (Combine probabilities).

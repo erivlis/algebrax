@@ -1,5 +1,6 @@
 ---
 title: Provenance Semiring
+description: Provenance Semiring for tracking which facts contributed to a result and how many times.
 ---
 
 # Provenance Semiring (History Tracking)

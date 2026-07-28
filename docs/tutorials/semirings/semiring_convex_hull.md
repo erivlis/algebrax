@@ -1,5 +1,6 @@
 ---
 title: Convex Hull Semiring
+description: Multi-Objective Optimization
 ---
 
 # Convex Hull Semiring (Multi-Objective Optimization)

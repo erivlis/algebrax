@@ -37,7 +37,8 @@ nav = [
         ] },
         { Transforms = [
             "tutorials/transforms/image_convolution.md",
-            "tutorials/transforms/fenchel_legendre.md"
+            "tutorials/transforms/fenchel_legendre.md",
+            "tutorials/transforms/walsh_hadamard.md"
         ] },
         { Graphs = [
             "tutorials/graphs/pagerank.md",

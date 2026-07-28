@@ -1,5 +1,6 @@
 ---
 title: Tropical Semiring
+description: Tropical Semiring for shortest path algorithms.
 ---
 
 # Tropical Semiring (Shortest Path)

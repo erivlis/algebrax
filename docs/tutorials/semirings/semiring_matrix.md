@@ -1,5 +1,6 @@
 ---
 title: Matrix Semirings
+description: Advanced Semirings using Matrices for non-commutative operations, modeling Gauge Theory, Robotics Kinematics, and Currency Arbitrage.
 ---
 
 # Advanced Semirings (Matrix / Fiber Bundles)
@@ -8,7 +9,8 @@ These semirings use **Matrices** as values, allowing for non-commutative operati
 This models **Gauge Theory**, **Robotics Kinematics**, and **Currency Arbitrage**.
 
 !!! note "Dependency"
-This example requires `numpy`.
+    
+    This example requires `numpy`.
 
 <!-- name: test_matrix_semiring -->
 

@@ -1,5 +1,6 @@
 ---
 title: Boolean Semiring
+description: Boolean Semiring for reachability and transitive closure.
 ---
 
 # Boolean Semiring (Reachability)

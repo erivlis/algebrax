@@ -1,5 +1,6 @@
 ---
 title: Digital Semiring
+description: Digital Semiring for post-quantum cryptography.
 ---
 
 # Digital Semiring (Post-Quantum Cryptography)
