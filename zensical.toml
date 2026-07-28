@@ -60,8 +60,8 @@ variant = "classic"
 font.text = "Inter"
 font.code = "JetBrains Mono"
 language = "en"
-logo = "images/logo.png"
-favicon = "images/logo.png"
+logo = "assets/images/logo-light.png"
+favicon = "assets/images/logo-light.png"
 features = [
     "content.code.copy",
     "content.code.select",
@@ -141,6 +141,7 @@ show_source = false
 [project.markdown_extensions.pymdownx.arithmatex]
 generic = true
 
+[project.markdown_extensions.pymdownx.blocks.caption]
 [project.markdown_extensions.pymdownx.details]
 
 [project.markdown_extensions.pymdownx.emoji]

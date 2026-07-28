@@ -6,7 +6,9 @@ icon: lucide/info
 
 # Introduction
 
-**AlgebraX: Algebraic Primitives for Sparse Data Structures in Python**
+![AlgebraX Banner](assets/images/banner.png){ align=center }
+
+**Algebraic Primitives for Sparse Data Structures in Python**
 
 `algebrax` treats Python's native `dict` as a first-class sparse algebraic object, unifying linear algebra, graph
 algorithms, formal language theory, signal transforms, and information metrics under a single polymorphic framework.
