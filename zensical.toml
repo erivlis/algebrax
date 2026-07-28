@@ -34,6 +34,7 @@ nav = [
         ] },
         { NLP = ["guide/nlp/cyk_parsing.md"] },
         { Trie = ["guide/trie/algebraic_trie.md"] },
+        { Transforms = ["guide/transforms/image_convolution.md"] },
         { Physics = [
             "guide/physics/pagerank.md",
             "guide/physics/fenchel_legendre.md"
