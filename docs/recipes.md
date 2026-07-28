@@ -68,6 +68,22 @@ The [`reciepes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) folder
 
 ---
 
+### Telecommunications & Fractal Dynamics
+* **Files**: [`telecom_fractal_network.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/telecom_fractal_network.py) | [`telecom_fractal_network.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/telecom_fractal_network.ipynb)
+* **Run**: `uv run reciepes/telecom_fractal_network.py`
+* **Components**: `transforms.walsh_hadamard`, `analysis.laplacian`, `analysis.divergence`, `metrics.box_counting_dimension`
+* **Summary**: Encodes telemetry streams into orthogonal Hadamard spectra (`walsh_hadamard`) with dual self-inverse reconstruction, evaluates graph Laplacian signal diffusion (`laplacian`) and net flow divergence (`divergence`), and measures spatial cell tower coverage dimension (`box_counting_dimension`).
+
+---
+
+### Quantum Spin-Chain & Convex Optimization
+* **Files**: [`quantum_convex_optimization.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/quantum_convex_optimization.py) | [`quantum_convex_optimization.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/quantum_convex_optimization.ipynb)
+* **Run**: `uv run reciepes/quantum_convex_optimization.py`
+* **Components**: `transforms.legendre_fenchel`, `matrix.core.block_diag`, `matrix.core.trace`, `automata.simulate_nfa`
+* **Summary**: Computes dual Fenchel-Legendre convex conjugate values (`legendre_fenchel`) for primal loss functions, constructs block diagonal quantum Hamiltonians (`block_diag`) with matrix trace invariants (`trace`), and simulates probabilistic superposition decay (`simulate_nfa`).
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
