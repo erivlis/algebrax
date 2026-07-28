@@ -84,6 +84,14 @@ The [`reciepes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) folder
 
 ---
 
+### Sensor Network Reliability & Heat Gradient Analysis
+* **Files**: [`sensor_network_reliability.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/sensor_network_reliability.py) | [`sensor_network_reliability.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/sensor_network_reliability.ipynb)
+* **Run**: `uv run reciepes/sensor_network_reliability.py`
+* **Components**: `semiring.ViterbiSemiring`, `matrix.core.power`, `analysis.gaussian_kernel`, `analysis.gradient`, `metrics.sparsity`
+* **Summary**: Calculates multi-hop maximum transmission success probabilities ($P_{\max}$) across lossy wireless links using `ViterbiSemiring` $(\max, \times)$, computes spatial Gaussian RBF similarity matrices (`gaussian_kernel`) with sparsity audits, and isolates thermal flux boundaries via discrete scalar field gradients (`gradient`).
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab

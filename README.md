@@ -84,7 +84,7 @@ print('Symbolic Derivation Polynomial:', provenance_mult[0][2])
 
 ## Use Case Recipes & Jupyter Notebooks
 
-The [`reciepes/`](reciepes) directory contains standalone CLI scripts and matching interactive `.ipynb` notebooks for 9
+The [`reciepes/`](reciepes) directory contains standalone CLI scripts and matching interactive `.ipynb` notebooks for 10
 real-world scenarios:
 
 | Category                   | Use Case Recipe Script                                                            | Jupyter Notebook                                                                        | Core Algebraic Components                                                                   |
@@ -98,6 +98,7 @@ real-world scenarios:
 | **Structural Analysis**    | [`vibration_structural_analysis.py`](reciepes/vibration_structural_analysis.py)   | [`vibration_structural_analysis.ipynb`](reciepes/vibration_structural_analysis.ipynb)   | `group.compose`, `group.signature`, `matrix.academic.determinant`, `transforms.hilbert`     |
 | **Telecommunications**     | [`telecom_fractal_network.py`](reciepes/telecom_fractal_network.py)               | [`telecom_fractal_network.ipynb`](reciepes/telecom_fractal_network.ipynb)               | `transforms.walsh_hadamard`, `analysis.laplacian`, `metrics.box_counting_dimension`         |
 | **Quantum Optimization**   | [`quantum_convex_optimization.py`](reciepes/quantum_convex_optimization.py)       | [`quantum_convex_optimization.ipynb`](reciepes/quantum_convex_optimization.ipynb)       | `transforms.legendre_fenchel`, `matrix.block_diag`, `matrix.trace`, `automata.simulate_nfa` |
+| **Sensor Reliability**     | [`sensor_network_reliability.py`](reciepes/sensor_network_reliability.py)         | [`sensor_network_reliability.ipynb`](reciepes/sensor_network_reliability.ipynb)         | `semiring.ViterbiSemiring`, `matrix.power`, `analysis.gaussian_kernel`, `analysis.gradient` |
 
 Run any recipe using `uv`:
 
