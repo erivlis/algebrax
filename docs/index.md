@@ -1,11 +1,12 @@
 ---
+title: Introduction
 description: Explore the algebrax library, providing algebraic primitives for sparse data structures in Python.
 icon: lucide/info
 ---
 
-# AlgebraX
+# Introduction
 
-**Algebraic Primitives for Sparse Data Structures in Python**
+**AlgebraX: Algebraic Primitives for Sparse Data Structures in Python**
 
 `algebrax` treats Python's native `dict` as a first-class sparse algebraic object, unifying linear algebra, graph
 algorithms, formal language theory, signal transforms, and information metrics under a single polymorphic framework.
@@ -16,7 +17,7 @@ algorithms, formal language theory, signal transforms, and information metrics u
 
 Install `algebrax` using your favorite package manager:
 
-```bash
+```shell
 # Using uv (recommended)
 uv add algebrax
 
@@ -28,8 +29,8 @@ pip install algebrax
 
 ## Core Philosophy
 
-* ⚡ **Zero Heavy Dependencies**: Built with pure Python performance in mind, requiring no C++ build steps. Includes
-  seamless conversion to PyTorch and SciPy when needed.
+* ⚡ **Zero Heavy Dependencies**: Built entirely with pure Python, requiring no heavy external libraries or C++
+  compilation. Includes native conversion between sparse dict representations and dense multidimensional arrays.
 * 🔄 **Polymorphic Semiring Computing**: By changing the algebraic semiring $(\oplus, \otimes)$, the exact same matrix
   algorithms compute standard linear algebra, tropical shortest path latencies, or symbolic rule provenance.
 * 🌌 **Sparse Multidimensional Tensors**: Arbitrary nested mappings behave as infinite-dimensional sparse tensors, tries,
@@ -37,7 +38,7 @@ pip install algebrax
 
 ---
 
-## 5-Minute Overview
+## Overview
 
 Below is a 10-line demonstration showing how swapping the semiring parameter in `matrix.dot` changes matrix
 multiplication from **Standard Linear Algebra** to **Tropical Shortest Path** and **Symbolic Provenance Tracking**:
