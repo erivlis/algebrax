@@ -28,8 +28,7 @@ algorithms, formal language theory, signal transforms, and information metrics u
   algorithms compute standard linear algebra, tropical shortest path latencies, or symbolic rule provenance.
 * 🌌 **Sparse Multidimensional Tensors**: Arbitrary nested mappings behave as infinite-dimensional sparse tensors, tries,
   and lattices (`AlgebraicTrie`) with custom key operators.
-* 🔬 **Interactive Desktop GUI**: Built-in [DearPyGui](https://github.com/hoffstadt/DearPyGui) laboratory with 12
-  interactive modules, dynamic texture previews, force-directed graph canvases, and signal transforms.
+* 🔬 **Interactive Desktop GUI**: Repo includes [DearPyGui](https://github.com/hoffstadt/DearPyGui)  with 12 interactive modules, dynamic texture previews, force-directed graph canvases, and signal transforms.
 
 ---
 
@@ -48,7 +47,7 @@ pip install algebrax
 ## 5-Minute Quickstart
 
 By changing the `semiring` parameter in `matrix.dot`, you can transform standard linear matrix multiplication into
-shortest-path solvers or symbolic rule derivation tracking:
+shortest-path solvers or symbolic rule drivation tracking:
 
 ```python
 from algebrax.matrix import dot
