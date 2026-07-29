@@ -92,6 +92,78 @@ The [`reciepes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) folder
 
 ---
 
+### Holographic Bulk-Boundary Duality & Entanglement Entropy
+* **Files**: [`holographic_bulk_boundary.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/holographic_bulk_boundary.py) | [`holographic_bulk_boundary.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/holographic_bulk_boundary.ipynb)
+* **Run**: `uv run reciepes/holographic_bulk_boundary.py`
+* **Components**: `analysis.forman_ricci_curvature`, `analysis.divergence`, `trie.AlgebraicTrie`, `probability.entropy`, `probability.mutual_information`
+* **Summary**: Evaluates discrete negative Forman-Ricci curvature ($K < 0$) on hyperbolic bulk graphs ($\text{AdS}_3$), proves the discrete Holographic Gauss-Stokes divergence theorem ($\int_{\text{Bulk}} \text{div}(F) = \oint_{\partial} F$), contracts MERA tensor network scale trees (`AlgebraicTrie`), and calculates Ryu-Takayanagi boundary entanglement entropy $S(A) = \frac{\text{Area}(\gamma_A)}{4 G_N}$.
+
+---
+
+### Optical Holography Simulation & Wavefront Reconstruction
+* **Files**: [`optical_holography_simulation.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/optical_holography_simulation.py) | [`optical_holography_simulation.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/optical_holography_simulation.ipynb)
+* **Run**: `uv run reciepes/optical_holography_simulation.py`
+* **Components**: `transforms.dft`, `transforms.idft`, `probability.entropy`
+* **Summary**: Simulates physical optical interference patterns $I(x) = |O(x) + R(x)|^2$ between object and reference plane waves, reconstructs virtual object wavefronts via reference illumination ($R \cdot I$), evaluates angular frequency diffraction spectra using `dft` and `idft`, and audits Michelson fringe visibility ($V = 98\%$) and Shannon entropy.
+
+---
+
+### Topological Data Analysis (TDA) & Persistent Homology
+* **Files**: [`topological_data_analysis.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/topological_data_analysis.py) | [`topological_data_analysis.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/topological_data_analysis.ipynb)
+* **Run**: `uv run reciepes/topological_data_analysis.py`
+* **Components**: `semiring.BooleanSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`, `matrix.academic.determinant`
+* **Summary**: Evaluates transitive closure matrices over `BooleanSemiring` $(\lor, \land)$ to extract connected component equivalence classes and zeroth Betti numbers $b_0(\epsilon)$ across Vietoris-Rips point-cloud filtrations, isolates topological inter-cluster bridges via negative Forman-Ricci edge curvature ($K < 0$), and audits boundary operator Laplacians via determinant singularities.
+
+---
+
+### Control Theory & State-Space Systems
+* **Files**: [`control_theory_state_space.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/control_theory_state_space.py) | [`control_theory_state_space.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/control_theory_state_space.ipynb)
+* **Run**: `uv run reciepes/control_theory_state_space.py`
+* **Components**: `matrix.core.power`, `transforms.z_transform`, `matrix.academic.determinant`
+* **Summary**: Computes multi-step discrete state transition trajectories $x[k] = A^k x[0]$, evaluates Z-domain transfer functions $H(z) = \sum h[n] z^{-n}$ for impulse response sequences, and audits system asymptotic stability via characteristic matrix determinants $\det(I - A)$.
+
+---
+
+### Algebraic Knot Theory & Topological Invariants
+* **Files**: [`algebraic_knot_theory.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/algebraic_knot_theory.py) | [`algebraic_knot_theory.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/algebraic_knot_theory.ipynb)
+* **Run**: `uv run reciepes/algebraic_knot_theory.py`
+* **Components**: `semiring.KnotSemiring`, `semiring.MonoidAlgebraSemiring`, `group.compose`, `group.signature`
+* **Summary**: Multiplies formal Skein module knot states over the connected sum monoid ($\#$), composes Artin braid group strand crossings $B_n$ with parity signature invariants ($\pm 1$), and evaluates Laurent Jones polynomial multiplications $V(K_1 \# K_2) = V(K_1) \cdot V(K_2)$.
+
+---
+
+### Sheaf Cohomology & Multi-Agent Network Consensus
+* **Files**: [`sheaf_cohomology_consensus.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/sheaf_cohomology_consensus.py) | [`sheaf_cohomology_consensus.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/sheaf_cohomology_consensus.ipynb)
+* **Run**: `uv run reciepes/sheaf_cohomology_consensus.py`
+* **Components**: `analysis.gradient`, `analysis.laplacian`, `semiring.MonoidAlgebraSemiring`
+* **Summary**: Measures edge channel state inconsistencies via coboundary gradients $\delta_0(f)$, diffuses multi-robot state estimates toward global mean consensus via Sheaf Laplacian iterations ($L_\mathcal{F} = \text{div}(\text{grad} f)$), and aggregates localized agent observation sections in formal monoid linear combinations.
+
+---
+
+### Trajectoid Rolling Kinematics & SO(3) Path Tracing
+* **Files**: [`trajectoid_rolling_kinematics.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/trajectoid_rolling_kinematics.py) | [`trajectoid_rolling_kinematics.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/trajectoid_rolling_kinematics.ipynb)
+* **Run**: `uv run reciepes/trajectoid_rolling_kinematics.py`
+* **Components**: `analysis.gradient`, `matrix.core.dot`, `metrics.sparsity`
+* **Summary**: Evaluates discrete velocity vectors along periodic 2D figure-eight lemniscate curves via `gradient`, integrates 3D non-holonomic spatial orientation matrix steps $R_{k+1} = R_k \cdot dR_k$ in $SO(3)$, and audits contact matrix sparsity and closed-loop trajectory tracking precision.
+
+---
+
+### Sparse Tensor Einstein Summation & Multimodal Fusion
+* **Files**: [`sparse_tensor_einsum.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/sparse_tensor_einsum.py) | [`sparse_tensor_einsum.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/sparse_tensor_einsum.ipynb)
+* **Run**: `uv run reciepes/sparse_tensor_einsum.py`
+* **Components**: `tensor.einsum`, `tensor.outer_product`, `tensor.tensordot`, `tensor.flatten_tensor`
+* **Summary**: Evaluates arbitrary-rank sparse tensor contractions $C_{i, l} = \bigoplus_{j, k} A_{i, j, k} \otimes B_{j, k, l}$ over polymorphic semirings (Standard and Tropical Min-Plus), computes rank-expanding tensor outer products $A \otimes B$, and handles bidirectional nested dict conversions.
+
+---
+
+### Schwarzschild Black Hole Spacetime & Gravitational Lensing
+* **Files**: [`blackhole_spacetime_simulation.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/blackhole_spacetime_simulation.py) | [`blackhole_spacetime_simulation.ipynb`](https://github.com/erivlis/algebrax/blob/main/reciepes/blackhole_spacetime_simulation.ipynb)
+* **Run**: `uv run reciepes/blackhole_spacetime_simulation.py`
+* **Components**: `tensor.einsum`, `transforms.z_transform`, `analysis.gradient`, `analysis.forman_ricci_curvature`, `probability.entropy`, `probability.kl_divergence`
+* **Summary**: Constructs Schwarzschild spacetime metric tensors $g_{\mu \nu}$ around event horizon $r_s$, contracts inverse metrics $g^{\mu \alpha} g_{\alpha \nu} = \delta^\mu_\nu$ via `tensor.einsum`, models gravitational redshift spectral modulation via `z_transform`, evaluates photon deflection angles $\Delta \phi = \frac{4GM}{c^2 b}$ and spatial curvature near the photon sphere, and audits Bekenstein-Hawking entropy $S_{\text{BH}} = \frac{A}{4 \ell_P^2}$ and Hawking radiation quantum information scrambling.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
