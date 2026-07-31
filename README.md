@@ -2,10 +2,8 @@
   <img src="docs/assets/images/banner.png" alt="AlgebraX Banner" width="100%">
 </p>
 
-<h1 align="center">AlgebraX</h1>
-
 <p align="center">
-  <b>Algebraic Primitives for Sparse Data Structures in Python</b>
+  <b>AlgebraX - Algebraic Primitives for Sparse Data Structures in Python</b>
 </p>
 
 <table>
@@ -15,7 +13,7 @@
       <img alt="PyPI - Version" class="off-glb" loading="lazy" src="https://img.shields.io/pypi/v/algebrax.svg?logo=pypi&logoColor=lightblue">
       <img alt="PyPI - Status" class="off-glb" loading="lazy" src="https://img.shields.io/pypi/status/algebrax.svg?logo=pypi&logoColor=lightblue">
       <img alt="PyPI - Python Version" class="off-glb" loading="lazy" src="https://img.shields.io/pypi/pyversions/algebrax.svg?logo=python&label=Python&logoColor=lightblue">
-      <img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dd/algebrax.svg?logo=pypi&logoColor=lightblue">
+      <!--img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dd/algebrax?logo=pypi&logoColor=lightblue"-->
       <img alt="PyPI - Dependents" src="https://dependents.info/erivlis/algebrax/badge?logo=pypi&logoColor=lightblue">
       <img alt="Libraries.io SourceRank" src="https://img.shields.io/librariesio/sourcerank/pypi/algebrax.svg?logo=Libraries.io&label=SourceRank">
     </td>
@@ -71,7 +69,7 @@
 
 ---
 
-`algebrax` treats Python's native `dict` as a first-class sparse algebraic object, unifying linear algebra, graph
+`AlgebraX` treats Python's native `dict` as a first-class sparse algebraic object, unifying linear algebra, graph
 algorithms, formal language theory, signal transforms, and information metrics under a single polymorphic framework.
 
 ## Key Features
@@ -101,7 +99,7 @@ pip install algebrax
 ## 5-Minute Quickstart
 
 By changing the `semiring` parameter in `matrix.dot`, you can transform standard linear matrix multiplication into
-shortest-path solvers or symbolic rule drivation tracking:
+shortest-path solvers or symbolic rule derivation tracking:
 
 ```python
 from algebrax.matrix import dot

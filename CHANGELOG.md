@@ -1,3 +1,13 @@
+## v0.4.0 (2026-07-31)
+
+### Feat
+
+- Adds tensor algebra module with einsum, outer product, and tensordot.
+
+### Refactor
+
+- Refactors DearPyGui lab with helpers and clearer recipe logic.
+
 ## v0.3.1 (2026-07-27)
 
 ### Refactor
