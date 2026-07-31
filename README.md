@@ -176,7 +176,7 @@ interactive modules, live image convolution texture previews, force-directed gra
 information theory calculators:
 
 ```bash
-uv run reciepes/dearpygui_lab.py
+uv run reciepes/lab.py
 ```
 
 ---
