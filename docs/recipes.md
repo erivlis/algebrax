@@ -167,6 +167,6 @@ The [`reciepes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) folder
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
-* **File**: [`dearpygui_lab.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/dearpygui_lab.py)
-* **Run**: `uv run reciepes/dearpygui_lab.py`
+* **File**: [`lab.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/lab.py)
+* **Run**: `uv run reciepes/lab.py`
 * **Summary**: Desktop GUI built with DearPyGui featuring 12 interactive modules: real image file convolution with side-by-side texture preview, force-directed graph curvature visualization, semiring matrix powers, CYK parsing, DFA/NFA simulators, signal transforms, and information theory tools.

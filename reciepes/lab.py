@@ -9,6 +9,187 @@
 # algebrax = { path = ".." }
 # ///
 
+"""
+# AlgebraX Graphical Laboratory (`reciepes/lab.py`)
+
+The **AlgebraX Graphical Laboratory** (`reciepes/lab.py`) is an interactive desktop application
+built with DearPyGui. It provides a real-time, visual sandbox for exploring all 19 real-world
+Use Case recipes of the `algebrax` library.
+
+---
+
+## 1. Quick Start
+
+Run the lab with `uv`:
+
+```bash
+uv run reciepes/lab.py
+```
+
+---
+
+## 2. Navigation Sitemap & Module Overview
+
+The sidebar is organized into **6 domain categories** covering all 19 interactive views:
+
+```text
+├── Matrix & Graph Algorithms
+│   ├── Semiring Matrix Power          (View 1: Tropical, Arctic, Viterbi, Expectation, Provenance, etc.)
+│   ├── Forman-Ricci Curvature         (View 2: Discrete Ricci curvature & geometry classification)
+│   ├── PageRank Algorithm             (View 3: Stationary distribution of random walks over semirings)
+│   └── Network Curvature Vis          (View 12: Interactive force-directed layout & edge curvature chart)
+├── Automata, Parsing & Risk
+│   ├── Automata Simulator             (View 8: Step-by-step DFA & NFA/probabilistic transition logging)
+│   ├── CYK Grammar Parser             (View 6: Parsing chart matrix closure over GrammarSemiring)
+│   └── Financial Portfolio Risk       (View 18: Market signal trade DFA & asset spectral centrality)
+├── Transforms, Signals & Waves
+│   ├── Slope Transform                (View 7: Idempotent Fenchel-Legendre convex conjugate transform)
+│   ├── Signal Transforms              (View 10: Discrete Fourier, Hilbert, Convolution & Z-Transforms)
+│   ├── 2D Image Convolution           (View 11: Real image downsampling & spatial 2D grid convolutions)
+│   └── Optical Holography             (View 17: Coherent wavefront interference & Fourier spectrum)
+├── Tensors, Tries & Physics
+│   ├── Algebraic Trie / Tensor        (View 4: Sparse tensor dimension contraction/marginalization)
+│   ├── Sparse Tensor Einsum           (View 14: Arbitrary-rank einsum over Standard & Tropical semirings)
+│   ├── Trajectoid Kinematics          (View 15: Non-holonomic rolling velocity & SO(3) 3x3 rotation)
+│   └── Schwarzschild Black Hole       (View 13: Metric components, light deflection & Hawking entropy)
+├── Topology & Geometry
+│   ├── Knot Theory & Skein            (View 16: Knot connected sum (#) & Artin braid crossing signatures)
+│   └── Sheaf Cohomology               (View 19: Cellular sheaf coboundary gradient & sensor consensus)
+└── Information & Crypto
+    ├── Markov & Info Theory           (View 9: Markov steps, steady state & Shannon/KL info metrics)
+    └── Post-Quantum Key Exchange      (View 3: Diffie-Hellman matrix key exchange over Digital Semiring)
+```
+
+---
+
+## 3. Mandatory Architectural Guidelines for Future Additions
+
+To ensure stability, high aesthetics, and a smooth user experience, all future views and UI modifications MUST
+follow these four architectural directives:
+
+### **Directive 1: DearPyGui / ImGui C++ Table Lifecycle Rules**
+
+In Dear ImGui, table column definitions are locked once a table is rendered. Calling `dpg.add_table_column` on an
+already-rendered table during a button callback raises a CPython
+`SystemError: <built-in function add_table_column> returned a result with an exception set`.
+
+1. **Fixed-Column Tables**:
+    * Define table columns **ONCE** during view construction using `create_bordered_table(tag=..., columns=[...])`.
+    * `create_bordered_table` **MUST** use the `with dpg.table(**kwargs)` context manager so columns are registered
+      inside the active table scope:
+      ```python
+      with dpg.table(**kwargs) as tbl:
+          if columns:
+              for col_label in columns:
+                  dpg.add_table_column(label=col_label)
+      ```
+    * When updating fixed-column tables in callbacks, **DO NOT** delete columns or call `add_table_column`. Use
+      `clear_table_rows(table_tag)` (which clears only slot 1 row children):
+      ```python
+      def clear_table_rows(table_tag: str) -> None:
+          if dpg.does_item_exist(table_tag):
+              children = dpg.get_item_children(table_tag, 1)
+              if children:
+                  for child in children:
+                      dpg.delete_item(child)
+      ```
+
+2. **Dynamic-Column Matrix Tables** (e.g. `display_matrix_in_table`):
+    * When matrix dimensions or column keys change dynamically based on user input, place a container group around the
+      table: `with dpg.group(tag=f"{table_tag}_container"): pass`.
+    * `display_matrix_in_table` clears the container and recreates the `dpg.table` cleanly inside the container group:
+      ```python
+      container_tag = f"{table_tag}_container"
+      if dpg.does_item_exist(container_tag):
+          dpg.delete_item(container_tag, children_only=True)
+          with dpg.table(tag=table_tag, parent=container_tag, ...):
+              # add columns & rows
+      ```
+
+---
+
+### **Directive 2: Text Selection & Clipboard Accessibility (`Ctrl+C` / `Ctrl+A`)**
+
+Standard `dpg.add_text()` labels are non-interactive in ImGui. Users cannot highlight or copy text from static labels.
+
+* **Use Read-Only Input Text**: All result readouts, status messages, multiline logs, and table cell values **MUST** be
+  rendered using `dpg.add_input_text(readonly=True, ...)` (or `multiline=True, readonly=True`).
+* **Benefits**:
+    * Mouse click & drag text selection.
+    * Native keyboard shortcuts (`Ctrl+C` to copy, `Ctrl+A` to select all).
+    * Read-only protection preventing accidental user editing.
+* **Table Cell Pattern**:
+  ```python
+  with dpg.table_row(parent=table_tag):
+      dpg.add_input_text(default_value=key, readonly=True, width=-1)
+      dpg.add_input_text(default_value=val_str, readonly=True, width=-1)
+  ```
+
+---
+
+### **Directive 3: Layout Containment & Viewport Insulation**
+
+`dpg.add_separator()` draws a full-width horizontal rule (`<hr>`). If used inside an uncontained column or group, the
+rule can bleed into adjacent side-by-side columns or show through transparent canvas viewports.
+
+1. **Opaque Viewport Backgrounds**:
+    * Any `dpg.drawlist` canvas (e.g. force-directed graph canvas) **MUST** draw a solid opaque background rectangle as
+      its very first element in `_redraw_canvas()`:
+      ```python
+      dpg.draw_rectangle(
+          (0, 0), (width, height), fill=(18, 18, 24), color=(60, 60, 80), thickness=1, parent="vis_canvas"
+      )
+      ```
+    * This prevents underlying window elements or separator rules from showing through the canvas background.
+
+2. **Bordered Child Window Panels (`dpg.child_window`)**:
+    * Whenever creating multi-column or side-by-side tool panels (e.g., control sidebars, dual calculators, or
+      multi-matrix displays), enclose each column in a `dpg.child_window(border=True)`:
+      ```python
+      with dpg.group(horizontal=True):
+          with dpg.child_window(width=310, height=520, border=True):
+              dpg.add_text("CONTROL PANEL")
+              dpg.add_separator()  # Safely clipped inside sidebar!
+          with dpg.group():
+              # Main content / canvas area
+      ```
+
+---
+
+### **Directive 4: Step-by-Step Checklist for Adding a New View**
+
+When adding a new Use Case experiment view to `reciepes/lab.py`:
+
+1. **Define Callback Handler**:
+   Create `run_<feature_name>() -> None` with clear `try...except` handling that updates status strings and calls
+   `clear_table_rows()` or `display_matrix_in_table()`.
+2. **Define View Builder**:
+   Create `build_view_<feature_name>() -> None` wrapped in a group:
+   `with dpg.group(tag="view_<feature_name>_group", show=False):`. Add title text and `dpg.add_separator()`.
+3. **Register in `VIEWS` List**:
+   Add `"<feature_name>"` to the global `VIEWS: list[str]` array.
+4. **Add Sidebar Selectable**:
+   In `build_navigation_sidebar()`, add `dpg.add_selectable` under the appropriate tree node:
+   ```python
+   dpg.add_selectable(
+       label="Feature Name",
+       tag="sel_<feature_name>",
+       callback=change_view,
+       user_data="<feature_name>",
+   )
+   ```
+5. **Instantiate View in `main()`**:
+   Add `build_view_<feature_name>()` inside `main()` under the main window child view group.
+6. **Code Quality Verification**:
+   Run formatters, type checks, and unit tests before declaring success:
+   ```bash
+   uv run ruff format reciepes/lab.py
+   uv run ruff check reciepes/lab.py
+   uv run pytest
+   ```
+"""
+
+import cmath
 import json
 import math
 import os
@@ -52,12 +233,13 @@ dragged_node: int | str | None = None
 
 # --- UI Helper Utilities ---
 def create_bordered_table(
-        tag: str,
-        width: int | None = None,
-        height: int | None = None,
-        parent: str | int | None = None,
+    tag: str,
+    columns: list[str] | None = None,
+    width: int | None = None,
+    height: int | None = None,
+    parent: str | int | None = None,
 ) -> int | str:
-    """Helper to create a standard bordered table in DearPyGui."""
+    """Helper to create a standard bordered table in DearPyGui with optional fixed columns."""
     kwargs: dict[str, Any] = {
         'header_row': True,
         'tag': tag,
@@ -72,44 +254,67 @@ def create_bordered_table(
         kwargs['width'] = width
     if height is not None:
         kwargs['height'] = height
-    return dpg.table(**kwargs)
+
+    with dpg.table(**kwargs) as tbl:
+        if columns:
+            for col_label in columns:
+                dpg.add_table_column(label=col_label)
+    return tbl
 
 
-# Global helper to display matrix in a DearPyGui table
-def display_matrix_in_table(matrix: Mapping[Any, Mapping[Any, Any]], table_tag: str) -> None:
+def clear_table_rows(table_tag: str) -> None:
+    """Helper to clear only row children (slot 1) without touching locked C++ table columns."""
     if dpg.does_item_exist(table_tag):
-        dpg.delete_item(table_tag, children_only=True)
+        children = dpg.get_item_children(table_tag, 1)
+        if children:
+            for child in children:
+                dpg.delete_item(child)
 
-    if not matrix:
-        return
 
-    rows: list[Any] = list(matrix.keys())
-    cols: set[Any] = set()
-    for r in rows:
-        cols.update(matrix[r].keys())
-    sorted_cols: list[Any] = sorted(cols)
+# Global helper to display dynamic matrix in a DearPyGui table container with selectable text
+def display_matrix_in_table(matrix: Mapping[Any, Mapping[Any, Any]], table_tag: str) -> None:
+    container_tag = f'{table_tag}_container'
+    if dpg.does_item_exist(container_tag):
+        dpg.delete_item(container_tag, children_only=True)
+        if not matrix:
+            return
 
-    dpg.add_table_column(parent=table_tag, label='Row/Col')
-    for col in sorted_cols:
-        dpg.add_table_column(parent=table_tag, label=str(col))
+        rows: list[Any] = list(matrix.keys())
+        cols: set[Any] = set()
+        for r in rows:
+            cols.update(matrix[r].keys())
+        sorted_cols: list[Any] = sorted(cols)
 
-    for r in sorted(rows):
-        with dpg.table_row(parent=table_tag):
-            dpg.add_text(str(r))
-            for c in sorted_cols:
-                val: Any = matrix[r].get(c, '.')
-                if isinstance(val, float):
-                    val_str = f'{val:.4f}'.rstrip('0').rstrip('.')
-                elif isinstance(val, set):
-                    sorted_set = sorted(val)
-                    val_str = '{' + ', '.join(sorted_set) + '}' if val else '{}'
-                elif isinstance(val, tuple) and len(val) == 2:
-                    val_str = f'[{val[0]}, {val[1]}]'
-                elif isinstance(val, complex):
-                    val_str = f'{val.real:.4f} + {val.imag:.4f}j' if abs(val.imag) > 1e-9 else f'{val.real:.4f}'
-                else:
-                    val_str = str(val)
-                dpg.add_text(val_str)
+        with dpg.table(
+            tag=table_tag,
+            parent=container_tag,
+            header_row=True,
+            borders_innerH=True,
+            borders_innerV=True,
+            borders_outerH=True,
+            borders_outerV=True,
+        ):
+            dpg.add_table_column(label='Row/Col')
+            for col in sorted_cols:
+                dpg.add_table_column(label=str(col))
+
+            for r in sorted(rows):
+                with dpg.table_row():
+                    dpg.add_input_text(default_value=str(r), readonly=True, width=-1)
+                    for c in sorted_cols:
+                        val: Any = matrix[r].get(c, '.')
+                        if isinstance(val, float):
+                            val_str = f'{val:.4f}'.rstrip('0').rstrip('.')
+                        elif isinstance(val, set):
+                            sorted_set = sorted(val)
+                            val_str = '{' + ', '.join(sorted_set) + '}' if val else '{}'
+                        elif isinstance(val, tuple) and len(val) == 2:
+                            val_str = f'[{val[0]}, {val[1]}]'
+                        elif isinstance(val, complex):
+                            val_str = f'{val.real:.4f} + {val.imag:.4f}j' if abs(val.imag) > 1e-9 else f'{val.real:.4f}'
+                        else:
+                            val_str = str(val)
+                        dpg.add_input_text(default_value=val_str, readonly=True, width=-1)
 
 
 # --- Custom Semiring for CYK Parsing ---
@@ -191,13 +396,9 @@ def run_semiring_power() -> None:
         parsed_g: dict[Any, dict[Any, Any]] = {}
 
         if semiring_name == 'Tropical':
-            from algebrax.semiring import TropicalSemiring
-
             semiring: Semiring[Any] = TropicalSemiring()
             parser = float
         elif semiring_name == 'Arctic':
-            from algebrax.semiring import ArcticSemiring
-
             semiring = ArcticSemiring()
             parser = float
         elif semiring_name == 'Viterbi':
@@ -250,8 +451,6 @@ def run_semiring_power() -> None:
 
             parser = parse_interval
         else:
-            from algebrax.semiring import StandardSemiring
-
             semiring = StandardSemiring()
             parser = float
 
@@ -292,13 +491,7 @@ def run_curvature() -> None:
 
         res = forman_ricci_curvature(graph, augmented=is_augmented)
 
-        if dpg.does_item_exist('table_curvature'):
-            dpg.delete_item('table_curvature', children_only=True)
-
-        dpg.add_table_column(parent='table_curvature', label='Edge (u, v)')
-        dpg.add_table_column(parent='table_curvature', label='Forman-Ricci Curvature')
-        dpg.add_table_column(parent='table_curvature', label='Geometry Type')
-
+        clear_table_rows('table_curvature')
         for (u, v), k_val in sorted(res.items()):
             if k_val < -1e-5:
                 k_type = 'Hyperbolic (K < 0)'
@@ -308,9 +501,9 @@ def run_curvature() -> None:
                 k_type = 'Flat / Euclidean (K = 0)'
 
             with dpg.table_row(parent='table_curvature'):
-                dpg.add_text(f'({u}, {v})')
-                dpg.add_text(f'{k_val:.4f}')
-                dpg.add_text(k_type)
+                dpg.add_input_text(default_value=f'({u}, {v})', readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{k_val:.4f}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=k_type, readonly=True, width=-1)
 
         dpg.set_value('curvature_status', 'Successfully computed Forman-Ricci curvature.')
     except Exception as e:
@@ -357,7 +550,6 @@ def run_crypto_exchange() -> None:
 
 
 def run_trie_operations() -> None:
-    from algebrax.semiring import StandardSemiring
     from algebrax.trie import AlgebraicTrie
 
     try:
@@ -408,14 +600,13 @@ def run_pagerank() -> None:
         v_vec: dict[str, float] = dict.fromkeys(all_nodes, 1.0 / n_nodes)
 
         from algebrax.matrix.core import dot
-        from algebrax.semiring import StandardSemiring
 
         semiring = StandardSemiring()
 
         for _ in range(iterations):
-            v_matrix = {0: v_vec}
+            v_matrix = {'0': v_vec}
             res_matrix = dot(v_matrix, m_matrix, semiring=semiring)
-            v_next_raw: dict[str, float] = res_matrix.get(0, {})
+            v_next_raw = res_matrix.get('0', {})
 
             v_next: dict[str, float] = {}
             teleport = (1.0 - alpha) / n_nodes
@@ -424,17 +615,12 @@ def run_pagerank() -> None:
                 v_next[node] = alpha * val + teleport
             v_vec = v_next
 
-        if dpg.does_item_exist('table_pagerank'):
-            dpg.delete_item('table_pagerank', children_only=True)
-
-        dpg.add_table_column(parent='table_pagerank', label='Node')
-        dpg.add_table_column(parent='table_pagerank', label='Rank')
-
+        clear_table_rows('table_pagerank')
         sorted_ranks = sorted(v_vec.items(), key=lambda x: x[1], reverse=True)
         for node, rank in sorted_ranks:
             with dpg.table_row(parent='table_pagerank'):
-                dpg.add_text(str(node))
-                dpg.add_text(f'{rank:.6f}')
+                dpg.add_input_text(default_value=str(node), readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{rank:.6f}', readonly=True, width=-1)
 
         dpg.set_value('pagerank_status', 'Successfully computed PageRank.')
     except Exception as e:
@@ -494,17 +680,12 @@ def run_legendre_fenchel() -> None:
         }
         slopes: list[float] = json.loads(slopes_str)
 
-        if dpg.does_item_exist('table_fenchel'):
-            dpg.delete_item('table_fenchel', children_only=True)
-
-        dpg.add_table_column(parent='table_fenchel', label='Slope (s)')
-        dpg.add_table_column(parent='table_fenchel', label='Convex Conjugate f*(s)')
-
+        clear_table_rows('table_fenchel')
         for s in sorted(slopes):
             val = legendre_fenchel(parsed_signal, s)
             with dpg.table_row(parent='table_fenchel'):
-                dpg.add_text(f'{s:.2f}'.rstrip('0').rstrip('.'))
-                dpg.add_text(f'{val:.4f}'.rstrip('0').rstrip('.'))
+                dpg.add_input_text(default_value=f'{s:.2f}'.rstrip('0').rstrip('.'), readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{val:.4f}'.rstrip('0').rstrip('.'), readonly=True, width=-1)
 
         dpg.set_value('fenchel_status', 'Successfully computed Fenchel-Legendre Transform.')
     except Exception as e:
@@ -534,10 +715,10 @@ def automata_type_callback(sender: int | str, app_data: str) -> None:
 
 
 def _simulate_dfa_step_by_step(
-        seq: list[str],
-        start_str: str,
-        accept_states: list[Any],
-        transitions: dict[Any, dict[Any, Any]],
+    seq: list[str],
+    start_str: str,
+    accept_states: list[Any],
+    transitions: dict[Any, dict[Any, Any]],
 ) -> tuple[list[str], str, tuple[int, int, int]]:
     start_state: Any = start_str.strip().strip('"').strip("'")
     if isinstance(start_state, str) and start_state.isdigit():
@@ -577,10 +758,10 @@ def _simulate_dfa_step_by_step(
 
 
 def _simulate_nfa_step_by_step(
-        seq: list[str],
-        start_str: str,
-        accept_states: list[Any],
-        transitions: dict[Any, dict[Any, Any]],
+    seq: list[str],
+    start_str: str,
+    accept_states: list[Any],
+    transitions: dict[Any, dict[Any, Any]],
 ) -> tuple[list[str], str, tuple[int, int, int]]:
     start_states: Any = json.loads(start_str)
     if isinstance(start_states, str):
@@ -693,24 +874,17 @@ def run_markov_simulation() -> None:
 
         steady = markov_steady_state(matrix)
 
-        if dpg.does_item_exist('table_markov_steps'):
-            dpg.delete_item('table_markov_steps', children_only=True)
-        if dpg.does_item_exist('table_markov_steady'):
-            dpg.delete_item('table_markov_steady', children_only=True)
-
-        dpg.add_table_column(parent='table_markov_steps', label='State')
-        dpg.add_table_column(parent='table_markov_steps', label='Prob')
+        clear_table_rows('table_markov_steps')
         for s_key, prob in sorted(curr_state.items()):
             with dpg.table_row(parent='table_markov_steps'):
-                dpg.add_text(str(s_key))
-                dpg.add_text(f'{prob:.4f}')
+                dpg.add_input_text(default_value=str(s_key), readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{prob:.4f}', readonly=True, width=-1)
 
-        dpg.add_table_column(parent='table_markov_steady', label='State')
-        dpg.add_table_column(parent='table_markov_steady', label='Steady Prob')
+        clear_table_rows('table_markov_steady')
         for s_key, prob in sorted(steady.items()):
             with dpg.table_row(parent='table_markov_steady'):
-                dpg.add_text(str(s_key))
-                dpg.add_text(f'{prob:.4f}')
+                dpg.add_input_text(default_value=str(s_key), readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{prob:.4f}', readonly=True, width=-1)
 
         dpg.set_value('markov_status', f'Successfully computed {steps} Markov step(s) & steady state.')
     except Exception as e:
@@ -782,25 +956,291 @@ def run_signal_transforms() -> None:
         else:
             res = {}
 
-        if dpg.does_item_exist('table_signal_res'):
-            dpg.delete_item('table_signal_res', children_only=True)
-
-        dpg.add_table_column(parent='table_signal_res', label='Index (k/t)')
-        dpg.add_table_column(parent='table_signal_res', label='Value / Coefficient')
-
+        clear_table_rows('table_signal_res')
         for k in sorted(res.keys()):
             val = res[k]
             with dpg.table_row(parent='table_signal_res'):
-                dpg.add_text(str(k))
+                dpg.add_input_text(default_value=str(k), readonly=True, width=-1)
                 if isinstance(val, complex):
                     val_str = f'{val.real:.4f} + {val.imag:.4f}j' if abs(val.imag) > 1e-9 else f'{val.real:.4f}'
                 else:
                     val_str = f'{val:.4f}'
-                dpg.add_text(val_str)
+                dpg.add_input_text(default_value=val_str, readonly=True, width=-1)
 
         dpg.set_value('signal_status', f'Successfully evaluated {op}.')
     except Exception as e:
         dpg.set_value('signal_status', f'Error: {e}')
+
+
+def run_blackhole_sim() -> None:
+    try:
+        r_s: float = float(dpg.get_value('bh_rs'))
+        r: float = float(dpg.get_value('bh_r'))
+        b: float = float(dpg.get_value('bh_b'))
+
+        g_tt = -(1.0 - r_s / r) if r != 0 else 0.0
+        g_rr = (1.0 / (1.0 - r_s / r)) if (r != r_s and r != 0) else float('inf')
+
+        deflect_rad = (2.0 * r_s) / b if b != 0 else 0.0
+        deflect_deg = math.degrees(deflect_rad)
+
+        horizon_area = 4.0 * math.pi * (r_s**2)
+        hawking_entropy = horizon_area / 4.0
+
+        clear_table_rows('table_bh_res')
+        rows = [
+            ('Schwarzschild Radius (r_s)', f'{r_s:.2f} km'),
+            ('Observation Radius (r)', f'{r:.2f} km'),
+            ('Time Metric Component g_tt(r)', f'{g_tt:.6f}'),
+            ('Radial Metric Component g_rr(r)', f'{g_rr:.6f}'),
+            ('Photon Deflection Angle (Delta phi)', f'{deflect_rad:.4f} rad ({deflect_deg:.2f} deg)'),
+            ('Event Horizon Area (A)', f'{horizon_area:.2f} km^2'),
+            ('Bekenstein-Hawking Entropy (S_BH)', f'{hawking_entropy:.2f} nats'),
+        ]
+
+        for prop, val in rows:
+            with dpg.table_row(parent='table_bh_res'):
+                dpg.add_input_text(default_value=prop, readonly=True, width=-1)
+                dpg.add_input_text(default_value=val, readonly=True, width=-1)
+
+        dpg.set_value('bh_status', 'Successfully evaluated Schwarzschild spacetime metric.')
+    except Exception as e:
+        dpg.set_value('bh_status', f'Error: {e}')
+
+
+def run_sparse_tensor_einsum() -> None:
+    from algebrax.tensor import einsum
+    from algebrax.trie import AlgebraicTrie
+
+    subscripts: str = dpg.get_value('tensor_subscripts')
+    semiring_name: str = dpg.get_value('tensor_semiring')
+    a_str: str = dpg.get_value('tensor_a_input')
+    b_str: str = dpg.get_value('tensor_b_input')
+
+    try:
+        raw_a: list[tuple[list[Any], float]] = json.loads(a_str)
+        raw_b: list[tuple[list[Any], float]] = json.loads(b_str)
+
+        trie_a: AlgebraicTrie[Any, float] = AlgebraicTrie(semiring=StandardSemiring)
+        for coord, val in raw_a:
+            trie_a[tuple(coord)] = float(val)
+
+        trie_b: AlgebraicTrie[Any, float] = AlgebraicTrie(semiring=StandardSemiring)
+        for coord, val in raw_b:
+            trie_b[tuple(coord)] = float(val)
+
+        if 'Tropical' in semiring_name:
+            semiring: Semiring[float] = TropicalSemiring()
+        elif 'Arctic' in semiring_name:
+            semiring = ArcticSemiring()
+        else:
+            semiring = StandardSemiring()
+
+        res_trie = einsum(subscripts, trie_a, trie_b, semiring=semiring)
+
+        clear_table_rows('table_tensor_einsum_res')
+        for key in sorted(res_trie):
+            with dpg.table_row(parent='table_tensor_einsum_res'):
+                dpg.add_input_text(default_value=str(key), readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{res_trie[key]:.4f}', readonly=True, width=-1)
+
+        dpg.set_value('tensor_einsum_status', f"Successfully evaluated einsum('{subscripts}').")
+    except Exception as e:
+        dpg.set_value('tensor_einsum_status', f'Error: {e}')
+
+
+def run_trajectoid_sim() -> None:
+    from algebrax.analysis import gradient
+    from algebrax.matrix.core import dot
+
+    steps: int = dpg.get_value('trajectoid_steps')
+    freq: float = dpg.get_value('trajectoid_freq')
+
+    try:
+        t_vals = [i * (2.0 * math.pi / steps) for i in range(steps)]
+        x_path = {i: math.cos(t_vals[i]) for i in range(steps)}
+        y_path = {i: math.sin(freq * t_vals[i]) for i in range(steps)}
+
+        vx = gradient(x_path)
+        vy = gradient(y_path)
+
+        state_mat: dict[int, dict[int, float]] = {
+            0: {0: 1.0, 1: 0.0, 2: 0.0},
+            1: {0: 0.0, 1: 1.0, 2: 0.0},
+            2: {0: 0.0, 1: 0.0, 2: 1.0},
+        }
+        for i in range(min(steps, 10)):
+            w_x = vx.get(i, 0.0) * 0.1
+            w_y = vy.get(i, 0.0) * 0.1
+            dr = {
+                0: {0: 1.0, 1: 0.0, 2: w_y},
+                1: {0: 0.0, 1: 1.0, 2: -w_x},
+                2: {0: -w_y, 1: w_x, 2: 1.0},
+            }
+            state_mat = dot(state_mat, dr)
+
+        display_matrix_in_table(state_mat, 'table_trajectoid_so3')
+        dpg.set_value('trajectoid_status', 'Successfully integrated non-holonomic SO(3) rolling trajectory.')
+    except Exception as e:
+        dpg.set_value('trajectoid_status', f'Error: {e}')
+
+
+def run_knot_theory() -> None:
+    from algebrax.group import compose, signature
+    from algebrax.semiring import KnotSemiring
+
+    knot_a_name: str = dpg.get_value('knot_a_select')
+    knot_b_name: str = dpg.get_value('knot_b_select')
+    crossings_str: str = dpg.get_value('knot_crossings')
+
+    try:
+        knot_algebra = KnotSemiring(StandardSemiring[float]())
+        knot_a = {knot_a_name: 1.0}
+        knot_b = {knot_b_name: 1.0}
+
+        composite_knot = knot_algebra.mul(knot_a, knot_b)
+
+        crossings: list[int] = json.loads(crossings_str)
+        n_strands = max(crossings, default=1) + 1
+        perm = tuple(range(1, n_strands + 1))
+        for c in crossings:
+            swap_p = list(range(1, n_strands + 1))
+            swap_p[c - 1], swap_p[c] = swap_p[c], swap_p[c - 1]
+            perm = compose(perm, tuple(swap_p))
+
+        sig = signature(perm)
+
+        clear_table_rows('table_knot_res')
+        rows = [
+            ('Knot A Topology', knot_a_name),
+            ('Knot B Topology', knot_b_name),
+            ('Connected Sum A (#) B', str(composite_knot)),
+            ('Artin Braid Strand Count', str(n_strands)),
+            ('Artin Braid Permutation', str(perm)),
+            ('Braid Crossing Parity Signature', f'{sig} ({"Even (+1)" if sig == 1 else "Odd (-1)"})'),
+        ]
+
+        for prop, val in rows:
+            with dpg.table_row(parent='table_knot_res'):
+                dpg.add_input_text(default_value=prop, readonly=True, width=-1)
+                dpg.add_input_text(default_value=val, readonly=True, width=-1)
+
+        dpg.set_value('knot_status', 'Successfully evaluated Knot connected sum & Braid signatures.')
+    except Exception as e:
+        dpg.set_value('knot_status', f'Error: {e}')
+
+
+def run_optical_holography() -> None:
+    from algebrax.probability import entropy
+    from algebrax.transforms import dft
+
+    ref_phase: float = float(dpg.get_value('hologram_ref_phase'))
+    object_str: str = dpg.get_value('hologram_object_input')
+
+    try:
+        raw_obj: dict[str, Any] = json.loads(object_str)
+        obj_wave: dict[int, complex] = {
+            int(k): complex(v) if isinstance(v, str) else complex(float(v), 0.0) for k, v in raw_obj.items()
+        }
+
+        ref_wave: dict[int, complex] = {k: cmath.exp(1j * ref_phase * k) for k in obj_wave}
+
+        interf_intensity: dict[int, float] = {}
+        for k in obj_wave:
+            total_field = obj_wave[k] + ref_wave[k]
+            interf_intensity[k] = float(abs(total_field) ** 2)
+
+        spectrum = dft({k: complex(v, 0.0) for k, v in interf_intensity.items()})
+
+        total_int = sum(interf_intensity.values())
+        prob_dist = {k: interf_intensity[k] / total_int for k in interf_intensity} if total_int > 0 else {}
+        fringe_entropy = entropy(prob_dist)
+
+        clear_table_rows('table_hologram_res')
+        for k in sorted(interf_intensity.keys()):
+            val_i = interf_intensity[k]
+            val_f = spectrum.get(k, 0.0 + 0.0j)
+            f_str = f'{val_f.real:.2f}+{val_f.imag:.2f}j' if isinstance(val_f, complex) else f'{val_f:.2f}'
+            with dpg.table_row(parent='table_hologram_res'):
+                dpg.add_input_text(default_value=str(k), readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{val_i:.4f}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=f_str, readonly=True, width=-1)
+
+        dpg.set_value(
+            'hologram_status',
+            f'Successfully recorded optical hologram (Fringe Entropy: {fringe_entropy:.4f} bits).',
+        )
+    except Exception as e:
+        dpg.set_value('hologram_status', f'Error: {e}')
+
+
+def run_financial_risk() -> None:
+    from algebrax.automata import simulate_dfa
+    from algebrax.matrix.academic import eigen_centrality
+
+    signal_input: str = dpg.get_value('fin_signals')
+    corr_str: str = dpg.get_value('fin_corr_matrix')
+
+    try:
+        signals = [s.strip() for s in signal_input.split(',') if s.strip()]
+
+        dfa = {
+            'Cash': {'buy_signal': 'Invested', 'hold': 'Cash', 'risk_alert': 'Risk_Hedge'},
+            'Invested': {'sell_signal': 'Cash', 'risk_alert': 'Risk_Hedge', 'hold': 'Invested'},
+            'Risk_Hedge': {'clear_alert': 'Cash', 'hold': 'Risk_Hedge'},
+        }
+
+        final_state, _ = simulate_dfa('Cash', ['Risk_Hedge'], signals, dfa)
+
+        raw_corr: dict[str, dict[str, float]] = json.loads(corr_str)
+        centrality = eigen_centrality(raw_corr)
+
+        clear_table_rows('table_fin_centrality')
+        for asset, val in sorted(centrality.items(), key=lambda x: x[1], reverse=True):
+            with dpg.table_row(parent='table_fin_centrality'):
+                dpg.add_input_text(default_value=asset, readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{val:.4f}', readonly=True, width=-1)
+
+        dpg.set_value('fin_result_text', f'Final Trade Strategy State: {final_state}')
+        dpg.set_value('fin_status', 'Successfully computed portfolio centrality & trade DFA execution.')
+    except Exception as e:
+        dpg.set_value('fin_status', f'Error: {e}')
+
+
+def run_sheaf_cohomology() -> None:
+    from algebrax.analysis import laplacian
+
+    sensor_str: str = dpg.get_value('sheaf_states_input')
+    steps: int = dpg.get_value('sheaf_steps')
+
+    try:
+        raw_states: dict[str, float] = json.loads(sensor_str)
+        agent_states: dict[int, float] = {int(k): float(v) for k, v in raw_states.items()}
+
+        comm_graph: dict[int, list[int]] = {
+            0: [1, 2],
+            1: [0, 3],
+            2: [0, 3],
+            3: [1, 2],
+        }
+
+        curr_states = dict(agent_states)
+        dt = 0.1
+        for _ in range(steps):
+            l_val = laplacian(curr_states, comm_graph)
+            for u in curr_states:
+                curr_states[u] -= dt * l_val.get(u, 0.0)
+
+        clear_table_rows('table_sheaf_res')
+        for u in sorted(agent_states.keys()):
+            with dpg.table_row(parent='table_sheaf_res'):
+                dpg.add_input_text(default_value=str(u), readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{agent_states[u]:.2f}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{curr_states[u]:.2f}', readonly=True, width=-1)
+
+        dpg.set_value('sheaf_status', f'Successfully evaluated cellular sheaf consensus after {steps} steps.')
+    except Exception as e:
+        dpg.set_value('sheaf_status', f'Error: {e}')
 
 
 # --- Image Convolution Helpers ---
@@ -860,12 +1300,12 @@ def open_file_dialog_callback(sender: int | str, app_data: Any) -> None:
             load_image_file_into_lab(filepath)
 
     with dpg.file_dialog(
-            directory_selector=False,
-            show=True,
-            callback=file_selected_callback,
-            width=700,
-            height=400,
-            modal=True,
+        directory_selector=False,
+        show=True,
+        callback=file_selected_callback,
+        width=700,
+        height=400,
+        modal=True,
     ):
         dpg.add_file_extension('.*', color=(255, 255, 255, 255))
         dpg.add_file_extension('.png', color=(0, 255, 0, 255))
@@ -982,15 +1422,15 @@ def run_image_convolution_2d() -> None:
 
 def _all_node_pairs(nodes: list[int | str]) -> Iterator[tuple[int | str, int | str]]:
     for i, u in enumerate(nodes):
-        for v in nodes[i + 1:]:
-            yield u, v
+        for v in nodes[i + 1 :]:
+            yield (u, v)
 
 
 def _apply_pairwise_forces(
-        pairs: Iterable[tuple[int | str, int | str]],
-        force_func: Callable[[float], float],
-        forces: dict[int | str, list[float]],
-        epsilon: float = 1e-4,
+    pairs: Iterable[tuple[int | str, int | str]],
+    force_func: Callable[[float], float],
+    forces: dict[int | str, list[float]],
+    epsilon: float = 1e-4,
 ) -> None:
     for u, v in pairs:
         dx = pos[u][0] - pos[v][0]
@@ -1003,10 +1443,6 @@ def _apply_pairwise_forces(
         forces[u][1] += fy
         forces[v][0] -= fx
         forces[v][1] -= fy
-
-
-def _qcd_force(dist: float, k_repulsion: float = 6000.0) -> float:
-    return k_repulsion / (dist * dist + 1.0) * (1.0 if dist > 0 else -1.0)
 
 
 def _coulomb_force(dist: float, k_repulsion: float = 6000.0) -> float:
@@ -1099,13 +1535,13 @@ def recalculate_and_reset_layout() -> None:
             6: {3: 1, 5: 1},
         }
 
-    current_nodes = sorted(graph.keys())  # type: ignore
+    current_nodes = sorted(graph.keys())
     edges_set: set[tuple[int | str, int | str]] = set()
     for u, neighbors in graph.items():
         for v in neighbors:
-            if u < v:  # type: ignore
+            if u < v:
                 edges_set.add((u, v))
-            elif v < u:  # type: ignore
+            elif v < u:
                 edges_set.add((v, u))
     current_edges = sorted(edges_set)
 
@@ -1147,6 +1583,9 @@ def _redraw_canvas() -> None:
     if not dpg.does_item_exist('vis_canvas'):
         return
     dpg.delete_item('vis_canvas', children_only=True)
+
+    # Draw solid opaque canvas viewport background
+    dpg.draw_rectangle((0, 0), (700, 450), fill=(18, 18, 24), color=(60, 60, 80), thickness=1, parent='vis_canvas')
 
     # Draw Edges
     for u, v in current_edges:
@@ -1192,6 +1631,7 @@ def build_view_semiring() -> None:
         dpg.add_text(
             'Evaluate matrix multiplication and powers over various algebraic semirings.', color=(180, 180, 180)
         )
+        dpg.add_separator()
         with dpg.group(horizontal=True):
             dpg.add_text('Select Semiring:')
             dpg.add_combo(
@@ -1222,13 +1662,15 @@ def build_view_semiring() -> None:
         )
         dpg.add_button(label='Compute Matrix Power', callback=run_semiring_power)
         dpg.add_text('', tag='semiring_status', color=(255, 200, 100))
-        dpg.add_text('Result Matrix:')
-        create_bordered_table(tag='table_semiring_res')
+        dpg.add_text('Result Matrix (Selectable text):')
+        with dpg.group(tag='table_semiring_res_container'):
+            pass
 
 
 def build_view_curvature() -> None:
     with dpg.group(tag='view_forman_ricci_curvature_group', show=False):
         dpg.add_text('Compute discrete Forman-Ricci curvature on weighted/unweighted networks.', color=(180, 180, 180))
+        dpg.add_separator()
         with dpg.group(horizontal=True):
             dpg.add_checkbox(label='Weighted Graph', default_value=False, tag='curvature_weighted')
             dpg.add_checkbox(label='Augmented Curvature (Triangles)', default_value=True, tag='curvature_augmented')
@@ -1243,13 +1685,17 @@ def build_view_curvature() -> None:
         )
         dpg.add_button(label='Analyze Graph Curvature', callback=run_curvature)
         dpg.add_text('', tag='curvature_status', color=(255, 200, 100))
-        dpg.add_text('Calculated Edge Curvatures:')
-        create_bordered_table(tag='table_curvature')
+        dpg.add_text('Calculated Edge Curvatures (Selectable cells):')
+        create_bordered_table(
+            tag='table_curvature',
+            columns=['Edge (u, v)', 'Forman-Ricci Curvature', 'Geometry Type'],
+        )
 
 
 def build_view_crypto() -> None:
     with dpg.group(tag='view_pq_key_exchange_group', show=False):
         dpg.add_text('Simulation of Diffie-Hellman key exchange over the Digital Semiring.', color=(180, 180, 180))
+        dpg.add_separator()
         with dpg.group(horizontal=True):
             dpg.add_text('Alice Private Key (a1, a2):')
             dpg.add_input_int(default_value=12, tag='crypto_a1', width=100)
@@ -1261,21 +1707,25 @@ def build_view_crypto() -> None:
 
         dpg.add_button(label='Execute Key Exchange', callback=run_crypto_exchange)
         dpg.add_text('', tag='crypto_status', color=(255, 200, 100))
-        dpg.add_text('Keys Match: Not Run', tag='crypto_match_text', color=(100, 255, 100))
+        dpg.add_input_text(default_value='Keys Match: Not Run', readonly=True, tag='crypto_match_text', width=400)
 
         with dpg.group(horizontal=True):
-            with dpg.group():
+            with dpg.child_window(width=205, height=180, border=True):
                 dpg.add_text('Alice Public U:')
-                create_bordered_table(tag='table_crypto_u', width=180)
-            with dpg.group():
+                with dpg.group(tag='table_crypto_u_container'):
+                    pass
+            with dpg.child_window(width=205, height=180, border=True):
                 dpg.add_text('Bob Public V:')
-                create_bordered_table(tag='table_crypto_v', width=180)
-            with dpg.group():
+                with dpg.group(tag='table_crypto_v_container'):
+                    pass
+            with dpg.child_window(width=205, height=180, border=True):
                 dpg.add_text('Alice Shared Key K_A:')
-                create_bordered_table(tag='table_crypto_ka', width=180)
-            with dpg.group():
+                with dpg.group(tag='table_crypto_ka_container'):
+                    pass
+            with dpg.child_window(width=205, height=180, border=True):
                 dpg.add_text('Bob Shared Key K_B:')
-                create_bordered_table(tag='table_crypto_kb', width=180)
+                with dpg.group(tag='table_crypto_kb_container'):
+                    pass
 
 
 def build_view_trie() -> None:
@@ -1284,6 +1734,7 @@ def build_view_trie() -> None:
             'Algebraic Tries represent nested sparse tensors capable of contracting/marginalizing dimensions.',
             color=(180, 180, 180),
         )
+        dpg.add_separator()
         dpg.add_text('Tensor Points [[coordinate_tuple, value], ...]:')
         default_points = '[\n  [[0, 0, 0], 1.0],\n  [[0, 0, 0], 2.0],\n  [[0, 1, 0], 5.0],\n  [[1, 0, 0], 10.0]\n]'
         dpg.add_input_text(default_value=default_points, multiline=True, tag='trie_points_input', height=120, width=800)
@@ -1291,14 +1742,28 @@ def build_view_trie() -> None:
         dpg.add_input_text(default_value='[0]', tag='trie_contract_dims', width=300)
         dpg.add_button(label='Contract Sparse Tensor', callback=run_trie_operations)
         dpg.add_text('', tag='trie_status', color=(255, 200, 100))
-        dpg.add_text('Trie Contents:')
-        dpg.add_text('  (No data populated yet)', tag='trie_contents_text', color=(160, 160, 160))
-        dpg.add_text('Contracted Result: None', tag='trie_result_text', color=(100, 255, 100))
+        dpg.add_text('Trie Contents (Selectable text):')
+        dpg.add_input_text(
+            default_value='  (No data populated yet)',
+            multiline=True,
+            readonly=True,
+            tag='trie_contents_text',
+            height=100,
+            width=800,
+        )
+        dpg.add_text('Contracted Result:')
+        dpg.add_input_text(
+            default_value='Contracted Result at [0]: None',
+            readonly=True,
+            tag='trie_result_text',
+            width=800,
+        )
 
 
 def build_view_pagerank() -> None:
     with dpg.group(tag='view_pagerank_group', show=False):
         dpg.add_text('Compute PageRank (algebraic stationary distribution of a random walk).', color=(180, 180, 180))
+        dpg.add_separator()
         with dpg.group(horizontal=True):
             dpg.add_text('Damping (alpha):')
             dpg.add_input_float(default_value=0.85, tag='pagerank_alpha', width=120)
@@ -1310,8 +1775,12 @@ def build_view_pagerank() -> None:
         dpg.add_input_text(default_value=default_web, multiline=True, tag='pagerank_graph', height=120, width=800)
         dpg.add_button(label='Compute PageRank', callback=run_pagerank)
         dpg.add_text('', tag='pagerank_status', color=(255, 200, 100))
-        dpg.add_text('Resulting Ranks:')
-        create_bordered_table(tag='table_pagerank', width=300)
+        dpg.add_text('Resulting Ranks (Selectable cells):')
+        create_bordered_table(
+            tag='table_pagerank',
+            columns=['Node', 'Rank'],
+            width=300,
+        )
 
 
 def build_view_cyk() -> None:
@@ -1320,6 +1789,7 @@ def build_view_cyk() -> None:
             'Grammar syntax parsing representing CYK chart combination as a matrix multiplication closure.',
             color=(180, 180, 180),
         )
+        dpg.add_separator()
         with dpg.group(horizontal=True):
             dpg.add_text('Sentence to Parse:')
             dpg.add_input_text(default_value='I love Python', tag='cyk_sentence', width=400)
@@ -1332,9 +1802,10 @@ def build_view_cyk() -> None:
         dpg.add_input_text(default_value=default_cyk_rules, multiline=True, tag='cyk_rules', height=100, width=800)
         dpg.add_button(label='Parse Sentence', callback=run_cyk_parsing)
         dpg.add_text('', tag='cyk_status', color=(255, 200, 100))
-        dpg.add_text('Parses as: None', tag='cyk_result_text', color=(100, 255, 100))
-        dpg.add_text('Parsing Chart Spans:')
-        create_bordered_table(tag='table_cyk_chart')
+        dpg.add_input_text(default_value='Parses as: None', readonly=True, tag='cyk_result_text', width=800)
+        dpg.add_text('Parsing Chart Spans (Selectable cells):')
+        with dpg.group(tag='table_cyk_chart_container'):
+            pass
 
 
 def build_view_slope() -> None:
@@ -1343,6 +1814,7 @@ def build_view_slope() -> None:
             'Evaluate the Fenchel-Legendre Transform (Tropical/Idempotent Fourier analog) of a signal.',
             color=(180, 180, 180),
         )
+        dpg.add_separator()
         dpg.add_text('Signal Vector f(x) (JSON format):')
         default_signal = '{\n  "0": 0.0,\n  "1": 1.0,\n  "2": 4.0,\n  "3": 9.0\n}'
         dpg.add_input_text(default_value=default_signal, multiline=True, tag='fenchel_signal', height=100, width=800)
@@ -1351,8 +1823,12 @@ def build_view_slope() -> None:
         dpg.add_input_text(default_value=default_slopes, tag='fenchel_slopes', width=400)
         dpg.add_button(label='Compute Convex Conjugates', callback=run_legendre_fenchel)
         dpg.add_text('', tag='fenchel_status', color=(255, 200, 100))
-        dpg.add_text('Convex Conjugate Values f*(s) = sup_x (s*x - f(x)):')
-        create_bordered_table(tag='table_fenchel', width=350)
+        dpg.add_text('Convex Conjugate Values f*(s) = sup_x (s*x - f(x)) (Selectable cells):')
+        create_bordered_table(
+            tag='table_fenchel',
+            columns=['Slope (s)', 'Convex Conjugate f*(s)'],
+            width=350,
+        )
 
 
 def build_view_automata() -> None:
@@ -1360,6 +1836,7 @@ def build_view_automata() -> None:
         dpg.add_text(
             'Simulate Deterministic and Nondeterministic/Probabilistic Finite Automata.', color=(180, 180, 180)
         )
+        dpg.add_separator()
         with dpg.group(horizontal=True):
             dpg.add_text('Automaton Type:')
             dpg.add_combo(
@@ -1386,8 +1863,8 @@ def build_view_automata() -> None:
         )
         dpg.add_button(label='Simulate Automaton', callback=run_automata_sim)
         dpg.add_text('', tag='automata_status', color=(255, 200, 100))
-        dpg.add_text('Result: Not Run', tag='automata_result_text', color=(100, 255, 100))
-        dpg.add_text('Simulation Trajectory Log:')
+        dpg.add_input_text(default_value='Result: Not Run', readonly=True, tag='automata_result_text', width=800)
+        dpg.add_text('Simulation Trajectory Log (Selectable text):')
         dpg.add_input_text(multiline=True, tag='automata_log_text', readonly=True, height=150, width=800)
 
 
@@ -1397,8 +1874,9 @@ def build_view_markov_info() -> None:
             'Simulate Markov chain steps, find stationary states, and compute information theory metrics.',
             color=(180, 180, 180),
         )
+        dpg.add_separator()
         with dpg.group(horizontal=True):
-            with dpg.group(width=390):
+            with dpg.child_window(width=415, height=530, border=True):
                 dpg.add_text('MARKOV CHAIN SIMULATOR', color=(150, 180, 255))
                 dpg.add_separator()
                 dpg.add_text('Transition Matrix (Row Stochastic JSON):')
@@ -1417,12 +1895,12 @@ def build_view_markov_info() -> None:
                 with dpg.group(horizontal=True):
                     with dpg.group():
                         dpg.add_text('Distribution after N steps:')
-                        create_bordered_table(tag='table_markov_steps', width=180)
+                        create_bordered_table(tag='table_markov_steps', columns=['State', 'Prob'], width=180)
                     with dpg.group():
                         dpg.add_text('Analytical Steady State:')
-                        create_bordered_table(tag='table_markov_steady', width=180)
+                        create_bordered_table(tag='table_markov_steady', columns=['State', 'Steady Prob'], width=180)
 
-            with dpg.group(width=390):
+            with dpg.child_window(width=415, height=530, border=True):
                 dpg.add_text('INFORMATION THEORY LAB', color=(150, 180, 255))
                 dpg.add_separator()
                 dpg.add_text('Distribution P (True):')
@@ -1457,6 +1935,7 @@ def build_view_signal_transforms() -> None:
             'Apply Discrete Fourier, Hilbert, Convolution, or Z-Transforms to sparse signal vectors.',
             color=(180, 180, 180),
         )
+        dpg.add_separator()
         with dpg.group(horizontal=True):
             dpg.add_text('Select Operation:')
             dpg.add_combo(
@@ -1482,8 +1961,11 @@ def build_view_signal_transforms() -> None:
 
         dpg.add_button(label='Process Signal Transform', callback=run_signal_transforms)
         dpg.add_text('', tag='signal_status', color=(255, 200, 100))
-        dpg.add_text('Resulting Signal Coefficients:')
-        create_bordered_table(tag='table_signal_res')
+        dpg.add_text('Resulting Signal Coefficients (Selectable cells):')
+        create_bordered_table(
+            tag='table_signal_res',
+            columns=['Index (k/t)', 'Value / Coefficient'],
+        )
 
 
 def build_view_image_conv() -> None:
@@ -1563,7 +2045,7 @@ def build_view_image_conv() -> None:
                 dpg.add_text('Output Convolved Texture (64x64):')
                 dpg.add_image('texture_img_output', width=160, height=160)
             with dpg.group():
-                dpg.add_text('ASCII Grid Preview:')
+                dpg.add_text('ASCII Grid Preview (Selectable text):')
                 dpg.add_input_text(
                     default_value='',
                     multiline=True,
@@ -1573,15 +2055,17 @@ def build_view_image_conv() -> None:
                     readonly=True,
                 )
             with dpg.group():
-                dpg.add_text('Result Table:')
-                create_bordered_table(tag='table_img_conv_res', width=220, height=160)
+                dpg.add_text('Result Table (Selectable cells):')
+                with dpg.group(tag='table_img_conv_res_container'):
+                    pass
 
 
 def build_view_network_vis() -> None:
     with dpg.group(tag='view_network_curvature_vis_group', show=False):
         dpg.add_text('Interactive Force-Directed Layout & Forman-Ricci Curvature Visualization', color=(150, 180, 255))
+        dpg.add_separator()
         with dpg.group(horizontal=True):
-            with dpg.group(width=280):
+            with dpg.child_window(width=310, height=520, border=True):
                 dpg.add_text('GRAPH SETTINGS', color=(100, 255, 100))
                 dpg.add_separator()
                 dpg.add_text('Graph Preset:')
@@ -1638,6 +2122,191 @@ def build_view_network_vis() -> None:
                     dpg.add_text('Blue (Spherical / K > 0)', color=(80, 180, 255))
 
 
+def build_view_blackhole() -> None:
+    with dpg.group(tag='view_blackhole_spacetime_group', show=False):
+        dpg.add_text(
+            'Schwarzschild Black Hole Spacetime Metric & Gravitational Lensing Simulation',
+            color=(150, 180, 255),
+        )
+        with dpg.group(horizontal=True):
+            dpg.add_text('Schwarzschild Radius (r_s km):')
+            dpg.add_input_float(default_value=29.5, tag='bh_rs', width=120)
+            dpg.add_text('Observation Radius (r km):')
+            dpg.add_input_float(default_value=59.0, tag='bh_r', width=120)
+            dpg.add_text('Impact Parameter (b km):')
+            dpg.add_input_float(default_value=40.0, tag='bh_b', width=120)
+
+        dpg.add_button(label='Compute Spacetime Geometry & Deflection', callback=run_blackhole_sim)
+        dpg.add_text('', tag='bh_status', color=(255, 200, 100))
+        dpg.add_text('Schwarzschild Spacetime Metric Components & Deflection Angle (Selectable cells):')
+        create_bordered_table(
+            tag='table_bh_res',
+            columns=['Physical Property', 'Evaluated Value'],
+            width=700,
+        )
+
+
+def build_view_sparse_tensor_einsum() -> None:
+    with dpg.group(tag='view_sparse_tensor_einsum_group', show=False):
+        dpg.add_text(
+            'Arbitrary-Rank Sparse Tensor Einstein Summation Contractions over Algebraic Semirings',
+            color=(150, 180, 255),
+        )
+        with dpg.group(horizontal=True):
+            dpg.add_text("Einstein Subscript (e.g. 'ik,kj->ij' or 'i,j->ij'):")
+            dpg.add_input_text(default_value='ik,kj->ij', tag='tensor_subscripts', width=250)
+            dpg.add_text('Semiring:')
+            dpg.add_combo(
+                ['Standard (+, *)', 'Tropical / Min-Plus', 'Arctic / Max-Plus'],
+                default_value='Standard (+, *)',
+                tag='tensor_semiring',
+                width=200,
+            )
+
+        dpg.add_text('Tensor A Coordinates & Values [[[i, k], val], ...]:')
+        default_a = '[\n  [["U1", "M_A"], 4.5],\n  [["U1", "M_B"], 2.0],\n  [["U2", "M_A"], 5.0]\n]'
+        dpg.add_input_text(default_value=default_a, multiline=True, tag='tensor_a_input', height=100, width=800)
+
+        dpg.add_text('Tensor B Coordinates & Values [[[k, j], val], ...]:')
+        default_b = '[\n  [["M_A", "Sci-Fi"], 0.9],\n  [["M_B", "Comedy"], 0.8]\n]'
+        dpg.add_input_text(default_value=default_b, multiline=True, tag='tensor_b_input', height=100, width=800)
+
+        dpg.add_button(label='Execute Tensor Einsum Contraction', callback=run_sparse_tensor_einsum)
+        dpg.add_text('', tag='tensor_einsum_status', color=(255, 200, 100))
+        dpg.add_text('Result Contracted Tensor Entries (Selectable cells):')
+        create_bordered_table(
+            tag='table_tensor_einsum_res',
+            columns=['Result Index Key', 'Value'],
+            width=400,
+        )
+
+
+def build_view_trajectoid() -> None:
+    with dpg.group(tag='view_trajectoid_kinematics_group', show=False):
+        dpg.add_text(
+            'Trajectoid Non-Holonomic Rolling Kinematics & SO(3) Rotation Matrix Composition',
+            color=(150, 180, 255),
+        )
+        with dpg.group(horizontal=True):
+            dpg.add_text('Trajectory Steps:')
+            dpg.add_input_int(default_value=32, min_value=8, tag='trajectoid_steps', width=120)
+            dpg.add_text('Path Frequency (k):')
+            dpg.add_input_float(default_value=2.0, tag='trajectoid_freq', width=120)
+
+        dpg.add_button(label='Integrate SO(3) Trajectoid Rotation', callback=run_trajectoid_sim)
+        dpg.add_text('', tag='trajectoid_status', color=(255, 200, 100))
+        dpg.add_text('Integrated SO(3) 3x3 Orientation Matrix R_t (Selectable cells):')
+        with dpg.group(tag='table_trajectoid_so3_container'):
+            pass
+
+
+def build_view_knot_theory() -> None:
+    with dpg.group(tag='view_algebraic_knot_theory_group', show=False):
+        dpg.add_text(
+            'Algebraic Knot Theory, Skein Modules (#) and Artin Braid Group Crossing Signatures',
+            color=(150, 180, 255),
+        )
+        with dpg.group(horizontal=True):
+            dpg.add_text('Knot Topology A:')
+            dpg.add_combo(['3_1', '4_1', 'U'], default_value='3_1', tag='knot_a_select', width=150)
+            dpg.add_text('Knot Topology B:')
+            dpg.add_combo(['4_1', '2_1^2', 'U'], default_value='4_1', tag='knot_b_select', width=150)
+
+        dpg.add_text('Artin Braid Strand Crossings (JSON list of adjacent strand index swaps):')
+        dpg.add_input_text(default_value='[1, 2, 1]', tag='knot_crossings', width=300)
+
+        dpg.add_button(label='Analyze Knot Connected Sum & Braid Signature', callback=run_knot_theory)
+        dpg.add_text('', tag='knot_status', color=(255, 200, 100))
+        dpg.add_text('Topological Invariants & Braid Permutation (Selectable cells):')
+        create_bordered_table(
+            tag='table_knot_res',
+            columns=['Topological Invariant / Property', 'Value / Result'],
+            width=650,
+        )
+
+
+def build_view_optical_holography() -> None:
+    with dpg.group(tag='view_optical_holography_group', show=False):
+        dpg.add_text(
+            'Optical Holography Interference Pattern Recording & Discrete Wavefront Reconstruction',
+            color=(150, 180, 255),
+        )
+        with dpg.group(horizontal=True):
+            dpg.add_text('Reference Beam Phase Shift (phi rad):')
+            dpg.add_input_float(default_value=0.5, tag='hologram_ref_phase', width=150)
+
+        dpg.add_text('Object Wavefront Apertures (JSON dict {index: amplitude}):')
+        default_obj = '{\n  "0": 0.0, "1": 0.0, "2": 1.0, "3": 0.0,\n  "4": 0.0, "5": 0.8, "6": 0.0, "7": 0.0\n}'
+        dpg.add_input_text(
+            default_value=default_obj, multiline=True, tag='hologram_object_input', height=100, width=800
+        )
+
+        dpg.add_button(label='Record Hologram & Reconstruct Wavefront', callback=run_optical_holography)
+        dpg.add_text('', tag='hologram_status', color=(255, 200, 100))
+        dpg.add_text('Interference Intensity I(x) & Discrete Fourier Spectrum (Selectable cells):')
+        create_bordered_table(
+            tag='table_hologram_res',
+            columns=['Spatial Grid Index (x)', 'Hologram Intensity I(x)', 'Fourier Spectrum F(u)'],
+            width=600,
+        )
+
+
+def build_view_financial_risk() -> None:
+    with dpg.group(tag='view_financial_risk_group', show=False):
+        dpg.add_text(
+            'Financial Risk Engineering, Spectral Asset Centrality & Algorithmic Trade DFAs',
+            color=(150, 180, 255),
+        )
+        dpg.add_text('Market Trade Signal Stream (comma-separated):')
+        dpg.add_input_text(
+            default_value='buy_signal, hold, risk_alert, hold, clear_alert, buy_signal', tag='fin_signals', width=600
+        )
+
+        dpg.add_text('Cross-Asset Correlation Matrix (JSON format):')
+        default_corr = (
+            '{\n'
+            '  "BTC": {"BTC": 1.0, "ETH": 0.8, "SPX": 0.4},\n'
+            '  "ETH": {"BTC": 0.8, "ETH": 1.0, "SPX": 0.3},\n'
+            '  "SPX": {"BTC": 0.4, "ETH": 0.3, "SPX": 1.0}\n'
+            '}'
+        )
+        dpg.add_input_text(default_value=default_corr, multiline=True, tag='fin_corr_matrix', height=120, width=800)
+
+        dpg.add_button(label='Evaluate Portfolio Risk & Execute Trade Strategy', callback=run_financial_risk)
+        dpg.add_text('', tag='fin_status', color=(255, 200, 100))
+        dpg.add_input_text(default_value='Trade Strategy State: Cash', readonly=True, tag='fin_result_text', width=600)
+        dpg.add_text('Asset Spectral Eigen Centralities (Selectable cells):')
+        create_bordered_table(
+            tag='table_fin_centrality',
+            columns=['Asset', 'Spectral Eigen Centrality'],
+            width=400,
+        )
+
+
+def build_view_sheaf_cohomology() -> None:
+    with dpg.group(tag='view_sheaf_cohomology_group', show=False):
+        dpg.add_text(
+            'Cellular Sheaf Cohomology, Coboundary Gradient & Multi-Agent Network Consensus',
+            color=(150, 180, 255),
+        )
+        with dpg.group(horizontal=True):
+            dpg.add_text('Consensus Steps (N):')
+            dpg.add_input_int(default_value=5, min_value=1, tag='sheaf_steps', width=120)
+
+        dpg.add_text('Initial Robot Local Sensor Estimates (JSON dict):')
+        default_sensors = '{\n  "0": 10.0, "1": 30.0, "2": 20.0, "3": 40.0\n}'
+        dpg.add_input_text(default_value=default_sensors, tag='sheaf_states_input', width=400)
+
+        dpg.add_button(label='Harmonize Sheaf Network Consensus', callback=run_sheaf_cohomology)
+        dpg.add_text('', tag='sheaf_status', color=(255, 200, 100))
+        dpg.add_text('Multi-Agent Sensor States Convergence (Selectable cells):')
+        create_bordered_table(
+            tag='table_sheaf_res',
+            columns=['Agent ID', 'Initial Sensor State', 'Harmonized State (t=N)'],
+            width=500,
+        )
+
+
 # --- Navigation Sidebar Builder ---
 VIEWS: list[str] = [
     'semiring_matrix_power',
@@ -1652,6 +2321,13 @@ VIEWS: list[str] = [
     'signal_transforms',
     'image_convolution_2d',
     'network_curvature_vis',
+    'blackhole_spacetime',
+    'sparse_tensor_einsum',
+    'trajectoid_kinematics',
+    'algebraic_knot_theory',
+    'optical_holography',
+    'financial_risk',
+    'sheaf_cohomology',
 ]
 
 
@@ -1698,7 +2374,7 @@ def build_navigation_sidebar() -> None:
                 user_data='network_curvature_vis',
             )
 
-        with dpg.tree_node(label='Automata & Parsing', default_open=True):
+        with dpg.tree_node(label='Automata, Parsing & Risk', default_open=True):
             dpg.add_selectable(
                 label='Automata Simulator',
                 tag='sel_automata_simulator',
@@ -1711,8 +2387,14 @@ def build_navigation_sidebar() -> None:
                 callback=change_view,
                 user_data='cyk_parser',
             )
+            dpg.add_selectable(
+                label='Financial Portfolio Risk',
+                tag='sel_financial_risk',
+                callback=change_view,
+                user_data='financial_risk',
+            )
 
-        with dpg.tree_node(label='Transforms & Signals', default_open=True):
+        with dpg.tree_node(label='Transforms, Signals & Waves', default_open=True):
             dpg.add_selectable(
                 label='Slope Transform',
                 tag='sel_slope_transform',
@@ -1731,14 +2413,54 @@ def build_navigation_sidebar() -> None:
                 callback=change_view,
                 user_data='image_convolution_2d',
             )
+            dpg.add_selectable(
+                label='Optical Holography',
+                tag='sel_optical_holography',
+                callback=change_view,
+                user_data='optical_holography',
+            )
 
-        with dpg.tree_node(label='Algebra & Information', default_open=True):
+        with dpg.tree_node(label='Tensors, Tries & Physics', default_open=True):
             dpg.add_selectable(
                 label='Algebraic Trie / Tensor',
                 tag='sel_algebraic_trie',
                 callback=change_view,
                 user_data='algebraic_trie',
             )
+            dpg.add_selectable(
+                label='Sparse Tensor Einsum',
+                tag='sel_sparse_tensor_einsum',
+                callback=change_view,
+                user_data='sparse_tensor_einsum',
+            )
+            dpg.add_selectable(
+                label='Trajectoid Kinematics',
+                tag='sel_trajectoid_kinematics',
+                callback=change_view,
+                user_data='trajectoid_kinematics',
+            )
+            dpg.add_selectable(
+                label='Schwarzschild Black Hole',
+                tag='sel_blackhole_spacetime',
+                callback=change_view,
+                user_data='blackhole_spacetime',
+            )
+
+        with dpg.tree_node(label='Topology & Geometry', default_open=True):
+            dpg.add_selectable(
+                label='Knot Theory & Skein',
+                tag='sel_algebraic_knot_theory',
+                callback=change_view,
+                user_data='algebraic_knot_theory',
+            )
+            dpg.add_selectable(
+                label='Sheaf Cohomology',
+                tag='sel_sheaf_cohomology',
+                callback=change_view,
+                user_data='sheaf_cohomology',
+            )
+
+        with dpg.tree_node(label='Information & Crypto', default_open=True):
             dpg.add_selectable(
                 label='Markov & Info Theory',
                 tag='sel_markov_info_theory',
@@ -1808,12 +2530,12 @@ dpg.bind_theme(global_theme)
 # --- Main Window Builder ---
 def main() -> None:
     with dpg.window(
-            label='AlgebraX Graphical Lab',
-            width=1180,
-            height=860,
-            no_title_bar=True,
-            no_move=True,
-            no_resize=True,
+        label='AlgebraX Graphical Lab',
+        width=1180,
+        height=860,
+        no_title_bar=True,
+        no_move=True,
+        no_resize=True,
     ) as main_window:
         dpg.add_text('ALGEBRAX GRAPHICAL LABORATORY', color=(150, 180, 255))
         dpg.add_separator()
@@ -1833,6 +2555,13 @@ def main() -> None:
                 build_view_signal_transforms()
                 build_view_image_conv()
                 build_view_network_vis()
+                build_view_blackhole()
+                build_view_sparse_tensor_einsum()
+                build_view_trajectoid()
+                build_view_knot_theory()
+                build_view_optical_holography()
+                build_view_financial_risk()
+                build_view_sheaf_cohomology()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()
