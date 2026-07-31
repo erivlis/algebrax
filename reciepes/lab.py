@@ -118,6 +118,9 @@ Standard `dpg.add_text()` labels are non-interactive in ImGui. Users cannot high
     * Mouse click & drag text selection.
     * Native keyboard shortcuts (`Ctrl+C` to copy, `Ctrl+A` to select all).
     * Read-only protection preventing accidental user editing.
+* **Configure Item Note**: `dpg.configure_item(tag, color=...)` is only supported on static `dpg.add_text()`
+  items. Read-only `dpg.add_input_text()` widgets do NOT accept a `color` parameter in `configure_item()`; update
+  values using `dpg.set_value(tag, text)` instead.
 * **Table Cell Pattern**:
   ```python
   with dpg.table_row(parent=table_tag):
@@ -841,12 +844,11 @@ def run_automata_sim() -> None:
         )
 
         if auto_type == 'DFA':
-            steps_log, status, status_color = _simulate_dfa_step_by_step(seq, start_str, accept_states, transitions)
+            steps_log, status, _ = _simulate_dfa_step_by_step(seq, start_str, accept_states, transitions)
         else:
-            steps_log, status, status_color = _simulate_nfa_step_by_step(seq, start_str, accept_states, transitions)
+            steps_log, status, _ = _simulate_nfa_step_by_step(seq, start_str, accept_states, transitions)
 
         dpg.set_value('automata_result_text', status)
-        dpg.configure_item('automata_result_text', color=status_color)
         dpg.set_value('automata_log_text', '\n'.join(steps_log))
         dpg.set_value('automata_status', f'Successfully simulated {auto_type}.')
     except Exception as e:
@@ -1061,8 +1063,12 @@ def run_trajectoid_sim() -> None:
         x_path = {i: math.cos(t_vals[i]) for i in range(steps)}
         y_path = {i: math.sin(freq * t_vals[i]) for i in range(steps)}
 
-        vx = gradient(x_path)
-        vy = gradient(y_path)
+        time_graph = {i: [(i + 1) % steps] for i in range(steps)}
+        grad_x = gradient(x_path, time_graph)
+        grad_y = gradient(y_path, time_graph)
+
+        vx = {i: grad_x[i][(i + 1) % steps] for i in range(steps)}
+        vy = {i: grad_y[i][(i + 1) % steps] for i in range(steps)}
 
         state_mat: dict[int, dict[int, float]] = {
             0: {0: 1.0, 1: 0.0, 2: 0.0},
@@ -1101,12 +1107,13 @@ def run_knot_theory() -> None:
         composite_knot = knot_algebra.mul(knot_a, knot_b)
 
         crossings: list[int] = json.loads(crossings_str)
-        n_strands = max(crossings, default=1) + 1
-        perm = tuple(range(1, n_strands + 1))
+        n_strands = max(max(crossings, default=1) + 1, 2)
+        perm: dict[int, int] = {i: i for i in range(n_strands)}
         for c in crossings:
-            swap_p = list(range(1, n_strands + 1))
-            swap_p[c - 1], swap_p[c] = swap_p[c], swap_p[c - 1]
-            perm = compose(perm, tuple(swap_p))
+            if 1 <= c < n_strands:
+                swap_gen = {i: i for i in range(n_strands)}
+                swap_gen[c - 1], swap_gen[c] = c, c - 1
+                perm = compose(perm, swap_gen)
 
         sig = signature(perm)
 
@@ -1190,7 +1197,7 @@ def run_financial_risk() -> None:
             'Risk_Hedge': {'clear_alert': 'Cash', 'hold': 'Risk_Hedge'},
         }
 
-        final_state, _ = simulate_dfa('Cash', ['Risk_Hedge'], signals, dfa)
+        final_state = simulate_dfa('Cash', signals, dfa)
 
         raw_corr: dict[str, dict[str, float]] = json.loads(corr_str)
         centrality = eigen_centrality(raw_corr)
@@ -1217,11 +1224,11 @@ def run_sheaf_cohomology() -> None:
         raw_states: dict[str, float] = json.loads(sensor_str)
         agent_states: dict[int, float] = {int(k): float(v) for k, v in raw_states.items()}
 
-        comm_graph: dict[int, list[int]] = {
-            0: [1, 2],
-            1: [0, 3],
-            2: [0, 3],
-            3: [1, 2],
+        comm_graph: dict[int, dict[int, float]] = {
+            0: {1: 1.0, 2: 1.0},
+            1: {0: 1.0, 3: 1.0},
+            2: {0: 1.0, 3: 1.0},
+            3: {1: 1.0, 2: 1.0},
         }
 
         curr_states = dict(agent_states)
@@ -2295,7 +2302,9 @@ def build_view_sheaf_cohomology() -> None:
 
         dpg.add_text('Initial Robot Local Sensor Estimates (JSON dict):')
         default_sensors = '{\n  "0": 10.0, "1": 30.0, "2": 20.0, "3": 40.0\n}'
-        dpg.add_input_text(default_value=default_sensors, tag='sheaf_states_input', width=400)
+        dpg.add_input_text(
+            default_value=default_sensors, multiline=True, tag='sheaf_states_input', height=100, width=600
+        )
 
         dpg.add_button(label='Harmonize Sheaf Network Consensus', callback=run_sheaf_cohomology)
         dpg.add_text('', tag='sheaf_status', color=(255, 200, 100))
