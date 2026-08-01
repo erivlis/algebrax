@@ -31,9 +31,14 @@ nav = [
             "tutorials/semirings/semiring_matrix.md",
             "tutorials/semirings/semiring_boolean.md",
             "tutorials/semirings/semiring_viterbi.md",
+            "tutorials/semirings/semiring_quotient_monoid_algebra.md",
+            "tutorials/semirings/semiring_clifford.md",
+            "tutorials/semirings/semiring_galois.md",
         ] },
         { Structures = [
-            "tutorials/structures/algebraic_trie.md"
+            "tutorials/structures/algebraic_trie.md",
+            "tutorials/structures/sparse_chain_complex.md",
+            "tutorials/structures/categorical_kleisli.md",
         ] },
         { Transforms = [
             "tutorials/transforms/image_convolution.md",
