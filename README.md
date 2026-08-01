@@ -158,6 +158,7 @@ The [`recipes/`](recipes) directory contains standalone CLI scripts and matching
 | **Trajectoid Kinematics**     | [`trajectoid_rolling_kinematics.py`](recipes/trajectoid_rolling_kinematics.py)   | [`trajectoid_rolling_kinematics.ipynb`](recipes/trajectoid_rolling_kinematics.ipynb)   | `analysis.gradient`, `matrix.dot`, `metrics.sparsity`                                                        |
 | **Sparse Tensor Einsum**      | [`sparse_tensor_einsum.py`](recipes/sparse_tensor_einsum.py)                     | [`sparse_tensor_einsum.ipynb`](recipes/sparse_tensor_einsum.ipynb)                     | `tensor.einsum`, `tensor.outer_product`, `tensor.tensordot`, `tensor.flatten_tensor`                         |
 | **Black Hole Spacetime**      | [`blackhole_spacetime_simulation.py`](recipes/blackhole_spacetime_simulation.py) | [`blackhole_spacetime_simulation.ipynb`](recipes/blackhole_spacetime_simulation.ipynb) | `tensor.einsum`, `transforms.z_transform`, `analysis.gradient`, `probability.entropy`                        |
+| **3D Gaussian Splatting**     | [`gaussian_splatting_rendering.py`](recipes/gaussian_splatting_rendering.py)     | [`gaussian_splatting_rendering.ipynb`](recipes/gaussian_splatting_rendering.ipynb)     | `matrix.dot`, `matrix.transpose`, `analysis.gaussian_kernel`                                                 |
 
 Run any recipe using `uv`:
 

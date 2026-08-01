@@ -51,7 +51,8 @@ The sidebar is organized into **6 domain categories** covering all 19 interactiv
 │   ├── Algebraic Trie / Tensor        (View 4: Sparse tensor dimension contraction/marginalization)
 │   ├── Sparse Tensor Einsum           (View 14: Arbitrary-rank einsum over Standard & Tropical semirings)
 │   ├── Trajectoid Kinematics          (View 15: Non-holonomic rolling velocity & SO(3) 3x3 rotation)
-│   └── Schwarzschild Black Hole       (View 13: Metric components, light deflection & Hawking entropy)
+│   ├── Schwarzschild Black Hole       (View 13: Metric components, light deflection & Hawking entropy)
+│   └── 3D Gaussian Splatting          (View 20: 3D spatial covariance Sigma & 2D projective screen splatting)
 ├── Topology & Geometry
 │   ├── Knot Theory & Skein            (View 16: Knot connected sum (#) & Artin braid crossing signatures)
 │   └── Sheaf Cohomology               (View 19: Cellular sheaf coboundary gradient & sensor consensus)
@@ -1250,6 +1251,78 @@ def run_sheaf_cohomology() -> None:
         dpg.set_value('sheaf_status', f'Error: {e}')
 
 
+def run_gaussian_splatting() -> None:
+    from gaussian_splatting_rendering import compute_2d_projected_covariance, compute_3d_covariance
+
+    try:
+        sx: float = float(dpg.get_value('gs_scale_x'))
+        sy: float = float(dpg.get_value('gs_scale_y'))
+        sz: float = float(dpg.get_value('gs_scale_z'))
+
+        pitch: float = math.radians(float(dpg.get_value('gs_rot_pitch')))
+        yaw: float = math.radians(float(dpg.get_value('gs_rot_yaw')))
+        roll: float = math.radians(float(dpg.get_value('gs_rot_roll')))
+
+        px: float = float(dpg.get_value('gs_pos_x'))
+        py: float = float(dpg.get_value('gs_pos_y'))
+        pz: float = float(dpg.get_value('gs_pos_z'))
+        focal: float = float(dpg.get_value('gs_focal'))
+
+        sigma_3d = compute_3d_covariance((sx, sy, sz), (pitch, yaw, roll))
+        sigma_2d = compute_2d_projected_covariance(sigma_3d, (px, py, pz), focal_length=focal)
+
+        display_matrix_in_table(sigma_3d, 'table_gs_3d_cov')
+        display_matrix_in_table(sigma_2d, 'table_gs_2d_cov')
+
+        # Redraw 2D Projected Gaussian Ellipse Canvas
+        if dpg.does_item_exist('gs_canvas'):
+            dpg.delete_item('gs_canvas', children_only=True)
+            # Opaque viewport background (Directive 3)
+            dpg.draw_rectangle(
+                (0, 0), (700, 320), fill=(18, 18, 24), color=(60, 60, 80), thickness=1, parent='gs_canvas'
+            )
+
+            # Screen center
+            center_x, center_y = 350, 160
+            tz = max(pz, 0.1)
+            proj_x = center_x + int(focal * px / tz * 50.0)
+            proj_y = center_y - int(focal * py / tz * 50.0)
+
+            # Draw projected Gaussian ellipse using 2D covariance eigenvalues/radii
+            cov_xx = sigma_2d.get(0, {}).get(0, 0.1)
+            cov_yy = sigma_2d.get(1, {}).get(1, 0.1)
+            cov_xy = sigma_2d.get(0, {}).get(1, 0.0)
+
+            # Eigenvalues of 2D covariance
+            tr = cov_xx + cov_yy
+            det = max(cov_xx * cov_yy - cov_xy * cov_xy, 1e-6)
+            term = max((tr / 2.0) ** 2 - det, 0.0) ** 0.5
+            l1 = max(tr / 2.0 + term, 0.01)
+            l2 = max(tr / 2.0 - term, 0.01)
+
+            r1 = min(max(int(math.sqrt(l1) * 80.0), 5), 180)
+            r2 = min(max(int(math.sqrt(l2) * 80.0), 5), 180)
+
+            p_min = (proj_x - r1, proj_y - r2)
+            p_max = (proj_x + r1, proj_y + r2)
+
+            dpg.draw_ellipse(
+                p_min, p_max, color=(255, 120, 80, 220), fill=(255, 100, 50, 60), thickness=2, parent='gs_canvas'
+            )
+            dpg.draw_circle((proj_x, proj_y), radius=4, color=(255, 255, 255), fill=(255, 255, 255), parent='gs_canvas')
+            dpg.draw_text(
+                (proj_x + 10, proj_y - 10),
+                f'3D Splat mu=({px:.1f}, {py:.1f}, {pz:.1f})',
+                color=(220, 220, 255),
+                size=13,
+                parent='gs_canvas',
+            )
+
+        dpg.set_value('gs_status', 'Successfully evaluated 3D spatial covariance & 2D projective screen splatting.')
+    except Exception as e:
+        dpg.set_value('gs_status', f'Error: {e}')
+
+
 # --- Image Convolution Helpers ---
 IMAGE_PRESETS: dict[str, str] = {
     'Cross Pattern (8x8)': (
@@ -2316,6 +2389,115 @@ def build_view_sheaf_cohomology() -> None:
         )
 
 
+def build_view_gaussian_splatting() -> None:
+    with dpg.group(tag='view_gaussian_splatting_group', show=False):
+        dpg.add_text(
+            '3D Gaussian Splatting, Projective Screen Covariance & Volumetric Rasterization',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('3D GAUSSIAN SCALE (S)', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_input_float(
+                    default_value=0.8,
+                    tag='gs_scale_x',
+                    label='Scale X',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+                dpg.add_input_float(
+                    default_value=0.3,
+                    tag='gs_scale_y',
+                    label='Scale Y',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+                dpg.add_input_float(
+                    default_value=0.3,
+                    tag='gs_scale_z',
+                    label='Scale Z',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+
+                dpg.add_spacer(height=10)
+                dpg.add_text('SO(3) ROTATION (R)', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_input_float(
+                    default_value=12.0,
+                    tag='gs_rot_pitch',
+                    label='Pitch (deg)',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+                dpg.add_input_float(
+                    default_value=30.0,
+                    tag='gs_rot_yaw',
+                    label='Yaw (deg)',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+                dpg.add_input_float(
+                    default_value=0.0,
+                    tag='gs_rot_roll',
+                    label='Roll (deg)',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+
+                dpg.add_spacer(height=10)
+                dpg.add_text('3D POSITION & CAMERA', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_input_float(
+                    default_value=0.0,
+                    tag='gs_pos_x',
+                    label='Pos X',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+                dpg.add_input_float(
+                    default_value=0.0,
+                    tag='gs_pos_y',
+                    label='Pos Y',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+                dpg.add_input_float(
+                    default_value=4.0,
+                    tag='gs_pos_z',
+                    label='Pos Z (Depth)',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+                dpg.add_input_float(
+                    default_value=2.5,
+                    tag='gs_focal',
+                    label='Focal Length f',
+                    width=120,
+                    callback=lambda: run_gaussian_splatting(),
+                )
+
+                dpg.add_spacer(height=10)
+                dpg.add_button(label='Render Gaussian Splat', callback=run_gaussian_splatting)
+                dpg.add_text('', tag='gs_status', color=(255, 200, 100))
+
+            with dpg.group():
+                dpg.add_text('2D Screen Projective Splat Viewport:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=320, tag='gs_canvas'):
+                    pass
+                with dpg.group(horizontal=True):
+                    with dpg.group():
+                        dpg.add_text('3D Spatial Covariance Sigma:')
+                        with dpg.group(tag='table_gs_3d_cov_container'):
+                            pass
+                    with dpg.group():
+                        dpg.add_text("2D Screen Covariance Sigma':")
+                        with dpg.group(tag='table_gs_2d_cov_container'):
+                            pass
+
+
 # --- Navigation Sidebar Builder ---
 VIEWS: list[str] = [
     'semiring_matrix_power',
@@ -2337,6 +2519,7 @@ VIEWS: list[str] = [
     'optical_holography',
     'financial_risk',
     'sheaf_cohomology',
+    'gaussian_splatting',
 ]
 
 
@@ -2453,6 +2636,12 @@ def build_navigation_sidebar() -> None:
                 tag='sel_blackhole_spacetime',
                 callback=change_view,
                 user_data='blackhole_spacetime',
+            )
+            dpg.add_selectable(
+                label='3D Gaussian Splatting',
+                tag='sel_gaussian_splatting',
+                callback=change_view,
+                user_data='gaussian_splatting',
             )
 
         with dpg.tree_node(label='Topology & Geometry', default_open=True):
@@ -2571,6 +2760,7 @@ def main() -> None:
                 build_view_optical_holography()
                 build_view_financial_risk()
                 build_view_sheaf_cohomology()
+                build_view_gaussian_splatting()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()

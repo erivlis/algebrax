@@ -164,6 +164,14 @@ The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) fold
 
 ---
 
+### 3D Gaussian Splatting & Projective Screen Rendering
+* **Files**: [`gaussian_splatting_rendering.py`](https://github.com/erivlis/algebrax/blob/main/recipes/gaussian_splatting_rendering.py) | [`gaussian_splatting_rendering.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/gaussian_splatting_rendering.ipynb)
+* **Run**: `uv run recipes/gaussian_splatting_rendering.py`
+* **Components**: `matrix.core.dot`, `matrix.core.transpose`, `analysis.gaussian_kernel`
+* **Summary**: Constructs 3D spatial Gaussian covariance matrices $\Sigma = R S S^T R^T$ via $SO(3)$ Euler rotation matrix compositions, projects 3D spatial ellipsoids into 2D screen coordinate covariance matrices $\Sigma' = J W \Sigma W^T J^T$ using perspective Jacobian transformations, and performs depth-sorted volumetric $\alpha$-compositing ray-marching.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
