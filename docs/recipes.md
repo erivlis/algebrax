@@ -185,6 +185,14 @@ The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) fold
 * **Run**: `uv run recipes/clifford_rotor_kinematics.py`
 * **Components**: `clifford.CliffordSemiring`, `clifford.rotor_rotation`, `semiring.QuotientMonoidAlgebraSemiring`
 * **Summary**: Implements multivector geometric product $A B = A \cdot B + A \wedge B$ over $Cl(p,q,r)$ blade keys and performs 3D spatial rotor rotations $v' = R v R^\dagger$ without gimbal lock.
+
+---
+
+### Galois Finite Fields & Cryptographic Arithmetic (EP-0112)
+* **Files**: [`galois_field_cryptography.py`](https://github.com/erivlis/algebrax/blob/main/recipes/galois_field_cryptography.py) | [`galois_field_cryptography.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/galois_field_cryptography.ipynb)
+* **Run**: `uv run recipes/galois_field_cryptography.py`
+* **Components**: `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `semiring.QuotientMonoidAlgebraSemiring`
+* **Summary**: Evaluates finite field arithmetic $\text{GF}(p^m)$ over polynomial modulo quotient semirings $P(x) = x^8 + x^4 + x^3 + x + 1$ and computes AES MixColumns matrix products.
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
