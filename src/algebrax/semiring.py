@@ -928,56 +928,6 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Generic[K, T]):
         raise NotImplementedError('Kleene star not implemented for MonoidAlgebraSemiring')
 
 
-class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T], Generic[K, T]):
-    """
-    The Quotient Monoid Algebra Semiring R[M] / I over a generic coefficient semiring R, monoid M,
-    and a quotient canonical reduction rule `quotient_fn`.
-
-    - Addition: Elementwise coefficient addition in R.
-    - Multiplication: Convolution using monoid multiplication (key_op), coefficient multiplication in R,
-      and canonical quotient reduction `quotient_fn(key, coeff) -> list[tuple[key, coeff]]`.
-    """
-
-    def __init__(
-            self,
-            coeff_semiring: Semiring[T],
-            key_op: Callable[[K, K], K] = operator.add,
-            zero_key: K = 0,  # type: ignore[assignment]
-            quotient_fn: Callable[[K, T], Iterable[tuple[K, T]]] | None = None,
-    ):
-        super().__init__(coeff_semiring, key_op, zero_key)
-        self.quotient_fn = quotient_fn
-
-    def mul(self, a: SparseVector[K, T], b: SparseVector[K, T]) -> SparseVector[K, T]:
-        if not a or not b:
-            return {}
-
-        if self.quotient_fn is None:
-            return super().mul(a, b)
-
-        result: dict[K, T] = {}
-        key_op = self.key_op
-        coeff_mul = self.coeff_semiring.mul
-        coeff_add = self.coeff_semiring.add
-        zero = self.coeff_semiring.zero
-        quotient_fn = self.quotient_fn
-
-        for e1, c1 in a.items():
-            for e2, c2 in b.items():
-                raw_key = key_op(e1, e2)
-                raw_coeff = coeff_mul(c1, c2)
-
-                for red_key, red_coeff in quotient_fn(raw_key, raw_coeff):
-                    current_coeff = result.get(red_key, zero)
-                    sum_coeff = coeff_add(current_coeff, red_coeff)
-
-                    if sum_coeff == zero:
-                        result.pop(red_key, None)
-                    else:
-                        result[red_key] = sum_coeff
-        return result
-
-
 class KnotSemiring(MonoidAlgebraSemiring[str, T], Generic[T]):
     """
     The Knot Semiring (Skein Module) over a generic coefficient semiring.
@@ -1062,6 +1012,56 @@ class ProvenanceSemiring(MonoidAlgebraSemiring[tuple[str, ...], int]):
                     result.pop(new_term, None)
                 else:
                     result[new_term] = val
+        return result
+
+
+class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T], Generic[K, T]):
+    """
+    The Quotient Monoid Algebra Semiring R[M] / I over a generic coefficient semiring R, monoid M,
+    and a quotient canonical reduction rule `quotient_fn`.
+
+    - Addition: Elementwise coefficient addition in R.
+    - Multiplication: Convolution using monoid multiplication (key_op), coefficient multiplication in R,
+      and canonical quotient reduction `quotient_fn(key, coeff) -> list[tuple[key, coeff]]`.
+    """
+
+    def __init__(
+            self,
+            coeff_semiring: Semiring[T],
+            key_op: Callable[[K, K], K] = operator.add,
+            zero_key: K = 0,  # type: ignore[assignment]
+            quotient_fn: Callable[[K, T], Iterable[tuple[K, T]]] | None = None,
+    ):
+        super().__init__(coeff_semiring, key_op, zero_key)
+        self.quotient_fn = quotient_fn
+
+    def mul(self, a: SparseVector[K, T], b: SparseVector[K, T]) -> SparseVector[K, T]:
+        if not a or not b:
+            return {}
+
+        if self.quotient_fn is None:
+            return super().mul(a, b)
+
+        result: dict[K, T] = {}
+        key_op = self.key_op
+        coeff_mul = self.coeff_semiring.mul
+        coeff_add = self.coeff_semiring.add
+        zero = self.coeff_semiring.zero
+        quotient_fn = self.quotient_fn
+
+        for e1, c1 in a.items():
+            for e2, c2 in b.items():
+                raw_key = key_op(e1, e2)
+                raw_coeff = coeff_mul(c1, c2)
+
+                for red_key, red_coeff in quotient_fn(raw_key, raw_coeff):
+                    current_coeff = result.get(red_key, zero)
+                    sum_coeff = coeff_add(current_coeff, red_coeff)
+
+                    if sum_coeff == zero:
+                        result.pop(red_key, None)
+                    else:
+                        result[red_key] = sum_coeff
         return result
 
 # endregion
