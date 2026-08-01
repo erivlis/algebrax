@@ -2,7 +2,7 @@
 title: "EP-0100: Quotient Monoid Algebra Semirings & Canonical Reductions"
 description: "Extending MonoidAlgebraSemiring with quotient reduction functions for Clifford, Galois, and Skein algebras."
 icon: lucide/binary
-status: draft
+status: final
 ---
 
 # EP-0100: Quotient Monoid Algebra Semirings & Canonical Reductions
@@ -12,7 +12,7 @@ status: draft
 | **EP**      | 0100                                                     |
 | **Title**   | Quotient Monoid Algebra Semirings & Canonical Reductions |
 | **Author**  | Eran Rivlis & Antigravity                                |
-| **Status**  | Draft                                                    |
+| **Status**  | Final                                                    |
 | **Type**    | Standards Track                                          |
 | **Created** | 2026-08-01                                               |
 | **Updated** | 2026-08-01                                               |

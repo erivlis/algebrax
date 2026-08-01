@@ -2,20 +2,20 @@
 title: "EP-0111: Clifford Geometric Algebra & Multivector Rotors"
 description: "Multivectors over Cl(p, q, r), blade quotient rules, 3D/4D rotors, and spacetime algebra."
 icon: lucide/orbit
-status: draft
+status: final
 ---
 
 # EP-0111: Clifford Geometric Algebra & Multivector Rotors
 
-| Field       | Value                    |
-|:------------|:-------------------------|
-| **EP**      | 0111                     |
+| Field       | Value                                           |
+|:------------|:------------------------------------------------|
+| **EP**      | 0111                                            |
 | **Title**   | Clifford Geometric Algebra & Multivector Rotors |
-| **Author**  | Eran Rivlis & Antigravity |
-| **Status**  | Draft                    |
-| **Type**    | Standards Track          |
-| **Created** | 2026-08-01               |
-| **Updated** | 2026-08-01               |
+| **Author**  | Eran Rivlis & Antigravity                       |
+| **Status**  | Final                                           |
+| **Type**    | Standards Track                                 |
+| **Created** | 2026-08-01                                      |
+| **Updated** | 2026-08-01                                      |
 
 ## Abstract
 

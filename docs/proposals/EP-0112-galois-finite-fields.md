@@ -2,20 +2,20 @@
 title: "EP-0112: Galois Finite Fields & Cryptographic Arithmetic"
 description: "Polynomial exponent quotient semirings GF(p^m), AES GF(2^8) field arithmetic, and Reed-Solomon matrices."
 icon: lucide/shield-check
-status: draft
+status: final
 ---
 
 # EP-0112: Galois Finite Fields & Cryptographic Arithmetic
 
-| Field       | Value                    |
-|:------------|:-------------------------|
-| **EP**      | 0112                     |
+| Field       | Value                                           |
+|:------------|:------------------------------------------------|
+| **EP**      | 0112                                            |
 | **Title**   | Galois Finite Fields & Cryptographic Arithmetic |
-| **Author**  | Eran Rivlis & Antigravity |
-| **Status**  | Draft                    |
-| **Type**    | Standards Track          |
-| **Created** | 2026-08-01               |
-| **Updated** | 2026-08-01               |
+| **Author**  | Eran Rivlis & Antigravity                       |
+| **Status**  | Final                                           |
+| **Type**    | Standards Track                                 |
+| **Created** | 2026-08-01                                      |
+| **Updated** | 2026-08-01                                      |
 
 ## Abstract
 

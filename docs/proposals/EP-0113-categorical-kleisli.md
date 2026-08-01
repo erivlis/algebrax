@@ -2,20 +2,20 @@
 title: "EP-0113: Categorical Morphisms, Kleisli Composition & Operads"
 description: "Monadic Kleisli composition, string diagram wiring engines, and Kan extensions over semirings."
 icon: lucide/git-graph
-status: draft
+status: final
 ---
 
 # EP-0113: Categorical Morphisms, Kleisli Composition & Operads
 
-| Field       | Value                    |
-|:------------|:-------------------------|
-| **EP**      | 0113                     |
+| Field       | Value                                                |
+|:------------|:-----------------------------------------------------|
+| **EP**      | 0113                                                 |
 | **Title**   | Categorical Morphisms, Kleisli Composition & Operads |
-| **Author**  | Eran Rivlis & Antigravity |
-| **Status**  | Draft                    |
-| **Type**    | Standards Track          |
-| **Created** | 2026-08-01               |
-| **Updated** | 2026-08-01               |
+| **Author**  | Eran Rivlis & Antigravity                            |
+| **Status**  | Final                                                |
+| **Type**    | Standards Track                                      |
+| **Created** | 2026-08-01                                           |
+| **Updated** | 2026-08-01                                           |
 
 ## Abstract
 

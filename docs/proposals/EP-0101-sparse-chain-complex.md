@@ -2,20 +2,20 @@
 title: "EP-0101: Sparse Chain Complexes & Nilpotent Differential Operators"
 description: "Abstracting boundary operators D_k satisfying D_{k-1} o D_k = 0 across graphs, sheaves, and complexes."
 icon: lucide/layers
-status: draft
+status: final
 ---
 
 # EP-0101: Sparse Chain Complexes & Nilpotent Differential Operators
 
-| Field       | Value                    |
-|:------------|:-------------------------|
-| **EP**      | 0101                     |
+| Field       | Value                                                     |
+|:------------|:----------------------------------------------------------|
+| **EP**      | 0101                                                      |
 | **Title**   | Sparse Chain Complexes & Nilpotent Differential Operators |
-| **Author**  | Eran Rivlis & Antigravity |
-| **Status**  | Draft                    |
-| **Type**    | Standards Track          |
-| **Created** | 2026-08-01               |
-| **Updated** | 2026-08-01               |
+| **Author**  | Eran Rivlis & Antigravity                                 |
+| **Status**  | Final                                                     |
+| **Type**    | Standards Track                                           |
+| **Created** | 2026-08-01                                                |
+| **Updated** | 2026-08-01                                                |
 
 ## Abstract
 

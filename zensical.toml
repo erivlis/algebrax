@@ -51,6 +51,16 @@ nav = [
     ] },
     { Recipes = [
         "recipes.md"
+    ] },
+    { Proposals = [
+        "proposals/EP-0000-process.md",
+        "proposals/EP-0099-expansion-roadmap.md",
+        "proposals/EP-0100-quotient-monoid-algebra.md",
+        "proposals/EP-0101-sparse-chain-complex.md",
+        "proposals/EP-0110-simplicial-homology.md",
+        "proposals/EP-0111-clifford-geometric-algebra.md",
+        "proposals/EP-0112-galois-finite-fields.md",
+        "proposals/EP-0113-categorical-kleisli.md"
     ] }
 ]
 

@@ -84,5 +84,7 @@ Explore the documentation sections:
 * 💡 [**Core Concepts**](concepts.md): Learn the mathematical foundations of Monoids, Groups, Semirings, and Lattices.
 * 📖 [**Tutorials**](tutorials/semirings/semiring_standard.md): Step-by-step guides for 11 semirings, tries, signal
   transforms, and graph algorithms.
-* 🍳 [**Use Cases & Recipes**](recipes.md): Executable real-world scripts, Jupyter notebooks, and the interactive
+* 🍳 [**Use Cases & Recipes**](recipes.md): Executable real-world scripts, Jupyter notebooks, and the 24-view interactive
   DearPyGui laboratory.
+* 📜 [**Enhancement Proposals (EPs)**](proposals/EP-0099-expansion-roadmap.md): Architectural designs and technical specs
+  (EP-0099 through EP-0113).

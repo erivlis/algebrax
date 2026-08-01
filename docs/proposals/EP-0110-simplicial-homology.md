@@ -2,20 +2,20 @@
 title: "EP-0110: Simplicial Homology, Betti Numbers & Persistent Barcodes"
 description: "High-dimensional topological hole invariants, Betti numbers beta_k, and persistent homology."
 icon: lucide/shapes
-status: draft
+status: final
 ---
 
 # EP-0110: Simplicial Homology, Betti Numbers & Persistent Barcodes
 
-| Field       | Value                    |
-|:------------|:-------------------------|
-| **EP**      | 0110                     |
+| Field       | Value                                                    |
+|:------------|:---------------------------------------------------------|
+| **EP**      | 0110                                                     |
 | **Title**   | Simplicial Homology, Betti Numbers & Persistent Barcodes |
-| **Author**  | Eran Rivlis & Antigravity |
-| **Status**  | Draft                    |
-| **Type**    | Standards Track          |
-| **Created** | 2026-08-01               |
-| **Updated** | 2026-08-01               |
+| **Author**  | Eran Rivlis & Antigravity                                |
+| **Status**  | Final                                                    |
+| **Type**    | Standards Track                                          |
+| **Created** | 2026-08-01                                               |
+| **Updated** | 2026-08-01                                               |
 
 ## Abstract
 

@@ -95,20 +95,21 @@ Phase 0: Architecture Roadmap (EP-0099)
 
 ## Detailed Proposal Matrix
 
-| Proposal    | Title                      | Target Module       | Dependencies | Deliverables                                       |
-|:------------|:---------------------------|:--------------------|:-------------|:---------------------------------------------------|
-| **EP-0099** | Master Expansion Roadmap   | Docs                | None         | `EP-0099-expansion-roadmap.md`                     |
-| **EP-0100** | Quotient Monoid Algebras   | `algebrax.semiring` | Core         | `QuotientMonoidAlgebraSemiring`, tests             |
-| **EP-0101** | Sparse Chain Complexes     | `algebrax.analysis` | Core         | `SparseChainComplex`, `hodge_laplacian`, tests     |
-| **EP-0110** | Simplicial Homology        | `algebrax.homology` | EP-0101      | `SimplicialComplex`, `betti_numbers`, Lab View 21  |
-| **EP-0111** | Clifford Geometric Algebra | `algebrax.clifford` | EP-0100      | `CliffordSemiring`, `rotor_rotation`, Lab View 22  |
-| **EP-0112** | Galois Finite Fields       | `algebrax.galois`   | EP-0100      | `GaloisFieldSemiring`, `reed_solomon`, Lab View 23 |
-| **EP-0113** | Categorical Morphisms      | `algebrax.category` | EP-0101      | `Kleisli`, `kan_extension`, Lab View 24            |
+| Proposal    | Title                      | Target Module       | Status | Deliverables                                       |
+|:------------|:---------------------------|:--------------------|:-------|:---------------------------------------------------|
+| **EP-0099** | Master Expansion Roadmap   | Docs                | Active | `EP-0099-expansion-roadmap.md`                     |
+| **EP-0100** | Quotient Monoid Algebras   | `algebrax.semiring` | Final  | `QuotientMonoidAlgebraSemiring`, tests             |
+| **EP-0101** | Sparse Chain Complexes     | `algebrax.analysis` | Final  | `SparseChainComplex`, `hodge_laplacian`, tests     |
+| **EP-0110** | Simplicial Homology        | `algebrax.homology` | Final  | `SimplicialComplex`, `betti_numbers`, Lab View 21  |
+| **EP-0111** | Clifford Geometric Algebra | `algebrax.clifford` | Final  | `CliffordSemiring`, `rotor_rotation`, Lab View 22  |
+| **EP-0112** | Galois Finite Fields       | `algebrax.galois`   | Final  | `GaloisFieldSemiring`, `reed_solomon`, Lab View 23 |
+| **EP-0113** | Categorical Morphisms      | `algebrax.category` | Final  | `Kleisli`, `kan_extension`, Lab View 24            |
 
 ---
 
 ## Change Log
 
-| Date       | Author                    | Description                        |
-|:-----------|:--------------------------|:-----------------------------------|
-| 2026-08-01 | Eran Rivlis & Antigravity | Initial Master Roadmap EP created. |
+| Date       | Author                    | Description                                                       |
+|:-----------|:--------------------------|:------------------------------------------------------------------|
+| 2026-08-01 | Eran Rivlis & Antigravity | Initial Master Roadmap EP created.                                |
+| 2026-08-02 | Eran Rivlis & Antigravity | Implemented Phase 1 & Phase 2 proposals; status updated to Final. |
