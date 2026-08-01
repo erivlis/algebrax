@@ -1373,20 +1373,20 @@ def run_topological_homology() -> None:
             dpg.draw_circle(pos, 10, color=(255, 200, 50), fill=(255, 100, 50), parent='homology_canvas')
             dpg.draw_text((pos[0] - 4, pos[1] - 6), str(v), color=(255, 255, 255), size=14, parent='homology_canvas')
 
-        betti_data = [
-            {
-                'dim': f'beta_{k}',
-                'simplices': len(sc._simplices.get(k, set())),
-                'count': betti.get(k, 0),
-                'interp': (
+        betti_data = {
+            k: {
+                'Dimension': f'beta_{k}',
+                'Simplex Count': len(sc._simplices.get(k, set())),
+                'Betti Hole Count': betti.get(k, 0),
+                'Topological Interpretation': (
                     'Connected Components' if k == 0 else ('1D Topological Loops' if k == 1 else '2D Enclosed Voids')
                 ),
             }
             for k in range(max_k + 1)
-        ]
+        }
         display_matrix_in_table(betti_data, 'table_homology_res')
 
-        d0_d1_zero = sc.chain_complex.verify_nilpotency(1)
+        d0_d1_zero = sc.verify_nilpotency(1)
         nilpotency_str = 'VERIFIED: D_0 o D_1 = 0' if d0_d1_zero else 'FAILED'
         v_cnt = len(sc._simplices.get(0, set()))
         e_cnt = len(sc._simplices.get(1, set()))
@@ -1437,15 +1437,26 @@ def run_clifford_geometric_algebra() -> None:
 
         dpg.set_value('clifford_v_sq_text', f'Multivector Magnitude Squared v^2 = {v_sq.get((), 0.0):.3f}')
 
-        rot_data = [
-            {'comp': 'e1 Scalar Blade', 'orig': f'{e1:.3f}', 'rot': f'{rot_e1:.3f}'},
-            {'comp': 'e2 Scalar Blade', 'orig': f'{e2:.3f}', 'rot': f'{rot_e2:.3f}'},
-            {
-                'comp': 'Rotor R = exp(-theta/2 * B)',
-                'orig': 'R = 1.0',
-                'rot': f'{math.cos(math.radians(angle_deg) / 2):.3f} - {math.sin(math.radians(angle_deg) / 2):.3f} e12',
+        rot_data = {
+            0: {
+                'Blade Component': 'e1 Vector Blade',
+                'Original Vector v': f'{e1:.3f}',
+                "Rotor Transformed v'": f'{rot_e1:.3f}',
             },
-        ]
+            1: {
+                'Blade Component': 'e2 Vector Blade',
+                'Original Vector v': f'{e2:.3f}',
+                "Rotor Transformed v'": f'{rot_e2:.3f}',
+            },
+            2: {
+                'Blade Component': 'Rotor R = exp(-theta/2 * B)',
+                'Original Vector v': 'R = 1.0',
+                "Rotor Transformed v'": (
+                    f'{math.cos(math.radians(angle_deg) / 2):.3f} - '
+                    f'{math.sin(math.radians(angle_deg) / 2):.3f} e12'
+                ),
+            },
+        }
         display_matrix_in_table(rot_data, 'table_clifford_res')
         dpg.set_value(
             'clifford_status',
@@ -1542,14 +1553,13 @@ def run_galois_finite_fields() -> None:
                 )
             out_grid.append(row_vals)
 
-        gf_data = [
-            {
-                'row': f'Row {r}',
-                'in': ' '.join(f'{input_state_bytes[r][c]:02X}' for c in range(4)),
-                'out': ' '.join(f'{out_grid[r][c]:02X}' for c in range(4)),
+        gf_data = {
+            r: {
+                'Input State Bytes (Hex)': ' '.join(f'{input_state_bytes[r][c]:02X}' for c in range(4)),
+                'MixColumns Transformed Output Bytes': ' '.join(f'{out_grid[r][c]:02X}' for c in range(4)),
             }
             for r in range(4)
-        ]
+        }
         display_matrix_in_table(gf_data, 'table_galois_res')
         dpg.set_value(
             'galois_status',
@@ -1604,28 +1614,28 @@ def run_categorical_kleisli() -> None:
         std = kleisli_compose(f, g, semiring=StandardSemiring())
 
         src_node, dst_node = target
-        cat_data = [
-            {
-                'monad': 'Viterbi Monad (Max-Product)',
-                'op': 'a * b (Max Path Prob)',
-                'res': f'{vit.get(src_node, {}).get(dst_node, 0.0):.4f}',
+        cat_data = {
+            0: {
+                'Monad Semiring Category': 'Viterbi Monad (Max-Product)',
+                'Monad Binary Operator': 'a * b (Max Path Prob)',
+                'Composed Result (g o_T f)': f'{vit.get(src_node, {}).get(dst_node, 0.0):.4f}',
             },
-            {
-                'monad': 'Tropical Monad (Min-Sum)',
-                'op': 'a + b (Shortest Distance)',
-                'res': f'{trop.get(src_node, {}).get(dst_node, 0.0):.4f}',
+            1: {
+                'Monad Semiring Category': 'Tropical Monad (Min-Sum)',
+                'Monad Binary Operator': 'a + b (Shortest Distance)',
+                'Composed Result (g o_T f)': f'{trop.get(src_node, {}).get(dst_node, 0.0):.4f}',
             },
-            {
-                'monad': 'Boolean Monad (OR-AND)',
-                'op': 'a and b (Reachability)',
-                'res': str(boo.get(src_node, {}).get(dst_node, False)),
+            2: {
+                'Monad Semiring Category': 'Boolean Monad (OR-AND)',
+                'Monad Binary Operator': 'a and b (Reachability)',
+                'Composed Result (g o_T f)': str(boo.get(src_node, {}).get(dst_node, False)),
             },
-            {
-                'monad': 'Standard Monad (Sum-Product)',
-                'op': 'a * b (Path Count Weight)',
-                'res': f'{std.get(src_node, {}).get(dst_node, 0.0):.4f}',
+            3: {
+                'Monad Semiring Category': 'Standard Monad (Sum-Product)',
+                'Monad Binary Operator': 'a * b (Path Count Weight)',
+                'Composed Result (g o_T f)': f'{std.get(src_node, {}).get(dst_node, 0.0):.4f}',
             },
-        ]
+        }
         display_matrix_in_table(cat_data, 'table_kleisli_res')
         dpg.set_value(
             'kleisli_status',
@@ -2845,11 +2855,8 @@ def build_view_topological_homology() -> None:
                     pass
                 dpg.add_spacer(height=5)
                 dpg.add_text('Betti Numbers Barcode Invariants (Selectable cells):')
-                create_bordered_table(
-                    tag='table_homology_res',
-                    columns=['Dimension', 'Simplex Count', 'Betti Hole Count', 'Topological Interpretation'],
-                    width=700,
-                )
+                with dpg.group(tag='table_homology_res_container'):
+                    pass
 
 
 def build_view_clifford_geometric_algebra() -> None:
@@ -2910,11 +2917,8 @@ def build_view_clifford_geometric_algebra() -> None:
                     pass
                 dpg.add_spacer(height=5)
                 dpg.add_text('3D Rotor Transformation Multivector Breakdown (Selectable cells):')
-                create_bordered_table(
-                    tag='table_clifford_res',
-                    columns=['Multivector Blade Component', 'Original Vector v', "Rotor Transformed v'"],
-                    width=700,
-                )
+                with dpg.group(tag='table_clifford_res_container'):
+                    pass
 
 
 def build_view_galois_finite_fields() -> None:
@@ -2962,11 +2966,8 @@ def build_view_galois_finite_fields() -> None:
                 dpg.add_text('0x57 * 0x83 = 0xC1', tag='galois_poly_res_text', color=(100, 255, 100))
                 dpg.add_spacer(height=5)
                 dpg.add_text('AES MixColumns Output Matrix State (Selectable cells):')
-                create_bordered_table(
-                    tag='table_galois_res',
-                    columns=['Row Index', 'Input State Bytes (Hex)', 'MixColumns Transformed Output Bytes'],
-                    width=700,
-                )
+                with dpg.group(tag='table_galois_res_container'):
+                    pass
 
 
 def build_view_categorical_kleisli() -> None:
@@ -3021,11 +3022,8 @@ def build_view_categorical_kleisli() -> None:
                     pass
                 dpg.add_spacer(height=5)
                 dpg.add_text('Comparative Kleisli Compositions (g o_T f) Across Monads (Selectable cells):')
-                create_bordered_table(
-                    tag='table_kleisli_res',
-                    columns=['Monad Semiring Category', 'Monad Binary Operator', 'Composed Morphism Result (g o_T f)'],
-                    width=700,
-                )
+                with dpg.group(tag='table_kleisli_res_container'):
+                    pass
 
 
 # --- Navigation Sidebar Builder ---
