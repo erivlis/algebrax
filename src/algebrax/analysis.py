@@ -26,9 +26,12 @@ import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 
+from algebrax.matrix.core import dot
+from algebrax.semiring import Semiring, StandardSemiring
 from algebrax.typing import K, SparseMatrix, SparseVector
 
 __all__ = [
+    'SparseChainComplex',
     'divergence',
     'forman_ricci_curvature',
     'gaussian_kernel',
@@ -302,3 +305,56 @@ def laplacian(field: SparseVector, graph: SparseMatrix) -> SparseVector:
             result[u] = local_sum
 
     return dict(result)
+
+
+class SparseChainComplex:
+    """
+    A sequence space C_k and sparse boundary matrices D_k satisfying D_{k-1} o D_k = 0.
+
+    Attributes:
+        boundary_matrices: Dictionary mapping dimension k to sparse boundary matrix D_k.
+                           D_k maps k-simplices/forms to (k-1)-simplices/forms.
+    """
+
+    def __init__(self, boundary_matrices: dict[int, SparseMatrix]):
+        self.boundary_matrices = boundary_matrices
+
+    def verify_nilpotency(self, k: int, semiring: type[Semiring] = StandardSemiring) -> bool:
+        """
+        Verify that D_{k-1} o D_k == 0 (empty sparse matrix).
+        """
+        if k - 1 not in self.boundary_matrices or k not in self.boundary_matrices:
+            return True
+        d_prev = self.boundary_matrices[k - 1]
+        d_curr = self.boundary_matrices[k]
+        comp = dot(d_prev, d_curr, semiring=semiring())
+        return len(comp) == 0
+
+    def hodge_laplacian(self, k: int, semiring: type[Semiring] = StandardSemiring) -> SparseMatrix:
+        """
+        Compute the k-th Hodge-Laplacian matrix Delta_k = D_{k+1} D_{k+1}^T + D_k^T D_k.
+        """
+        from algebrax.matrix.core import add, transpose
+
+        s_inst = semiring()
+        l_down: SparseMatrix = {}
+        l_up: SparseMatrix = {}
+
+        # D_k^T D_k (down component)
+        if k in self.boundary_matrices:
+            d_k = self.boundary_matrices[k]
+            d_k_t = transpose(d_k)
+            l_down = dot(d_k_t, d_k, semiring=s_inst)
+
+        # D_{k+1} D_{k+1}^T (up component)
+        if k + 1 in self.boundary_matrices:
+            d_k1 = self.boundary_matrices[k + 1]
+            d_k1_t = transpose(d_k1)
+            l_up = dot(d_k1, d_k1_t, semiring=s_inst)
+
+        if not l_down:
+            return l_up
+        if not l_up:
+            return l_down
+
+        return add(l_down, l_up)

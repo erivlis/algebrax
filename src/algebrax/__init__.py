@@ -65,6 +65,7 @@ Modules
 """
 
 from algebrax.analysis import (
+    SparseChainComplex,
     divergence,
     forman_ricci_curvature,
     gaussian_kernel,
@@ -220,6 +221,7 @@ __all__ = [
     'QuotientMonoidAlgebraSemiring',
     'ReliabilitySemiring',
     'Semiring',
+    'SparseChainComplex',
     'SparseMatrix',
     'SparseTensor',
     'SparseVector',
