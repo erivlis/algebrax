@@ -6,7 +6,7 @@ icon: lucide/chef-hat
 
 # Recipes & Applications
 
-The [`reciepes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) folder contains runnable use-case scripts, Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrating `algebrax` in real-world scenarios.
+The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) folder contains runnable use-case scripts, Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrating `algebrax` in real-world scenarios.
 
 ---
 

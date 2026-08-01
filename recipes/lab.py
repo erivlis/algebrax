@@ -10,9 +10,9 @@
 # ///
 
 """
-# AlgebraX Graphical Laboratory (`reciepes/lab.py`)
+# AlgebraX Graphical Laboratory (`recipes/lab.py`)
 
-The **AlgebraX Graphical Laboratory** (`reciepes/lab.py`) is an interactive desktop application
+The **AlgebraX Graphical Laboratory** (`recipes/lab.py`) is an interactive desktop application
 built with DearPyGui. It provides a real-time, visual sandbox for exploring all 19 real-world
 Use Case recipes of the `algebrax` library.
 
@@ -23,7 +23,7 @@ Use Case recipes of the `algebrax` library.
 Run the lab with `uv`:
 
 ```bash
-uv run reciepes/lab.py
+uv run recipes/lab.py
 ```
 
 ---
@@ -161,7 +161,7 @@ rule can bleed into adjacent side-by-side columns or show through transparent ca
 
 ### **Directive 4: Step-by-Step Checklist for Adding a New View**
 
-When adding a new Use Case experiment view to `reciepes/lab.py`:
+When adding a new Use Case experiment view to `recipes/lab.py`:
 
 1. **Define Callback Handler**:
    Create `run_<feature_name>() -> None` with clear `try...except` handling that updates status strings and calls
@@ -186,8 +186,8 @@ When adding a new Use Case experiment view to `reciepes/lab.py`:
 6. **Code Quality Verification**:
    Run formatters, type checks, and unit tests before declaring success:
    ```bash
-   uv run ruff format reciepes/lab.py
-   uv run ruff check reciepes/lab.py
+   uv run ruff format recipes/lab.py
+   uv run ruff check recipes/lab.py
    uv run pytest
    ```
 """
@@ -2502,7 +2502,7 @@ dpg.create_viewport(title='AlgebraX Graphical Laboratory', width=1200, height=90
 
 def setup_window_icon() -> None:
     png_path = 'site/assets/images/favicon.png'
-    ico_path = 'reciepes/logo.ico'
+    ico_path = 'recipes/logo.ico'
 
     if not os.path.exists(ico_path) and os.path.exists(png_path):
         try:
