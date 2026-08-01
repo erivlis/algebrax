@@ -1,3 +1,20 @@
+## v0.5.0 (2026-08-02)
+
+### Feat
+
+- **EP-0113**: Adds Kleisli monadic composition for categorical morphisms.
+- **EP-0112**: Adds Galois finite fields for cryptographic arithmetic.
+- **EP-0111**: Adds Clifford Geometric Algebra and rotor rotations.
+- **EP-0110**: Adds Simplicial Homology and Betti number computation.
+- **EP-0101**: Adds SparseChainComplex for algebraic topology.
+- **EP-0100**: Adds Quotient Monoid Algebra Semiring.
+
+### Refactor
+
+- Renames `reciepes` directory to `recipes`.
+- Refactors lab recipes for algebrax API updates and UI enhancements.
+- Refactors DearPyGui lab with helpers and clearer recipe logic.
+
 ## v0.4.0 (2026-07-31)
 
 ### Feat
