@@ -172,6 +172,11 @@ The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) fold
 
 ---
 
+### Simplicial Homology & Topological Betti Barcodes (EP-0110)
+* **Files**: [`topological_homology_betti.py`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_homology_betti.py) | [`topological_homology_betti.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_homology_betti.ipynb)
+* **Run**: `uv run recipes/topological_homology_betti.py`
+* **Components**: `homology.SimplicialComplex`, `homology.betti_numbers`, `analysis.SparseChainComplex`
+* **Summary**: Constructs $k$-simplices $(v_0, \dots, v_k)$, evaluates sparse boundary matrices $D_k$, verifies homological nilpotency $D_{k-1} \circ D_k = \mathbf{0}$, and computes Betti number invariants $\beta_k = \dim(\ker D_k) - \text{rank}(D_{k+1})$.
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
