@@ -55,7 +55,11 @@ The sidebar is organized into **6 domain categories** covering all 19 interactiv
 │   └── 3D Gaussian Splatting          (View 20: 3D spatial covariance Sigma & 2D projective screen splatting)
 ├── Topology & Geometry
 │   ├── Knot Theory & Skein            (View 16: Knot connected sum (#) & Artin braid crossing signatures)
-│   └── Sheaf Cohomology               (View 19: Cellular sheaf coboundary gradient & sensor consensus)
+│   ├── Sheaf Cohomology               (View 19: Cellular sheaf coboundary gradient & sensor consensus)
+│   ├── Simplicial Homology            (View 21: Boundary nilpotency D_{k-1} o D_k = 0 & Betti barcodes)
+│   ├── Clifford Geometric Algebra     (View 22: Cl(3,0) multivectors & 3D rotor rotation sandwiching)
+│   ├── Galois Finite Fields           (View 23: GF(2^8) polynomial modulo arithmetic & AES MixColumns)
+│   └── Categorical Kleisli Monads     (View 24: Monadic Kleisli composition g o_T f across semirings)
 └── Information & Crypto
     ├── Markov & Info Theory           (View 9: Markov steps, steady state & Shannon/KL info metrics)
     └── Post-Quantum Key Exchange      (View 3: Diffie-Hellman matrix key exchange over Digital Semiring)
@@ -1323,6 +1327,99 @@ def run_gaussian_splatting() -> None:
         dpg.set_value('gs_status', f'Error: {e}')
 
 
+def run_topological_homology() -> None:
+    from algebrax.homology import SimplicialComplex
+
+    try:
+        max_k: int = int(dpg.get_value('homology_max_k'))
+        sc = SimplicialComplex([(0, 1, 2, 3)])
+        betti = sc.betti_numbers(max_k=max_k)
+
+        betti_data = [{'dim': f'beta_{k}', 'count': betti.get(k, 0)} for k in range(max_k + 1)]
+        display_matrix_in_table(betti_data, 'table_homology_res')
+        dpg.set_value('homology_status', f'Successfully evaluated Simplicial Homology Betti numbers up to k={max_k}.')
+    except Exception as e:
+        dpg.set_value('homology_status', f'Error: {e}')
+
+
+def run_clifford_geometric_algebra() -> None:
+    import math
+
+    from algebrax.clifford import CliffordSemiring, rotor_rotation
+
+    try:
+        e1: float = float(dpg.get_value('clifford_v_e1'))
+        e2: float = float(dpg.get_value('clifford_v_e2'))
+        angle_deg: float = float(dpg.get_value('clifford_angle'))
+
+        cs = CliffordSemiring(p=3, q=0, r=0)
+        v = {(1,): e1, (2,): e2}
+        v_sq = cs.mul(v, v)
+        v_rot = rotor_rotation(v, bivector=(1, 2), angle_rad=math.radians(angle_deg), p=3, q=0, r=0)
+
+        dpg.set_value('clifford_v_sq_text', f'Vector Squared v^2 = {v_sq.get((), 0.0):.3f}')
+
+        rot_data = [
+            {'comp': 'e1 Component', 'orig': e1, 'rot': v_rot.get((1,), 0.0)},
+            {'comp': 'e2 Component', 'orig': e2, 'rot': v_rot.get((2,), 0.0)},
+        ]
+        display_matrix_in_table(rot_data, 'table_clifford_res')
+        dpg.set_value(
+            'clifford_status', f'Successfully evaluated 3D Rotor rotation by {angle_deg:.1f} deg in e12 plane.'
+        )
+    except Exception as e:
+        dpg.set_value('clifford_status', f'Error: {e}')
+
+
+def run_galois_finite_fields() -> None:
+    from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
+
+    try:
+        exp1: int = int(dpg.get_value('galois_exp1'))
+        exp2: int = int(dpg.get_value('galois_exp2'))
+
+        gf = GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
+        res_poly = gf.mul({exp1: 1}, {exp2: 1})
+
+        dpg.set_value('galois_poly_res_text', f'x^{exp1} * x^{exp2} mod P(x) = {res_poly}')
+
+        mix_col = {0: {0: {1: 1}, 1: {0: 1}}, 1: {0: {0: 1}, 1: {1: 1}}}
+        state = {0: {0: {exp1: 1}}, 1: {0: {exp2: 1}}}
+        out_state = gf_matrix_mul(mix_col, state, p=2)
+
+        gf_data = [{'col': f'Col {c}', 'out': str(out_state.get(c, {}))} for c in [0, 1]]
+        display_matrix_in_table(gf_data, 'table_galois_res')
+        dpg.set_value('galois_status', 'Successfully evaluated AES GF(2^8) MixColumns matrix product.')
+    except Exception as e:
+        dpg.set_value('galois_status', f'Error: {e}')
+
+
+def run_categorical_kleisli() -> None:
+    from algebrax.category import kleisli_compose
+    from algebrax.semiring import BooleanSemiring, TropicalSemiring, ViterbiSemiring
+
+    try:
+        f_val: float = float(dpg.get_value('kleisli_f_val'))
+        g_val: float = float(dpg.get_value('kleisli_g_val'))
+
+        f_prob = {'A': {'B': f_val}}
+        g_prob = {'B': {'C': g_val}}
+
+        vit = kleisli_compose(f_prob, g_prob, semiring=ViterbiSemiring())
+        trop = kleisli_compose({'A': {'B': f_val}}, {'B': {'C': g_val}}, semiring=TropicalSemiring())
+        boo = kleisli_compose({'A': {'B': True}}, {'B': {'C': True}}, semiring=BooleanSemiring())
+
+        cat_data = [
+            {'monad': 'Viterbi Probabilistic Monad', 'res': f'{vit.get("A", {}).get("C", 0.0):.4f}'},
+            {'monad': 'Tropical Lawvere Cost Monad', 'res': f'{trop.get("A", {}).get("C", 0.0):.4f}'},
+            {'monad': 'Boolean Reachability Monad', 'res': str(boo.get('A', {}).get('C', False))},
+        ]
+        display_matrix_in_table(cat_data, 'table_kleisli_res')
+        dpg.set_value('kleisli_status', 'Successfully evaluated Kleisli monadic compositions.')
+    except Exception as e:
+        dpg.set_value('kleisli_status', f'Error: {e}')
+
+
 # --- Image Convolution Helpers ---
 IMAGE_PRESETS: dict[str, str] = {
     'Cross Pattern (8x8)': (
@@ -2498,6 +2595,98 @@ def build_view_gaussian_splatting() -> None:
                             pass
 
 
+def build_view_topological_homology() -> None:
+    with dpg.group(tag='view_topological_homology_group', show=False):
+        dpg.add_text(
+            'Simplicial Homology, Boundary Nilpotency (D_{k-1} o D_k = 0) & Betti Barcodes',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            dpg.add_text('Max Topological Dimension (k):')
+            dpg.add_input_int(default_value=2, min_value=1, max_value=3, tag='homology_max_k', width=120)
+
+        dpg.add_button(label='Evaluate Simplicial Homology Betti Numbers', callback=run_topological_homology)
+        dpg.add_text('', tag='homology_status', color=(255, 200, 100))
+        dpg.add_text('Betti Numbers Barcode Invariants (Selectable cells):')
+        create_bordered_table(
+            tag='table_homology_res',
+            columns=['Dimension (beta_k)', 'Hole Count (Rank)'],
+            width=400,
+        )
+
+
+def build_view_clifford_geometric_algebra() -> None:
+    with dpg.group(tag='view_clifford_geometric_algebra_group', show=False):
+        dpg.add_text(
+            'Clifford Geometric Algebra Cl(3,0), Multivector Products & 3D Rotor Rotations',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            dpg.add_input_float(default_value=3.0, tag='clifford_v_e1', label='e1 Component', width=120)
+            dpg.add_input_float(default_value=4.0, tag='clifford_v_e2', label='e2 Component', width=120)
+            dpg.add_input_float(default_value=90.0, tag='clifford_angle', label='Rotation Deg (e12)', width=120)
+
+        dpg.add_spacer(height=5)
+        dpg.add_button(label='Rotate Vector via Rotor R = exp(-theta/2 * B)', callback=run_clifford_geometric_algebra)
+        dpg.add_text('', tag='clifford_status', color=(255, 200, 100))
+        dpg.add_text('v^2 Magnitude Squared:', color=(180, 180, 180))
+        dpg.add_text('Vector Squared v^2 = 25.000', tag='clifford_v_sq_text', color=(100, 255, 100))
+        dpg.add_spacer(height=5)
+        dpg.add_text('3D Rotor Transformation Comparison (Selectable cells):')
+        create_bordered_table(
+            tag='table_clifford_res',
+            columns=['Blade Component', 'Original Vector v', "Rotor Transformed v'"],
+            width=500,
+        )
+
+
+def build_view_galois_finite_fields() -> None:
+    with dpg.group(tag='view_galois_finite_fields_group', show=False):
+        dpg.add_text(
+            'Galois Finite Field GF(2^8) & AES Cryptographic MixColumns Matrix Arithmetic',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            dpg.add_input_int(default_value=4, tag='galois_exp1', label='x^a Exponent', width=120)
+            dpg.add_input_int(default_value=4, tag='galois_exp2', label='x^b Exponent', width=120)
+
+        dpg.add_button(label='Multiply Field Elements & MixColumns', callback=run_galois_finite_fields)
+        dpg.add_text('', tag='galois_status', color=(255, 200, 100))
+        dpg.add_text('Polynomial Multiplication Modulo P(x) = x^8 + x^4 + x^3 + x + 1:', color=(180, 180, 180))
+        dpg.add_text('x^4 * x^4 mod P(x) = {0: 1, 1: 1, 3: 1, 4: 1}', tag='galois_poly_res_text', color=(100, 255, 100))
+        dpg.add_spacer(height=5)
+        dpg.add_text('AES MixColumns Output State (Selectable cells):')
+        create_bordered_table(
+            tag='table_galois_res',
+            columns=['Column Index', 'Transformed GF(2^8) Output Polynomial'],
+            width=600,
+        )
+
+
+def build_view_categorical_kleisli() -> None:
+    with dpg.group(tag='view_categorical_kleisli_group', show=False):
+        dpg.add_text(
+            'Categorical Morphisms, Kleisli Monadic Composition (g o_T f) & Kan Extensions',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            dpg.add_input_float(default_value=0.8, tag='kleisli_f_val', label='f(A->B) Weight', width=120)
+            dpg.add_input_float(default_value=0.9, tag='kleisli_g_val', label='g(B->C) Weight', width=120)
+
+        dpg.add_button(label='Compose Morphisms Across Monad Semirings', callback=run_categorical_kleisli)
+        dpg.add_text('', tag='kleisli_status', color=(255, 200, 100))
+        dpg.add_text('Kleisli Monadic Compositions (g o_T f)(A, C) (Selectable cells):')
+        create_bordered_table(
+            tag='table_kleisli_res',
+            columns=['Monad Semiring Category', 'Composed Morphism Result (g o_T f)'],
+            width=600,
+        )
+
+
 # --- Navigation Sidebar Builder ---
 VIEWS: list[str] = [
     'semiring_matrix_power',
@@ -2520,6 +2709,10 @@ VIEWS: list[str] = [
     'financial_risk',
     'sheaf_cohomology',
     'gaussian_splatting',
+    'topological_homology',
+    'clifford_geometric_algebra',
+    'galois_finite_fields',
+    'categorical_kleisli',
 ]
 
 
@@ -2657,6 +2850,30 @@ def build_navigation_sidebar() -> None:
                 callback=change_view,
                 user_data='sheaf_cohomology',
             )
+            dpg.add_selectable(
+                label='Simplicial Homology',
+                tag='sel_topological_homology',
+                callback=change_view,
+                user_data='topological_homology',
+            )
+            dpg.add_selectable(
+                label='Clifford Geometric Algebra',
+                tag='sel_clifford_geometric_algebra',
+                callback=change_view,
+                user_data='clifford_geometric_algebra',
+            )
+            dpg.add_selectable(
+                label='Galois Finite Fields',
+                tag='sel_galois_finite_fields',
+                callback=change_view,
+                user_data='galois_finite_fields',
+            )
+            dpg.add_selectable(
+                label='Categorical Kleisli Monads',
+                tag='sel_categorical_kleisli',
+                callback=change_view,
+                user_data='categorical_kleisli',
+            )
 
         with dpg.tree_node(label='Information & Crypto', default_open=True):
             dpg.add_selectable(
@@ -2761,6 +2978,10 @@ def main() -> None:
                 build_view_financial_risk()
                 build_view_sheaf_cohomology()
                 build_view_gaussian_splatting()
+                build_view_topological_homology()
+                build_view_clifford_geometric_algebra()
+                build_view_galois_finite_fields()
+                build_view_categorical_kleisli()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()
