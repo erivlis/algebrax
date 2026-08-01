@@ -177,6 +177,14 @@ The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) fold
 * **Run**: `uv run recipes/topological_homology_betti.py`
 * **Components**: `homology.SimplicialComplex`, `homology.betti_numbers`, `analysis.SparseChainComplex`
 * **Summary**: Constructs $k$-simplices $(v_0, \dots, v_k)$, evaluates sparse boundary matrices $D_k$, verifies homological nilpotency $D_{k-1} \circ D_k = \mathbf{0}$, and computes Betti number invariants $\beta_k = \dim(\ker D_k) - \text{rank}(D_{k+1})$.
+
+---
+
+### Clifford Geometric Algebra & 3D Rotor Rotations (EP-0111)
+* **Files**: [`clifford_rotor_kinematics.py`](https://github.com/erivlis/algebrax/blob/main/recipes/clifford_rotor_kinematics.py) | [`clifford_rotor_kinematics.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/clifford_rotor_kinematics.ipynb)
+* **Run**: `uv run recipes/clifford_rotor_kinematics.py`
+* **Components**: `clifford.CliffordSemiring`, `clifford.rotor_rotation`, `semiring.QuotientMonoidAlgebraSemiring`
+* **Summary**: Implements multivector geometric product $A B = A \cdot B + A \wedge B$ over $Cl(p,q,r)$ blade keys and performs 3D spatial rotor rotations $v' = R v R^\dagger$ without gimbal lock.
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
