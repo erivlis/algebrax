@@ -1256,7 +1256,10 @@ def run_sheaf_cohomology() -> None:
 
 
 def run_gaussian_splatting() -> None:
-    from gaussian_splatting_rendering import compute_2d_projected_covariance, compute_3d_covariance
+    try:
+        from gaussian_splatting_rendering import compute_2d_projected_covariance, compute_3d_covariance
+    except ImportError:
+        from recipes.gaussian_splatting_rendering import compute_2d_projected_covariance, compute_3d_covariance
 
     try:
         sx: float = float(dpg.get_value('gs_scale_x'))
@@ -1314,13 +1317,13 @@ def run_gaussian_splatting() -> None:
                 p_min, p_max, color=(255, 120, 80, 220), fill=(255, 100, 50, 60), thickness=2, parent='gs_canvas'
             )
             dpg.draw_circle((proj_x, proj_y), radius=4, color=(255, 255, 255), fill=(255, 255, 255), parent='gs_canvas')
-            dpg.draw_text(
-                (proj_x + 10, proj_y - 10),
-                f'3D Splat mu=({px:.1f}, {py:.1f}, {pz:.1f})',
-                color=(220, 220, 255),
-                size=13,
-                parent='gs_canvas',
-            )
+        dpg.draw_text(
+            (proj_x + 10, proj_y - 10),
+            f'3D Splat mu=({px:.1f}, {py:.1f}, {pz:.1f})',
+            color=(220, 220, 255),
+            size=13,
+            parent='gs_canvas',
+        )
 
         dpg.set_value('gs_status', 'Successfully evaluated 3D spatial covariance & 2D projective screen splatting.')
     except Exception as e:
@@ -1331,13 +1334,63 @@ def run_topological_homology() -> None:
     from algebrax.homology import SimplicialComplex
 
     try:
-        max_k: int = int(dpg.get_value('homology_max_k'))
-        sc = SimplicialComplex([(0, 1, 2, 3)])
+        preset: str = dpg.get_value('homology_preset')
+        dpg.delete_item('homology_canvas', children_only=True)
+
+        if preset == '1D Circle (S^1)':
+            simplices = [(0, 1), (1, 2), (2, 3), (0, 3)]
+            coords = {0: (200, 70), 1: (330, 200), 2: (200, 330), 3: (70, 200)}
+            max_k = 1
+        elif preset == 'Solid Triangle (2-Simplex)':
+            simplices = [(0, 1, 2)]
+            coords = {0: (200, 60), 1: (340, 320), 2: (60, 320)}
+            max_k = 2
+        elif preset == 'Double Loop (Figure 8)':
+            simplices = [(0, 1), (1, 2), (0, 2), (0, 3), (3, 4), (0, 4)]
+            coords = {0: (200, 200), 1: (100, 100), 2: (100, 300), 3: (300, 100), 4: (300, 300)}
+            max_k = 1
+        elif preset == '3D Solid Tetrahedron':
+            simplices = [(0, 1, 2, 3)]
+            coords = {0: (200, 50), 1: (350, 300), 2: (50, 300), 3: (200, 210)}
+            max_k = 2
+        else:
+            simplices = [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
+            coords = {0: (200, 50), 1: (350, 300), 2: (50, 300), 3: (200, 210)}
+            max_k = 2
+
+        sc = SimplicialComplex(simplices)
         betti = sc.betti_numbers(max_k=max_k)
 
-        betti_data = [{'dim': f'beta_{k}', 'count': betti.get(k, 0)} for k in range(max_k + 1)]
+        for s in sc._simplices.get(2, set()):
+            p1, p2, p3 = coords[s[0]], coords[s[1]], coords[s[2]]
+            dpg.draw_triangle(p1, p2, p3, color=(80, 160, 255, 100), fill=(40, 100, 200, 80), parent='homology_canvas')
+
+        for s in sc._simplices.get(1, set()):
+            p1, p2 = coords[s[0]], coords[s[1]]
+            dpg.draw_line(p1, p2, color=(50, 255, 150, 220), thickness=2, parent='homology_canvas')
+
+        for v, pos in coords.items():
+            dpg.draw_circle(pos, 10, color=(255, 200, 50), fill=(255, 100, 50), parent='homology_canvas')
+            dpg.draw_text((pos[0] - 4, pos[1] - 6), str(v), color=(255, 255, 255), size=14, parent='homology_canvas')
+
+        betti_data = [
+            {
+                'dim': f'beta_{k}',
+                'simplices': len(sc._simplices.get(k, set())),
+                'count': betti.get(k, 0),
+                'interp': (
+                    'Connected Components' if k == 0 else ('1D Topological Loops' if k == 1 else '2D Enclosed Voids')
+                ),
+            }
+            for k in range(max_k + 1)
+        ]
         display_matrix_in_table(betti_data, 'table_homology_res')
-        dpg.set_value('homology_status', f'Successfully evaluated Simplicial Homology Betti numbers up to k={max_k}.')
+
+        d0_d1_zero = sc.chain_complex.verify_nilpotency(1)
+        nilpotency_str = 'VERIFIED: D_0 o D_1 = 0' if d0_d1_zero else 'FAILED'
+        v_cnt = len(sc._simplices.get(0, set()))
+        e_cnt = len(sc._simplices.get(1, set()))
+        dpg.set_value('homology_status', f'Complex: {v_cnt} vertices, {e_cnt} edges. {nilpotency_str}')
     except Exception as e:
         dpg.set_value('homology_status', f'Error: {e}')
 
@@ -1351,21 +1404,52 @@ def run_clifford_geometric_algebra() -> None:
         e1: float = float(dpg.get_value('clifford_v_e1'))
         e2: float = float(dpg.get_value('clifford_v_e2'))
         angle_deg: float = float(dpg.get_value('clifford_angle'))
+        plane: str = dpg.get_value('clifford_plane')
 
         cs = CliffordSemiring(p=3, q=0, r=0)
         v = {(1,): e1, (2,): e2}
         v_sq = cs.mul(v, v)
-        v_rot = rotor_rotation(v, bivector=(1, 2), angle_rad=math.radians(angle_deg), p=3, q=0, r=0)
 
-        dpg.set_value('clifford_v_sq_text', f'Vector Squared v^2 = {v_sq.get((), 0.0):.3f}')
+        bivector = (1, 2) if plane == 'e12 Plane (XY)' else ((2, 3) if plane == 'e23 Plane (YZ)' else (3, 1))
+        v_rot = rotor_rotation(v, bivector=bivector, angle_rad=math.radians(angle_deg), p=3, q=0, r=0)
+
+        dpg.delete_item('clifford_canvas', children_only=True)
+        cx, cy = 200, 200
+        scale = 25.0
+
+        dpg.draw_line((30, cy), (370, cy), color=(100, 100, 120), thickness=1, parent='clifford_canvas')
+        dpg.draw_line((cx, 30), (cx, 370), color=(100, 100, 120), thickness=1, parent='clifford_canvas')
+        dpg.draw_text((350, cy + 5), 'e1', color=(180, 180, 180), parent='clifford_canvas')
+        dpg.draw_text((cx + 5, 35), 'e2', color=(180, 180, 180), parent='clifford_canvas')
+
+        vx, vy = cx + e1 * scale, cy - e2 * scale
+        dpg.draw_line((cx, cy), (vx, vy), color=(50, 220, 255), thickness=3, parent='clifford_canvas')
+        dpg.draw_circle((vx, vy), 4, color=(50, 220, 255), fill=(50, 220, 255), parent='clifford_canvas')
+        dpg.draw_text((vx + 5, vy - 10), 'v (Original)', color=(50, 220, 255), parent='clifford_canvas')
+
+        rot_e1, rot_e2 = v_rot.get((1,), 0.0), v_rot.get((2,), 0.0)
+        rvx, rvy = cx + rot_e1 * scale, cy - rot_e2 * scale
+        dpg.draw_line((cx, cy), (rvx, rvy), color=(50, 255, 100), thickness=3, parent='clifford_canvas')
+        dpg.draw_circle((rvx, rvy), 4, color=(50, 255, 100), fill=(50, 255, 100), parent='clifford_canvas')
+        dpg.draw_text((rvx + 5, rvy - 10), "v' (Rotor Transformed)", color=(50, 255, 100), parent='clifford_canvas')
+
+        dpg.draw_circle((cx, cy), int(scale * 2), color=(255, 200, 50, 120), parent='clifford_canvas')
+
+        dpg.set_value('clifford_v_sq_text', f'Multivector Magnitude Squared v^2 = {v_sq.get((), 0.0):.3f}')
 
         rot_data = [
-            {'comp': 'e1 Component', 'orig': e1, 'rot': v_rot.get((1,), 0.0)},
-            {'comp': 'e2 Component', 'orig': e2, 'rot': v_rot.get((2,), 0.0)},
+            {'comp': 'e1 Scalar Blade', 'orig': f'{e1:.3f}', 'rot': f'{rot_e1:.3f}'},
+            {'comp': 'e2 Scalar Blade', 'orig': f'{e2:.3f}', 'rot': f'{rot_e2:.3f}'},
+            {
+                'comp': 'Rotor R = exp(-theta/2 * B)',
+                'orig': 'R = 1.0',
+                'rot': f'{math.cos(math.radians(angle_deg) / 2):.3f} - {math.sin(math.radians(angle_deg) / 2):.3f} e12',
+            },
         ]
         display_matrix_in_table(rot_data, 'table_clifford_res')
         dpg.set_value(
-            'clifford_status', f'Successfully evaluated 3D Rotor rotation by {angle_deg:.1f} deg in e12 plane.'
+            'clifford_status',
+            f'Cl(3,0) Rotor Rotation: theta={angle_deg:.1f} deg in {plane}. v^2 magnitude invariant under rotation.',
         )
     except Exception as e:
         dpg.set_value('clifford_status', f'Error: {e}')
@@ -1375,47 +1459,178 @@ def run_galois_finite_fields() -> None:
     from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
 
     try:
-        exp1: int = int(dpg.get_value('galois_exp1'))
-        exp2: int = int(dpg.get_value('galois_exp2'))
+        hex1_str: str = dpg.get_value('galois_byte1')
+        hex2_str: str = dpg.get_value('galois_byte2')
+
+        byte1 = int(hex1_str, 16) if hex1_str.startswith('0x') else int(hex1_str)
+        byte2 = int(hex2_str, 16) if hex2_str.startswith('0x') else int(hex2_str)
+
+        def byte_to_poly(b: int) -> dict[int, int]:
+            return {i: 1 for i in range(8) if (b & (1 << i))}
+
+        def poly_to_byte(p: dict[int, float]) -> int:
+            return sum((1 << exp) for exp, val in p.items() if int(val) % 2 == 1)
 
         gf = GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
-        res_poly = gf.mul({exp1: 1}, {exp2: 1})
+        res_poly = gf.mul(byte_to_poly(byte1), byte_to_poly(byte2))
+        res_byte = poly_to_byte(res_poly)
 
-        dpg.set_value('galois_poly_res_text', f'x^{exp1} * x^{exp2} mod P(x) = {res_poly}')
+        dpg.set_value(
+            'galois_poly_res_text',
+            f'GF(2^8) Product: 0x{byte1:02X} * 0x{byte2:02X} mod P(x) = 0x{res_byte:02X} ({res_poly})',
+        )
 
-        mix_col = {0: {0: {1: 1}, 1: {0: 1}}, 1: {0: {0: 1}, 1: {1: 1}}}
-        state = {0: {0: {exp1: 1}}, 1: {0: {exp2: 1}}}
+        mix_col = {
+            0: {0: byte_to_poly(0x02), 1: byte_to_poly(0x03), 2: byte_to_poly(0x01), 3: byte_to_poly(0x01)},
+            1: {0: byte_to_poly(0x01), 1: byte_to_poly(0x02), 2: byte_to_poly(0x03), 3: byte_to_poly(0x01)},
+            2: {0: byte_to_poly(0x01), 1: byte_to_poly(0x01), 2: byte_to_poly(0x02), 3: byte_to_poly(0x03)},
+            3: {0: byte_to_poly(0x03), 1: byte_to_poly(0x01), 2: byte_to_poly(0x01), 3: byte_to_poly(0x02)},
+        }
+
+        input_state_bytes = [
+            [byte1, 0x87, 0x46, 0x8C],
+            [byte2, 0x6E, 0x47, 0x40],
+            [0x01, 0x46, 0x72, 0x98],
+            [0x02, 0xA6, 0x5C, 0x93],
+        ]
+
+        state = {r: {c: byte_to_poly(input_state_bytes[r][c]) for c in range(4)} for r in range(4)}
         out_state = gf_matrix_mul(mix_col, state, p=2)
 
-        gf_data = [{'col': f'Col {c}', 'out': str(out_state.get(c, {}))} for c in [0, 1]]
+        dpg.delete_item('galois_canvas', children_only=True)
+
+        for r in range(4):
+            for c in range(4):
+                val = input_state_bytes[r][c]
+                dpg.draw_rectangle(
+                    (30 + c * 35, 30 + r * 35),
+                    (60 + c * 35, 60 + r * 35),
+                    color=(100, 150, 255),
+                    fill=(val, val // 2, 255 - val),
+                    parent='galois_canvas',
+                )
+                dpg.draw_text(
+                    (34 + c * 35, 38 + r * 35),
+                    f'{val:02X}',
+                    color=(255, 255, 255),
+                    size=12,
+                    parent='galois_canvas',
+                )
+
+        dpg.draw_text((190, 80), '--- MixColumns --->', color=(100, 255, 100), size=14, parent='galois_canvas')
+
+        out_grid = []
+        for r in range(4):
+            row_vals = []
+            for c in range(4):
+                poly = out_state.get(r, {}).get(c, {})
+                b_val = poly_to_byte(poly)
+                row_vals.append(b_val)
+                dpg.draw_rectangle(
+                    (360 + c * 35, 30 + r * 35),
+                    (390 + c * 35, 60 + r * 35),
+                    color=(50, 255, 100),
+                    fill=(b_val, 255 - b_val, b_val // 2),
+                    parent='galois_canvas',
+                )
+                dpg.draw_text(
+                    (364 + c * 35, 38 + r * 35),
+                    f'{b_val:02X}',
+                    color=(255, 255, 255),
+                    size=12,
+                    parent='galois_canvas',
+                )
+            out_grid.append(row_vals)
+
+        gf_data = [
+            {
+                'row': f'Row {r}',
+                'in': ' '.join(f'{input_state_bytes[r][c]:02X}' for c in range(4)),
+                'out': ' '.join(f'{out_grid[r][c]:02X}' for c in range(4)),
+            }
+            for r in range(4)
+        ]
         display_matrix_in_table(gf_data, 'table_galois_res')
-        dpg.set_value('galois_status', 'Successfully evaluated AES GF(2^8) MixColumns matrix product.')
+        dpg.set_value(
+            'galois_status',
+            'Evaluated AES GF(2^8) 4x4 MixColumns matrix transformation over irreduc poly P(x) = 0x11B.',
+        )
     except Exception as e:
         dpg.set_value('galois_status', f'Error: {e}')
 
 
 def run_categorical_kleisli() -> None:
     from algebrax.category import kleisli_compose
-    from algebrax.semiring import BooleanSemiring, TropicalSemiring, ViterbiSemiring
+    from algebrax.semiring import BooleanSemiring, StandardSemiring, TropicalSemiring, ViterbiSemiring
 
     try:
-        f_val: float = float(dpg.get_value('kleisli_f_val'))
-        g_val: float = float(dpg.get_value('kleisli_g_val'))
+        w_ab: float = float(dpg.get_value('kleisli_w_ab'))
+        w_bc: float = float(dpg.get_value('kleisli_w_bc'))
+        topology: str = dpg.get_value('kleisli_topology')
 
-        f_prob = {'A': {'B': f_val}}
-        g_prob = {'B': {'C': g_val}}
+        dpg.delete_item('kleisli_canvas', children_only=True)
 
-        vit = kleisli_compose(f_prob, g_prob, semiring=ViterbiSemiring())
-        trop = kleisli_compose({'A': {'B': f_val}}, {'B': {'C': g_val}}, semiring=TropicalSemiring())
+        if topology == 'Pipeline (A -> B -> C)':
+            f = {'A': {'B': w_ab}}
+            g = {'B': {'C': w_bc}}
+            nodes = {'A': (70, 100), 'B': (200, 100), 'C': (330, 100)}
+            edges = [('A', 'B', f'f={w_ab}'), ('B', 'C', f'g={w_bc}')]
+            target = ('A', 'C')
+        else:
+            f = {'A': {'B': w_ab, 'C': 0.5}}
+            g = {'B': {'D': w_bc}, 'C': {'D': 0.7}}
+            nodes = {'A': (60, 100), 'B': (200, 40), 'C': (200, 160), 'D': (340, 100)}
+            edges = [
+                ('A', 'B', f'{w_ab}'),
+                ('A', 'C', '0.5'),
+                ('B', 'D', f'{w_bc}'),
+                ('C', 'D', '0.7'),
+            ]
+            target = ('A', 'D')
+
+        for src, dst, label in edges:
+            p1, p2 = nodes[src], nodes[dst]
+            dpg.draw_line(p1, p2, color=(100, 200, 255), thickness=2, parent='kleisli_canvas')
+            mx, my = (p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2
+            dpg.draw_text((mx, my - 12), label, color=(255, 200, 50), size=12, parent='kleisli_canvas')
+
+        for n, pos in nodes.items():
+            dpg.draw_circle(pos, 16, color=(255, 100, 255), fill=(80, 40, 100), parent='kleisli_canvas')
+            dpg.draw_text((pos[0] - 5, pos[1] - 7), n, color=(255, 255, 255), size=15, parent='kleisli_canvas')
+
+        vit = kleisli_compose(f, g, semiring=ViterbiSemiring())
+        trop = kleisli_compose(f, g, semiring=TropicalSemiring())
         boo = kleisli_compose({'A': {'B': True}}, {'B': {'C': True}}, semiring=BooleanSemiring())
+        std = kleisli_compose(f, g, semiring=StandardSemiring())
 
+        src_node, dst_node = target
         cat_data = [
-            {'monad': 'Viterbi Probabilistic Monad', 'res': f'{vit.get("A", {}).get("C", 0.0):.4f}'},
-            {'monad': 'Tropical Lawvere Cost Monad', 'res': f'{trop.get("A", {}).get("C", 0.0):.4f}'},
-            {'monad': 'Boolean Reachability Monad', 'res': str(boo.get('A', {}).get('C', False))},
+            {
+                'monad': 'Viterbi Monad (Max-Product)',
+                'op': 'a * b (Max Path Prob)',
+                'res': f'{vit.get(src_node, {}).get(dst_node, 0.0):.4f}',
+            },
+            {
+                'monad': 'Tropical Monad (Min-Sum)',
+                'op': 'a + b (Shortest Distance)',
+                'res': f'{trop.get(src_node, {}).get(dst_node, 0.0):.4f}',
+            },
+            {
+                'monad': 'Boolean Monad (OR-AND)',
+                'op': 'a and b (Reachability)',
+                'res': str(boo.get(src_node, {}).get(dst_node, False)),
+            },
+            {
+                'monad': 'Standard Monad (Sum-Product)',
+                'op': 'a * b (Path Count Weight)',
+                'res': f'{std.get(src_node, {}).get(dst_node, 0.0):.4f}',
+            },
         ]
         display_matrix_in_table(cat_data, 'table_kleisli_res')
-        dpg.set_value('kleisli_status', 'Successfully evaluated Kleisli monadic compositions.')
+        dpg.set_value(
+            'kleisli_status',
+            f'Evaluated Kleisli Monadic Composition (g o_T f)({src_node} -> {dst_node}) across 4 semiring monads.',
+        )
     except Exception as e:
         dpg.set_value('kleisli_status', f'Error: {e}')
 
@@ -2603,17 +2818,38 @@ def build_view_topological_homology() -> None:
         )
         dpg.add_separator()
         with dpg.group(horizontal=True):
-            dpg.add_text('Max Topological Dimension (k):')
-            dpg.add_input_int(default_value=2, min_value=1, max_value=3, tag='homology_max_k', width=120)
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('TOPOLOGY PRESETS', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=[
+                        '1D Circle (S^1)',
+                        'Solid Triangle (2-Simplex)',
+                        'Double Loop (Figure 8)',
+                        '3D Solid Tetrahedron',
+                        'Hollow Sphere Boundary',
+                    ],
+                    default_value='1D Circle (S^1)',
+                    tag='homology_preset',
+                    width=250,
+                    callback=lambda: run_topological_homology(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_button(label='Evaluate Simplicial Homology', callback=run_topological_homology, width=250)
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='homology_status', color=(255, 200, 100), wrap=290)
 
-        dpg.add_button(label='Evaluate Simplicial Homology Betti Numbers', callback=run_topological_homology)
-        dpg.add_text('', tag='homology_status', color=(255, 200, 100))
-        dpg.add_text('Betti Numbers Barcode Invariants (Selectable cells):')
-        create_bordered_table(
-            tag='table_homology_res',
-            columns=['Dimension (beta_k)', 'Hole Count (Rank)'],
-            width=400,
-        )
+            with dpg.group():
+                dpg.add_text('2D Simplicial Mesh Visualization Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=360, tag='homology_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                dpg.add_text('Betti Numbers Barcode Invariants (Selectable cells):')
+                create_bordered_table(
+                    tag='table_homology_res',
+                    columns=['Dimension', 'Simplex Count', 'Betti Hole Count', 'Topological Interpretation'],
+                    width=700,
+                )
 
 
 def build_view_clifford_geometric_algebra() -> None:
@@ -2624,22 +2860,61 @@ def build_view_clifford_geometric_algebra() -> None:
         )
         dpg.add_separator()
         with dpg.group(horizontal=True):
-            dpg.add_input_float(default_value=3.0, tag='clifford_v_e1', label='e1 Component', width=120)
-            dpg.add_input_float(default_value=4.0, tag='clifford_v_e2', label='e2 Component', width=120)
-            dpg.add_input_float(default_value=90.0, tag='clifford_angle', label='Rotation Deg (e12)', width=120)
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('MULTIVECTOR & ROTOR INPUTS', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_input_float(
+                    default_value=3.0,
+                    tag='clifford_v_e1',
+                    label='e1 Vector Component',
+                    width=120,
+                    callback=lambda: run_clifford_geometric_algebra(),
+                )
+                dpg.add_input_float(
+                    default_value=4.0,
+                    tag='clifford_v_e2',
+                    label='e2 Vector Component',
+                    width=120,
+                    callback=lambda: run_clifford_geometric_algebra(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('BIVECTOR PLANE & ROTATION', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=['e12 Plane (XY)', 'e23 Plane (YZ)', 'e31 Plane (ZX)'],
+                    default_value='e12 Plane (XY)',
+                    tag='clifford_plane',
+                    width=180,
+                    callback=lambda: run_clifford_geometric_algebra(),
+                )
+                dpg.add_slider_float(
+                    default_value=90.0,
+                    min_value=0.0,
+                    max_value=360.0,
+                    tag='clifford_angle',
+                    label='Angle (Deg)',
+                    width=180,
+                    callback=lambda: run_clifford_geometric_algebra(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_button(label='Apply Rotor R v R^dagger', callback=run_clifford_geometric_algebra, width=250)
+                dpg.add_spacer(height=10)
+                dpg.add_text('Multivector Magnitude Squared:', color=(180, 180, 180))
+                dpg.add_text('v^2 = 25.000', tag='clifford_v_sq_text', color=(100, 255, 100))
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='clifford_status', color=(255, 200, 100), wrap=290)
 
-        dpg.add_spacer(height=5)
-        dpg.add_button(label='Rotate Vector via Rotor R = exp(-theta/2 * B)', callback=run_clifford_geometric_algebra)
-        dpg.add_text('', tag='clifford_status', color=(255, 200, 100))
-        dpg.add_text('v^2 Magnitude Squared:', color=(180, 180, 180))
-        dpg.add_text('Vector Squared v^2 = 25.000', tag='clifford_v_sq_text', color=(100, 255, 100))
-        dpg.add_spacer(height=5)
-        dpg.add_text('3D Rotor Transformation Comparison (Selectable cells):')
-        create_bordered_table(
-            tag='table_clifford_res',
-            columns=['Blade Component', 'Original Vector v', "Rotor Transformed v'"],
-            width=500,
-        )
+            with dpg.group():
+                dpg.add_text('2D Vector & Rotor Rotation Sweep Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=360, tag='clifford_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                dpg.add_text('3D Rotor Transformation Multivector Breakdown (Selectable cells):')
+                create_bordered_table(
+                    tag='table_clifford_res',
+                    columns=['Multivector Blade Component', 'Original Vector v', "Rotor Transformed v'"],
+                    width=700,
+                )
 
 
 def build_view_galois_finite_fields() -> None:
@@ -2650,20 +2925,48 @@ def build_view_galois_finite_fields() -> None:
         )
         dpg.add_separator()
         with dpg.group(horizontal=True):
-            dpg.add_input_int(default_value=4, tag='galois_exp1', label='x^a Exponent', width=120)
-            dpg.add_input_int(default_value=4, tag='galois_exp2', label='x^b Exponent', width=120)
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('GF(2^8) FIELD ELEMENT INPUTS', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_input_text(
+                    default_value='0x57',
+                    tag='galois_byte1',
+                    label='Byte A (Hex)',
+                    width=120,
+                    callback=lambda: run_galois_finite_fields(),
+                )
+                dpg.add_input_text(
+                    default_value='0x83',
+                    tag='galois_byte2',
+                    label='Byte B (Hex)',
+                    width=120,
+                    callback=lambda: run_galois_finite_fields(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('AES IRREDUCIBLE POLYNOMIAL', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_text('P(x) = x^8 + x^4 + x^3 + x + 1 (0x11B)', color=(180, 220, 255))
+                dpg.add_spacer(height=10)
+                dpg.add_button(
+                    label='Multiply Field Elements & MixColumns', callback=run_galois_finite_fields, width=250
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='galois_status', color=(255, 200, 100), wrap=290)
 
-        dpg.add_button(label='Multiply Field Elements & MixColumns', callback=run_galois_finite_fields)
-        dpg.add_text('', tag='galois_status', color=(255, 200, 100))
-        dpg.add_text('Polynomial Multiplication Modulo P(x) = x^8 + x^4 + x^3 + x + 1:', color=(180, 180, 180))
-        dpg.add_text('x^4 * x^4 mod P(x) = {0: 1, 1: 1, 3: 1, 4: 1}', tag='galois_poly_res_text', color=(100, 255, 100))
-        dpg.add_spacer(height=5)
-        dpg.add_text('AES MixColumns Output State (Selectable cells):')
-        create_bordered_table(
-            tag='table_galois_res',
-            columns=['Column Index', 'Transformed GF(2^8) Output Polynomial'],
-            width=600,
-        )
+            with dpg.group():
+                dpg.add_text('AES 4x4 State Byte Heatmap Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=220, tag='galois_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                dpg.add_text('GF(2^8) Product Output:', color=(180, 180, 180))
+                dpg.add_text('0x57 * 0x83 = 0xC1', tag='galois_poly_res_text', color=(100, 255, 100))
+                dpg.add_spacer(height=5)
+                dpg.add_text('AES MixColumns Output Matrix State (Selectable cells):')
+                create_bordered_table(
+                    tag='table_galois_res',
+                    columns=['Row Index', 'Input State Bytes (Hex)', 'MixColumns Transformed Output Bytes'],
+                    width=700,
+                )
 
 
 def build_view_categorical_kleisli() -> None:
@@ -2674,17 +2977,55 @@ def build_view_categorical_kleisli() -> None:
         )
         dpg.add_separator()
         with dpg.group(horizontal=True):
-            dpg.add_input_float(default_value=0.8, tag='kleisli_f_val', label='f(A->B) Weight', width=120)
-            dpg.add_input_float(default_value=0.9, tag='kleisli_g_val', label='g(B->C) Weight', width=120)
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('CATEGORY TOPOLOGY PRESET', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=['Pipeline (A -> B -> C)', 'Multi-Path Diamond (A -> B,C -> D)'],
+                    default_value='Pipeline (A -> B -> C)',
+                    tag='kleisli_topology',
+                    width=250,
+                    callback=lambda: run_categorical_kleisli(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('MORPHISM WEIGHT INPUTS', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_slider_float(
+                    default_value=0.8,
+                    min_value=0.1,
+                    max_value=2.0,
+                    tag='kleisli_w_ab',
+                    label='f(A->B) Weight',
+                    width=180,
+                    callback=lambda: run_categorical_kleisli(),
+                )
+                dpg.add_slider_float(
+                    default_value=0.9,
+                    min_value=0.1,
+                    max_value=2.0,
+                    tag='kleisli_w_bc',
+                    label='g(B->C) Weight',
+                    width=180,
+                    callback=lambda: run_categorical_kleisli(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_button(
+                    label='Compose Morphisms Across Monad Semirings', callback=run_categorical_kleisli, width=250
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='kleisli_status', color=(255, 200, 100), wrap=290)
 
-        dpg.add_button(label='Compose Morphisms Across Monad Semirings', callback=run_categorical_kleisli)
-        dpg.add_text('', tag='kleisli_status', color=(255, 200, 100))
-        dpg.add_text('Kleisli Monadic Compositions (g o_T f)(A, C) (Selectable cells):')
-        create_bordered_table(
-            tag='table_kleisli_res',
-            columns=['Monad Semiring Category', 'Composed Morphism Result (g o_T f)'],
-            width=600,
-        )
+            with dpg.group():
+                dpg.add_text('Category Graph Diagram Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=220, tag='kleisli_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                dpg.add_text('Comparative Kleisli Compositions (g o_T f) Across Monads (Selectable cells):')
+                create_bordered_table(
+                    tag='table_kleisli_res',
+                    columns=['Monad Semiring Category', 'Monad Binary Operator', 'Composed Morphism Result (g o_T f)'],
+                    width=700,
+                )
 
 
 # --- Navigation Sidebar Builder ---
