@@ -193,6 +193,17 @@ The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) fold
 * **Run**: `uv run recipes/galois_field_cryptography.py`
 * **Components**: `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `semiring.QuotientMonoidAlgebraSemiring`
 * **Summary**: Evaluates finite field arithmetic $\text{GF}(p^m)$ over polynomial modulo quotient semirings $P(x) = x^8 + x^4 + x^3 + x + 1$ and computes AES MixColumns matrix products.
+
+---
+
+### Categorical Morphisms & Kleisli Monadic Composition (EP-0113)
+* **Files**: [`categorical_kleisli_monads.py`](https://github.com/erivlis/algebrax/blob/main/recipes/categorical_kleisli_monads.py) | [`categorical_kleisli_monads.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/categorical_kleisli_monads.ipynb)
+* **Run**: `uv run recipes/categorical_kleisli_monads.py`
+* **Components**: `category.kleisli_compose`, `semiring.ViterbiSemiring`, `semiring.TropicalSemiring`
+* **Summary**: Formalizes effectful monadic morphisms $f: A \to T(B)$ via Kleisli matrix composition $g \circ_T f = \text{dot}(f, g, \text{semiring})$ across probabilistic, cost-metric, and reachability monads.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
