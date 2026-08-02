@@ -19,39 +19,47 @@ nav = [
         "concepts.md"
     ] },
     { Tutorials = [
-        { Semirings = [
+        { "Fundamentals & Verification" = [
+            "tutorials/semirings/algebraic_law_verification.md",
             "tutorials/semirings/semiring_standard.md",
-            "tutorials/semirings/semiring_tropical.md",
-            "tutorials/semirings/semiring_monoid_algebra.md",
-            "tutorials/semirings/semiring_polynomial.md",
-            "tutorials/semirings/semiring_knot.md",
-            "tutorials/semirings/semiring_provenance.md",
-            "tutorials/semirings/semiring_digital.md",
-            "tutorials/semirings/semiring_convex_hull.md",
             "tutorials/semirings/semiring_matrix.md",
-            "tutorials/semirings/semiring_boolean.md",
+        ] },
+        { "Optimization & Paths" = [
+            "tutorials/semirings/semiring_tropical.md",
             "tutorials/semirings/semiring_viterbi.md",
+            "tutorials/semirings/semiring_convex_hull.md",
+        ] },
+        { "Logic & Digital" = [
+            "tutorials/semirings/semiring_boolean.md",
+            "tutorials/semirings/semiring_digital.md",
+        ] },
+        { "Monoid & Extension Algebras" = [
+            "tutorials/semirings/semiring_monoid_algebra.md",
             "tutorials/semirings/semiring_quotient_monoid_algebra.md",
+            "tutorials/semirings/semiring_polynomial.md",
+            "tutorials/semirings/semiring_provenance.md",
+            "tutorials/semirings/semiring_knot.md",
+            "tutorials/semirings/semiring_modular.md",
             "tutorials/semirings/semiring_clifford.md",
             "tutorials/semirings/semiring_galois.md",
         ] },
-        { Structures = [
+        { "Structures & Complexes" = [
             "tutorials/structures/algebraic_trie.md",
             "tutorials/structures/sparse_chain_complex.md",
             "tutorials/structures/categorical_kleisli.md",
         ] },
-        { Transforms = [
+        { "Transforms & Signals" = [
             "tutorials/transforms/image_convolution.md",
             "tutorials/transforms/fenchel_legendre.md",
-            "tutorials/transforms/walsh_hadamard.md"
+            "tutorials/transforms/walsh_hadamard.md",
         ] },
-        { Graphs = [
+        { "Graphs & Parsing" = [
             "tutorials/graphs/pagerank.md",
             "tutorials/graphs/cyk_parsing.md",
-            "tutorials/graphs/catalan.md"
+            "tutorials/graphs/catalan.md",
         ] },
-        { Performance = [
-            "tutorials/performance/benchmark_matrix_mult.md"
+        { "Performance & Benchmarks" = [
+            "tutorials/performance/benchmark_matrix_mult.md",
         ] }
     ] },
     { Recipes = [
