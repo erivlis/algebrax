@@ -22,7 +22,9 @@ __all__ = [
     'outer_product',
     'tensordot',
     'unflatten_tensor',
+    'unpermute_tensor',
 ]
+
 
 
 def _get_semiring_and_items(
@@ -280,3 +282,26 @@ def unflatten_tensor(flat: Mapping[tuple, Any]) -> dict[Any, Any]:
             curr = curr.setdefault(key, {})
         curr[idx_tuple[-1]] = val
     return nested
+
+
+def unpermute_tensor(
+    tensor: Mapping[tuple, V],
+    permutation: tuple[int, ...],
+) -> dict[tuple, V]:
+    """
+    Invert a tensor dimension permutation to restore the original index order.
+
+    Args:
+        tensor: Sparse tensor with permuted coordinate tuple keys.
+        permutation: The permutation tuple that was previously applied.
+
+    Returns:
+        A new sparse tensor with original index ordering restored.
+    """
+    from algebrax.transforms import permute_tensor
+
+    inv_perm = [0] * len(permutation)
+    for idx, orig_pos in enumerate(permutation):
+        inv_perm[orig_pos] = idx
+    return dict(permute_tensor(tensor, tuple(inv_perm)))
+

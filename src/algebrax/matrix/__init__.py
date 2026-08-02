@@ -20,6 +20,10 @@ from algebrax.matrix.decompose import (
     cholesky,
     lu,
     qr,
+    recompose_cholesky,
+    recompose_lu,
+    recompose_qr,
+    recompose_svd,
     svd,
 )
 
@@ -38,6 +42,10 @@ __all__ = [
     'mat_vec',
     'power',
     'qr',
+    'recompose_cholesky',
+    'recompose_lu',
+    'recompose_qr',
+    'recompose_svd',
     'svd',
     'trace',
     'transpose',

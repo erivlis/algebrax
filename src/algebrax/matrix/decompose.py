@@ -256,3 +256,79 @@ def svd(
         s_dict,
         grid_to_sparse(vt_grid, list(range(actual_k)), cols),
     )
+
+
+def recompose_lu(p: SparseMatrix, l: SparseMatrix, u: SparseMatrix) -> SparseMatrix:
+    """
+    Reconstruct the original sparse matrix A from its LU factorization (P, L, U):
+        A = P^T @ (L @ U)
+
+    Args:
+        p: Permutation sparse matrix.
+        l: Lower-triangular sparse matrix.
+        u: Upper-triangular sparse matrix.
+
+    Returns:
+        The reconstructed sparse matrix A.
+    """
+    from algebrax.matrix.core import dot, transpose
+
+    lu_product = dot(l, u)
+    p_t = transpose(p)
+    return dot(p_t, lu_product)
+
+
+def recompose_qr(q: SparseMatrix, r: SparseMatrix) -> SparseMatrix:
+    """
+    Reconstruct the original sparse matrix A from its QR factorization (Q, R):
+        A = Q @ R
+
+    Args:
+        q: Orthonormal sparse matrix Q.
+        r: Upper-triangular sparse matrix R.
+
+    Returns:
+        The reconstructed sparse matrix A.
+    """
+    from algebrax.matrix.core import dot
+
+    return dot(q, r)
+
+
+def recompose_svd(
+    u: SparseMatrix, s: SparseVector[int, float], v_t: SparseMatrix
+) -> SparseMatrix:
+    """
+    Reconstruct the sparse matrix A from its SVD components (U, S, V_T):
+        A ≈ U @ diag(S) @ V_T
+
+    Args:
+        u: Left singular vectors sparse matrix.
+        s: Vector/dict of singular values.
+        v_t: Right singular vectors transpose sparse matrix.
+
+    Returns:
+        The reconstructed/approximated sparse matrix A.
+    """
+    from algebrax.matrix.core import dot
+
+    s_matrix = {k: {k: val} for k, val in s.items() if val != 0}
+    sv_t = dot(s_matrix, v_t)
+    return dot(u, sv_t)
+
+
+def recompose_cholesky(l: SparseMatrix) -> SparseMatrix:
+    """
+    Reconstruct the original symmetric positive-definite sparse matrix A from its Cholesky factor L:
+        A = L @ L^T
+
+    Args:
+        l: Lower-triangular sparse matrix factor.
+
+    Returns:
+        The reconstructed sparse matrix A.
+    """
+    from algebrax.matrix.core import dot, transpose
+
+    return dot(l, transpose(l))
+

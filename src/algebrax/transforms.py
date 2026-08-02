@@ -41,13 +41,17 @@ C = TypeVar('C')  # Character key type
 
 __all__ = [
     'convolve',
+    'deconvolve',
     'dft',
     'gelfand_transform',
     'hilbert',
     'idft',
+    'iwalsh_hadamard',
+    'iz_transform',
     'legendre_fenchel',
     'lorentz_boost',
     'permute_tensor',
+    'unpermute_tensor',
     'walsh_hadamard',
     'z_transform',
 ]
@@ -84,6 +88,41 @@ def convolve(
 
     monoid_semiring = MonoidAlgebraSemiring(semiring, key_op=key_op)
     return monoid_semiring.mul(f, g)
+
+
+def deconvolve(
+    signal: SparseVector[int, float | complex],
+    kernel: SparseVector[int, float | complex],
+) -> dict[int, complex]:
+    """
+    Perform spectral deconvolution to recover original signal f from convolved signal g = f * kernel
+    via DFT division: F[k] = G[k] / K[k].
+
+    Args:
+        signal: Convolved output signal g.
+        kernel: Convolution kernel k.
+
+    Returns:
+        Recovered original signal mapping index -> complex value.
+    """
+    if not signal or not kernel:
+        return {}
+
+    n = max(max(signal.keys(), default=0), max(kernel.keys(), default=0)) + 1
+    g_spec = dft(signal, n)
+    k_spec = dft(kernel, n)
+
+    f_spec = {}
+    for i in range(n):
+        g_val = g_spec.get(i, 0j)
+        k_val = k_spec.get(i, 0j)
+        if abs(k_val) > 1e-12:
+            f_spec[i] = g_val / k_val
+        else:
+            f_spec[i] = 0j
+
+    return idft(f_spec, n)
+
 
 
 # endregion
@@ -354,6 +393,46 @@ def walsh_hadamard(
     return result
 
 
+def iwalsh_hadamard(
+    signal: SparseVector[int, N],
+    n: int | None = None,
+) -> dict[int, float]:
+    """
+    Compute the Inverse Discrete Walsh-Hadamard Transform (IWHT).
+    x[m] = (1/N) * sum_{k=0}^{N-1} X[k] * (-1)**popcount(k AND m)
+
+    Morphism Type: Inverse Unitary/Symmetric Isomorphism.
+
+    Args:
+        signal: Mapping with integer keys (frequency indices).
+        n: The size of the transform (N). Must be a power of 2.
+
+    Returns:
+        A mapping representing original signal values.
+    """
+    if not signal:
+        return {}
+
+    if n is None:
+        max_key = max(signal.keys())
+        n = 1
+        while n <= max_key:
+            n *= 2
+
+    if n & (n - 1) != 0 or n <= 0:
+        raise ValueError('IWHT size n must be a power of 2.')
+
+    raw = walsh_hadamard(signal, n)
+    norm = 1.0 / n
+    result = {}
+    for k, val in raw.items():
+        v = val * norm
+        if not math.isclose(v, 0.0, abs_tol=1e-9):
+            result[k] = v
+    return result
+
+
+
 def gelfand_transform(
         signal: Mapping[K, N],
         characters: Mapping[C, Callable[[K], N]],
@@ -461,6 +540,48 @@ def z_transform(
     return total
 
 
+def iz_transform(
+    X: Callable[[complex], complex],
+    signal_length: int,
+    radius: float = 1.0,
+) -> dict[int, complex]:
+    """
+    Compute the Inverse Z-transform of a function X(z) via discrete contour evaluation
+    on a circle of radius r:
+        x[n] = (1/N) * sum_{k=0}^{N-1} X(r * exp(2j * pi * k / N)) * (r * exp(2j * pi * k / N))^n
+
+    Args:
+        X: Function mapping complex z -> complex value X(z).
+        signal_length: Length N of the reconstructed discrete-time sequence.
+        radius: Radius of contour circle |z| = r (default 1.0).
+
+    Returns:
+        Reconstructed sparse signal mapping time index n -> complex value x[n].
+    """
+    if signal_length <= 0:
+        return {}
+
+    n = signal_length
+    samples = {}
+    coef = 2j * cmath.pi / n
+
+    for k in range(n):
+        zk = radius * cmath.exp(coef * k)
+        samples[k] = X(zk)
+
+    result = {}
+    for m in range(n):
+        val = 0j
+        for k, X_k in samples.items():  # noqa: N806
+            zk = radius * cmath.exp(coef * k)
+            val += X_k * (zk ** m)
+        val /= n
+        if not math.isclose(abs(val), 0, abs_tol=1e-9):
+            result[m] = val
+
+    return result
+
+
 # endregion
 
 
@@ -531,4 +652,24 @@ def permute_tensor(
         result[new_coords] = val
     return result
 
+
+def unpermute_tensor(
+    tensor: Mapping[tuple, N],
+    permutation: tuple[int, ...],
+) -> dict[tuple, N]:
+    """
+    Invert a tensor dimension permutation to restore the original index order.
+
+    Args:
+        tensor: Sparse tensor with permuted coordinate tuple keys.
+        permutation: The permutation tuple that was previously applied.
+
+    Returns:
+        A new sparse tensor with original index ordering restored.
+    """
+    from algebrax.tensor import unpermute_tensor as _unpermute
+
+    return _unpermute(tensor, permutation)
+
 # endregion
+

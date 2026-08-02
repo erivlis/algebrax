@@ -7,7 +7,9 @@ from algebrax.tensor import (
     outer_product,
     tensordot,
     unflatten_tensor,
+    unpermute_tensor,
 )
+from algebrax.transforms import permute_tensor
 from algebrax.trie import AlgebraicTrie
 
 
@@ -144,3 +146,15 @@ def test_einsum_error_handling():
 
     with pytest.raises(TypeError, match='Expected AlgebraicTrie or Mapping'):
         einsum('i->i', 12345)  # Invalid type
+
+
+def test_unpermute_tensor():
+    """Verify unpermute_tensor(permute_tensor(T, p), p) == T."""
+    tensor = {(0, 1, 2): 5.0, (1, 0, 3): 2.5}
+    perm = (2, 0, 1)
+
+    permuted = permute_tensor(tensor, perm)
+    unpermuted = unpermute_tensor(permuted, perm)
+
+    assert unpermuted == tensor
+

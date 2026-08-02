@@ -7,7 +7,16 @@ import math
 import pytest
 
 from algebrax.matrix import dot, transpose
-from algebrax.matrix.decompose import cholesky, lu, qr, svd
+from algebrax.matrix.decompose import (
+    cholesky,
+    lu,
+    qr,
+    recompose_cholesky,
+    recompose_lu,
+    recompose_qr,
+    recompose_svd,
+    svd,
+)
 
 
 def is_matrix_close(m1: dict, m2: dict, tol: float = 1e-6) -> bool:
@@ -97,3 +106,36 @@ def test_svd_decomposition():
     # Truncated k=1
     _, s1, _ = svd(a_mat, k=1)
     assert len(s1) == 1
+
+
+def test_recompose_cholesky():
+    """Verify A == recompose_cholesky(L) for SPD matrix."""
+    a = {0: {0: 4.0, 1: 12.0}, 1: {0: 12.0, 1: 37.0}}
+    l_factor = cholesky(a)
+    recomposed = recompose_cholesky(l_factor)
+    assert is_matrix_close(a, recomposed)
+
+
+def test_recompose_lu():
+    """Verify A == recompose_lu(P, L, U)."""
+    a = {0: {0: 2.0, 1: 1.0}, 1: {0: 4.0, 1: 3.0}}
+    p, l_factor, u_factor = lu(a)
+    recomposed = recompose_lu(p, l_factor, u_factor)
+    assert is_matrix_close(a, recomposed)
+
+
+def test_recompose_qr():
+    """Verify A == recompose_qr(Q, R)."""
+    a = {0: {0: 1.0, 1: 2.0}, 1: {0: 3.0, 1: 4.0}}
+    q, r = qr(a)
+    recomposed = recompose_qr(q, r)
+    assert is_matrix_close(a, recomposed)
+
+
+def test_recompose_svd():
+    """Verify A ≈ recompose_svd(U, S, V_T)."""
+    a = {0: {0: 3.0, 1: 0.0}, 1: {0: 0.0, 1: 4.0}}
+    u, s, v_t = svd(a)
+    recomposed = recompose_svd(u, s, v_t)
+    assert is_matrix_close(a, recomposed)
+

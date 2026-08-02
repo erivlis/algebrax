@@ -2,7 +2,7 @@
 Tests for SimplicialComplex and Betti Numbers (EP-0110).
 """
 
-from algebrax.homology import SimplicialComplex
+from algebrax.homology import SimplicialComplex, coboundary, cohomology_rank
 
 
 def test_betti_numbers_single_triangle():
@@ -41,3 +41,22 @@ def test_betti_numbers_disjoint_components():
 
     assert betti[0] == 2
     assert betti[1] == 0
+
+
+def test_coboundary_operator():
+    """Verify coboundary(complex, k) is the transpose of boundary matrix D_{k+1}."""
+    sc = SimplicialComplex([(0, 1), (1, 2), (0, 2)])
+    d1 = sc.boundary_matrices[1]
+    d0_co = coboundary(sc, 0)
+
+    for edge in d1:
+        for vertex, val in d1[edge].items():
+            assert d0_co[vertex][edge] == val
+
+
+def test_cohomology_rank():
+    """Verify cohomology_rank matches betti_numbers for simplicial complex."""
+    sc = SimplicialComplex([(0, 1), (1, 2), (0, 2)])
+    assert cohomology_rank(sc, 0) == 1
+    assert cohomology_rank(sc, 1) == 1
+

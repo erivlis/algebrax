@@ -2,20 +2,20 @@
 title: "EP-0140: API Symmetry Restoration — Inverse Transforms & Recomposition"
 description: "Restores API duality by adding missing inverse operations for transforms, decompositions, tensors, and homology."
 icon: lucide/flip-horizontal-2
-status: draft
+status: final
 ---
 
 # EP-0140: API Symmetry Restoration — Inverse Transforms & Recomposition
 
-| Field       | Value                                                      |
-|:------------|:-----------------------------------------------------------|
-| **EP**      | 0140                                                       |
+| Field       | Value                                                         |
+|:------------|:--------------------------------------------------------------|
+| **EP**      | 0140                                                          |
 | **Title**   | API Symmetry Restoration — Inverse Transforms & Recomposition |
-| **Author**  | Eran Rivlis & Antigravity                                  |
-| **Status**  | Draft                                                      |
-| **Type**    | Standards Track                                            |
-| **Created** | 2026-08-02                                                 |
-| **Updated** | 2026-08-02                                                 |
+| **Author**  | Eran Rivlis & Antigravity                                     |
+| **Status**  | Final                                                         |
+| **Type**    | Standards Track                                               |
+| **Created** | 2026-08-02                                                    |
+| **Updated** | 2026-08-03                                                    |
 
 ## Abstract
 
@@ -93,3 +93,5 @@ Purely additive. New functions in existing modules.
 ## Change Log
 
 * **2026-08-02:** Initial Draft from Grand Council Assessment (Noether).
+* **2026-08-03:** Fully implemented `recompose_*`, `iwalsh_hadamard`, `iz_transform`, `deconvolve`, `unpermute_tensor`, `coboundary`, `cohomology_rank` with 100% test coverage. Status → Final.
+

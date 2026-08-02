@@ -60,7 +60,7 @@ flowchart TD
     P3 --> P35
 
     subgraph P35["Phase 3.5 — Council Refinement Track"]
-        EP0140["EP-0140 API Symmetry\n⚖️ Noether"]
+        EP0140["EP-0140 API Symmetry ✅\n⚖️ Noether"]
         EP0141["EP-0141 Taxonomy Cleanup\n🧩 Russell"]
         EP0142["EP-0142 Performance\n⚡ Shannon"]
         EP0143["EP-0143 Documentation\n💡 Feynman"]
@@ -162,7 +162,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0132** | Matrix Decompositions       | Noether  | `algebrax.decompose`                | Final  | Sparse LU, QR, SVD, Cholesky on dict-matrices                       |
 | **EP-0133** | Jupyter & CLI Integration   | Steward  | `algebrax.display`                  | Draft  | `_repr_html_()`, `python -m algebrax inspect`                       |
 | **EP-0134** | Semiring Namespace Refactor | Russell  | `algebrax.semiring/`                | Final  | Categorical sub-modules, consolidated Clifford/Galois               |
-| **EP-0140** | API Symmetry Restoration    | Noether  | `matrix`, `transforms`, `homology`  | Draft  | Recomposition helpers, inverse transforms, coboundary operator      |
+| **EP-0140** | API Symmetry Restoration    | Noether  | `matrix`, `transforms`, `homology`  | Final  | Recomposition helpers, inverse transforms, coboundary operator      |
 | **EP-0141** | Taxonomy Cleanup            | Russell  | `analysis`, `tensor`, `__init__`    | Draft  | Relocate `SparseChainComplex`, `permute_tensor`, clean imports      |
 | **EP-0142** | Performance Optimizations   | Shannon  | `matrix`, `transforms`, `tensor`    | Draft  | Local binding, catalog cache, twiddle precompute, backtracking      |
 | **EP-0143** | Documentation Clarity       | Feynman  | `docs/`, docstrings                 | Draft  | Freshman summaries, typo fixes, concepts.md rewrite                 |

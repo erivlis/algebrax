@@ -1,11 +1,16 @@
+import math
+
 import pytest
 
 from algebrax.transforms import (
     convolve,
+    deconvolve,
     dft,
     gelfand_transform,
     hilbert,
     idft,
+    iwalsh_hadamard,
+    iz_transform,
     legendre_fenchel,
     lorentz_boost,
     permute_tensor,
@@ -435,3 +440,37 @@ def test_transforms_branch_coverage():
 
     assert z_transform({1: 'a'}, z='z', semiring=NonDivisibleZSemiring()) == 'a1z'
     assert z_transform({-1: 1.0}, z=2.0, semiring=TropicalSemiring()) == float('inf')
+
+
+def test_iwalsh_hadamard():
+    """Verify iwalsh_hadamard(walsh_hadamard(x)) == x (round trip)."""
+    x = {0: 1.0, 1: 2.0, 2: -1.0, 3: 4.0}
+    wht = walsh_hadamard(x, n=4)
+    recovered = iwalsh_hadamard(wht, n=4)
+    for k in x:
+        assert math.isclose(recovered.get(k, 0.0), x[k], abs_tol=1e-7)
+
+
+def test_iz_transform():
+    """Verify iz_transform recovers signal coefficients from Z-transform function X(z)."""
+    x_orig = {0: 1.0, 1: 2.0, 2: 3.0}
+
+    def X(z):
+        return z_transform(x_orig, z)
+
+    recovered = iz_transform(X, signal_length=4)
+    for k in range(3):
+        assert math.isclose(abs(recovered.get(k, 0j)), x_orig[k], abs_tol=1e-5)
+
+
+def test_deconvolve():
+    """Verify deconvolve(convolve(f, k), k) recovers f."""
+    f = {0: 1.0, 1: 2.0, 2: 1.0}
+    kernel = {0: 1.0, 1: 0.5}
+    g = convolve(f, kernel)
+
+    f_rec = deconvolve(g, kernel)
+    for k in f:
+        assert math.isclose(f_rec[k].real, f[k], abs_tol=1e-5)
+        assert math.isclose(f_rec[k].imag, 0.0, abs_tol=1e-5)
+

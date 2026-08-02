@@ -104,7 +104,7 @@ from algebrax.converters import (
 )
 from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
 from algebrax.group import compose, invert, signature
-from algebrax.homology import SimplicialComplex
+from algebrax.homology import SimplicialComplex, coboundary, cohomology_rank
 from algebrax.lattice import (
     average,
     combine,
@@ -136,7 +136,16 @@ from algebrax.matrix import (
     transpose,
     vec_mat,
 )
-from algebrax.matrix.decompose import cholesky, lu, qr, svd
+from algebrax.matrix.decompose import (
+    cholesky,
+    lu,
+    qr,
+    recompose_cholesky,
+    recompose_lu,
+    recompose_qr,
+    recompose_svd,
+    svd,
+)
 from algebrax.metrics import (
     box_counting_dimension,
     count_elements,
@@ -194,13 +203,17 @@ from algebrax.tensor import (
     outer_product,
     tensordot,
     unflatten_tensor,
+    unpermute_tensor,
 )
 from algebrax.transforms import (
     convolve,
+    deconvolve,
     dft,
     gelfand_transform,
     hilbert,
     idft,
+    iwalsh_hadamard,
+    iz_transform,
     legendre_fenchel,
     lorentz_boost,
     permute_tensor,
@@ -261,12 +274,15 @@ __all__ = [
     'bayes_update',
     'box_counting_dimension',
     'cholesky',
+    'coboundary',
+    'cohomology_rank',
     'cofactor',
     'combine',
     'compose',
     'convolve',
     'count_elements',
     'cross_entropy',
+    'deconvolve',
     'deepness',
     'dense_to_sparse_matrix',
     'dense_to_sparse_tensor',
@@ -302,6 +318,8 @@ __all__ = [
     'inverse',
     'invert',
     'is_sparse',
+    'iwalsh_hadamard',
+    'iz_transform',
     'join',
     'kan_extension_left',
     'kl_divergence',
@@ -330,6 +348,10 @@ __all__ = [
     'prune_sparse',
     'qr',
     'ratio',
+    'recompose_cholesky',
+    'recompose_lu',
+    'recompose_qr',
+    'recompose_svd',
     'rotor_rotation',
     'sample',
     'sample_tensor',
@@ -350,6 +372,7 @@ __all__ = [
     'transpose',
     'unflatten_tensor',
     'uniformness',
+    'unpermute_tensor',
     'variance',
     'vec_mat',
     'verify_semiring_laws',

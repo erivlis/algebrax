@@ -143,3 +143,48 @@ class SimplicialComplex(SparseChainComplex):
             betti[k] = max(num_k - rank_dk - rank_dk1, 0)
 
         return betti
+
+
+def coboundary(complex: SparseChainComplex, k: int) -> SparseMatrix:
+    """
+    Compute the k-th coboundary operator d^k = D_{k+1}^T : C^k -> C^{k+1}.
+
+    Args:
+        complex: SparseChainComplex or SimplicialComplex instance.
+        k: Dimension index k.
+
+    Returns:
+        Sparse matrix representation of the coboundary operator d^k.
+    """
+    from algebrax.matrix.core import transpose
+
+    d_k1 = complex.boundary_matrices.get(k + 1, {})
+    return transpose(d_k1)
+
+
+def cohomology_rank(complex: SparseChainComplex, k: int) -> int:
+    """
+    Compute the k-th cohomology group rank dim(H^k).
+
+    Args:
+        complex: SparseChainComplex or SimplicialComplex instance.
+        k: Dimension index k.
+
+    Returns:
+        The k-th cohomology rank.
+    """
+    if isinstance(complex, SimplicialComplex):
+        return complex.betti_numbers(k).get(k, 0)
+
+    d_k = complex.boundary_matrices.get(k, {})
+    d_k1 = complex.boundary_matrices.get(k + 1, {})
+
+    rank_dk = _matrix_rank(d_k)
+    rank_dk1 = _matrix_rank(d_k1)
+
+    num_k = len({c for row in d_k.values() for c in row}) if d_k else 0
+    if not num_k and d_k1:
+        num_k = len(d_k1)
+
+    return max(num_k - rank_dk - rank_dk1, 0)
+
