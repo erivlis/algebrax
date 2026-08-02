@@ -18,10 +18,10 @@ T_Coeff = TypeVar('T_Coeff')
 
 
 def kleisli_compose(
-    f: SparseMatrix[K, V, T_Coeff],
-    g: SparseMatrix[V, W, T_Coeff],
+    f: SparseMatrix[K, T_Coeff],
+    g: SparseMatrix[V, T_Coeff],
     semiring: Semiring[T_Coeff] | None = None,
-) -> SparseMatrix[K, W, T_Coeff]:
+) -> SparseMatrix[K, T_Coeff]:
     """
     Compose effectful monadic morphisms f: K -> T(V) and g: V -> T(W)
     using Kleisli matrix composition (g o_T f) over the monad's semiring.
