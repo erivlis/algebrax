@@ -330,8 +330,10 @@ class GaloisFieldSemiring(QuotientMonoidAlgebraSemiring[int, int]):
         def quotient_fn(key: int, coeff: int) -> Iterable[tuple[int, int]]:
             return _gf_poly_mod(key, coeff, p=self.p, irreduc_poly=self.irreduc_poly)
 
+        from algebrax.semiring.arithmetic import ModularSemiring
+
         super().__init__(
-            coeff_semiring=StandardSemiring[int](),
+            coeff_semiring=ModularSemiring(self.p),
             key_op=key_op,
             zero_key=0,
             quotient_fn=quotient_fn,

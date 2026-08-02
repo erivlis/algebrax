@@ -95,9 +95,8 @@ class Semiring(Protocol[V]):
             PolynomialSemiring,
             ProvenanceSemiring,
             QuotientMonoidAlgebraSemiring,
-            StringSemiring,
         )
-        from algebrax.semiring.arithmetic import StandardSemiring
+        from algebrax.semiring.arithmetic import ModularSemiring, StandardSemiring
         from algebrax.semiring.logic import BooleanSemiring, DigitalSemiring, LukasiewiczSemiring
         from algebrax.semiring.optimization import (
             ArcticSemiring,
@@ -113,10 +112,11 @@ class Semiring(Protocol[V]):
             LogSemiring,
             VarianceSemiring,
         )
-        from algebrax.semiring.structures import KCollapsedSemiring
+        from algebrax.semiring.structures import KCollapsedSemiring, StringSemiring
 
         return {
             'Standard': StandardSemiring,
+            'Modular': ModularSemiring,
             'Tropical': TropicalSemiring,
             'Arctic': ArcticSemiring,
             'Viterbi': ViterbiSemiring,

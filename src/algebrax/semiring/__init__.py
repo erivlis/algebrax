@@ -12,7 +12,7 @@ from algebrax.semiring.algebraic import (
     ProvenanceSemiring,
     QuotientMonoidAlgebraSemiring,
 )
-from algebrax.semiring.arithmetic import StandardSemiring
+from algebrax.semiring.arithmetic import ModularSemiring, StandardSemiring
 from algebrax.semiring.logic import BooleanSemiring, DigitalSemiring, LukasiewiczSemiring
 from algebrax.semiring.optimization import (
     ArcticSemiring,
@@ -44,6 +44,7 @@ __all__ = [
     'LogSemiring',
     'LukasiewiczSemiring',
     'MinTimesSemiring',
+    'ModularSemiring',
     'MonoidAlgebraSemiring',
     'PolynomialSemiring',
     'ProvenanceSemiring',

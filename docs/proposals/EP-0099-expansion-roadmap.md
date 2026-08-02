@@ -118,21 +118,21 @@ Phase 0: Architecture Roadmap (EP-0099)
 
 ## Detailed Proposal Matrix
 
-| Proposal    | Title                      | Pillar   | Target Module        | Status | Deliverables                                        |
-|:------------|:---------------------------|:---------|:---------------------|:-------|:----------------------------------------------------|
-| **EP-0099** | Master Expansion Roadmap   | —        | Docs                 | Active | `EP-0099-expansion-roadmap.md`                      |
-| **EP-0100** | Quotient Monoid Algebras   | Shannon  | `algebrax.semiring`  | Final  | `QuotientMonoidAlgebraSemiring`, tests              |
-| **EP-0101** | Sparse Chain Complexes     | Shannon  | `algebrax.analysis`  | Final  | `SparseChainComplex`, `hodge_laplacian`, tests      |
-| **EP-0110** | Simplicial Homology        | Explorer | `algebrax.homology`  | Final  | `SimplicialComplex`, `betti_numbers`, Lab View 21   |
-| **EP-0111** | Clifford Geometric Algebra | Explorer | `algebrax.clifford`  | Final  | `CliffordSemiring`, `rotor_rotation`, Lab View 22   |
-| **EP-0112** | Galois Finite Fields       | Explorer | `algebrax.galois`    | Final  | `GaloisFieldSemiring`, `gf_matrix_mul`, Lab View 23 |
-| **EP-0113** | Categorical Morphisms      | Explorer | `algebrax.category`  | Final  | `kleisli_compose`, `kan_extension`, Lab View 24     |
-| **EP-0120** | Algebraic Web Explorer     | Feynman  | Web / Visual         | Draft  | `site/explorer/index.html`, HTML5/Canvas studio     |
-| **EP-0130** | API Consistency Audit      | Russell  | `algebrax.__init__`  | Final  | Public re-exports, Semiring catalog                 |
-| **EP-0131** | Algebraic Law Verification | Popper   | `tests/`             | Draft  | Property-based axiom tests, `verify_laws()`         |
-| **EP-0132** | Matrix Decompositions      | Noether  | `algebrax.decompose` | Draft  | Sparse LU, QR, SVD on dict-matrices                 |
-| **EP-0133** | Jupyter & CLI Integration  | Steward  | `algebrax.display`   | Draft  | `_repr_html_()`, `python -m algebrax inspect`       |
-| **EP-0134** | Semiring Namespace Refactor| Russell  | `algebrax.semiring/` | Final  | Categorical sub-modules, consolidated Clifford/Galois|
+| Proposal    | Title                       | Pillar   | Target Module           | Status | Deliverables                                                        |
+|:------------|:----------------------------|:---------|:------------------------|:-------|:--------------------------------------------------------------------|
+| **EP-0099** | Master Expansion Roadmap    | —        | Docs                    | Active | `EP-0099-expansion-roadmap.md`                                      |
+| **EP-0100** | Quotient Monoid Algebras    | Shannon  | `algebrax.semiring`     | Final  | `QuotientMonoidAlgebraSemiring`, tests                              |
+| **EP-0101** | Sparse Chain Complexes      | Shannon  | `algebrax.analysis`     | Final  | `SparseChainComplex`, `hodge_laplacian`, tests                      |
+| **EP-0110** | Simplicial Homology         | Explorer | `algebrax.homology`     | Final  | `SimplicialComplex`, `betti_numbers`, Lab View 21                   |
+| **EP-0111** | Clifford Geometric Algebra  | Explorer | `algebrax.clifford`     | Final  | `CliffordSemiring`, `rotor_rotation`, Lab View 22                   |
+| **EP-0112** | Galois Finite Fields        | Explorer | `algebrax.galois`       | Final  | `GaloisFieldSemiring`, `gf_matrix_mul`, Lab View 23                 |
+| **EP-0113** | Categorical Morphisms       | Explorer | `algebrax.category`     | Final  | `kleisli_compose`, `kan_extension`, Lab View 24                     |
+| **EP-0120** | Algebraic Web Explorer      | Feynman  | Web / Visual            | Draft  | `site/explorer/index.html`, HTML5/Canvas studio                     |
+| **EP-0130** | API Consistency Audit       | Russell  | `algebrax.__init__`     | Final  | Public re-exports, Semiring catalog                                 |
+| **EP-0131** | Algebraic Law Verification  | Popper   | `algebrax.verification` | Final  | Property-based axiom tests, CLI auditor `python -m algebrax.verify` |
+| **EP-0132** | Matrix Decompositions       | Noether  | `algebrax.decompose`    | Draft  | Sparse LU, QR, SVD on dict-matrices                                 |
+| **EP-0133** | Jupyter & CLI Integration   | Steward  | `algebrax.display`      | Draft  | `_repr_html_()`, `python -m algebrax inspect`                       |
+| **EP-0134** | Semiring Namespace Refactor | Russell  | `algebrax.semiring/`    | Final  | Categorical sub-modules, consolidated Clifford/Galois               |
 
 ---
 

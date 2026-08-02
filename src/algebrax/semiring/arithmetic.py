@@ -56,3 +56,36 @@ class StandardSemiring(Semiring[T_num], Generic[T_num]):
             return self._dtype('inf') if self._dtype is float else complex('inf')
 
         return self.one / (self.one - a)
+
+
+class ModularSemiring(Semiring[int]):
+    """
+    The Modular Integer Ring Z_p.
+    (Z_p, + mod p, * mod p, 0, 1)
+    Used for: Finite Fields, Modular Arithmetic, Cryptography.
+    """
+
+    def __init__(self, p: int = 2):
+        if p <= 0:
+            raise ValueError('ModularSemiring modulus p must be positive')
+        self.p = p
+
+    @property
+    def zero(self) -> int:
+        return 0
+
+    @property
+    def one(self) -> int:
+        return 1 % self.p
+
+    def add(self, a: int, b: int) -> int:
+        return (a + b) % self.p
+
+    def mul(self, a: int, b: int) -> int:
+        return (a * b) % self.p
+
+    def nsum(self, a: int, n: int) -> int:
+        return (a * n) % self.p
+
+    def power(self, a: int, n: int) -> int:
+        return pow(a, n, self.p)

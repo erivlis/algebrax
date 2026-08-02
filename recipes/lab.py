@@ -451,6 +451,11 @@ def run_semiring_power() -> None:
 
             semiring = DigitalSemiring()
             parser = int
+        elif semiring_name == 'Modular':
+            from algebrax.semiring import ModularSemiring
+
+            semiring = ModularSemiring(p=5)
+            parser = int
         elif semiring_name == 'Interval (Convex Hull)':
             semiring = IntervalSemiring()
 
@@ -2047,6 +2052,7 @@ def build_view_semiring() -> None:
                     'Provenance',
                     'Variance',
                     'Digital',
+                    'Modular',
                     'Interval (Convex Hull)',
                 ],
                 default_value='Standard',

@@ -66,6 +66,7 @@ Modules
 *   **`clifford`**: Clifford Geometric Algebra & Rotor Rotations.
 *   **`galois`**: Galois Finite Field Arithmetic.
 *   **`category`**: Categorical Morphisms & Kleisli Composition.
+*   **`verification`**: Algebraic Law Verification Engine.
 """
 
 from algebrax.analysis import (
@@ -168,6 +169,7 @@ from algebrax.semiring import (
     LogSemiring,
     LukasiewiczSemiring,
     MinTimesSemiring,
+    ModularSemiring,
     MonoidAlgebraSemiring,
     PolynomialSemiring,
     ProvenanceSemiring,
@@ -207,6 +209,11 @@ from algebrax.typing import (
     SparseTensor,
     SparseVector,
 )
+from algebrax.verification import (
+    get_semiring_samples,
+    semiring_elements_equal,
+    verify_semiring_laws,
+)
 
 __all__ = [
     'AlgebraicTrie',
@@ -225,6 +232,7 @@ __all__ = [
     'LogSemiring',
     'LukasiewiczSemiring',
     'MinTimesSemiring',
+    'ModularSemiring',
     'MonoidAlgebraSemiring',
     'PolynomialSemiring',
     'ProvenanceSemiring',
@@ -276,6 +284,7 @@ __all__ = [
     'gelfand_transform',
     'geometric_mean',
     'geometric_product',
+    'get_semiring_samples',
     'gf_matrix_mul',
     'gradient',
     'harmonic_mean',
@@ -313,6 +322,7 @@ __all__ = [
     'rotor_rotation',
     'sample',
     'sample_tensor',
+    'semiring_elements_equal',
     'signature',
     'simulate_dfa',
     'simulate_nfa',
@@ -329,6 +339,7 @@ __all__ = [
     'uniformness',
     'variance',
     'vec_mat',
+    'verify_semiring_laws',
     'walsh_hadamard',
     'wideness',
     'z_transform',
