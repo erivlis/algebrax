@@ -36,12 +36,16 @@ __all__ = [
     'dense_to_sparse_tensor',
     'dense_to_sparse_vector',
     'flat_to_nested',
+    'get_matrix_keys',
+    'grid_to_sparse',
     'nested_to_flat',
+    'prune_sparse',
     'sample',
     'sample_tensor',
     'sparse_to_dense_matrix',
     'sparse_to_dense_tensor',
     'sparse_to_dense_vector',
+    'sparse_to_grid',
 ]
 
 
@@ -151,16 +155,109 @@ def sparse_to_dense_matrix(
                 max_col = max(max_col, max(row.keys()))
         shape = (max_row + 1, max_col + 1)
 
-    rows, cols = shape
-    result = [[default] * cols for _ in range(rows)]
+    rows = list(range(shape[0]))
+    cols = list(range(shape[1]))
+    return sparse_to_grid(matrix, rows, cols, fill_value=default)
 
+
+def get_matrix_keys(matrix: SparseMatrix) -> tuple[list[Any], list[Any]]:
+    """
+    Extract sorted row keys and column keys from a sparse matrix.
+
+    Args:
+        matrix: A sparse matrix dict[i, dict[j, val]].
+
+    Returns:
+        A tuple (sorted_rows, sorted_cols).
+    """
+    rows = sorted(matrix.keys(), key=str)
+    cols_set: set[Any] = set()
+    for r in rows:
+        cols_set.update(matrix[r].keys())
+    cols = sorted(cols_set, key=str)
+    return rows, cols
+
+
+def sparse_to_grid(
+    matrix: SparseMatrix,
+    rows: list[Any],
+    cols: list[Any],
+    fill_value: Any = 0.0,
+) -> list[list[Any]]:
+    """
+    Convert a sparse matrix mapping to a 2D dense float list for fast indexing.
+
+    Args:
+        matrix: Sparse matrix mapping.
+        rows: Ordered list of row keys.
+        cols: Ordered list of column keys.
+        fill_value: Value for missing entries (default: 0.0).
+
+    Returns:
+        A 2D list grid[row_idx][col_idx].
+    """
+    return [
+        [matrix.get(r, {}).get(c, fill_value) for c in cols]
+        for r in rows
+    ]
+
+
+def grid_to_sparse(
+    grid: list[list[Any]],
+    rows: list[Any],
+    cols: list[Any],
+    tol: float = 1e-12,
+) -> SparseMatrix:
+    """
+    Convert a 2D dense list back to a pruned sparse matrix mapping.
+
+    Args:
+        grid: A 2D list grid[row_idx][col_idx].
+        rows: Ordered list of row keys.
+        cols: Ordered list of column keys.
+        tol: Absolute tolerance below which values are pruned as zero.
+
+    Returns:
+        A sparse matrix dict[row, dict[col, val]].
+    """
+    res: dict[Any, dict[Any, Any]] = {}
+    for i, r in enumerate(rows):
+        row_dict: dict[Any, Any] = {}
+        for j, c in enumerate(cols):
+            val = grid[i][j]
+            if isinstance(val, (int, float)):
+                if abs(val) > tol:
+                    row_dict[c] = val
+            elif val != 0:
+                row_dict[c] = val
+        if row_dict:
+            res[r] = row_dict
+    return res
+
+
+def prune_sparse(matrix: SparseMatrix, tol: float = 1e-12) -> SparseMatrix:
+    """
+    Prune zero or near-zero values from a sparse matrix dictionary.
+
+    Args:
+        matrix: A sparse matrix mapping.
+        tol: Absolute tolerance threshold.
+
+    Returns:
+        A new sparse matrix with near-zero entries removed.
+    """
+    res = {}
     for r, row in matrix.items():
-        if 0 <= r < rows:
-            for c, v in row.items():
-                if 0 <= c < cols:
-                    result[r][c] = v
-
-    return result
+        clean_row = {}
+        for c, v in row.items():
+            if isinstance(v, (int, float)):
+                if abs(v) > tol:
+                    clean_row[c] = v
+            elif v != 0:
+                clean_row[c] = v
+        if clean_row:
+            res[r] = clean_row
+    return res
 
 
 # endregion

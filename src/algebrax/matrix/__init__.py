@@ -16,10 +16,17 @@ from algebrax.matrix.core import (
     transpose,
     vec_mat,
 )
+from algebrax.matrix.decompose import (
+    cholesky,
+    lu,
+    qr,
+    svd,
+)
 
 __all__ = [
     'add',
     'adjoint',
+    'cholesky',
     'cofactor',
     'determinant',
     'dot',
@@ -27,8 +34,11 @@ __all__ = [
     'inner',
     'inverse',
     'kronecker_delta',
+    'lu',
     'mat_vec',
     'power',
+    'qr',
+    'svd',
     'trace',
     'transpose',
     'vec_mat',

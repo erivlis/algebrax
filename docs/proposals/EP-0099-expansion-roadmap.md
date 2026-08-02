@@ -130,7 +130,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0120** | Algebraic Web Explorer      | Feynman  | Web / Visual            | Draft  | `site/explorer/index.html`, HTML5/Canvas studio                     |
 | **EP-0130** | API Consistency Audit       | Russell  | `algebrax.__init__`     | Final  | Public re-exports, Semiring catalog                                 |
 | **EP-0131** | Algebraic Law Verification  | Popper   | `algebrax.verification` | Final  | Property-based axiom tests, CLI auditor `python -m algebrax.verify` |
-| **EP-0132** | Matrix Decompositions       | Noether  | `algebrax.decompose`    | Draft  | Sparse LU, QR, SVD on dict-matrices                                 |
+| **EP-0132** | Matrix Decompositions       | Noether  | `algebrax.decompose`    | Final  | Sparse LU, QR, SVD, Cholesky on dict-matrices                       |
 | **EP-0133** | Jupyter & CLI Integration   | Steward  | `algebrax.display`      | Draft  | `_repr_html_()`, `python -m algebrax inspect`                       |
 | **EP-0134** | Semiring Namespace Refactor | Russell  | `algebrax.semiring/`    | Final  | Categorical sub-modules, consolidated Clifford/Galois               |
 

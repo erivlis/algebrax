@@ -5,7 +5,7 @@ description: Property-based testing and automated verification of semiring axiom
 
 # Algebraic Law Verification Engine (EP-0131)
 
-The **`algebrax.verification`** module implements **Popper's Falsifiability Pillar**: property-based verification of formal algebraic axioms across all built-in semiring types.
+The **`algebrax.verification`** module provides property-based verification of formal algebraic axioms across all built-in semiring types.
 
 ---
 

@@ -22,6 +22,11 @@ nav = [
         { "Fundamentals & Verification" = [
             "tutorials/semirings/algebraic_law_verification.md",
             "tutorials/semirings/semiring_standard.md",
+        ] },
+        { "Sparse Matrix & Linear Algebra" = [
+            "tutorials/matrix/matrix_core.md",
+            "tutorials/matrix/matrix_academic.md",
+            "tutorials/matrix/matrix_decompositions.md",
             "tutorials/semirings/semiring_matrix.md",
         ] },
         { "Optimization & Paths" = [

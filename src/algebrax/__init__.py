@@ -67,6 +67,7 @@ Modules
 *   **`galois`**: Galois Finite Field Arithmetic.
 *   **`category`**: Categorical Morphisms & Kleisli Composition.
 *   **`verification`**: Algebraic Law Verification Engine.
+*   **`decompose`**: Matrix Decompositions (LU, QR, SVD, Cholesky).
 """
 
 from algebrax.analysis import (
@@ -90,12 +91,16 @@ from algebrax.converters import (
     dense_to_sparse_tensor,
     dense_to_sparse_vector,
     flat_to_nested,
+    get_matrix_keys,
+    grid_to_sparse,
     nested_to_flat,
+    prune_sparse,
     sample,
     sample_tensor,
     sparse_to_dense_matrix,
     sparse_to_dense_tensor,
     sparse_to_dense_vector,
+    sparse_to_grid,
 )
 from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
 from algebrax.group import compose, invert, signature
@@ -131,6 +136,7 @@ from algebrax.matrix import (
     transpose,
     vec_mat,
 )
+from algebrax.matrix.decompose import cholesky, lu, qr, svd
 from algebrax.metrics import (
     box_counting_dimension,
     count_elements,
@@ -254,6 +260,7 @@ __all__ = [
     'average',
     'bayes_update',
     'box_counting_dimension',
+    'cholesky',
     'cofactor',
     'combine',
     'compose',
@@ -278,15 +285,16 @@ __all__ = [
     'exclusive',
     'expected_value',
     'flat_to_nested',
-    'flatten_tensor',
     'forman_ricci_curvature',
     'gaussian_kernel',
     'gelfand_transform',
     'geometric_mean',
     'geometric_product',
+    'get_matrix_keys',
     'get_semiring_samples',
     'gf_matrix_mul',
     'gradient',
+    'grid_to_sparse',
     'harmonic_mean',
     'hilbert',
     'idft',
@@ -303,6 +311,7 @@ __all__ = [
     'laplacian',
     'legendre_fenchel',
     'lorentz_boost',
+    'lu',
     'marginalize',
     'markov_steady_state',
     'markov_step',
@@ -318,6 +327,8 @@ __all__ = [
     'permute_tensor',
     'power',
     'product',
+    'prune_sparse',
+    'qr',
     'ratio',
     'rotor_rotation',
     'sample',
@@ -330,7 +341,9 @@ __all__ = [
     'sparse_to_dense_matrix',
     'sparse_to_dense_tensor',
     'sparse_to_dense_vector',
+    'sparse_to_grid',
     'sparsity',
+    'svd',
     'symmetric_difference',
     'tensordot',
     'trace',

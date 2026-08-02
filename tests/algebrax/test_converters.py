@@ -3,12 +3,16 @@ from algebrax.converters import (
     dense_to_sparse_tensor,
     dense_to_sparse_vector,
     flat_to_nested,
+    get_matrix_keys,
+    grid_to_sparse,
     nested_to_flat,
+    prune_sparse,
     sample,
     sample_tensor,
     sparse_to_dense_matrix,
     sparse_to_dense_tensor,
     sparse_to_dense_vector,
+    sparse_to_grid,
 )
 
 
@@ -266,3 +270,23 @@ def test_converters_branch_coverage():
     assert dense_to_sparse_tensor([''], default='') == {}
     assert sparse_to_dense_tensor(42) == 42
     assert sparse_to_dense_tensor({10: 1.0}, shape=(2,)) == [0, 0]
+
+
+def test_grid_converters():
+    graph_mat = {
+        "node_B": {"node_A": 2.0},
+        "node_A": {"node_A": 1.0, "node_B": 3.0},
+    }
+    rows, cols = get_matrix_keys(graph_mat)
+    assert rows == ["node_A", "node_B"]
+    assert cols == ["node_A", "node_B"]
+
+    grid = sparse_to_grid(graph_mat, rows, cols)
+    assert grid == [[1.0, 3.0], [2.0, 0.0]]
+
+    reconstructed = grid_to_sparse(grid, rows, cols)
+    assert reconstructed == graph_mat
+
+    pruned = prune_sparse({"a": {"b": 1e-15, "c": 4.0}})
+    assert pruned == {"a": {"c": 4.0}}
+

@@ -2,7 +2,7 @@
 title: "EP-0132: Matrix Decompositions — LU, QR, SVD"
 description: "Sparse dictionary-based matrix decomposition primitives completing the Noether symmetry of construction/deconstruction."
 icon: lucide/split
-status: draft
+status: final
 ---
 
 # EP-0132: Matrix Decompositions — LU, QR, SVD
@@ -12,7 +12,7 @@ status: draft
 | **EP**      | 0132                                |
 | **Title**   | Matrix Decompositions — LU, QR, SVD |
 | **Author**  | Eran Rivlis & Antigravity           |
-| **Status**  | Draft                               |
+| **Status**  | Final                               |
 | **Type**    | Standards Track                     |
 | **Created** | 2026-08-02                          |
 | **Updated** | 2026-08-02                          |
@@ -31,7 +31,7 @@ asymmetry that Noether's pillar demands we resolve.
 
 ## Specification
 
-### Module: `algebrax.decompose`
+### Module: `algebrax.matrix.decompose`
 
 ```python
 def lu(matrix: SparseMatrix) -> tuple[SparseMatrix, SparseMatrix, SparseMatrix]:
@@ -61,3 +61,4 @@ Purely additive. New module `algebrax.decompose`.
 ## Change Log
 
 * **2026-08-02:** Initial Draft.
+* **2026-08-02:** Implemented `algebrax.decompose` (`lu`, `qr`, `svd`, `cholesky`) and unit tests (278 tests passing). Status → Final.
