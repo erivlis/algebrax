@@ -207,6 +207,6 @@ The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/reciepes) fold
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
-* **File**: [`lab.py`](https://github.com/erivlis/algebrax/blob/main/reciepes/lab.py)
-* **Run**: `uv run reciepes/lab.py`
+* **File**: [`lab.py`](https://github.com/erivlis/algebrax/blob/main/recipes/lab.py)
+* **Run**: `uv run recipes/lab.py`
 * **Summary**: Desktop GUI built with DearPyGui featuring 12 interactive modules: real image file convolution with side-by-side texture preview, force-directed graph curvature visualization, semiring matrix powers, CYK parsing, DFA/NFA simulators, signal transforms, and information theory tools.

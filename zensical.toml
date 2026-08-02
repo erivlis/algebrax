@@ -71,20 +71,7 @@ nav = [
         "recipes.md"
     ] },
     { Proposals = [
-        "proposals/EP-0000-process.md",
-        "proposals/EP-0099-expansion-roadmap.md",
-        "proposals/EP-0100-quotient-monoid-algebra.md",
-        "proposals/EP-0101-sparse-chain-complex.md",
-        "proposals/EP-0110-simplicial-homology.md",
-        "proposals/EP-0111-clifford-geometric-algebra.md",
-        "proposals/EP-0112-galois-finite-fields.md",
-        "proposals/EP-0113-categorical-kleisli.md",
-        "proposals/EP-0120-algebraic-web-explorer.md",
-        "proposals/EP-0130-api-consistency-audit.md",
-        "proposals/EP-0131-algebraic-law-verification.md",
-        "proposals/EP-0132-matrix-decompositions.md",
-        "proposals/EP-0133-jupyter-cli-integration.md",
-        "proposals/EP-0134-semiring-namespace-refactoring.md"
+        "eps.md"
     ] }
 ]
 
