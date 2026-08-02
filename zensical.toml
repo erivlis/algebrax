@@ -70,7 +70,8 @@ nav = [
         "proposals/EP-0130-api-consistency-audit.md",
         "proposals/EP-0131-algebraic-law-verification.md",
         "proposals/EP-0132-matrix-decompositions.md",
-        "proposals/EP-0133-jupyter-cli-integration.md"
+        "proposals/EP-0133-jupyter-cli-integration.md",
+        "proposals/EP-0134-semiring-namespace-refactoring.md"
     ] }
 ]
 

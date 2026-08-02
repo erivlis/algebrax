@@ -62,6 +62,10 @@ Modules
 *   **`semiring`**: Generalized algebrax (Tropical, Boolean, String).
 *   **`trie`**: Algebraic Tries (Sparse Tensors).
 *   **`typing`**: Type aliases for sparse/dense structures.
+*   **`homology`**: Simplicial Complexes & Betti Numbers.
+*   **`clifford`**: Clifford Geometric Algebra & Rotor Rotations.
+*   **`galois`**: Galois Finite Field Arithmetic.
+*   **`category`**: Categorical Morphisms & Kleisli Composition.
 """
 
 from algebrax.analysis import (
@@ -78,6 +82,8 @@ from algebrax.automata import (
     simulate_dfa,
     simulate_nfa,
 )
+from algebrax.category import kan_extension_left, kleisli_compose
+from algebrax.clifford import CliffordSemiring, geometric_product, rotor_rotation
 from algebrax.converters import (
     dense_to_sparse_matrix,
     dense_to_sparse_tensor,
@@ -90,7 +96,9 @@ from algebrax.converters import (
     sparse_to_dense_tensor,
     sparse_to_dense_vector,
 )
+from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
 from algebrax.group import compose, invert, signature
+from algebrax.homology import SimplicialComplex
 from algebrax.lattice import (
     average,
     combine,
@@ -205,11 +213,13 @@ __all__ = [
     'ArcticSemiring',
     'BooleanSemiring',
     'BottleneckSemiring',
+    'CliffordSemiring',
     'DenseMatrix',
     'DenseVector',
     'DigitalSemiring',
     'DualNumberSemiring',
     'ExpectationSemiring',
+    'GaloisFieldSemiring',
     'KCollapsedSemiring',
     'KnotSemiring',
     'LogSemiring',
@@ -221,6 +231,7 @@ __all__ = [
     'QuotientMonoidAlgebraSemiring',
     'ReliabilitySemiring',
     'Semiring',
+    'SimplicialComplex',
     'SparseChainComplex',
     'SparseMatrix',
     'SparseTensor',
@@ -264,6 +275,8 @@ __all__ = [
     'gaussian_kernel',
     'gelfand_transform',
     'geometric_mean',
+    'geometric_product',
+    'gf_matrix_mul',
     'gradient',
     'harmonic_mean',
     'hilbert',
@@ -273,7 +286,9 @@ __all__ = [
     'invert',
     'is_sparse',
     'join',
+    'kan_extension_left',
     'kl_divergence',
+    'kleisli_compose',
     'kronecker_delta',
     'kurtosis',
     'laplacian',
@@ -295,6 +310,7 @@ __all__ = [
     'power',
     'product',
     'ratio',
+    'rotor_rotation',
     'sample',
     'sample_tensor',
     'signature',

@@ -1,6 +1,6 @@
 ---
 title: "EP-0131: Algebraic Law Verification Engine"
-description: "Property-based testing framework that automatically verifies semiring axioms across all 21+ semiring types."
+description: "Property-based testing framework that automatically verifies semiring axioms across all 23 semiring types."
 icon: lucide/flask-conical
 status: draft
 ---
@@ -19,7 +19,7 @@ status: draft
 
 ## Abstract
 
-The library provides 21+ semiring implementations, each claiming to satisfy specific algebraic axioms (associativity,
+The library provides 23 semiring implementations, each claiming to satisfy specific algebraic axioms (associativity,
 distributivity, identity, annihilation). Currently, these axioms are tested implicitly through application-level tests.
 This proposal introduces an **Algebraic Law Verification Engine** that systematically and automatically tests every
 axiom for every semiring type.

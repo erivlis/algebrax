@@ -128,10 +128,11 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0112** | Galois Finite Fields       | Explorer | `algebrax.galois`    | Final  | `GaloisFieldSemiring`, `gf_matrix_mul`, Lab View 23 |
 | **EP-0113** | Categorical Morphisms      | Explorer | `algebrax.category`  | Final  | `kleisli_compose`, `kan_extension`, Lab View 24     |
 | **EP-0120** | Algebraic Web Explorer     | Feynman  | Web / Visual         | Draft  | `site/explorer/index.html`, HTML5/Canvas studio     |
-| **EP-0130** | API Consistency Audit      | Russell  | `algebrax.__init__`  | Draft  | Public re-exports, Semiring catalog                 |
+| **EP-0130** | API Consistency Audit      | Russell  | `algebrax.__init__`  | Final  | Public re-exports, Semiring catalog                 |
 | **EP-0131** | Algebraic Law Verification | Popper   | `tests/`             | Draft  | Property-based axiom tests, `verify_laws()`         |
 | **EP-0132** | Matrix Decompositions      | Noether  | `algebrax.decompose` | Draft  | Sparse LU, QR, SVD on dict-matrices                 |
 | **EP-0133** | Jupyter & CLI Integration  | Steward  | `algebrax.display`   | Draft  | `_repr_html_()`, `python -m algebrax inspect`       |
+| **EP-0134** | Semiring Namespace Refactor| Russell  | `algebrax.semiring/` | Final  | Categorical sub-modules, consolidated Clifford/Galois|
 
 ---
 
@@ -142,3 +143,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-08-01 | Eran Rivlis & Antigravity | Initial Master Roadmap EP created.                                |
 | 2026-08-02 | Eran Rivlis & Antigravity | Implemented Phase 1 & Phase 2 proposals; status updated to Final. |
 | 2026-08-02 | Eran Rivlis & Antigravity | Phase 3 track added: EP-0120, EP-0130, EP-0131, EP-0132, EP-0133. |
+| 2026-08-02 | Eran Rivlis & Antigravity | EP-0134 (Semiring Namespace Refactoring) added to Phase 3.        |

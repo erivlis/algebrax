@@ -61,14 +61,13 @@ A set $S$ with two operations, Addition ($\oplus$) and Multiplication ($\otimes$
 
 **Examples in Library** (`algebrax.semiring`):
 
-* **Standard**: $(\mathbb{R}, +, \times)$. Standard Matrix Multiplication.
-* **Tropical**: $(\mathbb{R} \cup \{\infty\}, \min, +)$. Shortest Path algorithms.
-* **Boolean**: $(\{T, F\}, \lor, \land)$. Reachability / Transitive Closure.
-* **Viterbi / Reliability**: $([0, 1], \max, \times)$. Most likely path in HMMs and network reliability.
-* **Monoid Algebra**: $(\sum a_m m, \oplus, \otimes)$. General formal sum $R[M]$ over monoid $M$.
-* **Polynomial**: Univariate polynomial ring $R[x]$ over $(\mathbb{N}_0, +)$. Signal processing (FIR filters).
-* **Knot**: Skein module $R[\text{Knots}]$ over connected sum ($\#$). Topological invariants.
-* **Provenance**: Polynomial ring $\mathbb{N}[X]$ over tuple monomials. Database history tracking.
+Semirings are organized into categorical sub-modules under `algebrax.semiring`:
+* **`arithmetic`**: `StandardSemiring` $(\mathbb{R}, +, \times)$. Standard Matrix Multiplication.
+* **`optimization`**: `TropicalSemiring` $(\mathbb{R} \cup \{\infty\}, \min, +)$, `ArcticSemiring`, `ViterbiSemiring`, `ReliabilitySemiring`, `BottleneckSemiring`, `MinTimesSemiring`. Shortest path and capacity algorithms.
+* **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations.
+* **`statistical`**: `LogSemiring`, `ExpectationSemiring`, `VarianceSemiring`, `DualNumberSemiring`. Probabilistic inference, moments, automatic differentiation.
+* **`structures`**: `StringSemiring`, `KCollapsedSemiring`. Formal path languages, bounded counting.
+* **`algebraic`**: `MonoidAlgebraSemiring`, `PolynomialSemiring`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordSemiring`, `GaloisFieldSemiring`. Free & quotient monoid algebras, skein modules, Clifford multivectors, finite fields.
 
 ### 5. Ring $(R, +, \cdot)$
 

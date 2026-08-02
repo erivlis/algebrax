@@ -2,7 +2,7 @@
 title: "EP-0130: API Consistency & Public Export Audit"
 description: "Resolve the __init__.py export gap for Phase 2 modules and introduce a Semiring discovery catalog."
 icon: lucide/shield-check
-status: draft
+status: final
 ---
 
 # EP-0130: API Consistency & Public Export Audit
@@ -12,7 +12,7 @@ status: draft
 | **EP**      | 0130                                  |
 | **Title**   | API Consistency & Public Export Audit |
 | **Author**  | Eran Rivlis & Antigravity             |
-| **Status**  | Draft                                 |
+| **Status**  | Final                                 |
 | **Type**    | Standards Track                       |
 | **Created** | 2026-08-02                            |
 | **Updated** | 2026-08-02                            |
@@ -65,3 +65,4 @@ Purely additive. No existing behavior changes.
 ## Change Log
 
 * **2026-08-02:** Initial Draft.
+* **2026-08-02:** Implemented. Status → Final.
