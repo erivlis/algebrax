@@ -6,9 +6,18 @@ icon: lucide/lightbulb
 
 # Concepts
 
-This document provides a theoretical overview of the algebraic structures used in `algebrax`. Understanding
-these concepts helps clarify why certain operations are grouped together and how they generalize across different
-domains (graphs, logic, probability).
+This document provides a theoretical overview of the algebraic structures used in `algebrax`. Understanding these
+concepts helps clarify why certain operations are grouped together and how they generalize across different domains
+(graphs, logic, probability).
+
+> [!TIP]
+> **Semiring Mental Model**
+> Think of a Semiring as an arithmetic engine where you swap out standard Addition (+) and
+> Multiplication (×) for any custom rules — like $(\min, +)$ for shortest paths, or $(\max, \times)$
+> for link reliability. The exact same sparse matrix multiplication algorithm (`dot`) then solves completely
+> different problems just by switching the semiring!
+
+---
 
 ## Algebraic Structures
 
@@ -59,12 +68,15 @@ A set $S$ with two operations, Addition ($\oplus$) and Multiplication ($\otimes$
 
 **Crucially**: Semirings do **not** require additive inverses (subtraction) or multiplicative inverses (division).
 
-**Examples in Library** (`algebra.semiring`):
+**Examples in Library** (`algebrax.semiring`):
 
-* **Standard**: $(\mathbb{R}, +, \times)$. Standard Matrix Multiplication.
-* **Tropical**: $(\mathbb{R} \cup \{\infty\}, \min, +)$. Shortest Path algorithms.
-* **Boolean**: $(\{T, F\}, \lor, \land)$. Reachability / Transitive Closure.
-* **Viterbi**: $([0, 1], \max, \times)$. Most likely path in HMMs.
+Semirings are organized into categorical sub-modules under `algebrax.semiring`:
+* **`arithmetic`**: `StandardSemiring` $(\mathbb{R}, +, \times)$. Standard Matrix Multiplication.
+* **`optimization`**: `TropicalSemiring` $(\mathbb{R} \cup \{\infty\}, \min, +)$, `ArcticSemiring`, `ViterbiSemiring`, `ReliabilitySemiring`, `BottleneckSemiring`, `MinTimesSemiring`. Shortest path and capacity algorithms.
+* **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations.
+* **`statistical`**: `LogSemiring`, `ExpectationSemiring`, `VarianceSemiring`, `DualNumberSemiring`. Probabilistic inference, moments, automatic differentiation.
+* **`structures`**: `StringSemiring`, `KCollapsedSemiring`. Formal path languages, bounded counting.
+* **`algebraic`**: `MonoidAlgebraSemiring`, `PolynomialSemiring`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordSemiring`, `GaloisFieldSemiring`. Free & quotient monoid algebras, skein modules, Clifford multivectors, finite fields.
 
 ### 5. Ring $(R, +, \cdot)$
 
@@ -72,7 +84,7 @@ A Semiring that **has additive inverses**.
 
 * $(R, +)$ is an Abelian Group (Subtraction is defined).
 
-**Example**: Integers $\mathbb{Z}$, Square Matrices $M_n(\mathbb{R})$.
+**Example**: Integers $\mathbb{Z}$, Square Matrices $M_n (\mathbb{R})$.
 
 ### 6. Field $(F, +, \cdot)$
 
@@ -109,86 +121,67 @@ trivectors).
 
 ---
 
-## Discrete Exterior Calculus (DEC)
+## Discrete Exterior Calculus (DEC) & Simplicial Homology
 
-The `algebra.analysis` module implements concepts from DEC on graphs.
+The `algebrax.analysis` and `algebrax.homology` modules implement concepts from DEC and Topological Homology on graphs
+and $k$-dimensional simplicial complexes.
 
-| Concept                  | Mathematical Object          | Library Type   | Example                           |
-|:-------------------------|:-----------------------------|:---------------|:----------------------------------|
-| **0-form**               | Scalar Field (on nodes)      | `SparseVector` | Temperature at each city          |
-| **1-form**               | Vector Field (on edges)      | `SparseMatrix` | Traffic flow between cities       |
-| **Gradient ($d_0$)**     | $d: \Omega^0 \to \Omega^1$   | `gradient()`   | Difference in temp between cities |
-| **Divergence ($d_0^*$)** | $d^*: \Omega^1 \to \Omega^0$ | `divergence()` | Net traffic flow out of a city    |
-| **Laplacian ($\Delta$)** | $\Delta = d^* d$             | `laplacian()`  | Heat diffusion rate               |
-
-**Note on Curl**:
-The Curl operator ($d_1$) maps 1-forms (edges) to 2-forms (faces). Since `algebrax` operates on Graphs (nodes and
-edges only), there are no 2-forms (triangles/faces), so **Curl is undefined** (or trivially zero). To support Curl, the
-library would need to support Simplicial Complexes.
-
----
-
-## The Algebraic Trie (Sparse Tensor)
-
-The `AlgebraicTrie` (`algebra.trie`) is a generalization of the classic Trie (Prefix Tree) data structure.
-
-Mathematically, a Trie is isomorphic to a **Sparse Tensor** of arbitrary rank.
-
-* **Indices**: The sequence of keys (e.g., characters in a string) corresponds to the indices of the
-  tensor $(i_1, i_2, \dots, i_k)$.
-* **Values**: The value stored at a node corresponds to the tensor value $T_{i_1, i_2, \dots, i_k}$.
-
-By equipping the Trie with a **Semiring**, we can perform algebraic operations:
-
-* **Insertion (`add`)**: Corresponds to Tensor Addition ($T \oplus V$).
-    * If Semiring is `Standard` (+), values accumulate (Count).
-    * If Semiring is `Tropical` (min), values update to the minimum (Shortest Path).
-* **Contraction (`contract`)**: Corresponds to Tensor Contraction (Marginalization).
-    * Summing up all values in a subtree is equivalent to summing over the remaining dimensions of the tensor.
-
-This abstraction allows the same `AlgebraicTrie` class to serve as:
-
-1. **Word Counter**: `StandardSemiring` (Sum counts).
-2. **Probabilistic Suffix Tree**: `ProbabilitySemiring` (Sum probabilities).
-3. **Fuzzy Search Index**: `TropicalSemiring` (Minimize edit distance).
+| Concept                       | Mathematical Object                        | Library Type / Function | Example / Application                        |
+|:------------------------------|:-------------------------------------------|:------------------------|:---------------------------------------------|
+| **0-form**                    | Scalar Field (on nodes)                    | `SparseVector`          | Temperature at each city                     |
+| **1-form**                    | Vector Field (on edges)                    | `SparseMatrix`          | Traffic flow between cities                  |
+| **Gradient ($d_0$)**          | $d_0: \Omega^0 \to \Omega^1$               | `gradient()`            | Difference in temp between cities            |
+| **Divergence ($d_0^*$)**      | $d_0^*: \Omega^1 \to \Omega^0$             | `divergence()`          | Net traffic flow out of a city               |
+| **Laplacian ($\Delta$)**      | $\Delta = d^* d$                           | `laplacian()`           | Heat diffusion rate                          |
+| **$k$-Simplex**               | $k$-dim face $(v_0, \dots, v_k)$           | `SimplicialComplex`     | Triangles, tetrahedra, cliques               |
+| **Boundary ($D_k$)**          | $D_k: C_k \to C_{k-1}$                     | `boundary_matrix()`     | Face boundary alternating sums               |
+| **Nilpotency**                | $D_{k-1} \circ D_k = \mathbf{0}$           | `verify_nilpotency()`   | Fundamental homology boundary law            |
+| **Hodge-Laplacian**           | $\Delta_k = D_{k+1} D_{k+1}^T + D_k^T D_k$ | `hodge_laplacian()`     | $k$-form diffusion & harmonic forms          |
+| **Betti Numbers ($\beta_k$)** | $\dim(\ker D_k) - \text{rank}(D_{k+1})$    | `betti_numbers()`       | Hole count ($\beta_0$ comp, $\beta_1$ loops) |
 
 ---
 
-## Why Semirings?
+## Clifford Geometric Algebra ($Cl (p, q, r)$)
 
-`algebrax` focuses heavily on **Semirings** because many discrete structures (graphs, automata, logic) do not
-support subtraction or division.
+The `algebrax.clifford` module implements **Clifford Geometric Algebra** over `QuotientMonoidAlgebraSemiring`.
+Multivectors unify scalars, vectors, bivectors, and pseudoscalars into a single sparse mapping `{blade_tuple: coeff}`.
 
-* **Shortest Path**: You cannot "un-take" a minimum. $a \oplus b = \min(a, b)$. If $a=5, b=3$, result is 3. You cannot
-  recover 5 from 3.
-* **Reachability**: $T \lor F = T$. You cannot subtract $F$ to get $T$.
+* **Geometric Product**: $A B = A \cdot B + A \wedge B$ (computed via `geometric_product()`).
+* **Canonical Blade Reduction**: $\mathbf{e}_i \mathbf{e}_j = -\mathbf{e}_j \mathbf{e}_i$ and $\mathbf{e}_i^2 = +1$
+  ($i \le p$), $-1$ ($p < i \le p+q$), $0$ ($i > p+q$).
+* **Rotor Sandwiching ($v' = R v R^\dagger$)**: Smooth 3D spatial rotations $R = \exp (-\theta/2 \mathbf{B})$ via
+  `rotor_rotation()` without gimbal lock or matrix conversions.
 
-By abstracting matrix multiplication to use Semiring operations, we allow the same `matrix.dot` and `matrix.power`
-functions to solve:
+---
 
-1. **Physics**: Quantum Mechanics (Standard Algebra).
-2. **Optimization**: Shortest Path (Tropical Algebra).
-3. **Logic**: Connectivity (Boolean Algebra).
-4. **Inference**: Viterbi Decoding (Max-Product Algebra).
-5. **Linguistics**: Regular Expressions (String Algebra).
+## Galois Finite Field Arithmetic ($\text{GF} (p^m)$)
 
-## Why Not Clifford Algebra?
+The `algebrax.galois` module provides finite field arithmetic over `QuotientMonoidAlgebraSemiring`. Elements are
+represented as sparse polynomial vectors `{exponent: coeff}` modulo an irreducible polynomial $P (x)$.
 
-While Clifford Algebra is powerful for geometry (rotations, physics), it is **not implemented** in `algebrax`
-because:
+* **Polynomial Modulo Reduction**: Polynomial multiplication in $\mathbb{F}_p[x]$ reduced modulo $P (x)$
+  (e.g. $x^8 + x^4 + x^3 + x + 1$ for AES $\text{GF} (2^8)$).
+* **Matrix Arithmetic**: `gf_matrix_mul()` computes sparse matrix multiplication for cryptographic MixColumns
+  transformations and Reed-Solomon generator matrices.
 
-1. **Density**: Geometric products often mix all components (e.g., rotating a vector usually makes it dense). This
-   conflicts with the library's sparse-first philosophy.
-2. **Complexity**: Implementing a full multivector system requires significant machinery (grade tracking, metric
-   tensors) that is out of scope for a general-purpose mapping library.
-3. **Alternatives**: Specialized libraries like `clifford` or `sympy.diffgeom` handle this domain better.
+---
+
+## Category Theory & Kleisli Monadic Composition
+
+The `algebrax.category` module formalizes category-theoretic compositions.
+
+* **Morphisms as Matrices**: Hom-sets $\text{Hom} (A, B)$ are sparse matrices $M[A][B]$.
+* **Kleisli Monadic Composition**: Effectful morphisms $f: A \to T (B)$ and $g: B \to T (C)$ compose via Kleisli matrix
+  multiplication ($g \circ_T f = \text{dot} (f, g, \text{semiring})$) over probabilistic (Viterbi), cost-metric
+  (Tropical), or reachability (Boolean) monad semirings.
+* **Kan Extensions**: Left Kan extensions $\text{Lan}_P F$ computed over sparse category graphs.
 
 ---
 
 ## Functional Taxonomy
 
-The following table categorizes the functions in the `algebra` module by their **Domain** (Meaning) and **Operation Type
-**.
+The following table categorizes the functions in the `algebra` module by their **Domain** (Meaning) and **Operation
+Type**.
 
 ### Legend
 
@@ -256,26 +249,29 @@ The following table categorizes the functions in the `algebra` module by their *
 
 *Input: Mappings as Adjacency Matrices (Graphs)*
 
-| Function                   | Type       | Meaning                                        |
-|:---------------------------|:-----------|:-----------------------------------------------|
-| `laplacian`                | Structural | Graph Laplacian ($D - A$). Diffusion operator. |
-| `gradient`                 | Structural | Edge-based difference operator.                |
-| `divergence`               | Structural | Node-based flow operator.                      |
-| `eigen_centrality`         | Structural | Node importance ranking.                       |
-| `forman_ricci_curvature`   | Metric     | Local curvature of the graph (Geometry).       |
+| Function                 | Type       | Meaning                                        |
+|:-------------------------|:-----------|:-----------------------------------------------|
+| `laplacian`              | Structural | Graph Laplacian ($D - A$). Diffusion operator. |
+| `gradient`               | Structural | Edge-based difference operator.                |
+| `divergence`             | Structural | Node-based flow operator.                      |
+| `eigen_centrality`       | Structural | Node importance ranking.                       |
+| `forman_ricci_curvature` | Metric     | Local curvature of the graph (Geometry).       |
 
 ### 5. Signal Processing
 
 *Input: Mappings as Time Series or Signals*
 
-| Function                 | Type       | Meaning                                                   |
-|:-------------------------|:-----------|:----------------------------------------------------------|
-| `convolve`               | Structural | Signal convolution ($f * g$).                             |
-| `dft` / `idft`           | Structural | Discrete Fourier Transform (Time $\leftrightarrow$ Freq). |
-| `z_transform`            | Structural | Z-Transform (Discrete Laplace).                           |
-| `hilbert`                | Structural | Hilbert Transform (Analytic Signal).                      |
-| `lorentz_boost`          | Structural | Relativistic coordinate transformation.                   |
-| `box_counting_dimension` | Metric     | Fractal dimension of the signal.                          |
+| Function                 | Type       | Meaning                                                     |
+|:-------------------------|:-----------|:------------------------------------------------------------|
+| `convolve`               | Structural | Discrete convolution / polynomial multiplication ($f * g$). |
+| `dft` / `idft`           | Structural | Discrete Fourier Transform (Time $\leftrightarrow$ Freq).   |
+| `walsh_hadamard`         | Structural | Walsh-Hadamard Transform (Orthogonal Hadamard mapping).     |
+| `gelfand_transform`      | Structural | Generalized character evaluation over monoid algebras.      |
+| `legendre_fenchel`       | Structural | Fenchel-Legendre transform (Slope transform).               |
+| `z_transform`            | Structural | Z-Transform (Discrete Laplace / Semiring power series).     |
+| `hilbert`                | Structural | Hilbert Transform (Analytic Signal).                        |
+| `lorentz_boost`          | Structural | Relativistic coordinate transformation.                     |
+| `box_counting_dimension` | Metric     | Fractal dimension of the signal.                            |
 
 ### 6. Group Theory
 
@@ -311,9 +307,8 @@ The following table categorizes the functions in the `algebra` module by their *
 
 ### 9. Algebraic Structures
 
-*Input: Semirings and Tries*
+*Input: Tries & Higher-Order Structures*
 
-| Function/Class  | Type      | Meaning                                                    |
-|:----------------|:----------|:-----------------------------------------------------------|
-| `AlgebraicTrie` | Structure | Sparse Tensor / Prefix Tree over a Semiring.               |
-| `Semiring`      | Protocol  | Defines $(+, \times)$ operations for algebraic structures. |
+| Function/Class  | Type      | Meaning                                      |
+|:----------------|:----------|:---------------------------------------------|
+| `AlgebraicTrie` | Structure | Sparse Tensor / Prefix Tree over a Semiring. |
