@@ -1,5 +1,9 @@
 """
-Simplicial Homology, Betti Numbers & Persistent Barcodes (EP-0110).
+Topological Data Analysis & Homology.
+
+Summary:
+    Counts connected components (beta_0) and multidimensional holes (beta_1, beta_2)
+    in point clouds, meshes, and graph structures using boundary matrices and Hodge Laplacians.
 
 This module provides tools for constructing simplicial complexes, computing boundary matrices,
 evaluating Betti numbers beta_k, and conducting topological data analysis.
@@ -26,6 +30,12 @@ class SparseChainComplex:
     Attributes:
         boundary_matrices: Dictionary mapping dimension k to sparse boundary matrix D_k.
                            D_k maps k-simplices/forms to (k-1)-simplices/forms.
+
+    Example:
+        >>> d1 = {(0,): {(0, 1): -1.0}, (1,): {(0, 1): 1.0}}
+        >>> scc = SparseChainComplex({1: d1})
+        >>> scc.verify_nilpotency(1)
+        True
     """
 
     def __init__(self, boundary_matrices: dict[int, SparseMatrix]):
@@ -34,6 +44,11 @@ class SparseChainComplex:
     def verify_nilpotency(self, k: int, semiring: type[Semiring] = StandardSemiring) -> bool:
         """
         Verify that D_{k-1} o D_k == 0 (empty sparse matrix).
+
+        Example:
+            >>> scc = SparseChainComplex({})
+            >>> scc.verify_nilpotency(1)
+            True
         """
         from algebrax.matrix.core import dot
 
@@ -47,6 +62,12 @@ class SparseChainComplex:
     def hodge_laplacian(self, k: int, semiring: type[Semiring] = StandardSemiring) -> SparseMatrix:
         """
         Compute the k-th Hodge-Laplacian matrix Delta_k = D_{k+1} D_{k+1}^T + D_k^T D_k.
+
+        Example:
+            >>> sc = SimplicialComplex([(0, 1), (1, 2), (0, 2)])
+            >>> l0 = sc.hodge_laplacian(0)
+            >>> (0,) in l0
+            True
         """
         from algebrax.matrix.core import add, dot, transpose
 
@@ -217,6 +238,12 @@ def coboundary(complex: SparseChainComplex, k: int) -> SparseMatrix:
 
     Returns:
         Sparse matrix representation of the coboundary operator d^k.
+
+    Example:
+        >>> sc = SimplicialComplex([(0, 1), (1, 2), (0, 2)])
+        >>> d0 = coboundary(sc, 0)
+        >>> isinstance(d0, dict)
+        True
     """
     from algebrax.matrix.core import transpose
 
@@ -234,6 +261,11 @@ def cohomology_rank(complex: SparseChainComplex, k: int) -> int:
 
     Returns:
         The k-th cohomology rank.
+
+    Example:
+        >>> sc = SimplicialComplex([(0, 1), (1, 2), (0, 2)])
+        >>> cohomology_rank(sc, 1)
+        1
     """
     if isinstance(complex, SimplicialComplex):
         return complex.betti_numbers(k).get(k, 0)
@@ -249,4 +281,5 @@ def cohomology_rank(complex: SparseChainComplex, k: int) -> int:
         num_k = len(d_k1)
 
     return max(num_k - rank_dk - rank_dk1, 0)
+
 

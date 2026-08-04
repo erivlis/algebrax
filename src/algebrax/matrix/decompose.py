@@ -258,41 +258,41 @@ def svd(
     )
 
 
-def recompose_lu(p: SparseMatrix, l_mat: SparseMatrix, u: SparseMatrix) -> SparseMatrix:
+def recompose_lu(p_mat: SparseMatrix, l_mat: SparseMatrix, u_mat: SparseMatrix) -> SparseMatrix:
     """
     Reconstruct the original sparse matrix A from its LU factorization (P, L, U):
         A = P^T @ (L @ U)
 
     Args:
-        p: Permutation sparse matrix.
+        p_mat: Permutation sparse matrix.
         l_mat: Lower-triangular sparse matrix.
-        u: Upper-triangular sparse matrix.
+        u_mat: Upper-triangular sparse matrix.
 
     Returns:
         The reconstructed sparse matrix A.
     """
     from algebrax.matrix.core import dot, transpose
 
-    lu_product = dot(l_mat, u)
-    p_t = transpose(p)
+    lu_product = dot(l_mat, u_mat)
+    p_t = transpose(p_mat)
     return dot(p_t, lu_product)
 
 
-def recompose_qr(q: SparseMatrix, r: SparseMatrix) -> SparseMatrix:
+def recompose_qr(q_mat: SparseMatrix, r_mat: SparseMatrix) -> SparseMatrix:
     """
     Reconstruct the original sparse matrix A from its QR factorization (Q, R):
         A = Q @ R
 
     Args:
-        q: Orthonormal sparse matrix Q.
-        r: Upper-triangular sparse matrix R.
+        q_mat: Orthonormal sparse matrix Q.
+        r_mat: Upper-triangular sparse matrix R.
 
     Returns:
         The reconstructed sparse matrix A.
     """
     from algebrax.matrix.core import dot
 
-    return dot(q, r)
+    return dot(q_mat, r_mat)
 
 
 def recompose_svd(

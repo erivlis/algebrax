@@ -10,6 +10,15 @@ This document provides a theoretical overview of the algebraic structures used i
 concepts helps clarify why certain operations are grouped together and how they generalize across different domains
 (graphs, logic, probability).
 
+> [!TIP]
+> **Semiring Mental Model**
+> Think of a Semiring as an arithmetic engine where you swap out standard Addition (+) and
+> Multiplication (×) for any custom rules — like $(\min, +)$ for shortest paths, or $(\max, \times)$
+> for link reliability. The exact same sparse matrix multiplication algorithm (`dot`) then solves completely
+> different problems just by switching the semiring!
+
+---
+
 ## Algebraic Structures
 
 Hierarchy of Structures (Ordered by Complexity)

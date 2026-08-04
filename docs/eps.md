@@ -70,7 +70,7 @@ a comprehensive architectural audit by the 8 Pillars of the Council Framework.
 | [EP-0140](proposals/EP-0140-api-symmetry-restoration.md)  | API Symmetry Restoration                 | ⚖️ Noether      | :material-check-all: Final |
 | [EP-0141](proposals/EP-0141-taxonomy-cleanup.md)          | Structural Taxonomy Cleanup              | 🧩 Russell      | :material-check-all: Final |
 | [EP-0142](proposals/EP-0142-performance-optimizations.md) | Performance & Efficiency Optimizations   | ⚡ Shannon      | :material-check-all: Final |
-| [EP-0143](proposals/EP-0143-documentation-clarity.md)     | Documentation Clarity & Freshman Test    | 💡 Feynman      |  :material-pencil: Draft   |
+| [EP-0143](proposals/EP-0143-documentation-clarity.md)     | Documentation Clarity & Freshman Test    | 💡 Feynman      | :material-check-all: Final |
 | [EP-0144](proposals/EP-0144-testing-hardening.md)         | Testing & Falsifiability Hardening       | 🔬 Popper       |  :material-pencil: Draft   |
 | [EP-0145](proposals/EP-0145-type-safety-hardening.md)     | Type Safety & Contract Hardening         | 🛡️ Golem        |  :material-pencil: Draft   |
 | [EP-0146](proposals/EP-0146-developer-ergonomics.md)      | Developer Ergonomics & Ecosystem Bridges | 🤝 Steward      |  :material-pencil: Draft   |
