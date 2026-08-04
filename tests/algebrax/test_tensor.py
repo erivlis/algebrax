@@ -5,11 +5,11 @@ from algebrax.tensor import (
     einsum,
     flatten_tensor,
     outer_product,
+    permute_tensor,
     tensordot,
     unflatten_tensor,
     unpermute_tensor,
 )
-from algebrax.transforms import permute_tensor
 from algebrax.trie import AlgebraicTrie
 
 
@@ -148,6 +148,12 @@ def test_einsum_error_handling():
         einsum('i->i', 12345)  # Invalid type
 
 
+def test_permute_tensor():
+    t = {(0, 1, 2): 5}
+    p = permute_tensor(t, (2, 0, 1))
+    assert p == {(2, 0, 1): 5}
+
+
 def test_unpermute_tensor():
     """Verify unpermute_tensor(permute_tensor(T, p), p) == T."""
     tensor = {(0, 1, 2): 5.0, (1, 0, 3): 2.5}
@@ -157,4 +163,5 @@ def test_unpermute_tensor():
     unpermuted = unpermute_tensor(permuted, perm)
 
     assert unpermuted == tensor
+
 

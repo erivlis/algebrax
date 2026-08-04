@@ -2,7 +2,7 @@
 title: "EP-0141: Structural Taxonomy Cleanup"
 description: "Resolves module misplacements and import redundancies to enforce clean set-theoretic non-overlap."
 icon: lucide/folder-tree
-status: draft
+status: final
 ---
 
 # EP-0141: Structural Taxonomy Cleanup
@@ -12,10 +12,10 @@ status: draft
 | **EP**      | 0141                           |
 | **Title**   | Structural Taxonomy Cleanup    |
 | **Author**  | Eran Rivlis & Antigravity      |
-| **Status**  | Draft                          |
+| **Status**  | Final                          |
 | **Type**    | Standards Track                |
 | **Created** | 2026-08-02                     |
-| **Updated** | 2026-08-02                     |
+| **Updated** | 2026-08-05                     |
 
 ## Abstract
 
@@ -66,7 +66,7 @@ algebra object) lives in `analysis.py` (vector calculus), `permute_tensor` (a te
 
 ## Falsifiable Invariants
 
-- All existing tests pass unchanged (279/279).
+- All existing tests pass unchanged (289/289).
 - `from algebrax.homology import SparseChainComplex` works.
 - `from algebrax.tensor import permute_tensor` works.
 - `from algebrax.analysis import SparseChainComplex` still works (backward compat).
@@ -79,3 +79,5 @@ All changes maintain backward-compatible re-exports. No breaking changes.
 ## Change Log
 
 * **2026-08-02:** Initial Draft from Grand Council Assessment (Russell).
+* **2026-08-05:** Fully implemented taxonomy relocations (`SparseChainComplex`, `permute_tensor`), `flatten`/`unflatten` delegation, docstring fix, and `__init__.py` import graph cleanups. Status → Final.
+

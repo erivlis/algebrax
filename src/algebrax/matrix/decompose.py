@@ -258,14 +258,14 @@ def svd(
     )
 
 
-def recompose_lu(p: SparseMatrix, l: SparseMatrix, u: SparseMatrix) -> SparseMatrix:
+def recompose_lu(p: SparseMatrix, l_mat: SparseMatrix, u: SparseMatrix) -> SparseMatrix:
     """
     Reconstruct the original sparse matrix A from its LU factorization (P, L, U):
         A = P^T @ (L @ U)
 
     Args:
         p: Permutation sparse matrix.
-        l: Lower-triangular sparse matrix.
+        l_mat: Lower-triangular sparse matrix.
         u: Upper-triangular sparse matrix.
 
     Returns:
@@ -273,7 +273,7 @@ def recompose_lu(p: SparseMatrix, l: SparseMatrix, u: SparseMatrix) -> SparseMat
     """
     from algebrax.matrix.core import dot, transpose
 
-    lu_product = dot(l, u)
+    lu_product = dot(l_mat, u)
     p_t = transpose(p)
     return dot(p_t, lu_product)
 
@@ -317,18 +317,19 @@ def recompose_svd(
     return dot(u, sv_t)
 
 
-def recompose_cholesky(l: SparseMatrix) -> SparseMatrix:
+def recompose_cholesky(l_mat: SparseMatrix) -> SparseMatrix:
     """
     Reconstruct the original symmetric positive-definite sparse matrix A from its Cholesky factor L:
         A = L @ L^T
 
     Args:
-        l: Lower-triangular sparse matrix factor.
+        l_mat: Lower-triangular sparse matrix factor.
 
     Returns:
         The reconstructed sparse matrix A.
     """
     from algebrax.matrix.core import dot, transpose
 
-    return dot(l, transpose(l))
+    return dot(l_mat, transpose(l_mat))
+
 

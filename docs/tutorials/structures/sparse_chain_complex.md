@@ -5,7 +5,7 @@ description: Tutorial on SparseChainComplex, nilpotency verification, Hodge-Lapl
 
 # Sparse Chain Complexes & Simplicial Homology
 
-The **`SparseChainComplex`** in `algebrax.analysis` and **`SimplicialComplex`** in `algebrax.homology` formalize sequence spaces $C_k$ and sparse boundary operators $D_k: C_k \to C_{k-1}$ enforcing the fundamental nilpotency identity:
+The **`SparseChainComplex`** in `algebrax.homology` and **`SimplicialComplex`** in `algebrax.homology` formalize sequence spaces $C_k$ and sparse boundary operators $D_k: C_k \to C_{k-1}$ enforcing the fundamental nilpotency identity:
 
 $$D_{k-1} \circ D_k = \mathbf{0}$$
 

@@ -20,11 +20,11 @@ __all__ = [
     'einsum',
     'flatten_tensor',
     'outer_product',
+    'permute_tensor',
     'tensordot',
     'unflatten_tensor',
     'unpermute_tensor',
 ]
-
 
 
 def _get_semiring_and_items(
@@ -245,6 +245,7 @@ def tensordot(
 def flatten_tensor(nested: Mapping[Any, Any], current_prefix: tuple = ()) -> dict[tuple, Any]:
     """
     Recursively flatten a nested dictionary into a tuple-indexed tensor mapping.
+    Delegates to `converters.nested_to_flat` for zero-redundancy conversion.
 
     Args:
         nested: A recursively nested dictionary.
@@ -253,19 +254,18 @@ def flatten_tensor(nested: Mapping[Any, Any], current_prefix: tuple = ()) -> dic
     Returns:
         A flat dictionary mapping index tuples `(i_1, i_2, ...)` to leaf values.
     """
-    flat = {}
-    for key, val in nested.items():
-        new_prefix = (*current_prefix, key)
-        if isinstance(val, Mapping) and not isinstance(val, AlgebraicTrie):
-            flat.update(flatten_tensor(val, new_prefix))
-        else:
-            flat[new_prefix] = val
+    from algebrax.converters import nested_to_flat
+
+    flat = dict(nested_to_flat(nested))
+    if current_prefix:
+        return {(*current_prefix, *k) if isinstance(k, tuple) else (*current_prefix, k): v for k, v in flat.items()}
     return flat
 
 
 def unflatten_tensor(flat: Mapping[tuple, Any]) -> dict[Any, Any]:
     """
     Unflatten a tuple-indexed tensor mapping back into a recursively nested dictionary.
+    Delegates to `converters.flat_to_nested` for zero-redundancy conversion.
 
     Args:
         flat: A dictionary mapping index tuples `(i_1, i_2, ...)` to leaf values.
@@ -273,21 +273,38 @@ def unflatten_tensor(flat: Mapping[tuple, Any]) -> dict[Any, Any]:
     Returns:
         A recursively nested dictionary.
     """
-    nested: dict[Any, Any] = {}
-    for idx_tuple, val in flat.items():
-        if not isinstance(idx_tuple, tuple):
-            idx_tuple = (idx_tuple,)
-        curr = nested
-        for key in idx_tuple[:-1]:
-            curr = curr.setdefault(key, {})
-        curr[idx_tuple[-1]] = val
-    return nested
+    from algebrax.converters import flat_to_nested
+
+    return dict(flat_to_nested(flat))
+
+
+
+def permute_tensor(
+    tensor: Mapping[tuple, Any],
+    permutation: tuple[int, ...],
+) -> dict[tuple, Any]:
+    """
+    Permute the dimensions of a sparse tensor.
+    The tensor is represented as a mapping from coordinate tuples to values.
+
+    Args:
+        tensor: The input sparse tensor, e.g., {(0, 1, 0): val}.
+        permutation: A tuple specifying the new order of axes, e.g., (2, 0, 1).
+
+    Returns:
+        A new sparse tensor with permuted dimensions.
+    """
+    result = {}
+    for coords, val in tensor.items():
+        new_coords = tuple(coords[i] for i in permutation)
+        result[new_coords] = val
+    return result
 
 
 def unpermute_tensor(
-    tensor: Mapping[tuple, V],
+    tensor: Mapping[tuple, Any],
     permutation: tuple[int, ...],
-) -> dict[tuple, V]:
+) -> dict[tuple, Any]:
     """
     Invert a tensor dimension permutation to restore the original index order.
 
@@ -298,10 +315,9 @@ def unpermute_tensor(
     Returns:
         A new sparse tensor with original index ordering restored.
     """
-    from algebrax.transforms import permute_tensor
-
     inv_perm = [0] * len(permutation)
     for idx, orig_pos in enumerate(permutation):
         inv_perm[orig_pos] = idx
-    return dict(permute_tensor(tensor, tuple(inv_perm)))
+    return permute_tensor(tensor, tuple(inv_perm))
+
 

@@ -71,7 +71,6 @@ Modules
 """
 
 from algebrax.analysis import (
-    SparseChainComplex,
     divergence,
     forman_ricci_curvature,
     gaussian_kernel,
@@ -85,7 +84,7 @@ from algebrax.automata import (
     simulate_nfa,
 )
 from algebrax.category import kan_extension_left, kleisli_compose
-from algebrax.clifford import CliffordSemiring, geometric_product, rotor_rotation
+from algebrax.clifford import geometric_product, rotor_rotation
 from algebrax.converters import (
     dense_to_sparse_matrix,
     dense_to_sparse_tensor,
@@ -102,9 +101,9 @@ from algebrax.converters import (
     sparse_to_dense_vector,
     sparse_to_grid,
 )
-from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
+from algebrax.galois import gf_matrix_mul
 from algebrax.group import compose, invert, signature
-from algebrax.homology import SimplicialComplex, coboundary, cohomology_rank
+from algebrax.homology import SimplicialComplex, SparseChainComplex, coboundary, cohomology_rank
 from algebrax.lattice import (
     average,
     combine,
@@ -123,6 +122,7 @@ from algebrax.lattice import (
 from algebrax.matrix import (
     add,
     adjoint,
+    cholesky,
     cofactor,
     determinant,
     dot,
@@ -130,21 +130,18 @@ from algebrax.matrix import (
     inner,
     inverse,
     kronecker_delta,
+    lu,
     mat_vec,
     power,
-    trace,
-    transpose,
-    vec_mat,
-)
-from algebrax.matrix.decompose import (
-    cholesky,
-    lu,
     qr,
     recompose_cholesky,
     recompose_lu,
     recompose_qr,
     recompose_svd,
     svd,
+    trace,
+    transpose,
+    vec_mat,
 )
 from algebrax.metrics import (
     box_counting_dimension,
@@ -201,6 +198,7 @@ from algebrax.tensor import (
     einsum,
     flatten_tensor,
     outer_product,
+    permute_tensor,
     tensordot,
     unflatten_tensor,
     unpermute_tensor,
@@ -216,7 +214,6 @@ from algebrax.transforms import (
     iz_transform,
     legendre_fenchel,
     lorentz_boost,
-    permute_tensor,
     walsh_hadamard,
     z_transform,
 )
@@ -275,8 +272,8 @@ __all__ = [
     'box_counting_dimension',
     'cholesky',
     'coboundary',
-    'cohomology_rank',
     'cofactor',
+    'cohomology_rank',
     'combine',
     'compose',
     'convolve',

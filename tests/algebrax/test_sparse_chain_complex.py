@@ -2,7 +2,7 @@
 Tests for SparseChainComplex (EP-0101).
 """
 
-from algebrax.analysis import SparseChainComplex
+from algebrax.homology import SparseChainComplex
 
 
 def test_triangle_chain_complex_nilpotency_and_laplacian():

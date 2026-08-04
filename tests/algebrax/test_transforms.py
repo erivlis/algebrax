@@ -13,7 +13,6 @@ from algebrax.transforms import (
     iz_transform,
     legendre_fenchel,
     lorentz_boost,
-    permute_tensor,
     walsh_hadamard,
     z_transform,
 )
@@ -203,16 +202,6 @@ def test_lorentz_cancellation_missing_key():
     assert 1 not in boosted
 
 
-def test_permute_tensor():
-    # Tensor T[x, y, z]
-    # T[0, 1, 2] = 5
-    t = {(0, 1, 2): 5}
-
-    # Permute to [z, x, y] -> (2, 0, 1)
-    # New key should be (2, 0, 1)
-    p = permute_tensor(t, (2, 0, 1))
-    assert p == {(2, 0, 1): 5}
-
 
 def test_legendre_fenchel_transform():
     from algebrax.semiring import ArcticSemiring, StandardSemiring, TropicalSemiring
@@ -341,6 +330,8 @@ def test_transforms_edge_cases():
     assert 0 in v_boosted
     assert 1 in v_boosted
 
+    from algebrax.tensor import permute_tensor
+
     tensor = {(0, 1): 5.0, (1, 2): 10.0}
     permuted = permute_tensor(tensor, permutation=(1, 0))
     assert permuted == {(1, 0): 5.0, (2, 1): 10.0}
@@ -455,10 +446,10 @@ def test_iz_transform():
     """Verify iz_transform recovers signal coefficients from Z-transform function X(z)."""
     x_orig = {0: 1.0, 1: 2.0, 2: 3.0}
 
-    def X(z):
+    def x_transform_fn(z):
         return z_transform(x_orig, z)
 
-    recovered = iz_transform(X, signal_length=4)
+    recovered = iz_transform(x_transform_fn, signal_length=4)
     for k in range(3):
         assert math.isclose(abs(recovered.get(k, 0j)), x_orig[k], abs_tol=1e-5)
 

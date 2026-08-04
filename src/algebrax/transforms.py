@@ -1,10 +1,9 @@
 """
-Mathematical and signal-processing utilities, including transformations,
-convolutions, and dimension estimation.
+Mathematical and signal-processing utilities, including transformations and convolutions.
 
 This module provides a variety of mathematical functions and transformations
 for discrete signal processing and geometry analysis, such as Fourier
-transforms, Lorentz boosts, and estimation of fractal dimensions.
+transforms, Lorentz boosts, and discrete convolutions.
 
 ### Algebraic Properties Summary
 
@@ -50,8 +49,6 @@ __all__ = [
     'iz_transform',
     'legendre_fenchel',
     'lorentz_boost',
-    'permute_tensor',
-    'unpermute_tensor',
     'walsh_hadamard',
     'z_transform',
 ]
@@ -541,7 +538,7 @@ def z_transform(
 
 
 def iz_transform(
-    X: Callable[[complex], complex],
+    x_transform: Callable[[complex], complex],
     signal_length: int,
     radius: float = 1.0,
 ) -> dict[int, complex]:
@@ -551,7 +548,7 @@ def iz_transform(
         x[n] = (1/N) * sum_{k=0}^{N-1} X(r * exp(2j * pi * k / N)) * (r * exp(2j * pi * k / N))^n
 
     Args:
-        X: Function mapping complex z -> complex value X(z).
+        x_transform: Function mapping complex z -> complex value X(z).
         signal_length: Length N of the reconstructed discrete-time sequence.
         radius: Radius of contour circle |z| = r (default 1.0).
 
@@ -567,7 +564,7 @@ def iz_transform(
 
     for k in range(n):
         zk = radius * cmath.exp(coef * k)
-        samples[k] = X(zk)
+        samples[k] = x_transform(zk)
 
     result = {}
     for m in range(n):
@@ -630,46 +627,7 @@ def lorentz_boost(
 
     return result
 
-
-def permute_tensor(
-        tensor: Mapping[tuple, N],
-        permutation: tuple[int, ...],
-) -> Mapping[tuple, N]:
-    """
-    Permute the dimensions of a sparse tensor.
-    The tensor is represented as a mapping from coordinate tuples to values.
-
-    Args:
-        tensor: The input sparse tensor, e.g., {(0, 1, 0): val}.
-        permutation: A tuple specifying the new order of axes, e.g., (2, 0, 1).
-
-    Returns:
-        A new sparse tensor with permuted dimensions.
-    """
-    result = {}
-    for coords, val in tensor.items():
-        new_coords = tuple(coords[i] for i in permutation)
-        result[new_coords] = val
-    return result
-
-
-def unpermute_tensor(
-    tensor: Mapping[tuple, N],
-    permutation: tuple[int, ...],
-) -> dict[tuple, N]:
-    """
-    Invert a tensor dimension permutation to restore the original index order.
-
-    Args:
-        tensor: Sparse tensor with permuted coordinate tuple keys.
-        permutation: The permutation tuple that was previously applied.
-
-    Returns:
-        A new sparse tensor with original index ordering restored.
-    """
-    from algebrax.tensor import unpermute_tensor as _unpermute
-
-    return _unpermute(tensor, permutation)
-
 # endregion
+
+
 
