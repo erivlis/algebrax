@@ -66,7 +66,7 @@ flowchart TD
         EP0143["EP-0143 Documentation ✅\n💡 Feynman"]
         EP0144["EP-0144 Testing ✅\n🔬 Popper"]
         EP0145["EP-0145 Type Safety ✅\n🛡️ Golem"]
-        EP0146["EP-0146 Ergonomics\n🤝 Steward"]
+        EP0146["EP-0146 Ergonomics ✅\n🤝 Steward"]
     end
 
     style CORE fill:#4a90d9,color:#fff
@@ -168,7 +168,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0143** | Documentation Clarity       | Feynman  | `docs/`, docstrings                 | Final  | Freshman summaries, typo fixes, concepts.md rewrite                 |
 | **EP-0144** | Testing Hardening           | Popper   | `tests/`                            | Final  | Property-based tests, edge cases, numerical stability               |
 | **EP-0145** | Type Safety Hardening       | Golem    | `typing`, `analysis`, `converters`  | Final  | Future annotations, semiring normalization, collision fix           |
-| **EP-0146** | Developer Ergonomics        | Steward  | `__init__`, `converters`, `display` | Draft  | Namespace org, NumPy/SciPy bridges, Jupyter display                 |
+| **EP-0146** | Developer Ergonomics        | Steward  | `__init__`, `converters`, `display` | Final  | Namespace org, NumPy/SciPy bridges, Jupyter display                 |
 
 ---
 

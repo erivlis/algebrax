@@ -73,4 +73,4 @@ a comprehensive architectural audit by the 8 Pillars of the Council Framework.
 | [EP-0143](proposals/EP-0143-documentation-clarity.md)     | Documentation Clarity & Freshman Test    | 💡 Feynman      | :material-check-all: Final |
 | [EP-0144](proposals/EP-0144-testing-hardening.md)         | Testing & Falsifiability Hardening       | 🔬 Popper       | :material-check-all: Final |
 | [EP-0145](proposals/EP-0145-type-safety-hardening.md)     | Type Safety & Contract Hardening         | 🛡️ Golem        | :material-check-all: Final |
-| [EP-0146](proposals/EP-0146-developer-ergonomics.md)      | Developer Ergonomics & Ecosystem Bridges | 🤝 Steward      |  :material-pencil: Draft   |
+| [EP-0146](proposals/EP-0146-developer-ergonomics.md)      | Developer Ergonomics & Ecosystem Bridges | 🤝 Steward      | :material-check-all: Final |

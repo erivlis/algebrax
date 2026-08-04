@@ -36,6 +36,8 @@ __all__ = [
     'dense_to_sparse_tensor',
     'dense_to_sparse_vector',
     'flat_to_nested',
+    'from_numpy',
+    'from_scipy',
     'get_matrix_keys',
     'grid_to_sparse',
     'nested_to_flat',
@@ -46,6 +48,8 @@ __all__ = [
     'sparse_to_dense_tensor',
     'sparse_to_dense_vector',
     'sparse_to_grid',
+    'to_numpy',
+    'to_scipy',
 ]
 
 
@@ -510,6 +514,157 @@ def nested_to_flat(
 
     _recurse(nested)
     return result
+
+
+def to_numpy(
+    matrix: SparseMatrix[K, V],
+    shape: tuple[int, int] | None = None,
+) -> Any:
+    """
+    Convert a sparse dict matrix to a 2D NumPy ndarray.
+
+    Requires `numpy` to be installed.
+
+    Args:
+        matrix: Sparse dictionary matrix with integer indices.
+        shape: Optional (rows, cols) dimensions tuple.
+
+    Returns:
+        A 2D numpy.ndarray.
+
+    Raises:
+        ImportError: If numpy is not installed.
+    """
+    try:
+        import numpy as np
+    except ImportError as err:
+        raise ImportError('to_numpy() requires numpy. Install with: pip install numpy') from err
+
+    if not matrix:
+        h, w = shape if shape else (0, 0)
+        return np.zeros((h, w))
+
+    r_max = max(matrix.keys()) if isinstance(max(matrix.keys()), int) else len(matrix)
+    c_max = max(c for row in matrix.values() for c in row) if any(row for row in matrix.values()) else 0
+    h, w = shape if shape else (r_max + 1, c_max + 1)
+
+    arr = np.zeros((h, w))
+    for r, row in matrix.items():
+        for c, val in row.items():
+            if isinstance(r, int) and isinstance(c, int) and r < h and c < w:
+                arr[r, c] = val
+
+    return arr
+
+
+def from_numpy(arr: Any) -> SparseMatrix[int, Any]:
+    """
+    Convert a 2D NumPy ndarray to a sparse dict matrix (zero entries pruned).
+
+    Requires `numpy` to be installed.
+
+    Args:
+        arr: 2D numpy.ndarray.
+
+    Returns:
+        Sparse dictionary matrix {r: {c: val}}.
+
+    Raises:
+        ImportError: If numpy is not installed.
+    """
+    try:
+        import numpy as np
+    except ImportError as err:
+        raise ImportError('from_numpy() requires numpy. Install with: pip install numpy') from err
+
+    if not isinstance(arr, np.ndarray) or arr.ndim != 2:
+        raise ValueError('from_numpy requires a 2D numpy.ndarray')
+
+    mat: dict[int, dict[int, Any]] = {}
+    h, w = arr.shape
+    for r in range(h):
+        row = {}
+        for c in range(w):
+            val = arr[r, c]
+            if val != 0:
+                row[c] = val.item() if hasattr(val, 'item') else val
+        if row:
+            mat[r] = row
+
+    return mat
+
+
+def to_scipy(
+    matrix: SparseMatrix[K, V],
+    format: str = 'csr',
+) -> Any:
+    """
+    Convert a sparse dict matrix to a SciPy sparse matrix (csr, csc, coo, etc.).
+
+    Requires `scipy` to be installed.
+
+    Args:
+        matrix: Sparse dictionary matrix with integer indices.
+        format: SciPy matrix format string ('csr', 'csc', 'coo', 'dok', 'lil').
+
+    Returns:
+        A scipy.sparse matrix instance.
+
+    Raises:
+        ImportError: If scipy is not installed.
+    """
+    try:
+        import scipy.sparse as sp
+    except ImportError as err:
+        raise ImportError('to_scipy() requires scipy. Install with: pip install scipy') from err
+
+    rows, cols, data = [], [], []
+    for r, row in matrix.items():
+        for c, val in row.items():
+            rows.append(r)
+            cols.append(c)
+            data.append(val)
+
+    if not rows:
+        return sp.csr_matrix((0, 0))
+
+    r_max = max(rows) + 1
+    c_max = max(cols) + 1
+    coo = sp.coo_matrix((data, (rows, cols)), shape=(r_max, c_max))
+    return coo.asformat(format)
+
+
+def from_scipy(sp_matrix: Any) -> SparseMatrix[int, Any]:
+    """
+    Convert a SciPy sparse matrix to a sparse dict matrix (zero entries pruned).
+
+    Requires `scipy` to be installed.
+
+    Args:
+        sp_matrix: scipy.sparse matrix instance.
+
+    Returns:
+        Sparse dictionary matrix {r: {c: val}}.
+
+    Raises:
+        ImportError: If scipy is not installed.
+    """
+    try:
+        import scipy.sparse as sp
+    except ImportError as err:
+        raise ImportError('from_scipy() requires scipy. Install with: pip install scipy') from err
+
+    coo = sp_matrix.tocoo()
+    mat: dict[int, dict[int, Any]] = {}
+    for r, c, val in zip(coo.row, coo.col, coo.data, strict=False):
+        if val != 0:
+            val_py = val.item() if hasattr(val, 'item') else val
+            r_int, c_int = int(r), int(c)
+            if r_int not in mat:
+                mat[r_int] = {}
+            mat[r_int][c_int] = val_py
+
+    return mat
 
 
 # endregion
