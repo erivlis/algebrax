@@ -1,5 +1,5 @@
 """
-Sparse Matrix Decompositions (EP-0132).
+Sparse Matrix Decompositions (LU, QR, SVD, Cholesky).
 
 This module provides sparse dictionary-based matrix factorizations completing the Noether
 symmetry of matrix construction/deconstruction:

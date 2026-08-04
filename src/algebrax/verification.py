@@ -1,5 +1,5 @@
 """
-Algebraic Law Verification Engine (EP-0131).
+Algebraic Law Verification Engine.
 
 This module provides tools for testing and verifying that semiring implementations
 adhere to formal algebraic axioms (associativity, commutativity, distributivity,

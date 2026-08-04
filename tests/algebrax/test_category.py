@@ -1,5 +1,5 @@
 """
-Tests for Categorical Morphisms and Kleisli Composition (EP-0113).
+Tests for Categorical Morphisms and Kleisli Composition.
 """
 
 from algebrax.category import kleisli_compose

@@ -86,5 +86,4 @@ Explore the documentation sections:
   decompositions, tries, signal transforms, and graph algorithms.
 * 🍳 [**Use Cases & Recipes**](recipes.md): Executable real-world scripts, Jupyter notebooks, and the interactive
   DearPyGui laboratory.
-* 📜 [**Enhancement Proposals (EPs)**](proposals/EP-0099-expansion-roadmap.md): Architectural designs and technical specs
-  (EP-0099 through EP-0134).
+* 📜 [**Enhancement Proposals (EPs)**](eps.md): Architectural designs, roadmap, and technical specs.

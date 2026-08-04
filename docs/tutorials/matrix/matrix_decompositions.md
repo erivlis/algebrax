@@ -3,7 +3,7 @@ title: Sparse Matrix Decompositions
 description: Tutorial on sparse LU, QR, SVD, and Cholesky matrix factorizations in algebrax.decompose.
 ---
 
-# Sparse Matrix Decompositions (EP-0132)
+# Sparse Matrix Decompositions
 
 The **`algebrax.matrix.decompose`** module provides factorizations and matrix decompositions for sparse dictionary matrices.
 

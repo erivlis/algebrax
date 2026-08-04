@@ -1,5 +1,5 @@
 """
-CLI Auditor for verifying algebraic laws across semirings (EP-0131).
+CLI Auditor for verifying algebraic laws across semirings.
 
 Usage:
     python -m algebrax.verify

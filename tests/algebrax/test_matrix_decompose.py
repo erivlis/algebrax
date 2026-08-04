@@ -1,5 +1,5 @@
 """
-Tests for sparse matrix decompositions (EP-0132): LU, QR, SVD, Cholesky.
+Tests for sparse matrix decompositions: LU, QR, SVD, Cholesky.
 """
 
 import math

@@ -3,7 +3,7 @@ title: Algebraic Law Verification Engine
 description: Property-based testing and automated verification of semiring axioms across 24 built-in semirings.
 ---
 
-# Algebraic Law Verification Engine (EP-0131)
+# Algebraic Law Verification Engine
 
 The **`algebrax.verification`** module provides property-based verification of formal algebraic axioms across all built-in semiring types.
 

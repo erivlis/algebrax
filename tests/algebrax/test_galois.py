@@ -1,5 +1,5 @@
 """
-Tests for Galois Finite Fields GF(p^m) (EP-0112).
+Tests for Galois Finite Fields GF(p^m).
 """
 
 from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul

@@ -1,5 +1,5 @@
 """
-Tests for SparseChainComplex (EP-0101).
+Tests for SparseChainComplex.
 """
 
 from algebrax.homology import SparseChainComplex

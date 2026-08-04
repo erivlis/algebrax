@@ -1,5 +1,5 @@
 """
-Tests for QuotientMonoidAlgebraSemiring (EP-0100).
+Tests for QuotientMonoidAlgebraSemiring.
 """
 
 from algebrax.semiring import QuotientMonoidAlgebraSemiring, StandardSemiring

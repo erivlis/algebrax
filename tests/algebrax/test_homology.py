@@ -1,5 +1,5 @@
 """
-Tests for SimplicialComplex and Betti Numbers (EP-0110).
+Tests for SimplicialComplex and Betti Numbers.
 """
 
 from algebrax.homology import SimplicialComplex, coboundary, cohomology_rank

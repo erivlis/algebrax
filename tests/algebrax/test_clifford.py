@@ -1,5 +1,5 @@
 """
-Tests for Clifford Geometric Algebra Cl(p, q, r) and Rotors (EP-0111).
+Tests for Clifford Geometric Algebra Cl(p, q, r) and Rotors.
 """
 
 import math

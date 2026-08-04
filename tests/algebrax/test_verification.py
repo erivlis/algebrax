@@ -1,5 +1,5 @@
 """
-Tests for the Algebraic Law Verification Engine (EP-0131).
+Tests for the Algebraic Law Verification Engine.
 """
 
 import pytest
