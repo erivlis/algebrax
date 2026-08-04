@@ -45,6 +45,18 @@ class AlgebraicTrie(MutableMapping[tuple[K, ...], V], Generic[K, V]):
         self._data = self._factory()
         self._value_key = object()  # Unique sentinel key to store the value at a node
 
+    def __getstate__(self) -> dict:
+        return {
+            'semiring_type': type(self.semiring),
+            'items': dict(self.items()),
+        }
+
+    def __setstate__(self, state: dict) -> None:
+        sem_type = state.get('semiring_type', StandardSemiring)
+        self.__init__(semiring=sem_type)
+        for k, v in state.get('items', {}).items():
+            self[k] = v
+
     def __setitem__(self, key: Iterable[K], value: V) -> None:
         """
         Sets the value at the given path.

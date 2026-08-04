@@ -64,7 +64,7 @@ flowchart TD
         EP0141["EP-0141 Taxonomy Cleanup ✅\n🧩 Russell"]
         EP0142["EP-0142 Performance ✅\n⚡ Shannon"]
         EP0143["EP-0143 Documentation ✅\n💡 Feynman"]
-        EP0144["EP-0144 Testing\n🔬 Popper"]
+        EP0144["EP-0144 Testing ✅\n🔬 Popper"]
         EP0145["EP-0145 Type Safety\n🛡️ Golem"]
         EP0146["EP-0146 Ergonomics\n🤝 Steward"]
     end
@@ -166,7 +166,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0141** | Taxonomy Cleanup            | Russell  | `analysis`, `tensor`, `__init__`    | Final  | Relocate `SparseChainComplex`, `permute_tensor`, clean imports      |
 | **EP-0142** | Performance Optimizations   | Shannon  | `matrix`, `transforms`, `tensor`    | Final  | Local binding, catalog cache, twiddle precompute, backtracking      |
 | **EP-0143** | Documentation Clarity       | Feynman  | `docs/`, docstrings                 | Final  | Freshman summaries, typo fixes, concepts.md rewrite                 |
-| **EP-0144** | Testing Hardening           | Popper   | `tests/`                            | Draft  | Property-based tests, edge cases, numerical stability               |
+| **EP-0144** | Testing Hardening           | Popper   | `tests/`                            | Final  | Property-based tests, edge cases, numerical stability               |
 | **EP-0145** | Type Safety Hardening       | Golem    | `typing`, `analysis`, `converters`  | Draft  | Future annotations, semiring normalization, collision fix           |
 | **EP-0146** | Developer Ergonomics        | Steward  | `__init__`, `converters`, `display` | Draft  | Namespace org, NumPy/SciPy bridges, Jupyter display                 |
 

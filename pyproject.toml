@@ -60,7 +60,8 @@ test = [
     "pytest-cov",
     "pytest-randomly",
     "pytest-xdist",
-    "markdown-pytest"
+    "markdown-pytest",
+    "hypothesis>=6.165.1",
 ]
 
 
