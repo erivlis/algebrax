@@ -1,3 +1,5 @@
+import pytest
+
 from algebrax.converters import (
     dense_to_sparse_matrix,
     dense_to_sparse_tensor,
@@ -207,26 +209,14 @@ def test_dense_to_sparse_tensor_base_case():
 
 def test_flat_to_nested_conflict():
     # Conflict: (0,) -> 1 vs (0, 1) -> 2
-    # 0 is both a leaf and a branch.
-    # Our implementation overwrites the leaf with the branch (or vice versa depending on order).
-    # Order is not guaranteed in dicts (though insertion order is preserved in modern Python).
-
-    # Case 1: Leaf first
+    # EP-0145 specifies raising ValueError on key depth collision.
     flat = {(0,): 1, (0, 1): 2}
-    # (0,) sets result[0] = 1.
-    # (0, 1) sees result[0] is not dict. Overwrites with {}.
-    # result[0][1] = 2.
-    # Final: {0: {1: 2}}
-    nested = flat_to_nested(flat)
-    assert nested == {0: {1: 2}}
+    with pytest.raises(ValueError, match="Key collision"):
+        flat_to_nested(flat)
 
-    # Case 2: Branch first
     flat2 = {(0, 1): 2, (0,): 1}
-    # (0, 1) sets result[0] = {1: 2}.
-    # (0,) sets result[0] = 1.
-    # Final: {0: 1}
-    nested2 = flat_to_nested(flat2)
-    assert nested2 == {0: 1}
+    with pytest.raises(ValueError, match="Key collision"):
+        flat_to_nested(flat2)
 
 
 def test_converters_edge_cases():

@@ -465,22 +465,19 @@ def flat_to_nested(
             continue
 
         current = result
-        for key in keys[:-1]:
+        for i, key in enumerate(keys[:-1]):
             if key not in current:
                 current[key] = {}
+            elif not isinstance(current[key], dict):
+                raise ValueError(
+                    f"Key collision: cannot nest dict under existing non-dict leaf at {keys[: i + 1]}"
+                )
             current = current[key]
-            # Ensure we don't overwrite a value with a dict (mixed depth conflict)
-            if not isinstance(current, dict):
-                # This happens if we have (a,) and (a, b).
-                # (a,) sets result[a] = val.
-                # (a, b) tries to set result[a][b].
-                # We can't support mixed depth easily.
-                # For now, assume consistent depth or last-write-wins?
-                # Let's raise or overwrite. Overwrite is safer for now.
-                current = {}
-                result[keys[0]] = current  # Wait, this logic is flawed for recursion.
-                # Let's restart the traversal properly.
 
+        if keys[-1] in current and isinstance(current[keys[-1]], dict):
+            raise ValueError(
+                f"Key collision: cannot assign non-dict value to dict node at {keys}"
+            )
         current[keys[-1]] = value
 
     return result

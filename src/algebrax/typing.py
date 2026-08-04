@@ -6,6 +6,8 @@ the algebrax submodules to ensure consistent type hinting for sparse and dense
 data structures.
 """
 
+from __future__ import annotations
+
 from collections.abc import Mapping, Sequence
 from decimal import Decimal
 from typing import TypeAlias, TypeVar

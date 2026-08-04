@@ -2,7 +2,7 @@
 Semiring namespace — all classes available from algebrax.semiring.
 """
 
-from algebrax.semiring._base import Semiring
+from algebrax.semiring._base import Semiring, _normalize_semiring
 from algebrax.semiring.algebraic import (
     CliffordSemiring,
     GaloisFieldSemiring,

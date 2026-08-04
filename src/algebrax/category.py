@@ -12,7 +12,7 @@ string diagram wiring engines, and Kan extensions over sparse semiring matrices.
 from typing import TypeVar
 
 from algebrax.matrix.core import dot
-from algebrax.semiring import Semiring, StandardSemiring
+from algebrax.semiring import Semiring, _normalize_semiring
 from algebrax.typing import SparseMatrix
 
 K = TypeVar('K')
@@ -24,7 +24,7 @@ T_Coeff = TypeVar('T_Coeff')
 def kleisli_compose(
     f: SparseMatrix[K, T_Coeff],
     g: SparseMatrix[V, T_Coeff],
-    semiring: Semiring[T_Coeff] | None = None,
+    semiring: Semiring[T_Coeff] | type[Semiring[T_Coeff]] | None = None,
 ) -> SparseMatrix[K, T_Coeff]:
     """
     Compose effectful monadic morphisms f: K -> T(V) and g: V -> T(W)
@@ -45,15 +45,15 @@ def kleisli_compose(
         >>> res == {'a': {'c': 6.0}}
         True
     """
-    s = semiring if semiring is not None else StandardSemiring()
+    s = _normalize_semiring(semiring)
     return dot(f, g, semiring=s)
 
 
 def kan_extension_left(
-    functor_p: SparseMatrix,
-    functor_f: SparseMatrix,
-    semiring: Semiring | None = None,
-) -> SparseMatrix:
+    functor_p: SparseMatrix[K, V],
+    functor_f: SparseMatrix[V, W],
+    semiring: Semiring | type[Semiring] | None = None,
+) -> SparseMatrix[K, W]:
     """
     Compute Left Kan Extension Lan_P F over sparse categories.
 
@@ -72,5 +72,5 @@ def kan_extension_left(
         >>> lan == {0: {1: 2.0}}
         True
     """
-    s = semiring if semiring is not None else StandardSemiring()
+    s = _normalize_semiring(semiring)
     return dot(functor_f, functor_p, semiring=s)

@@ -12,8 +12,8 @@ evaluating Betti numbers beta_k, and conducting topological data analysis.
 from collections.abc import Iterable
 from itertools import combinations
 
-from algebrax.semiring import Semiring, StandardSemiring
-from algebrax.typing import SparseMatrix
+from algebrax.semiring import Semiring, _normalize_semiring
+from algebrax.typing import K, SparseMatrix, V
 
 __all__ = [
     'SimplicialComplex',
@@ -38,10 +38,14 @@ class SparseChainComplex:
         True
     """
 
-    def __init__(self, boundary_matrices: dict[int, SparseMatrix]):
+    def __init__(self, boundary_matrices: dict[int, SparseMatrix[K, V]]):
         self.boundary_matrices = boundary_matrices
 
-    def verify_nilpotency(self, k: int, semiring: type[Semiring] = StandardSemiring) -> bool:
+    def verify_nilpotency(
+        self,
+        k: int,
+        semiring: Semiring[V] | type[Semiring[V]] | None = None,
+    ) -> bool:
         """
         Verify that D_{k-1} o D_k == 0 (empty sparse matrix).
 
@@ -54,12 +58,17 @@ class SparseChainComplex:
 
         if k - 1 not in self.boundary_matrices or k not in self.boundary_matrices:
             return True
+        s_inst = _normalize_semiring(semiring)
         d_prev = self.boundary_matrices[k - 1]
         d_curr = self.boundary_matrices[k]
-        comp = dot(d_prev, d_curr, semiring=semiring())
+        comp = dot(d_prev, d_curr, semiring=s_inst)
         return len(comp) == 0
 
-    def hodge_laplacian(self, k: int, semiring: type[Semiring] = StandardSemiring) -> SparseMatrix:
+    def hodge_laplacian(
+        self,
+        k: int,
+        semiring: Semiring[V] | type[Semiring[V]] | None = None,
+    ) -> SparseMatrix[K, V]:
         """
         Compute the k-th Hodge-Laplacian matrix Delta_k = D_{k+1} D_{k+1}^T + D_k^T D_k.
 
@@ -71,7 +80,7 @@ class SparseChainComplex:
         """
         from algebrax.matrix.core import add, dot, transpose
 
-        s_inst = semiring()
+        s_inst = _normalize_semiring(semiring)
         l_down: SparseMatrix = {}
         l_up: SparseMatrix = {}
 

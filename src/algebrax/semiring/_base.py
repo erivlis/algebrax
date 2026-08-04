@@ -4,7 +4,6 @@ from typing import Protocol, TypeVar
 V = TypeVar('V')
 
 
-
 class Semiring(Protocol[V]):
     """
     A Protocol defining a Semiring (S, +, *, 0, 1).
@@ -139,3 +138,12 @@ class Semiring(Protocol[V]):
             'Clifford': CliffordSemiring,
             'GaloisField': GaloisFieldSemiring,
         }
+
+
+def _normalize_semiring(s: Semiring[V] | type[Semiring[V]] | None) -> Semiring[V]:
+    """Normalize semiring argument to an instance, handling class factories and None."""
+    if s is None:
+        from algebrax.semiring.arithmetic import StandardSemiring
+
+        return StandardSemiring()
+    return s() if isinstance(s, type) else s
