@@ -1,3 +1,21 @@
+## v0.6.0 (2026-08-05)
+
+### Feat
+
+- **EP-0140**: Adds inverse transforms and decomposition recomposition.
+- **EP-0132**: Implements sparse matrix LU, QR, SVD, Cholesky decompositions.
+- **EP-0131**: Adds ModularSemiring and algebraic law verification engine.
+
+### Refactor
+
+- **EP-0141**: Completes taxonomy cleanup and module relocations.
+- Refines SparseMatrix type hints in Kleisli composition.
+- **EP-0134**: Refactors monolithic semiring module into categorized namespace.
+
+### Perf
+
+- **EP-0142**: Completes performance and efficiency optimizations.
+
 ## v0.5.0 (2026-08-02)
 
 ### Feat
