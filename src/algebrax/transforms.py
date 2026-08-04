@@ -158,13 +158,10 @@ def dft(
     # Optimization: Iterate only over present input samples.
 
     coef = -2j * cmath.pi / n
+    items = list(signal.items())
 
     for k in range(n):
-        val = 0j
-        for m, x_m in signal.items():
-            # exp is expensive, but unavoidable for DFT
-            val += x_m * cmath.exp(coef * k * m)
-
+        val = sum(x_m * cmath.exp(coef * k * m) for m, x_m in items)
         if not math.isclose(abs(val), 0, abs_tol=1e-9):
             result[k] = val
 
@@ -197,13 +194,10 @@ def idft(
     result = {}
     coef = 2j * cmath.pi / n
     norm = 1.0 / n
+    items = list(spectrum.items())
 
     for m in range(n):
-        val = 0j
-        for k, X_k in spectrum.items():  # noqa: N806
-            val += X_k * cmath.exp(coef * k * m)
-
-        val *= norm
+        val = sum(X_k * cmath.exp(coef * k * m) for k, X_k in items) * norm
         if not math.isclose(abs(val), 0, abs_tol=1e-9):
             result[m] = val
 

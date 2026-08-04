@@ -129,21 +129,25 @@ def einsum(
         sub_pattern, items = parsed_tensors[tensor_idx]
 
         for key_tuple, val in items:
-            # Check if key matches current assignment
             match = True
-            temp_assignment = dict(current_assignment)
+            assigned_here = []
 
             for char, k_elem in zip(sub_pattern, key_tuple, strict=False):
-                if char in temp_assignment:
-                    if temp_assignment[char] != k_elem:
+                if char in current_assignment:
+                    if current_assignment[char] != k_elem:
                         match = False
                         break
                 else:
-                    temp_assignment[char] = k_elem
+                    current_assignment[char] = k_elem
+                    assigned_here.append(char)
 
             if match:
                 next_val = val if tensor_idx == 0 else mul_op(accumulated_val, val)
-                _contract_recursive(tensor_idx + 1, temp_assignment, next_val)
+                _contract_recursive(tensor_idx + 1, current_assignment, next_val)
+
+            # Backtrack
+            for char in assigned_here:
+                del current_assignment[char]
 
     _contract_recursive(0, {}, semiring.one)
     return out_trie

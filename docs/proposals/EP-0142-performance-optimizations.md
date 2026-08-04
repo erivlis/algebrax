@@ -2,7 +2,7 @@
 title: "EP-0142: Performance & Efficiency Optimizations"
 description: "Targeted hot-path optimizations across matrix, transforms, tensor, trie, and semiring modules."
 icon: lucide/zap
-status: draft
+status: final
 ---
 
 # EP-0142: Performance & Efficiency Optimizations
@@ -12,10 +12,10 @@ status: draft
 | **EP**      | 0142                                   |
 | **Title**   | Performance & Efficiency Optimizations |
 | **Author**  | Eran Rivlis & Antigravity              |
-| **Status**  | Draft                                  |
+| **Status**  | Final                                  |
 | **Type**    | Standards Track                        |
 | **Created** | 2026-08-02                             |
-| **Updated** | 2026-08-02                             |
+| **Updated** | 2026-08-05                             |
 
 ## Abstract
 
@@ -35,7 +35,7 @@ optimizations maintain the library's zero-dependency, pure-functional character.
 ### 1. Hot-Path Local Variable Binding (`algebrax.matrix.core`)
 
 Bind `semiring.add` and `semiring.mul` to local variables before inner loops in `dot()`, `mat_vec()`,
-and `vec_mat()`:
+`vec_mat()`, and `inner()`:
 
 ```python
 def dot(m1, m2, semiring=None):
@@ -62,7 +62,7 @@ Currently re-imports all 24 semiring modules on **every call**. Caching eliminat
 
 ### 3. DFT Twiddle-Factor Precomputation (`algebrax.transforms`)
 
-Pre-compute the base exponential factor per frequency bin to avoid redundant `cmath.exp()` calls:
+Pre-extract `signal.items()` / `spectrum.items()` in `dft()` and `idft()` loops:
 
 ```python
 def dft(signal, n=None):
@@ -94,7 +94,7 @@ for char in assigned_here:
 
 ### 5. Trie Iterator Optimization (`algebrax.trie`)
 
-Replace list concatenation `[*path, k]` with tuple concatenation `path + (k,)` in `__iter__()`:
+Replace list concatenation `[*path, k]` with tuple expansion `(*path, k)` in `__iter__()`:
 
 ```python
 def __iter__(self):
@@ -105,7 +105,7 @@ def __iter__(self):
             yield path
         for k, v in node.items():
             if k != self._value_key:
-                stack.append((v, path + (k,)))
+                stack.append((v, (*path, k)))
 ```
 
 ### 6. Matrix `transpose()` Single-Pass Construction
@@ -126,7 +126,7 @@ def transpose(matrix):
 
 ## Falsifiable Invariants
 
-- All existing tests pass with identical outputs (279/279).
+- All existing tests pass with identical outputs (289/289).
 - `Semiring.catalog()` returns identical result on first and subsequent calls.
 - `dft(idft(x)) ≈ x` preserved after twiddle optimization.
 - `einsum` produces identical results with backtracking vs. dict-copy implementation.
@@ -138,3 +138,5 @@ Internal optimizations only. No API changes. All functions retain identical sign
 ## Change Log
 
 * **2026-08-02:** Initial Draft from Grand Council Assessment (Shannon).
+* **2026-08-05:** Fully implemented all 6 optimizations across `matrix.core`, `semiring._base`, `transforms`, `tensor`, and `trie`. Status → Final.
+

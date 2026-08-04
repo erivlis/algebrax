@@ -160,6 +160,8 @@ def dot(
     if semiring is None:
         semiring = StandardSemiring()
 
+    sr_add = semiring.add
+    sr_mul = semiring.mul
     zero = semiring.zero
 
     result = {}
@@ -168,11 +170,9 @@ def dot(
         for k, val1 in row1.items():
             if k in m2:
                 for c, val2 in m2[k].items():
-                    # result[r][c] += val1 * val2
-                    # Generalized: result[r][c] = result[r][c] + (val1 * val2)
-                    term = semiring.mul(val1, val2)
+                    term = sr_mul(val1, val2)
                     current = new_row[c]
-                    new_row[c] = semiring.add(current, term)
+                    new_row[c] = sr_add(current, term)
 
         # Remove zeros to maintain sparsity
         cleaned_row = {c: v for c, v in new_row.items() if v != zero}
@@ -228,15 +228,14 @@ def inner(
     if semiring is None:
         semiring = StandardSemiring()
 
+    sr_add = semiring.add
+    sr_mul = semiring.mul
+
     common = set(v1.keys()) & set(v2.keys())
-
-    # Standard inner product is sum(v1[k] * v2[k])
-    # Generalized: reduce(add, map(mul, ...))
-
     result = semiring.zero
     for k in common:
-        term = semiring.mul(v1[k], v2[k])
-        result = semiring.add(result, term)
+        term = sr_mul(v1[k], v2[k])
+        result = sr_add(result, term)
 
     return result
 
@@ -367,7 +366,7 @@ def trace(matrix: SparseMatrix[K, N]) -> N:
 
 def transpose(matrix: Mapping[K, Mapping[K, V]]) -> dict[K, dict[K, V]]:
     """
-    Transpose a sparse matrix (swap rows and columns).
+    Transpose a sparse matrix (swap rows and columns) in a single pass.
 
     Args:
         matrix: The input matrix (nested mapping).
@@ -375,13 +374,14 @@ def transpose(matrix: Mapping[K, Mapping[K, V]]) -> dict[K, dict[K, V]]:
     Returns:
         A new nested dictionary with rows and columns swapped.
     """
-    result = defaultdict(dict)
+    result: dict[K, dict[K, V]] = {}
     for r, row in matrix.items():
         for c, val in row.items():
-            result[c][r] = val
-
-    # Convert defaultdicts to regular dicts
-    return {k: dict(v) for k, v in result.items()}
+            if c not in result:
+                result[c] = {r: val}
+            else:
+                result[c][r] = val
+    return result
 
 
 def vec_mat(
@@ -403,15 +403,16 @@ def vec_mat(
     if semiring is None:
         semiring = StandardSemiring()
 
+    sr_add = semiring.add
+    sr_mul = semiring.mul
     zero = semiring.zero
     result = defaultdict(lambda: zero)
 
     for k, val in vector.items():
         if k in matrix:
             for c, m_val in matrix[k].items():
-                # result[c] += val * m_val
-                term = semiring.mul(val, m_val)
-                result[c] = semiring.add(result[c], term)
+                term = sr_mul(val, m_val)
+                result[c] = sr_add(result[c], term)
 
     return {k: v for k, v in result.items() if v != zero}
 

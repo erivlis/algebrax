@@ -1,10 +1,8 @@
-"""
-Base definitions and protocol for semirings.
-"""
-
+from functools import cache
 from typing import Protocol, TypeVar
 
 V = TypeVar('V')
+
 
 
 class Semiring(Protocol[V]):
@@ -80,6 +78,7 @@ class Semiring(Protocol[V]):
         ...
 
     @staticmethod
+    @cache
     def catalog() -> dict[str, type['Semiring']]:
         """
         Return a discoverable registry of all built-in semiring types.
