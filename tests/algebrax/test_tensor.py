@@ -2,11 +2,11 @@ import pytest
 
 from algebrax.semiring import StandardSemiring, TropicalSemiring
 from algebrax.tensor import (
+    dot,
     einsum,
     flatten_tensor,
     outer_product,
     permute_tensor,
-    tensordot,
     unflatten_tensor,
     unpermute_tensor,
 )
@@ -101,11 +101,11 @@ def test_tensordot():
     b = {(0, 0): 3.0, (1, 0): 4.0}
 
     # Contract last axis of A (axis 1) with first axis of B (axis 0)
-    c = tensordot(a, b, axes=1)
+    c = dot(a, b, axes=1)
     assert c[(0, 0)] == 11.0  # 1*3 + 2*4 = 11
 
     # Contract using explicit axis lists tuple ([1], [0]) and explicit semiring
-    c_explicit = tensordot(a, b, axes=([1], [0]), semiring=StandardSemiring())
+    c_explicit = dot(a, b, axes=([1], [0]), semiring=StandardSemiring())
     assert c_explicit[(0, 0)] == 11.0
 
     # Tensordot with AlgebraicTrie
@@ -113,7 +113,7 @@ def test_tensordot():
     t_a[(0, 0)] = 1.0
     t_b = AlgebraicTrie()
     t_b[(0, 0)] = 3.0
-    c_trie = tensordot(t_a, t_b, axes=1)
+    c_trie = dot(t_a, t_b, axes=1)
     assert c_trie[(0, 0)] == 3.0
 
 

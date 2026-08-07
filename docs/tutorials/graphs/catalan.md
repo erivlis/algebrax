@@ -27,8 +27,7 @@ This is equivalent to $(A^{2n})_{0,0}$ where $A$ is the adjacency matrix of the 
 <!-- name: test_catalan_dyck_paths -->
 
 ```python linenums="1"
-from algebrax.semiring import StandardSemiring
-from algebrax.matrix import dot, power
+import algebrax as ax
 
 def catalan_via_matrix(n: int) -> int:
     """
@@ -54,19 +53,19 @@ def catalan_via_matrix(n: int) -> int:
         if h - 1 >= 0:
             adjacency[h][h-1] = 1
             
-    # 2. Compute A^(2n) using the Standard Semiring (+, *)
+    # 2. Compute A^(2n) using the Standard ax.semiring.Semiring (+, *)
     # This counts the number of walks of length 2n.
-    # We use binary exponentiation (matrix power) for efficiency.
-    semiring = StandardSemiring()
+    # We use binary exponentiation (matrix ax.matrix.power) for efficiency.
+    semiring = ax.semiring.StandardSemiring()
     
     # We need 2n steps
     steps = 2 * n
     
     # Result matrix M = A^(2n)
-    M = power(adjacency, steps, semiring)
+    M = ax.matrix.power(adjacency, steps, semiring)
     
     # 3. The answer is the number of paths from 0 to 0
-    # We use .get(0, {}).get(0, 0) to handle sparsity safely
+    # We use .get(0, {}).get(0, 0) to handle ax.metrics.sparsity safely
     return int(M.get(0, {}).get(0, 0))
 
 # Verify the first few Catalan numbers: 1, 1, 2, 5, 14, 42
@@ -92,7 +91,7 @@ We can use the `Cauchy Product` (Discrete Convolution) to compute this iterative
 <!-- name: test_catalan_convolution -->
 
 ```python linenums="1"
-from algebrax.semiring import StandardSemiring
+import algebrax as ax
 
 def catalan_via_convolution(n: int) -> int:
     if n == 0: return 1
@@ -102,7 +101,7 @@ def catalan_via_convolution(n: int) -> int:
     
     for k in range(1, n + 1):
         # C_k = sum(C_i * C_{k-1-i}) for i from 0 to k-1
-        # This is the dot product of the list with its reverse
+        # This is the ax.matrix.dot product of the list with its reverse
         c_k = 0
         for i in range(k):
             c_k += catalan[i] * catalan[k - 1 - i]

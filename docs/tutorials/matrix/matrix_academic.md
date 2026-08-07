@@ -30,7 +30,7 @@ sparse dictionary matrices.
 ## Code Example
 
 ```python
-from algebrax.matrix import adjoint, cofactor, determinant, eigen_centrality, inverse
+import algebrax as ax
 
 # 1. Square 3x3 Sparse Matrix
 A = {
@@ -40,14 +40,14 @@ A = {
 }
 
 # 2. Determinant & Inverse
-det_A = determinant(A)
-inv_A = inverse(A)
+det_A = ax.matrix.determinant(A)
+inv_A = ax.matrix.inverse(A)
 print(f"det(A) = {det_A}")
 print("A^-1:", inv_A)
 
 # 3. Cofactor & Adjugate
-C = cofactor(A)
-adj_A = adjoint(A)
+C = ax.matrix.cofactor(A)
+adj_A = ax.matrix.adjoint(A)
 
 # 4. Network Eigenvector Centrality
 adj_matrix = {
@@ -56,6 +56,6 @@ adj_matrix = {
     "Charlie": {"Alice": 1.0},
     "David": {"Bob": 1.0},
 }
-centrality = eigen_centrality(adj_matrix)
+centrality = ax.matrix.eigen_centrality(adj_matrix)
 print("Eigenvector Centrality:", centrality)
 ```

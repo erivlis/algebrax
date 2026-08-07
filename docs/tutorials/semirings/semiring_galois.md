@@ -19,10 +19,10 @@ The **`GaloisFieldSemiring`** in `algebrax.galois` enables matrix linear algebra
 ## Python Example: AES GF(2^8) MixColumns Matrix Multiplication
 
 ```python
-from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
+import algebrax as ax
 
-# Instantiate AES GF(2^8) Semiring
-gf = GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
+# Instantiate AES GF(2^8) ax.semiring.Semiring
+gf = ax.galois.GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
 
 # Element multiplication: x^4 * x^4 = x^8 mod P(x) = x^4 + x^3 + x + 1
 res_poly = gf.mul({4: 1}, {4: 1})
@@ -39,6 +39,6 @@ state = {
     1: {0: {2: 1}},
 }
 
-out_state = gf_matrix_mul(mix_col, state, p=2)
+out_state = ax.galois.gf_matrix_mul(mix_col, state, p=2)
 print("Transformed AES State:", out_state)
 ```

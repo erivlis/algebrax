@@ -13,8 +13,8 @@ Post-Quantum Key Exchange & Complex Signal Masking Recipe using algebrax
 ================================================================================
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
-1. Digital Semiring Non-Commutative Key Exchange (algebrax.semiring.DigitalSemiring):
-   The Digital Semiring (D, +, *) uses digital root addition and multiplication.
+1. Digital ax.semiring.Semiring Non-Commutative Key Exchange (algebrax.semiring.DigitalSemiring):
+   The Digital ax.semiring.Semiring (D, +, *) uses digital root addition and multiplication.
    Because matrix multiplication over Digital semirings is non-commutative, Alice and
    Bob agree on a public generator matrix M (2x2).
    - Alice computes U = A * M * A using her secret matrix A.
@@ -36,10 +36,7 @@ THEORY & MATHEMATICAL FOUNDATION
 
 import cmath
 
-from algebrax.matrix.core import dot
-from algebrax.probability import mutual_information
-from algebrax.semiring import DigitalSemiring
-from algebrax.transforms import z_transform
+import algebrax as ax
 
 
 def main() -> None:
@@ -49,11 +46,11 @@ def main() -> None:
     print('Goal: Execute non-commutative matrix key exchange, evaluate Z-transform')
     print('      complex signal modulation, and verify zero mutual information leakage.')
 
-    # --- Step 1: Digital Semiring Post-Quantum Matrix Key Exchange ---
-    print('\n[Step 1] Non-Commutative Matrix Key Exchange (Digital Semiring)...')
-    print('Explanation: Matrix multiplication over DigitalSemiring is non-commutative.')
+    # --- Step 1: Digital ax.semiring.Semiring Post-Quantum Matrix Key Exchange ---
+    print('\n[Step 1] Non-Commutative Matrix Key Exchange (Digital ax.semiring.Semiring)...')
+    print('Explanation: Matrix multiplication over ax.semiring.DigitalSemiring is non-commutative.')
     print('             Alice & Bob compute U = A*M*A and V = B*M*B, yielding K_A == K_B.')
-    digital_semiring = DigitalSemiring()
+    digital_semiring = ax.semiring.DigitalSemiring()
 
     # Public Generator Matrix M (2x2)
     pub_m = {0: {0: 123, 1: 456}, 1: {0: 789, 1: 12}}
@@ -64,21 +61,21 @@ def main() -> None:
     bob_b = {0: {0: 22, 1: 88}, 1: {0: 88, 1: 22}}
 
     # Exchange Messages: Alice sends U = A * M * A, Bob sends V = B * M * B
-    am = dot(alice_a, pub_m, digital_semiring)
-    u_msg = dot(am, alice_a, digital_semiring)
+    am = ax.matrix.dot(alice_a, pub_m, digital_semiring)
+    u_msg = ax.matrix.dot(am, alice_a, digital_semiring)
 
-    bm = dot(bob_b, pub_m, digital_semiring)
-    v_msg = dot(bm, bob_b, digital_semiring)
+    bm = ax.matrix.dot(bob_b, pub_m, digital_semiring)
+    v_msg = ax.matrix.dot(bm, bob_b, digital_semiring)
 
     print(f'Alice transmits public message U: {u_msg}')
     print(f'Bob   transmits public message V: {v_msg}')
 
     # Compute Shared Keys: key_alice = A * V * A, key_bob = B * U * B
-    av = dot(alice_a, v_msg, digital_semiring)
-    key_alice = dot(av, alice_a, digital_semiring)
+    av = ax.matrix.dot(alice_a, v_msg, digital_semiring)
+    key_alice = ax.matrix.dot(av, alice_a, digital_semiring)
 
-    bu = dot(bob_b, u_msg, digital_semiring)
-    key_bob = dot(bu, bob_b, digital_semiring)
+    bu = ax.matrix.dot(bob_b, u_msg, digital_semiring)
+    key_bob = ax.matrix.dot(bu, bob_b, digital_semiring)
 
     print(f"\nAlice's Derived Shared Secret Key: {key_alice}")
     print(f"Bob's   Derived Shared Secret Key: {key_bob}")
@@ -96,7 +93,7 @@ def main() -> None:
     shared_scalar = key_alice.get(0, {}).get(0, 1)
     z_point = complex(0.5, (shared_scalar % 10) / 10.0)
 
-    z_eval = z_transform(payload_signal, z_point)
+    z_eval = ax.transforms.z_transform(payload_signal, z_point)
     mag, phase = cmath.polar(z_eval)
 
     print(f'Input Payload Signal Vector f(t): {payload_signal}')
@@ -114,7 +111,7 @@ def main() -> None:
         'Msg_1': {'Cipher_0': 0.25, 'Cipher_1': 0.25},
     }
 
-    mi_val = mutual_information(joint_distribution)
+    mi_val = ax.probability.mutual_information(joint_distribution)
     print(f'Mutual Information I(Plaintext; Ciphertext): {mi_val:.6f} nats')
 
     if mi_val < 1e-6:

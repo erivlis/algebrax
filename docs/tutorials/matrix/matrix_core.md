@@ -29,7 +29,7 @@ The **`algebrax.matrix.core`** module provides fundamental primitives for manipu
 ## Code Example
 
 ```python
-from algebrax.matrix import add, dot, hstack, mat_vec, power, transpose, vstack
+import algebrax as ax
 
 # 1. Define sparse matrices
 A = {
@@ -42,14 +42,14 @@ B = {
 }
 
 # 2. Addition & Transpose
-A_plus_B = add(A, B)
-A_T = transpose(A)
+A_plus_B = ax.matrix.add(A, B)
+A_T = ax.matrix.transpose(A)
 
 # 3. Matrix Power (A^3)
-A_cubed = power(A, 3)
+A_cubed = ax.matrix.power(A, 3)
 
 # 4. Matrix-Vector Multiplication
 v = {"node_A": 10.0, "node_B": 20.0}
-Av = mat_vec(A, v)
+Av = ax.matrix.mat_vec(A, v)
 print("A * v:", Av)  # -> {'node_A': 50.0, 'node_B': 110.0}
 ```

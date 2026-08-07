@@ -18,20 +18,18 @@ THEORY & MATHEMATICAL FOUNDATION
    into an orthogonal spectrum X[k] = sum_m x[m] (-1)^popcount(k AND m).
    Self-inverses WHT(WHT(x)) = N * x enable error-correcting decoding over noisy channels.
 
-2. Network Flow Divergence & Laplacian (algebrax.analysis.laplacian & divergence):
+2. Network Flow Divergence & Laplacian (algebrax.analysis.laplacian & ax.analysis.divergence):
    - Laplacian (L = D - A): Captures structural graph diffusion dynamics.
    - Divergence (div(F)_i = sum_j F_ij): Measures net traffic flow entering or leaving
      each mesh node i to isolate network sinks (div < 0) and sources (div > 0).
 
 3. Spatial Fractal Box Dimension (algebrax.metrics.box_counting_dimension):
    The Minkowski-Bouligand box dimension D_0 = lim_{eps -> 0} ln N(eps) / ln(1/eps)
-   quantifies spatial coverage density and multi-scale scaling of cell tower placement.
+   quantifies spatial coverage ax.metrics.density and multi-scale scaling of cell tower placement.
 ================================================================================
 """
 
-from algebrax.analysis import divergence, laplacian
-from algebrax.metrics import box_counting_dimension
-from algebrax.transforms import walsh_hadamard
+import algebrax as ax
 
 
 def main() -> None:
@@ -39,18 +37,18 @@ def main() -> None:
     print('Use Case: Telecommunications Signal Encoding & Fractal Network Dynamics')
     print('==========================================================================')
     print('Goal: Combine 3 distinct algebraic tools from algebrax to encode signals via WHT,')
-    print('      analyze graph Laplacian flow divergence, and measure spatial fractal dimension.')
+    print('      analyze graph Laplacian flow ax.analysis.divergence, and measure spatial fractal dimension.')
 
     # --- Step 1: Walsh-Hadamard Signal Encoding & Decoding ---
-    print('\n[Step 1] Orthogonal Telemetry Encoding (walsh_hadamard)...')
+    print('\n[Step 1] Orthogonal Telemetry Encoding (ax.transforms.walsh_hadamard)...')
     print('Explanation: Transformed 8-bit telemetry payload into Hadamard spectrum.')
     print('             WHT spectrum spreads energy orthogonally across frequency Walsh codes.')
 
     telemetry_payload = {0: 1.0, 1: -1.0, 2: 1.0, 3: 1.0, 4: -1.0, 5: 1.0, 6: -1.0, 7: -1.0}
-    wht_spectrum = walsh_hadamard(telemetry_payload, n=8)
+    wht_spectrum = ax.transforms.walsh_hadamard(telemetry_payload, n=8)
 
     # Reconstruct via dual WHT application (WHT(WHT(x)) = N * x)
-    reconstructed = {k: v / 8.0 for k, v in walsh_hadamard(wht_spectrum, n=8).items()}
+    reconstructed = {k: v / 8.0 for k, v in ax.transforms.walsh_hadamard(wht_spectrum, n=8).items()}
 
     print(f'Original 8-bit Telemetry Stream: {telemetry_payload}')
     print('\nWalsh-Hadamard Spectrum (WHT):')
@@ -61,9 +59,9 @@ def main() -> None:
     print(f'Exact Reconstruction Match: {telemetry_payload == reconstructed}')
 
     # --- Step 2: Mesh Network Flow Divergence & Laplacian ---
-    print('\n[Step 2] Mesh Network Traffic Flow & Laplacian (laplacian & divergence)...')
+    print('\n[Step 2] Mesh Network Traffic Flow & Laplacian (ax.analysis.laplacian & ax.analysis.divergence)...')
     print('Explanation: Laplacian L = D - A defines connectivity diffusion, while discrete')
-    print('             divergence div(F) pinpoints network traffic bottlenecks and sinks.')
+    print('             ax.analysis.divergence div(F) pinpoints network traffic bottlenecks and sinks.')
 
     # 4-Node Mesh Network Adjacency
     mesh_graph = {
@@ -75,7 +73,7 @@ def main() -> None:
 
     # Signal Field on Mesh Nodes (Signal Strength in dBm)
     signal_field = {0: 100.0, 1: 80.0, 2: 60.0, 3: 40.0}
-    lap_vector = laplacian(signal_field, mesh_graph)
+    lap_vector = ax.analysis.laplacian(signal_field, mesh_graph)
 
     # Traffic Flow Matrix F (positive value F_ij implies net traffic from i to j)
     traffic_flow = {
@@ -85,7 +83,7 @@ def main() -> None:
         3: {},
     }
 
-    flow_div = divergence(traffic_flow)
+    flow_div = ax.analysis.divergence(traffic_flow)
 
     print('\nGraph Laplacian Signal Vector L(f) = div(grad f):')
     for r in sorted(lap_vector.keys()):
@@ -97,7 +95,7 @@ def main() -> None:
         print(f'  Node {node}: {div_val:+6.1f} Mbps [{role}]')
 
     # --- Step 3: Spatial Fractal Coverage Dimension ---
-    print('\n[Step 3] Spatial Cell Tower Fractal Dimension (box_counting_dimension)...')
+    print('\n[Step 3] Spatial Cell Tower Fractal Dimension (ax.metrics.box_counting_dimension)...')
     print('Explanation: Box-counting dimension D_0 measures self-similar spatial scaling.')
 
     # 2D Grid coordinates of 16 distributed cell tower sites
@@ -116,7 +114,7 @@ def main() -> None:
         (5, 1): 1.0,
     }
 
-    fractal_dim = box_counting_dimension(tower_points, min_box_size=1, max_box_size=4)
+    fractal_dim = ax.metrics.box_counting_dimension(tower_points, min_box_size=1, max_box_size=4)
     print(f'\nSpatial Tower Grid Points: {len(tower_points)} locations')
     print(f'Minkowski-Bouligand Box Dimension D_0: {fractal_dim:.4f}')
 

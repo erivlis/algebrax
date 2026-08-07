@@ -14,8 +14,7 @@ Matrix multiplication yields the **Transitive Closure** (Reachability).
 <!-- name: test_boolean_semiring -->
 
 ```python linenums="1"
-from algebrax.semiring import BooleanSemiring
-from algebrax.matrix import dot, power
+import algebrax as ax
 
 # Graph Connectivity
 # 0 -> 1
@@ -27,10 +26,10 @@ graph = {
     3: {4: True}
 }
 
-semiring = BooleanSemiring()
+semiring = ax.semiring.BooleanSemiring()
 
 # Reachability in exactly 2 steps
-step2 = dot(graph, graph, semiring=semiring)
+step2 = ax.matrix.dot(graph, graph, semiring=semiring)
 print(f"0 -> 2 reachable in 2 steps? {step2.get(0, {}).get(2, False)}")
 # output: True
 
@@ -38,8 +37,8 @@ print(f"0 -> 2 reachable in 2 steps? {step2.get(0, {}).get(2, False)}")
 # For a graph with N nodes, closure is (I + A)^N
 # Or just sum of powers.
 # Let's check if 0 can reach 2 eventually.
-# We use power() which does binary exponentiation.
-# For N=5, power 5 covers all paths <= 5 length.
+# We use ax.matrix.power() which does binary exponentiation.
+# For N=5, ax.matrix.power 5 covers all paths <= 5 length.
 
 # Add self-loops (Identity) to allow "staying" at a node
 # This makes A^k include all paths of length <= k
@@ -48,7 +47,7 @@ for i in range(n_nodes):
     if i not in graph: graph[i] = {}
     graph[i][i] = True
 
-closure = power(graph, n_nodes, semiring=semiring)
+closure = ax.matrix.power(graph, n_nodes, semiring=semiring)
 
 print(f"0 -> 2 reachable? {closure.get(0, {}).get(2, False)}")
 print(f"0 -> 4 reachable? {closure.get(0, {}).get(4, False)}")

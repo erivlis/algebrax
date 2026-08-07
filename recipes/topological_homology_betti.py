@@ -8,7 +8,7 @@ Theoretical Foundations & Physics:
    (beta_0 = components, beta_1 = 1D loops, beta_2 = 2D voids).
 """
 
-from algebrax.homology import SimplicialComplex
+import algebrax as ax
 
 
 def main() -> None:
@@ -16,7 +16,7 @@ def main() -> None:
 
     # Construct an empty 1D ring (cycle S^1 with 4 vertices)
     ring_edges = [(0, 1), (1, 2), (2, 3), (0, 3)]
-    sc_ring = SimplicialComplex(ring_edges)
+    sc_ring = ax.homology.SimplicialComplex(ring_edges)
 
     print('\n[1] 1D Hollow Ring Topological Complex (S^1):')
     print('  Simplices 0D (vertices):', len(sc_ring._simplices.get(0, set())))
@@ -30,7 +30,7 @@ def main() -> None:
     assert betti_ring[1] == 1
 
     # Construct a filled 2D tetrahedron complex (S^2 boundary / filled volume)
-    sc_tet = SimplicialComplex([(0, 1, 2, 3)])
+    sc_tet = ax.homology.SimplicialComplex([(0, 1, 2, 3)])
     print('\n[2] 3D Solid Tetrahedron Complex:')
     print('  Simplices 0D:', len(sc_tet._simplices.get(0, set())))
     print('  Simplices 1D:', len(sc_tet._simplices.get(1, set())))

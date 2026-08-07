@@ -238,37 +238,32 @@ def test_monoid_algebra_nsum():
 
 def test_top_level_reexports_completeness():
     import algebrax
-    import algebrax.analysis
-    import algebrax.automata
-    import algebrax.converters
-    import algebrax.group
-    import algebrax.matrix
-    import algebrax.metrics
-    import algebrax.semiring
-    import algebrax.transforms
-    import algebrax.trie
-    import algebrax.typing
 
-    submodules = [
-        algebrax.analysis,
-        algebrax.automata,
-        algebrax.converters,
-        algebrax.group,
-        algebrax.matrix,
-        algebrax.metrics,
-        algebrax.semiring,
-        algebrax.transforms,
-        algebrax.trie,
-        algebrax.typing,
+    submodule_names = [
+        'analysis',
+        'automata',
+        'category',
+        'clifford',
+        'converters',
+        'display',
+        'galois',
+        'group',
+        'homology',
+        'lattice',
+        'matrix',
+        'metrics',
+        'probability',
+        'semiring',
+        'tensor',
+        'transforms',
+        'trie',
+        'verification',
     ]
 
     all_exported = set(algebrax.__all__)
-    for mod in submodules:
-        if hasattr(mod, '__all__'):
-            for symbol in mod.__all__:
-                if mod is algebrax.typing and (len(symbol) == 1 or symbol == 'T_num'):
-                    continue
-                assert symbol in all_exported, f"Symbol '{symbol}' from {mod.__name__} is missing in algebrax.__all__"
+    for sub in submodule_names:
+        assert sub in all_exported, f"Submodule namespace '{sub}' is missing in algebrax.__all__"
+        assert hasattr(algebrax, sub), f"Submodule namespace '{sub}' is not accessible on algebrax root"
 
 
 def test_semiring_protocol_default_implementations():

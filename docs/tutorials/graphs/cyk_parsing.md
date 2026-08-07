@@ -13,9 +13,8 @@ This allows us to parse a sentence of length $N$ by computing the transitive clo
 <!-- name: test_cyk_parsing -->
 
 ```python linenums="1"
+import algebrax as ax
 from typing import Set, Dict, Tuple
-from algebrax.semiring import Semiring
-from algebrax.matrix import dot
 
 # Grammar (Chomsky Normal Form)
 # S -> NP VP
@@ -32,7 +31,7 @@ lexicon = {
     'Python': {'NP'}
 }
 
-class GrammarSemiring(Semiring[Set[str]]):
+class GrammarSemiring(ax.semiring.Semiring[Set[str]]):
     @property
     def zero(self) -> Set[str]:
         return set()
@@ -84,7 +83,7 @@ semiring = GrammarSemiring()
 
 for _ in range(n):
     # New spans = Old spans * Old spans
-    new_spans = dot(chart, chart, semiring=semiring)
+    new_spans = ax.matrix.dot(chart, chart, semiring=semiring)
     
     # Union with existing spans (Add)
     for r, row in new_spans.items():

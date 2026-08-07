@@ -14,9 +14,9 @@ It is used in cryptographic protocols (Huang et al., 2024).
 <!-- name: test_digital_semiring -->
 
 ```python linenums="1"
-from algebrax.semiring import DigitalSemiring
+import algebrax as ax
 
-S = DigitalSemiring()
+S = ax.semiring.DigitalSemiring()
 
 # (123) = 6, (45) = 9
 # Add: 9 > 6 -> 45

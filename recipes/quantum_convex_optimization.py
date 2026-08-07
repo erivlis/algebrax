@@ -18,20 +18,18 @@ THEORY & MATHEMATICAL FOUNDATION
    convex conjugate. In statistical thermodynamics and optimization, this maps energy
    landscapes to dual Helmholtz free energy conjugate functions.
 
-2. Composite Quantum Spin Tensors (algebrax.matrix.core.block_diag & trace):
-   - Block Diagonal Product (block_diag([H1, H2])): Constructs direct sum composite
+2. Composite Quantum Spin Tensors (algebrax.matrix.core.block_diag & ax.matrix.trace):
+   - Block Diagonal Product (ax.matrix.block_diag([H1, H2])): Constructs direct sum composite
      spin Hamiltonians H = H1 (+) H2 for decoupled quantum subsystems.
-   - Trace Tr(H) = sum_i H_ii: Computes quantum expectation invariant trace sums.
+   - Trace Tr(H) = sum_i H_ii: Computes quantum expectation invariant ax.matrix.trace sums.
 
 3. Probabilistic Quantum State Transition Automaton (algebrax.automata.simulate_nfa):
-   `simulate_nfa` simulates non-deterministic and probabilistic state transitions over
+   `ax.automata.simulate_nfa` simulates non-deterministic and probabilistic state transitions over
    superposition channels (e.g. ground state -> excited state -> decay).
 ================================================================================
 """
 
-from algebrax.automata import simulate_nfa
-from algebrax.matrix.core import block_diag, trace
-from algebrax.transforms import legendre_fenchel
+import algebrax as ax
 
 
 def main() -> None:
@@ -39,10 +37,10 @@ def main() -> None:
     print('Use Case: Quantum Spin-Chain State & Convex Optimization')
     print('==========================================================================')
     print('Goal: Combine 3 distinct algebraic tools from algebrax to evaluate Fenchel-Legendre')
-    print('      convex conjugates, block diagonal Hamiltonians, and NFA probabilistic transitions.')
+    print('      convex conjugates, ax.matrix.block diagonal Hamiltonians, and NFA probabilistic transitions.')
 
     # --- Step 1: Fenchel-Legendre Convex Conjugate ---
-    print('\n[Step 1] Fenchel-Legendre Convex Conjugate (legendre_fenchel)...')
+    print('\n[Step 1] Fenchel-Legendre Convex Conjugate (ax.transforms.legendre_fenchel)...')
     print('Explanation: Computes dual conjugate energy f*(s) = sup_x { s * x - f(x) }')
     print('             for convex quadratic cost function f(x) = 0.5 * x^2.')
 
@@ -52,19 +50,19 @@ def main() -> None:
     slopes = [-2.0, -1.0, 0.0, 1.0, 2.0]
     print('\nLegendre-Fenchel Dual Conjugate Values f*(s):')
     for s in slopes:
-        f_star_s = legendre_fenchel(convex_signal, slope=s)
+        f_star_s = ax.transforms.legendre_fenchel(convex_signal, slope=s)
         print(f'  Slope s = {s:+4.1f} -> Dual Conjugate f*(s) = {f_star_s:6.2f}')
 
     # --- Step 2: Block Diagonal Spin Hamiltonian & Matrix Trace ---
-    print('\n[Step 2] Multi-Qubit Block Diagonal Hamiltonian & Trace (block_diag & trace)...')
-    print('Explanation: Computes decoupled block diagonal Hamiltonian H = H1 (+) H2 and trace Tr(H).')
+    print('\n[Step 2] Multi-Qubit Block Diagonal Hamiltonian & Trace (ax.matrix.block_diag & ax.matrix.trace)...')
+    print('Explanation: Computes decoupled block diagonal Hamiltonian H = H1 (+) H2 and matrix trace Tr(H).')
 
     # Subsystem Hamiltonians
     h1 = {0: {0: 1.0, 1: 0.5}, 1: {0: 0.5, 1: -1.0}}
     h2 = {0: {0: 2.0, 1: 0.1}, 1: {0: 0.1, 1: -2.0}}
 
-    composite_hamiltonian = block_diag([h1, h2])
-    tr_h = trace(composite_hamiltonian)
+    composite_hamiltonian = ax.matrix.core.block_diag([h1, h2])
+    tr_h = ax.matrix.trace(composite_hamiltonian)
 
     print('\nSubsystem H1 Matrix:')
     for r in sorted(h1.keys()):
@@ -81,7 +79,7 @@ def main() -> None:
     print(f'\nComposite Hamiltonian Trace Tr(H): {tr_h:.2f}')
 
     # --- Step 3: Probabilistic State Machine Simulation (NFA) ---
-    print('\n[Step 3] Probabilistic Quantum Decay Automaton (simulate_nfa)...')
+    print('\n[Step 3] Probabilistic Quantum Decay Automaton (ax.automata.simulate_nfa)...')
     print('Explanation: Simulates NFA state transitions over superposition channels.')
 
     quantum_nfa = {
@@ -93,7 +91,7 @@ def main() -> None:
     start_distribution = {0: 1.0}
     pulse_sequence = ['pulse', 'pulse', 'pulse']
 
-    final_distribution = simulate_nfa(start_distribution, pulse_sequence, quantum_nfa)
+    final_distribution = ax.automata.simulate_nfa(start_distribution, pulse_sequence, quantum_nfa)
 
     print('\nInitial State Distribution: ', start_distribution)
     print('Applied Pulse Sequence:     ', pulse_sequence)

@@ -13,8 +13,7 @@ Matrix multiplication becomes the shortest path algorithm.
 <!-- name: test_tropical_semiring -->
 
 ```python linenums="1"
-from algebrax.semiring import TropicalSemiring
-from algebrax.matrix import dot
+import algebrax as ax
 
 # Graph Adjacency Matrix (Weights = Costs)
 # 0 -> 1 (cost 2)
@@ -30,7 +29,7 @@ graph = {
 #   cost(0->1) + cost(1->2),  # 2 + 3 = 5
 #   cost(0->2) + cost(2->2)   # 10 + inf = inf
 # )
-paths_len_2 = dot(graph, graph, semiring=TropicalSemiring())
+paths_len_2 = ax.matrix.dot(graph, graph, semiring=ax.semiring.TropicalSemiring())
 print(paths_len_2[0][2])
 # output: 5.0
 ```

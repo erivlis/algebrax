@@ -16,23 +16,21 @@ THEORY & MATHEMATICAL FOUNDATION
 1. 2D Planar Trajectory & Velocity Field (algebrax.analysis.gradient):
    Trajectoids are custom 3D geometric solids engineered so that rolling them without
    slipping traces a predetermined 2D planar curve c(t) = (x(t), y(t)).
-   `gradient` evaluates discrete velocity components v_x(t) = dx/dt and v_y(t) = dy/dt.
+   `ax.analysis.gradient` evaluates discrete velocity components v_x(t) = dx/dt and v_y(t) = dy/dt.
 
 2. Non-Holonomic SO(3) Rotation Group Composition (algebrax.matrix.core.dot):
    Rolling without slipping couples planar velocity to 3D rotation matrices R(t) in SO(3).
    State updates R_{k+1} = R_k * dR_k integrate 3D orientation shifts across step dt.
 
 3. Structural Sparsity & Trajectory Tracking Audit (algebrax.metrics.sparsity):
-   `metrics.sparsity` measures structural contact matrix density while spatial deviation
+   `metrics.sparsity` measures structural contact matrix ax.metrics.density while spatial deviation
    audits closed-loop trajectory periodicity.
 ================================================================================
 """
 
 import math
 
-from algebrax.analysis import gradient
-from algebrax.matrix.core import dot
-from algebrax.metrics import sparsity
+import algebrax as ax
 
 
 def make_so3_rotation(angle_x: float, angle_y: float, angle_z: float) -> dict[int, dict[int, float]]:
@@ -67,8 +65,8 @@ def main() -> None:
     print('Goal: Combine 3 distinct algebraic tools from algebrax to simulate 3D')
     print('      trajectoid non-holonomic rolling along a periodic 2D figure-eight path.')
 
-    # --- Step 1: 2D Target Trajectory & Velocity Gradient (gradient) ---
-    print('\n[Step 1] Target 2D Trajectory & Velocity Field (gradient)...')
+    # --- Step 1: 2D Target Trajectory & Velocity Gradient (ax.analysis.gradient) ---
+    print('\n[Step 1] Target 2D Trajectory & Velocity Field (ax.analysis.gradient)...')
     print('Explanation: c(t) = (r * sin(t), r * sin(t) * cos(t)) defines a periodic lemniscate.')
 
     n_steps = 16
@@ -80,9 +78,9 @@ def main() -> None:
     # Time-series graph topology t -> (t+1)%n_steps
     time_graph = {t: [(t + 1) % n_steps] for t in range(n_steps)}
 
-    # Velocity components via discrete gradient
-    grad_x = gradient(path_x, time_graph)
-    grad_y = gradient(path_y, time_graph)
+    # Velocity components via discrete ax.analysis.gradient
+    grad_x = ax.analysis.gradient(path_x, time_graph)
+    grad_y = ax.analysis.gradient(path_y, time_graph)
 
     vx = {t: grad_x[t][(t + 1) % n_steps] for t in range(n_steps)}
     vy = {t: grad_y[t][(t + 1) % n_steps] for t in range(n_steps)}
@@ -93,8 +91,8 @@ def main() -> None:
         vel_str = f'({vx[t]:+6.2f}, {vy[t]:+6.2f})'
         print(f'  Time t={t:2d}: Position = {pos_str}, Velocity = {vel_str}')
 
-    # --- Step 2: Non-Holonomic SO(3) Rotation Kinematics (dot) ---
-    print('\n[Step 2] Non-Holonomic SO(3) Rotation Matrix Composition (dot)...')
+    # --- Step 2: Non-Holonomic SO(3) Rotation Kinematics (ax.matrix.dot) ---
+    print('\n[Step 2] Non-Holonomic SO(3) Rotation Matrix Composition (ax.matrix.dot)...')
     print('Explanation: Pure rolling without slip updates 3D orientation R_{k+1} = R_k * dR_k.')
 
     current_r = {
@@ -114,7 +112,7 @@ def main() -> None:
         w_z = (vx[t] + vy[t]) * 0.05
 
         d_r = make_so3_rotation(w_x, w_y, w_z)
-        current_r = dot(current_r, d_r)
+        current_r = ax.matrix.dot(current_r, d_r)
 
         current_pos[0] += vx[t]
         current_pos[1] += vy[t]
@@ -136,7 +134,7 @@ def main() -> None:
         total_error += dist
 
     avg_error = total_error / n_steps
-    r_sparsity = sparsity(current_r)
+    r_sparsity = ax.metrics.sparsity(current_r)
 
     print(f'\nTotal Spatial Path Deviation:   {total_error:.4f} units')
     print(f'Average Step Tracking Error:     {avg_error:.4f} units')

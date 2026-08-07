@@ -32,13 +32,13 @@ the [Polynomial Semiring](semiring_polynomial.md) ($R[x]$) and the [Knot Semirin
 The `MonoidAlgebraSemiring` class is generic over both key type `K` and coefficient type `T`:
 
 ```python
-from algebrax.semiring import MonoidAlgebraSemiring, StandardSemiring
+import algebrax as ax
 
 # 1. Define base coefficient semiring
-int_semiring = StandardSemiring(int)
+int_semiring = ax.semiring.StandardSemiring(int)
 
-# 2. Instantiate MonoidAlgebraSemiring with custom string monoid (concatenation)
-string_algebra = MonoidAlgebraSemiring(
+# 2. Instantiate ax.semiring.MonoidAlgebraSemiring with custom string monoid (concatenation)
+string_algebra = ax.semiring.MonoidAlgebraSemiring(
     coeff_semiring=int_semiring,
     key_op=lambda a, b: a + b,
     zero_key="",

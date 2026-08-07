@@ -17,11 +17,11 @@ from algebrax.trie import AlgebraicTrie
 V = TypeVar('V')
 
 __all__ = [
+    'dot',
     'einsum',
     'flatten_tensor',
     'outer_product',
     'permute_tensor',
-    'tensordot',
     'unflatten_tensor',
     'unpermute_tensor',
 ]
@@ -194,7 +194,7 @@ def outer_product(
     return out_trie
 
 
-def tensordot(
+def dot(
         tensor_a: Any,
         tensor_b: Any,
         axes: int | tuple[list[int], list[int]] = 1,

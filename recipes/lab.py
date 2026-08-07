@@ -34,7 +34,7 @@ The sidebar is organized into **6 domain categories** covering all 19 interactiv
 
 ```text
 ├── Matrix & Graph Algorithms
-│   ├── Semiring Matrix Power          (View 1: Tropical, Arctic, Viterbi, Expectation, Provenance, etc.)
+│   ├── ax.semiring.Semiring Matrix Power          (View 1: Tropical, Arctic, Viterbi, Expectation, Provenance, etc.)
 │   ├── Forman-Ricci Curvature         (View 2: Discrete Ricci curvature & geometry classification)
 │   ├── PageRank Algorithm             (View 3: Stationary distribution of random walks over semirings)
 │   └── Network Curvature Vis          (View 12: Interactive force-directed layout & edge curvature chart)
@@ -49,20 +49,20 @@ The sidebar is organized into **6 domain categories** covering all 19 interactiv
 │   └── Optical Holography             (View 17: Coherent wavefront interference & Fourier spectrum)
 ├── Tensors, Tries & Physics
 │   ├── Algebraic Trie / Tensor        (View 4: Sparse tensor dimension contraction/marginalization)
-│   ├── Sparse Tensor Einsum           (View 14: Arbitrary-rank einsum over Standard & Tropical semirings)
+│   ├── Sparse Tensor Einsum           (View 14: Arbitrary-rank ax.tensor.einsum over Standard & Tropical semirings)
 │   ├── Trajectoid Kinematics          (View 15: Non-holonomic rolling velocity & SO(3) 3x3 rotation)
-│   ├── Schwarzschild Black Hole       (View 13: Metric components, light deflection & Hawking entropy)
+│   ├── Schwarzschild Black Hole       (View 13: Metric components, light deflection & Hawking ax.probability.entropy)
 │   └── 3D Gaussian Splatting          (View 20: 3D spatial covariance Sigma & 2D projective screen splatting)
 ├── Topology & Geometry
 │   ├── Knot Theory & Skein            (View 16: Knot connected sum (#) & Artin braid crossing signatures)
-│   ├── Sheaf Cohomology               (View 19: Cellular sheaf coboundary gradient & sensor consensus)
+│   ├── Sheaf Cohomology               (View 19: Cellular sheaf coboundary & sensor consensus)
 │   ├── Simplicial Homology            (View 21: Boundary nilpotency D_{k-1} o D_k = 0 & Betti barcodes)
 │   ├── Clifford Geometric Algebra     (View 22: Cl(3,0) multivectors & 3D rotor rotation sandwiching)
 │   ├── Galois Finite Fields           (View 23: GF(2^8) polynomial modulo arithmetic & AES MixColumns)
 │   └── Categorical Kleisli Monads     (View 24: Monadic Kleisli composition g o_T f across semirings)
 └── Information & Crypto
     ├── Markov & Info Theory           (View 9: Markov steps, steady state & Shannon/KL info metrics)
-    └── Post-Quantum Key Exchange      (View 3: Diffie-Hellman matrix key exchange over Digital Semiring)
+    └── Post-Quantum Key Exchange      (View 3: Diffie-Hellman matrix key exchange over Digital ax.semiring.Semiring)
 ```
 
 ---
@@ -108,7 +108,7 @@ already-rendered table during a button callback raises a CPython
       if dpg.does_item_exist(container_tag):
           dpg.delete_item(container_tag, children_only=True)
           with dpg.table(tag=table_tag, parent=container_tag, ...):
-              # add columns & rows
+              # ax.matrix.add columns & rows
       ```
 
 ---
@@ -177,7 +177,7 @@ When adding a new Use Case experiment view to `recipes/lab.py`:
 3. **Register in `VIEWS` List**:
    Add `"<feature_name>"` to the global `VIEWS: list[str]` array.
 4. **Add Sidebar Selectable**:
-   In `build_navigation_sidebar()`, add `dpg.add_selectable` under the appropriate tree node:
+   In `build_navigation_sidebar()`, ax.matrix.add `dpg.add_selectable` under the appropriate tree node:
    ```python
    dpg.add_selectable(
        label="Feature Name",
@@ -207,18 +207,7 @@ from typing import Any
 
 import dearpygui.dearpygui as dpg
 
-from algebrax.analysis import forman_ricci_curvature
-from algebrax.automata import dfa_step, nfa_step
-from algebrax.probability import (
-    cross_entropy,
-    entropy,
-    kl_divergence,
-    markov_steady_state,
-    markov_step,
-    mutual_information,
-)
-from algebrax.semiring import ArcticSemiring, Semiring, StandardSemiring, TropicalSemiring
-from algebrax.transforms import convolve, dft, hilbert, idft, legendre_fenchel, z_transform
+import algebrax as ax
 
 try:
     from PIL import Image
@@ -325,8 +314,8 @@ def display_matrix_in_table(matrix: Mapping[Any, Mapping[Any, Any]], table_tag: 
                         dpg.add_input_text(default_value=val_str, readonly=True, width=-1)
 
 
-# --- Custom Semiring for CYK Parsing ---
-class GrammarSemiring(Semiring[set[str]]):
+# --- Custom ax.semiring.Semiring for CYK Parsing ---
+class GrammarSemiring(ax.semiring.Semiring[set[str]]):
     def __init__(self, rules: dict[tuple[str, str], set[str]]) -> None:
         self._rules = rules
 
@@ -350,8 +339,8 @@ class GrammarSemiring(Semiring[set[str]]):
         return res
 
 
-# --- Custom Semiring for Convex Hull (Intervals) ---
-class IntervalSemiring(Semiring[tuple[float, float]]):
+# --- Custom ax.semiring.Semiring for Convex Hull (Intervals) ---
+class IntervalSemiring(ax.semiring.Semiring[tuple[float, float]]):
     @property
     def zero(self) -> tuple[float, float]:
         return (float('inf'), float('-inf'))
@@ -404,57 +393,43 @@ def run_semiring_power() -> None:
         parsed_g: dict[Any, dict[Any, Any]] = {}
 
         if semiring_name == 'Tropical':
-            semiring: Semiring[Any] = TropicalSemiring()
+            semiring: ax.semiring.Semiring[Any] = ax.semiring.TropicalSemiring()
             parser = float
         elif semiring_name == 'Arctic':
-            semiring = ArcticSemiring()
+            semiring = ax.semiring.ArcticSemiring()
             parser = float
         elif semiring_name == 'Viterbi':
-            from algebrax.semiring import ViterbiSemiring
-
-            semiring = ViterbiSemiring()
+            semiring = ax.semiring.ViterbiSemiring()
             parser = float
         elif semiring_name == 'String':
-            from algebrax.semiring import StringSemiring
-
-            semiring = StringSemiring()
+            semiring = ax.semiring.StringSemiring()
             parser = set
         elif semiring_name == 'Expectation':
-            from algebrax.semiring import ExpectationSemiring
-
-            semiring = ExpectationSemiring()
+            semiring = ax.semiring.ExpectationSemiring()
 
             def parse_expectation(x: list[Any]) -> tuple[float, float]:
                 return (float(x[0]), float(x[1]))
 
             parser = parse_expectation
         elif semiring_name == 'Provenance':
-            from algebrax.semiring import ProvenanceSemiring
-
-            semiring = ProvenanceSemiring()
+            semiring = ax.semiring.ProvenanceSemiring()
 
             def parse_provenance(d: dict[str, int]) -> dict[tuple[str, ...], int]:
                 return {tuple(k.split(',')) if isinstance(k, str) else tuple(k): int(v) for k, v in d.items()}
 
             parser = parse_provenance
         elif semiring_name == 'Variance':
-            from algebrax.semiring import VarianceSemiring
-
-            semiring = VarianceSemiring()
+            semiring = ax.semiring.VarianceSemiring()
 
             def parse_variance(x: list[Any]) -> tuple[float, float, float, float]:
                 return (float(x[0]), float(x[1]), float(x[2]), float(x[3]))
 
             parser = parse_variance
         elif semiring_name == 'Digital':
-            from algebrax.semiring import DigitalSemiring
-
-            semiring = DigitalSemiring()
+            semiring = ax.semiring.DigitalSemiring()
             parser = int
         elif semiring_name == 'Modular':
-            from algebrax.semiring import ModularSemiring
-
-            semiring = ModularSemiring(p=5)
+            semiring = ax.semiring.ModularSemiring(p=5)
             parser = int
         elif semiring_name == 'Interval (Convex Hull)':
             semiring = IntervalSemiring()
@@ -464,7 +439,7 @@ def run_semiring_power() -> None:
 
             parser = parse_interval
         else:
-            semiring = StandardSemiring()
+            semiring = ax.semiring.StandardSemiring()
             parser = float
 
         for u, neighbors in custom_g.items():
@@ -475,12 +450,10 @@ def run_semiring_power() -> None:
                 row[v_key] = parser(w)
             parsed_g[u_key] = row
 
-        from algebrax.matrix.core import power
-
-        res = power(parsed_g, power_val, semiring=semiring)
+        res = ax.matrix.power(parsed_g, power_val, semiring=semiring)
 
         display_matrix_in_table(res, 'table_semiring_res')
-        dpg.set_value('semiring_status', f'Computed {semiring_name} power {power_val} successfully.')
+        dpg.set_value('semiring_status', f'Computed {semiring_name} ax.matrix.power {power_val} successfully.')
     except Exception as e:
         dpg.set_value('semiring_status', f'Error: {e}')
 
@@ -502,7 +475,7 @@ def run_curvature() -> None:
             elif isinstance(neighbors, list):
                 graph[u_key] = {int(v) if str(v).isdigit() else v: 1.0 for v in neighbors}
 
-        res = forman_ricci_curvature(graph, augmented=is_augmented)
+        res = ax.analysis.forman_ricci_curvature(graph, augmented=is_augmented)
 
         clear_table_rows('table_curvature')
         for (u, v), k_val in sorted(res.items()):
@@ -524,11 +497,8 @@ def run_curvature() -> None:
 
 
 def run_crypto_exchange() -> None:
-    from algebrax.matrix.core import dot
-    from algebrax.semiring import DigitalSemiring
-
     try:
-        s_semiring = DigitalSemiring()
+        s_semiring = ax.semiring.DigitalSemiring()
         a1: int = int(dpg.get_value('crypto_a1'))
         a2: int = int(dpg.get_value('crypto_a2'))
         b1: int = int(dpg.get_value('crypto_b1'))
@@ -538,17 +508,17 @@ def run_crypto_exchange() -> None:
         a_mat: dict[int, dict[int, int]] = {0: {0: a1, 1: a2}, 1: {0: a2, 1: a1}}
         b_mat: dict[int, dict[int, int]] = {0: {0: b1, 1: b2}, 1: {0: b2, 1: b1}}
 
-        am_mat = dot(a_mat, m_mat, s_semiring)
-        u_mat = dot(am_mat, a_mat, s_semiring)
+        am_mat = ax.matrix.dot(a_mat, m_mat, s_semiring)
+        u_mat = ax.matrix.dot(am_mat, a_mat, s_semiring)
 
-        bm_mat = dot(b_mat, m_mat, s_semiring)
-        v_mat = dot(bm_mat, b_mat, s_semiring)
+        bm_mat = ax.matrix.dot(b_mat, m_mat, s_semiring)
+        v_mat = ax.matrix.dot(bm_mat, b_mat, s_semiring)
 
-        av_mat = dot(a_mat, v_mat, s_semiring)
-        ka_mat = dot(av_mat, a_mat, s_semiring)
+        av_mat = ax.matrix.dot(a_mat, v_mat, s_semiring)
+        ka_mat = ax.matrix.dot(av_mat, a_mat, s_semiring)
 
-        bu_mat = dot(b_mat, u_mat, s_semiring)
-        kb_mat = dot(bu_mat, b_mat, s_semiring)
+        bu_mat = ax.matrix.dot(b_mat, u_mat, s_semiring)
+        kb_mat = ax.matrix.dot(bu_mat, b_mat, s_semiring)
 
         display_matrix_in_table(u_mat, 'table_crypto_u')
         display_matrix_in_table(v_mat, 'table_crypto_v')
@@ -563,10 +533,9 @@ def run_crypto_exchange() -> None:
 
 
 def run_trie_operations() -> None:
-    from algebrax.trie import AlgebraicTrie
 
     try:
-        trie: AlgebraicTrie[Any, float] = AlgebraicTrie(semiring=StandardSemiring)
+        trie: ax.trie.AlgebraicTrie[Any, float] = ax.trie.AlgebraicTrie(semiring=ax.semiring.StandardSemiring)
         points_str: str = dpg.get_value('trie_points_input')
         points: list[tuple[list[Any], float]] = json.loads(points_str)
 
@@ -612,13 +581,12 @@ def run_pagerank() -> None:
 
         v_vec: dict[str, float] = dict.fromkeys(all_nodes, 1.0 / n_nodes)
 
-        from algebrax.matrix.core import dot
 
-        semiring = StandardSemiring()
+        semiring = ax.semiring.StandardSemiring()
 
         for _ in range(iterations):
             v_matrix = {'0': v_vec}
-            res_matrix = dot(v_matrix, m_matrix, semiring=semiring)
+            res_matrix = ax.matrix.dot(v_matrix, m_matrix, semiring=semiring)
             v_next_raw = res_matrix.get('0', {})
 
             v_next: dict[str, float] = {}
@@ -660,12 +628,11 @@ def run_cyk_parsing() -> None:
                 chart[i] = {}
             chart[i][i + 1] = lexicon.get(word, set())
 
-        from algebrax.matrix.core import dot
 
         semiring = GrammarSemiring(rules)
 
         for _ in range(n_len):
-            new_spans = dot(chart, chart, semiring=semiring)
+            new_spans = ax.matrix.dot(chart, chart, semiring=semiring)
             for r, row in new_spans.items():
                 if r not in chart:
                     chart[r] = {}
@@ -695,7 +662,7 @@ def run_legendre_fenchel() -> None:
 
         clear_table_rows('table_fenchel')
         for s in sorted(slopes):
-            val = legendre_fenchel(parsed_signal, s)
+            val = ax.transforms.legendre_fenchel(parsed_signal, s)
             with dpg.table_row(parent='table_fenchel'):
                 dpg.add_input_text(default_value=f'{s:.2f}'.rstrip('0').rstrip('.'), readonly=True, width=-1)
                 dpg.add_input_text(default_value=f'{val:.4f}'.rstrip('0').rstrip('.'), readonly=True, width=-1)
@@ -753,7 +720,7 @@ def _simulate_dfa_step_by_step(
 
     for idx, symbol in enumerate(seq):
         sym_key = int(symbol) if symbol.isdigit() else symbol
-        next_state = dfa_step(current, sym_key, normalized_transitions)
+        next_state = ax.automata.dfa_step(current, sym_key, normalized_transitions)
         if next_state is None:
             steps_log.append(f"Step {idx + 1}: Symbol '{symbol}' -> No transition defined from '{current}' (Crashed)")
             current = None
@@ -820,7 +787,7 @@ def _simulate_nfa_step_by_step(
 
     for idx, symbol in enumerate(seq):
         sym_key = int(symbol) if symbol.isdigit() else symbol
-        next_states = nfa_step(current, sym_key, normalized_transitions)
+        next_states = ax.automata.nfa_step(current, sym_key, normalized_transitions)
         if not next_states:
             steps_log.append(f"Step {idx + 1}: Symbol '{symbol}' -> No active transitions (Crashed)")
             current = {}
@@ -882,9 +849,9 @@ def run_markov_simulation() -> None:
 
         curr_state = state
         for _ in range(steps):
-            curr_state = markov_step(curr_state, matrix)
+            curr_state = ax.probability.markov_step(curr_state, matrix)
 
-        steady = markov_steady_state(matrix)
+        steady = ax.probability.markov_steady_state(matrix)
 
         clear_table_rows('table_markov_steps')
         for s_key, prob in sorted(curr_state.items()):
@@ -918,11 +885,11 @@ def run_info_theory() -> None:
             for u, n in raw_joint.items()
         }
 
-        h_p = entropy(p_dist)
-        h_q = entropy(q_dist)
-        h_cross = cross_entropy(p_dist, q_dist)
-        kl_div = kl_divergence(p_dist, q_dist)
-        mi_val = mutual_information(joint_dist)
+        h_p = ax.probability.entropy(p_dist)
+        h_q = ax.probability.entropy(q_dist)
+        h_cross = ax.probability.cross_entropy(p_dist, q_dist)
+        kl_div = ax.probability.kl_divergence(p_dist, q_dist)
+        mi_val = ax.probability.mutual_information(joint_dist)
 
         dpg.set_value('info_hp_val', f'{h_p:.4f} bits')
         dpg.set_value('info_hq_val', f'{h_q:.4f} bits')
@@ -950,20 +917,20 @@ def run_signal_transforms() -> None:
         f_vec: dict[int, Any] = {int(k): complex(v) if isinstance(v, str) else float(v) for k, v in raw_f.items()}
 
         if op == 'DFT':
-            res = dft(f_vec)
+            res = ax.transforms.dft(f_vec)
         elif op == 'IDFT':
-            res = idft(f_vec)
+            res = ax.transforms.idft(f_vec)
         elif op == 'Hilbert Transform':
-            res = hilbert(f_vec)
+            res = ax.transforms.hilbert(f_vec)
         elif op == 'Convolution':
             g_str: str = dpg.get_value('signal_g')
             raw_g: dict[str, Any] = json.loads(g_str)
             g_vec = {int(k): float(v) for k, v in raw_g.items()}
-            res = convolve(f_vec, g_vec)
+            res = ax.transforms.convolve(f_vec, g_vec)
         elif op == 'Z-Transform':
             z_str: str = dpg.get_value('signal_z_input')
             z_val = complex(z_str)
-            res_val = z_transform(f_vec, z_val)
+            res_val = ax.transforms.z_transform(f_vec, z_val)
             res = {0: res_val}
         else:
             res = {}
@@ -1021,8 +988,6 @@ def run_blackhole_sim() -> None:
 
 
 def run_sparse_tensor_einsum() -> None:
-    from algebrax.tensor import einsum
-    from algebrax.trie import AlgebraicTrie
 
     subscripts: str = dpg.get_value('tensor_subscripts')
     semiring_name: str = dpg.get_value('tensor_semiring')
@@ -1033,22 +998,22 @@ def run_sparse_tensor_einsum() -> None:
         raw_a: list[tuple[list[Any], float]] = json.loads(a_str)
         raw_b: list[tuple[list[Any], float]] = json.loads(b_str)
 
-        trie_a: AlgebraicTrie[Any, float] = AlgebraicTrie(semiring=StandardSemiring)
+        trie_a: ax.trie.AlgebraicTrie[Any, float] = ax.trie.AlgebraicTrie(semiring=ax.semiring.StandardSemiring)
         for coord, val in raw_a:
             trie_a[tuple(coord)] = float(val)
 
-        trie_b: AlgebraicTrie[Any, float] = AlgebraicTrie(semiring=StandardSemiring)
+        trie_b: ax.trie.AlgebraicTrie[Any, float] = ax.trie.AlgebraicTrie(semiring=ax.semiring.StandardSemiring)
         for coord, val in raw_b:
             trie_b[tuple(coord)] = float(val)
 
         if 'Tropical' in semiring_name:
-            semiring: Semiring[float] = TropicalSemiring()
+            semiring: ax.semiring.Semiring[float] = ax.semiring.TropicalSemiring()
         elif 'Arctic' in semiring_name:
-            semiring = ArcticSemiring()
+            semiring = ax.semiring.ArcticSemiring()
         else:
-            semiring = StandardSemiring()
+            semiring = ax.semiring.StandardSemiring()
 
-        res_trie = einsum(subscripts, trie_a, trie_b, semiring=semiring)
+        res_trie = ax.tensor.einsum(subscripts, trie_a, trie_b, semiring=semiring)
 
         clear_table_rows('table_tensor_einsum_res')
         for key in sorted(res_trie):
@@ -1056,15 +1021,12 @@ def run_sparse_tensor_einsum() -> None:
                 dpg.add_input_text(default_value=str(key), readonly=True, width=-1)
                 dpg.add_input_text(default_value=f'{res_trie[key]:.4f}', readonly=True, width=-1)
 
-        dpg.set_value('tensor_einsum_status', f"Successfully evaluated einsum('{subscripts}').")
+        dpg.set_value('tensor_einsum_status', f"Successfully evaluated ax.tensor.einsum('{subscripts}').")
     except Exception as e:
         dpg.set_value('tensor_einsum_status', f'Error: {e}')
 
 
 def run_trajectoid_sim() -> None:
-    from algebrax.analysis import gradient
-    from algebrax.matrix.core import dot
-
     steps: int = dpg.get_value('trajectoid_steps')
     freq: float = dpg.get_value('trajectoid_freq')
 
@@ -1074,8 +1036,8 @@ def run_trajectoid_sim() -> None:
         y_path = {i: math.sin(freq * t_vals[i]) for i in range(steps)}
 
         time_graph = {i: [(i + 1) % steps] for i in range(steps)}
-        grad_x = gradient(x_path, time_graph)
-        grad_y = gradient(y_path, time_graph)
+        grad_x = ax.analysis.gradient(x_path, time_graph)
+        grad_y = ax.analysis.gradient(y_path, time_graph)
 
         vx = {i: grad_x[i][(i + 1) % steps] for i in range(steps)}
         vy = {i: grad_y[i][(i + 1) % steps] for i in range(steps)}
@@ -1093,7 +1055,7 @@ def run_trajectoid_sim() -> None:
                 1: {0: 0.0, 1: 1.0, 2: -w_x},
                 2: {0: -w_y, 1: w_x, 2: 1.0},
             }
-            state_mat = dot(state_mat, dr)
+            state_mat = ax.matrix.dot(state_mat, dr)
 
         display_matrix_in_table(state_mat, 'table_trajectoid_so3')
         dpg.set_value('trajectoid_status', 'Successfully integrated non-holonomic SO(3) rolling trajectory.')
@@ -1102,15 +1064,12 @@ def run_trajectoid_sim() -> None:
 
 
 def run_knot_theory() -> None:
-    from algebrax.group import compose, signature
-    from algebrax.semiring import KnotSemiring
-
     knot_a_name: str = dpg.get_value('knot_a_select')
     knot_b_name: str = dpg.get_value('knot_b_select')
     crossings_str: str = dpg.get_value('knot_crossings')
 
     try:
-        knot_algebra = KnotSemiring(StandardSemiring[float]())
+        knot_algebra = ax.semiring.KnotSemiring(ax.semiring.StandardSemiring[float]())
         knot_a = {knot_a_name: 1.0}
         knot_b = {knot_b_name: 1.0}
 
@@ -1123,9 +1082,9 @@ def run_knot_theory() -> None:
             if 1 <= c < n_strands:
                 swap_gen = {i: i for i in range(n_strands)}
                 swap_gen[c - 1], swap_gen[c] = c, c - 1
-                perm = compose(perm, swap_gen)
+                perm = ax.group.compose(perm, swap_gen)
 
-        sig = signature(perm)
+        sig = ax.group.signature(perm)
 
         clear_table_rows('table_knot_res')
         rows = [
@@ -1148,8 +1107,6 @@ def run_knot_theory() -> None:
 
 
 def run_optical_holography() -> None:
-    from algebrax.probability import entropy
-    from algebrax.transforms import dft
 
     ref_phase: float = float(dpg.get_value('hologram_ref_phase'))
     object_str: str = dpg.get_value('hologram_object_input')
@@ -1167,11 +1124,11 @@ def run_optical_holography() -> None:
             total_field = obj_wave[k] + ref_wave[k]
             interf_intensity[k] = float(abs(total_field) ** 2)
 
-        spectrum = dft({k: complex(v, 0.0) for k, v in interf_intensity.items()})
+        spectrum = ax.transforms.dft({k: complex(v, 0.0) for k, v in interf_intensity.items()})
 
         total_int = sum(interf_intensity.values())
         prob_dist = {k: interf_intensity[k] / total_int for k in interf_intensity} if total_int > 0 else {}
-        fringe_entropy = entropy(prob_dist)
+        fringe_entropy = ax.probability.entropy(prob_dist)
 
         clear_table_rows('table_hologram_res')
         for k in sorted(interf_intensity.keys()):
@@ -1192,9 +1149,6 @@ def run_optical_holography() -> None:
 
 
 def run_financial_risk() -> None:
-    from algebrax.automata import simulate_dfa
-    from algebrax.matrix.academic import eigen_centrality
-
     signal_input: str = dpg.get_value('fin_signals')
     corr_str: str = dpg.get_value('fin_corr_matrix')
 
@@ -1207,10 +1161,10 @@ def run_financial_risk() -> None:
             'Risk_Hedge': {'clear_alert': 'Cash', 'hold': 'Risk_Hedge'},
         }
 
-        final_state = simulate_dfa('Cash', signals, dfa)
+        final_state = ax.automata.simulate_dfa('Cash', signals, dfa)
 
         raw_corr: dict[str, dict[str, float]] = json.loads(corr_str)
-        centrality = eigen_centrality(raw_corr)
+        centrality = ax.matrix.academic.eigen_centrality(raw_corr)
 
         clear_table_rows('table_fin_centrality')
         for asset, val in sorted(centrality.items(), key=lambda x: x[1], reverse=True):
@@ -1225,8 +1179,6 @@ def run_financial_risk() -> None:
 
 
 def run_sheaf_cohomology() -> None:
-    from algebrax.analysis import laplacian
-
     sensor_str: str = dpg.get_value('sheaf_states_input')
     steps: int = dpg.get_value('sheaf_steps')
 
@@ -1244,7 +1196,7 @@ def run_sheaf_cohomology() -> None:
         curr_states = dict(agent_states)
         dt = 0.1
         for _ in range(steps):
-            l_val = laplacian(curr_states, comm_graph)
+            l_val = ax.analysis.laplacian(curr_states, comm_graph)
             for u in curr_states:
                 curr_states[u] -= dt * l_val.get(u, 0.0)
 
@@ -1336,7 +1288,6 @@ def run_gaussian_splatting() -> None:
 
 
 def run_topological_homology() -> None:
-    from algebrax.homology import SimplicialComplex
 
     try:
         preset: str = dpg.get_value('homology_preset')
@@ -1363,7 +1314,7 @@ def run_topological_homology() -> None:
             coords = {0: (200, 50), 1: (350, 300), 2: (50, 300), 3: (200, 210)}
             max_k = 2
 
-        sc = SimplicialComplex(simplices)
+        sc = ax.homology.SimplicialComplex(simplices)
         betti = sc.betti_numbers(max_k=max_k)
 
         for s in sc._simplices.get(2, set()):
@@ -1403,20 +1354,18 @@ def run_topological_homology() -> None:
 def run_clifford_geometric_algebra() -> None:
     import math
 
-    from algebrax.clifford import CliffordSemiring, rotor_rotation
-
     try:
         e1: float = float(dpg.get_value('clifford_v_e1'))
         e2: float = float(dpg.get_value('clifford_v_e2'))
         angle_deg: float = float(dpg.get_value('clifford_angle'))
         plane: str = dpg.get_value('clifford_plane')
 
-        cs = CliffordSemiring(p=3, q=0, r=0)
+        cs = ax.clifford.CliffordSemiring(p=3, q=0, r=0)
         v = {(1,): e1, (2,): e2}
         v_sq = cs.mul(v, v)
 
         bivector = (1, 2) if plane == 'e12 Plane (XY)' else ((2, 3) if plane == 'e23 Plane (YZ)' else (3, 1))
-        v_rot = rotor_rotation(v, bivector=bivector, angle_rad=math.radians(angle_deg), p=3, q=0, r=0)
+        v_rot = ax.clifford.rotor_rotation(v, bivector=bivector, angle_rad=math.radians(angle_deg), p=3, q=0, r=0)
 
         dpg.delete_item('clifford_canvas', children_only=True)
         cx, cy = 200, 200
@@ -1472,8 +1421,6 @@ def run_clifford_geometric_algebra() -> None:
 
 
 def run_galois_finite_fields() -> None:
-    from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
-
     try:
         hex1_str: str = dpg.get_value('galois_byte1')
         hex2_str: str = dpg.get_value('galois_byte2')
@@ -1487,7 +1434,7 @@ def run_galois_finite_fields() -> None:
         def poly_to_byte(p: dict[int, float]) -> int:
             return sum((1 << exp) for exp, val in p.items() if int(val) % 2 == 1)
 
-        gf = GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
+        gf = ax.galois.GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
         res_poly = gf.mul(byte_to_poly(byte1), byte_to_poly(byte2))
         res_byte = poly_to_byte(res_poly)
 
@@ -1511,7 +1458,7 @@ def run_galois_finite_fields() -> None:
         ]
 
         state = {r: {c: byte_to_poly(input_state_bytes[r][c]) for c in range(4)} for r in range(4)}
-        out_state = gf_matrix_mul(mix_col, state, p=2)
+        out_state = ax.galois.gf_matrix_mul(mix_col, state, p=2)
 
         dpg.delete_item('galois_canvas', children_only=True)
 
@@ -1575,9 +1522,6 @@ def run_galois_finite_fields() -> None:
 
 
 def run_categorical_kleisli() -> None:
-    from algebrax.category import kleisli_compose
-    from algebrax.semiring import BooleanSemiring, StandardSemiring, TropicalSemiring, ViterbiSemiring
-
     try:
         w_ab: float = float(dpg.get_value('kleisli_w_ab'))
         w_bc: float = float(dpg.get_value('kleisli_w_bc'))
@@ -1613,30 +1557,32 @@ def run_categorical_kleisli() -> None:
             dpg.draw_circle(pos, 16, color=(255, 100, 255), fill=(80, 40, 100), parent='kleisli_canvas')
             dpg.draw_text((pos[0] - 5, pos[1] - 7), n, color=(255, 255, 255), size=15, parent='kleisli_canvas')
 
-        vit = kleisli_compose(f, g, semiring=ViterbiSemiring())
-        trop = kleisli_compose(f, g, semiring=TropicalSemiring())
-        boo = kleisli_compose({'A': {'B': True}}, {'B': {'C': True}}, semiring=BooleanSemiring())
-        std = kleisli_compose(f, g, semiring=StandardSemiring())
+        vit = ax.category.kleisli_compose(f, g, semiring=ax.semiring.ViterbiSemiring())
+        trop = ax.category.kleisli_compose(f, g, semiring=ax.semiring.TropicalSemiring())
+        boo_a = {'A': {'B': True}}
+        boo_b = {'B': {'C': True}}
+        boo = ax.category.kleisli_compose(boo_a, boo_b, semiring=ax.semiring.BooleanSemiring())
+        std = ax.category.kleisli_compose(f, g, semiring=ax.semiring.StandardSemiring())
 
         src_node, dst_node = target
         cat_data = {
             0: {
-                'Monad Semiring Category': 'Viterbi Monad (Max-Product)',
+                'Monad ax.semiring.Semiring Category': 'Viterbi Monad (Max-Product)',
                 'Monad Binary Operator': 'a * b (Max Path Prob)',
                 'Composed Result (g o_T f)': f'{vit.get(src_node, {}).get(dst_node, 0.0):.4f}',
             },
             1: {
-                'Monad Semiring Category': 'Tropical Monad (Min-Sum)',
+                'Monad ax.semiring.Semiring Category': 'Tropical Monad (Min-Sum)',
                 'Monad Binary Operator': 'a + b (Shortest Distance)',
                 'Composed Result (g o_T f)': f'{trop.get(src_node, {}).get(dst_node, 0.0):.4f}',
             },
             2: {
-                'Monad Semiring Category': 'Boolean Monad (OR-AND)',
+                'Monad ax.semiring.Semiring Category': 'Boolean Monad (OR-AND)',
                 'Monad Binary Operator': 'a and b (Reachability)',
                 'Composed Result (g o_T f)': str(boo.get(src_node, {}).get(dst_node, False)),
             },
             3: {
-                'Monad Semiring Category': 'Standard Monad (Sum-Product)',
+                'Monad ax.semiring.Semiring Category': 'Standard Monad (Sum-Product)',
                 'Monad Binary Operator': 'a * b (Path Count Weight)',
                 'Composed Result (g o_T f)': f'{std.get(src_node, {}).get(dst_node, 0.0):.4f}',
             },
@@ -1781,16 +1727,16 @@ def run_image_convolution_2d() -> None:
             kernel_2d[(r, c)] = float(v)
 
         if 'Arctic' in semiring_name:
-            semiring: Semiring[float] = ArcticSemiring()
+            semiring: ax.semiring.Semiring[float] = ax.semiring.ArcticSemiring()
         elif 'Tropical' in semiring_name:
-            semiring = TropicalSemiring()
+            semiring = ax.semiring.TropicalSemiring()
         else:
-            semiring = StandardSemiring()
+            semiring = ax.semiring.StandardSemiring()
 
         def add_2d(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
             return (p1[0] + p2[0], p1[1] + p2[1])
 
-        convolved_2d = convolve(image_2d, kernel_2d, key_op=add_2d, semiring=semiring)
+        convolved_2d = ax.transforms.convolve(image_2d, kernel_2d, key_op=add_2d, semiring=semiring)
 
         _update_texture_from_2d_dict(image_2d, 'texture_img_input')
         _update_texture_from_2d_dict(convolved_2d, 'texture_img_output')
@@ -1952,7 +1898,7 @@ def recalculate_and_reset_layout() -> None:
                 edges_set.add((v, u))
     current_edges = sorted(edges_set)
 
-    current_curvatures = forman_ricci_curvature(graph, augmented=is_augmented)
+    current_curvatures = ax.analysis.forman_ricci_curvature(graph, augmented=is_augmented)
 
     # Reset positions
     random.seed(42)
@@ -2040,7 +1986,7 @@ def build_view_semiring() -> None:
         )
         dpg.add_separator()
         with dpg.group(horizontal=True):
-            dpg.add_text('Select Semiring:')
+            dpg.add_text('Select ax.semiring.Semiring:')
             dpg.add_combo(
                 [
                     'Standard',
@@ -2102,7 +2048,7 @@ def build_view_curvature() -> None:
 
 def build_view_crypto() -> None:
     with dpg.group(tag='view_pq_key_exchange_group', show=False):
-        dpg.add_text('Simulation of Diffie-Hellman key exchange over the Digital Semiring.', color=(180, 180, 180))
+        dpg.add_text('Simulation of Diffie-Hellman key exchange over the DigitalSemiring.', color=(180, 180, 180))
         dpg.add_separator()
         with dpg.group(horizontal=True):
             dpg.add_text('Alice Private Key (a1, a2):')
@@ -2410,7 +2356,7 @@ def build_view_image_conv() -> None:
                 width=180,
             )
             dpg.add_spacer(width=10)
-            dpg.add_text('Semiring:')
+            dpg.add_text('ax.semiring.Semiring:')
             dpg.add_combo(
                 [
                     'Standard (+, *)',
@@ -2563,7 +2509,7 @@ def build_view_sparse_tensor_einsum() -> None:
         with dpg.group(horizontal=True):
             dpg.add_text("Einstein Subscript (e.g. 'ik,kj->ij' or 'i,j->ij'):")
             dpg.add_input_text(default_value='ik,kj->ij', tag='tensor_subscripts', width=250)
-            dpg.add_text('Semiring:')
+            dpg.add_text('ax.semiring.Semiring:')
             dpg.add_combo(
                 ['Standard (+, *)', 'Tropical / Min-Plus', 'Arctic / Max-Plus'],
                 default_value='Standard (+, *)',
@@ -3035,7 +2981,7 @@ def build_view_categorical_kleisli() -> None:
 # --- Navigation Sidebar Builder ---
 VIEWS: list[str] = [
     'semiring_matrix_power',
-    'forman_ricci_curvature',
+    'ax.analysis.forman_ricci_curvature',
     'pq_key_exchange',
     'algebraic_trie',
     'pagerank',
@@ -3079,7 +3025,7 @@ def build_navigation_sidebar() -> None:
 
         with dpg.tree_node(label='Matrix & Graph Algorithms', default_open=True):
             dpg.add_selectable(
-                label='Semiring Matrix Power',
+                label='ax.semiring.Semiring Matrix Power',
                 tag='sel_semiring_matrix_power',
                 callback=change_view,
                 user_data='semiring_matrix_power',
@@ -3089,7 +3035,7 @@ def build_navigation_sidebar() -> None:
                 label='Forman-Ricci Curvature',
                 tag='sel_forman_ricci_curvature',
                 callback=change_view,
-                user_data='forman_ricci_curvature',
+                user_data='ax.analysis.forman_ricci_curvature',
             )
             dpg.add_selectable(
                 label='PageRank Algorithm',

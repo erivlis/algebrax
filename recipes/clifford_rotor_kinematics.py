@@ -9,13 +9,13 @@ Theoretical Foundations & Physics:
 
 import math
 
-from algebrax.clifford import CliffordSemiring, geometric_product, rotor_rotation
+import algebrax as ax
 
 
 def main() -> None:
     print('--- Clifford Geometric Algebra Cl(3,0) Kinematics ---')
 
-    cs = CliffordSemiring(p=3, q=0, r=0)
+    cs = ax.semiring.CliffordSemiring(p=3, q=0, r=0)
 
     # Define 3D vector v = 3 e1 + 4 e2
     v = {(1,): 3.0, (2,): 4.0}
@@ -29,7 +29,7 @@ def main() -> None:
     assert abs(norm_sq - 25.0) < 1e-6
 
     # Rotate vector v around e12 bivector plane by 90 degrees (pi/2 rad)
-    v_rot = rotor_rotation(v, bivector=(1, 2), angle_rad=math.pi / 2.0, p=3, q=0, r=0)
+    v_rot = ax.clifford.rotor_rotation(v, bivector=(1, 2), angle_rad=math.pi / 2.0, p=3, q=0, r=0)
     print('\n[2] Vector after 90-degree Rotor Rotation in e12 Plane:')
     print(f'  v\' = {v_rot.get((1,), 0.0):.2f} e1 + {v_rot.get((2,), 0.0):.2f} e2')
 

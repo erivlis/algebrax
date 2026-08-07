@@ -23,17 +23,16 @@ The **`algebrax.matrix.decompose`** module provides factorizations and matrix de
 ## Python Example
 
 ```python
-from algebrax.matrix.decompose import lu, qr, svd, cholesky
-from algebrax.matrix import dot, transpose
+import algebrax as ax
 
 # 1. Cholesky Decomposition
 A_spd = {
     "0": {"0": 4.0, "1": 12.0},
     "1": {"0": 12.0, "1": 37.0},
 }
-L = cholesky(A_spd)
+L = ax.matrix.cholesky(A_spd)
 print("Cholesky L:", L)
-print("L @ L^T == A:", dot(L, transpose(L)) == A_spd)
+print("L @ L^T == A:", ax.matrix.dot(L, ax.matrix.transpose(L)) == A_spd)
 
 # 2. LU Decomposition
 A = {
@@ -41,14 +40,14 @@ A = {
     "1": {"0": 3.0, "1": 8.0, "2": 14.0},
     "2": {"0": 2.0, "1": 6.0, "2": 13.0},
 }
-P, L, U = lu(A)
-print("P @ A == L @ U:", dot(P, A) == dot(L, U))
+P, L, U = ax.matrix.lu(A)
+print("P @ A == L @ U:", ax.matrix.dot(P, A) == ax.matrix.dot(L, U))
 
 # 3. QR Decomposition
-Q, R = qr(A)
-print("Q @ R == A:", dot(Q, R) == A)
+Q, R = ax.matrix.qr(A)
+print("Q @ R == A:", ax.matrix.dot(Q, R) == A)
 
 # 4. Truncated SVD (Top k=1 singular component)
-U1, S1, VT1 = svd(A, k=1)
+U1, S1, VT1 = ax.matrix.svd(A, k=1)
 print("Top Singular Value:", S1[0])
 ```

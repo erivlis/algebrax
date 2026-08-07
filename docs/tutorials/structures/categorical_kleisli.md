@@ -25,25 +25,24 @@ By swapping the underlying semiring, the exact same `kleisli_compose()` function
 ## Python Example: Kleisli Monadic Composition
 
 ```python
-from algebrax.category import kleisli_compose
-from algebrax.semiring import BooleanSemiring, TropicalSemiring, ViterbiSemiring
+import algebrax as ax
 
 # Define Morphisms A -> B and B -> C
 f_prob = {'A': {'B': 0.8, 'C': 0.2}}
 g_prob = {'B': {'D': 0.9}, 'C': {'D': 0.5}}
 
 # 1. Probabilistic Viterbi Monad
-prob_res = kleisli_compose(f_prob, g_prob, semiring=ViterbiSemiring())
+prob_res = ax.category.kleisli_compose(f_prob, g_prob, semiring=ax.semiring.ViterbiSemiring())
 print("Probabilistic Max Path A -> D:", prob_res['A']['D'])
 # Output: 0.72
 
 # 2. Lawvere Metric Cost Monad
-cost_res = kleisli_compose({'A': {'B': 3.0}}, {'B': {'D': 2.0}}, semiring=TropicalSemiring())
+cost_res = ax.category.kleisli_compose({'A': {'B': 3.0}}, {'B': {'D': 2.0}}, semiring=ax.semiring.TropicalSemiring())
 print("Min Shortest Path Cost A -> D:", cost_res['A']['D'])
 # Output: 5.0
 
 # 3. Boolean Reachability Monad
-bool_res = kleisli_compose({'A': {'B': True}}, {'B': {'D': True}}, semiring=BooleanSemiring())
+bool_res = ax.category.kleisli_compose({'A': {'B': True}}, {'B': {'D': True}}, semiring=ax.semiring.BooleanSemiring())
 print("Boolean Reachability A -> D:", bool_res['A']['D'])
 # Output: True
 ```

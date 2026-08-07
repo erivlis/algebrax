@@ -17,8 +17,8 @@ used for multi-objective optimization.
 <!-- name: test_convex_hull_semiring -->
 
 ```python linenums="1"
+import algebrax as ax
 from typing import Set
-from algebrax.semiring import Semiring
 
 # Simple 1D Convex Hull (Intervals)
 # Value is a tuple (min, max) representing the interval [min, max]

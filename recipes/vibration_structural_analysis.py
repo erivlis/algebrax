@@ -13,13 +13,13 @@ Vibration Structural Analysis & Signal Processing Recipe using algebrax
 ================================================================================
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
-1. Permutation Symmetries (algebrax.group.compose & signature):
+1. Permutation Symmetries (algebrax.group.compose & ax.group.signature):
    Permutation mappings represent spatial rotations and reflections of multi-rotor
    turbine systems. Composing permutations (P2 o P1) models sequential rotation,
-   while `signature(P)` computes parity (+1 for even rotations, -1 for reflections).
+   while `ax.group.signature(P)` computes parity (+1 for even rotations, -1 for reflections).
 
 2. Structural Resonant Determinants (algebrax.matrix.academic.determinant):
-   The determinant det(K - omega^2 M) of the structural stiffness and mass matrix
+   The ax.matrix.determinant det(K - omega^2 M) of the structural stiffness and mass matrix
    vanishes (det = 0) at characteristic resonant frequencies.
 
 3. Analytic Signal Envelope (algebrax.transforms.hilbert):
@@ -31,9 +31,7 @@ THEORY & MATHEMATICAL FOUNDATION
 
 import math
 
-from algebrax.group import compose, signature
-from algebrax.matrix.academic import determinant
-from algebrax.transforms import hilbert
+import algebrax as ax
 
 
 def main() -> None:
@@ -52,15 +50,15 @@ def main() -> None:
     rot_90 = {0: 1, 1: 2, 2: 3, 3: 0}  # 90 degree counter-clockwise rotation
     flip_h = {0: 1, 1: 0, 2: 3, 3: 2}  # Horizontal reflection
 
-    combined_motion = compose(rot_90, flip_h)
+    combined_motion = ax.group.compose(rot_90, flip_h)
 
-    print(f'90° Rotation Permutation (r): {rot_90} [Parity sgn: {signature(rot_90):+d}]')
-    print(f'Horizontal Flip Permutation (s): {flip_h} [Parity sgn: {signature(flip_h):+d}]')
-    print(f'Combined Motion (s o r):        {combined_motion} [Parity sgn: {signature(combined_motion):+d}]')
+    print(f'90° Rotation Permutation (r): {rot_90} [Parity sgn: {ax.group.signature(rot_90):+d}]')
+    print(f'Horizontal Flip Permutation (s): {flip_h} [Parity sgn: {ax.group.signature(flip_h):+d}]')
+    print(f'Combined Motion (s o r):        {combined_motion} [Parity sgn: {ax.group.signature(combined_motion):+d}]')
 
     # --- Step 2: Structural Coupling Matrix Determinant ---
-    print('\n[Step 2] Structural Stiffness Coupling Determinant (determinant)...')
-    print('Explanation: The determinant det(K) of the stiffness matrix indicates structural')
+    print('\n[Step 2] Structural Stiffness Coupling Determinant (ax.matrix.determinant)...')
+    print('Explanation: The ax.matrix.determinant det(K) of the stiffness matrix indicates structural')
     print('             rigidity and detects singular (unconstrained) mechanical modes.')
 
     # 3x3 Mechanical Stiffness Coupling Matrix K
@@ -70,7 +68,7 @@ def main() -> None:
         2: {0: 0.0, 1: -3.0, 2: 4.0},
     }
 
-    det_k = determinant(stiffness_matrix)
+    det_k = ax.matrix.academic.determinant(stiffness_matrix)
     print('\nStiffness Matrix K:')
     for r in sorted(stiffness_matrix.keys()):
         print(f'  Row {r}: {stiffness_matrix[r]}')
@@ -82,7 +80,7 @@ def main() -> None:
         print('Status: WARNING - SINGULAR UNCONSTRAINED STRUCTURE (det(K) = 0)')
 
     # --- Step 3: Hilbert Transform Instantaneous Amplitude Envelope ---
-    print('\n[Step 3] Instantaneous Vibration Envelope Extraction (hilbert)...')
+    print('\n[Step 3] Instantaneous Vibration Envelope Extraction (ax.transforms.hilbert)...')
     print('Explanation: Computes the Hilbert transform H{x[n]} to construct analytic signal')
     print('             a[n] = x[n] + j H{x[n]} and extract amplitude envelope |a[n]|.')
 
@@ -90,7 +88,7 @@ def main() -> None:
     n_samples = 16
     raw_vibration = {i: math.sin(2 * math.pi * i / 4) * (3.0 if 6 <= i <= 10 else 1.0) for i in range(n_samples)}
 
-    analytic_signal = hilbert(raw_vibration, n=n_samples)
+    analytic_signal = ax.transforms.hilbert(raw_vibration, n=n_samples)
 
     print('\nVibration Sensor Signal & Instantaneous Envelope:')
     print('  Index | Raw Signal x[n] | Analytic Envelope |a[n]|')

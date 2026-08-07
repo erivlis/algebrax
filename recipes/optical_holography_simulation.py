@@ -23,9 +23,9 @@ THEORY & MATHEMATICAL FOUNDATION
    R * I = R * |O|^2 + R * |R|^2 + |R|^2 * O + R^2 * O*.
    The term |R|^2 * O represents an exact reconstructed virtual image of the original object!
 
-3. Spatial Optical Diffraction via Discrete Fourier Transform (algebrax.transforms.dft & idft):
+3. Spatial Optical Diffraction via Discrete Fourier Transform (algebrax.transforms.dft & ax.transforms.idft):
    Fourier optics dictates that free-space wave diffraction between optical planes
-   is governed by the Discrete Fourier Transform: F(u) = dft(I(x)) and x(n) = idft(F(u)).
+   is governed by the Discrete Fourier Transform: F(u) = ax.transforms.dft(I(x)) and x(n) = ax.transforms.idft(F(u)).
 
 4. Fringe Visibility & Information Entropy Audit (algebrax.probability.entropy):
    Shannon entropy H(I) audits interference fringe modulation contrast and information density.
@@ -34,8 +34,7 @@ THEORY & MATHEMATICAL FOUNDATION
 
 import cmath
 
-from algebrax.probability import entropy
-from algebrax.transforms import dft, idft
+import algebrax as ax
 
 
 def main() -> None:
@@ -100,37 +99,37 @@ def main() -> None:
         match = ' <== RECONSTRUCTED OBJECT SLIT' if abs(object_wave[x]) > 0 else ''
         print(f'  Position x={x}: Amp = {amp:.4f}{match}')
 
-    # --- Step 3: Diffraction Propagation via Discrete Fourier Transform (dft & idft) ---
-    print('\n[Step 3] Optical Diffraction Frequency Propagation (dft & idft)...')
+    # --- Step 3: Diffraction Propagation via Discrete Fourier Transform (ax.transforms.dft & ax.transforms.idft) ---
+    print('\n[Step 3] Optical Diffraction Frequency Propagation (ax.transforms.dft & ax.transforms.idft)...')
     print('Explanation: DFT converts spatial optical wavefront into angular spectrum F(u).')
 
     # Extract real intensity signal for DFT transform
     real_hologram_signal = {x: float(i_val) for x, i_val in hologram_intensity.items()}
 
-    # Compute Angular Spectrum F(u) = dft(I(x))
-    angular_spectrum = dft(real_hologram_signal, n=8)
+    # Compute Angular Spectrum F(u) = ax.transforms.dft(I(x))
+    angular_spectrum = ax.transforms.dft(real_hologram_signal, n=8)
 
-    # Inverse Transform Reconstructed Field idft(F(u))
-    reconstructed_spatial_field = idft(angular_spectrum, n=8)
+    # Inverse Transform Reconstructed Field ax.transforms.idft(F(u))
+    reconstructed_spatial_field = ax.transforms.idft(angular_spectrum, n=8)
 
-    print('\nAngular Spatial Frequency Spectrum F(u) = dft(I):')
+    print('\nAngular Spatial Frequency Spectrum F(u) = ax.transforms.dft(I):')
     for u in sorted(angular_spectrum.keys()):
         freq_amp = abs(angular_spectrum[u])
         print(f'  Spatial Frequency u={u}: Magnitude = {freq_amp:6.2f}')
 
-    print('\nInverse Diffraction Reconstructed Spatial Profile idft(F):')
+    print('\nInverse Diffraction Reconstructed Spatial Profile ax.transforms.idft(F):')
     for x in sorted(reconstructed_spatial_field.keys()):
         print(f'  Spatial Position x={x}: Intensity = {reconstructed_spatial_field[x]:6.2f}')
 
     # --- Step 4: Holographic Fringe Visibility & Information Entropy Audit ---
-    print('\n[Step 4] Hologram Fringe Contrast & Shannon Information Entropy (entropy)...')
-    print('Explanation: Shannon Entropy H(I) audits interference fringe modulation density.')
+    print('\n[Step 4] Hologram Fringe Contrast & Shannon Information Entropy (ax.probability.entropy)...')
+    print('Explanation: Shannon Entropy H(I) audits interference fringe modulation ax.metrics.density.')
 
     # Normalize hologram intensity to probability distribution P(x) = I(x) / sum(I)
     total_intensity = sum(hologram_intensity.values())
     prob_dist = {x: val / total_intensity for x, val in hologram_intensity.items()}
 
-    hologram_entropy = entropy(prob_dist)
+    hologram_entropy = ax.probability.entropy(prob_dist)
 
     i_max = max(hologram_intensity.values())
     i_min = min(hologram_intensity.values())

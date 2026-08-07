@@ -14,26 +14,23 @@ Sensor Network Reliability & Spatial Heat Gradient Recipe using algebrax
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
 1. Maximum Path Link Reliability (algebrax.semiring.ViterbiSemiring & matrix.power):
-   ViterbiSemiring is the Max-Product semiring ([0, 1], max, *).
-   Matrix powers M^k over ViterbiSemiring evaluate multi-hop network paths, returning
+   ax.semiring.ViterbiSemiring is the Max-Product semiring ([0, 1], max, *).
+   Matrix powers M^k over ax.semiring.ViterbiSemiring evaluate multi-hop network paths, returning
    the maximum end-to-end transmission success probability P_max(u -> v).
 
-2. Spatial RBF Kernel & Thermal Gradient (algebrax.analysis.gaussian_kernel & gradient):
+2. Spatial RBF Kernel & Thermal Gradient (algebrax.analysis.gaussian_kernel & ax.analysis.gradient):
    - Gaussian RBF Kernel K_ij = exp(-d_ij^2 / (2 * sigma^2)): Converts physical sensor
      distances d_ij into spatial similarity weights.
    - Gradient grad(T)_ij = T_j - T_i: Computes node-to-edge temperature differences
      to detect thermal flux boundaries.
 
-3. Structural Sparsity Metrics (algebrax.metrics.sparsity & density):
-   `sparsity` and `density` quantify the proportion of active communication links
+3. Structural Sparsity Metrics (algebrax.metrics.sparsity & ax.metrics.density):
+   `ax.metrics.sparsity` and `ax.metrics.density` quantify the proportion of active communication links
    versus potential connections in large IoT sensor topologies.
 ================================================================================
 """
 
-from algebrax.analysis import gaussian_kernel, gradient
-from algebrax.matrix.core import power
-from algebrax.metrics import density, sparsity
-from algebrax.semiring import ViterbiSemiring
+import algebrax as ax
 
 
 def main() -> None:
@@ -43,9 +40,9 @@ def main() -> None:
     print('Goal: Combine 3 distinct algebraic tools from algebrax to compute Viterbi link')
     print('      reliabilities, spatial Gaussian RBF kernels, and temperature gradients.')
 
-    # --- Step 1: Max-Product Link Reliability via ViterbiSemiring ---
-    print('\n[Step 1] Multi-Hop Max-Product Reliability (ViterbiSemiring)...')
-    print('Explanation: ViterbiSemiring ([0, 1], max, *) finds the single most reliable')
+    # --- Step 1: Max-Product Link Reliability via ax.semiring.ViterbiSemiring ---
+    print('\n[Step 1] Multi-Hop Max-Product Reliability (ax.semiring.ViterbiSemiring)...')
+    print('Explanation: ax.semiring.ViterbiSemiring ([0, 1], max, *) finds the single most reliable')
     print('             transmission path probability P_max(u -> v) across lossy wireless links.')
 
     # Wireless Sensor Mesh Link Probabilities (Success Rate)
@@ -56,9 +53,9 @@ def main() -> None:
         3: {},
     }
 
-    viterbi = ViterbiSemiring()
-    rel_2step = power(link_probabilities, 2, semiring=viterbi)
-    rel_3step = power(link_probabilities, 3, semiring=viterbi)
+    viterbi = ax.semiring.ViterbiSemiring()
+    rel_2step = ax.matrix.power(link_probabilities, 2, semiring=viterbi)
+    rel_3step = ax.matrix.power(link_probabilities, 3, semiring=viterbi)
 
     p_03_via_2 = rel_2step.get(0, {}).get(3, 0.0)
     p_03_via_3 = rel_3step.get(0, {}).get(3, 0.0)
@@ -70,7 +67,7 @@ def main() -> None:
     print(f'Optimal End-to-End Reliability P_max(0 -> 3): {best_p * 100:.2f}%')
 
     # --- Step 2: Spatial RBF Gaussian Kernel & Structural Metrics ---
-    print('\n[Step 2] Spatial RBF Gaussian Kernel & Sparsity Audit (gaussian_kernel)...')
+    print('\n[Step 2] Spatial RBF Gaussian Kernel & Sparsity Audit (ax.analysis.gaussian_kernel)...')
     print('Explanation: Converts sensor distance matrix into similarity matrix K_ij = exp(-d^2 / 2sigma^2).')
 
     sensor_distances = {
@@ -80,9 +77,9 @@ def main() -> None:
         3: {1: 4.0, 2: 2.0},
     }
 
-    rbf_similarity = gaussian_kernel(sensor_distances, sigma=2.0)
-    net_density = density(rbf_similarity, capacity=16)
-    net_sparsity = sparsity(rbf_similarity, capacity=16)
+    rbf_similarity = ax.analysis.gaussian_kernel(sensor_distances, sigma=2.0)
+    net_density = ax.metrics.density(rbf_similarity, capacity=16)
+    net_sparsity = ax.metrics.sparsity(rbf_similarity, capacity=16)
 
     print('\nSpatial Gaussian RBF Similarity Matrix (sigma=2.0):')
     for r in sorted(rbf_similarity.keys()):
@@ -92,14 +89,14 @@ def main() -> None:
     print(f'Network Structural Sparsity:   {net_sparsity * 100:.1f}%')
 
     # --- Step 3: Discrete Temperature Gradient (exterior derivative d0) ---
-    print('\n[Step 3] Discrete Thermal Flux Gradient (gradient)...')
+    print('\n[Step 3] Discrete Thermal Flux Gradient (ax.analysis.gradient)...')
     print('Explanation: Computes grad(T)_ij = T_j - T_i to isolate thermal flux boundaries.')
 
     # Sensor temperature readings in Celsius
     temp_field = {0: 22.0, 1: 45.0, 2: 48.0, 3: 23.0}
     topology_graph = {0: [1, 2], 1: [0, 2, 3], 2: [0, 1, 3], 3: [1, 2]}
 
-    temp_grad = gradient(temp_field, topology_graph)
+    temp_grad = ax.analysis.gradient(temp_field, topology_graph)
 
     print('\nSensor Thermal Readings (°C): ', temp_field)
     print('\nNode-to-Edge Thermal Gradient grad(T)_ij (°C):')

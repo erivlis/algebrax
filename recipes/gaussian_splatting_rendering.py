@@ -13,11 +13,11 @@
 ================================================================================
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
-1. 3D Spatial Covariance Construction (algebrax.matrix.core.dot & transpose):
+1. 3D Spatial Covariance Construction (algebrax.matrix.core.dot & ax.matrix.transpose):
    A 3D Gaussian centered at mu = (x, y, z)^T with scaling matrix S = diag(sx, sy, sz)
    and SO(3) rotation matrix R has a 3D spatial covariance matrix:
        Sigma = R * S * S^T * R^T
-   which is constructed via polymorphic matrix multiplication (`dot`).
+   which is constructed via polymorphic matrix multiplication (`ax.matrix.dot`).
 
 2. 2D Screen Perspective Projection & Jacobian Composition (algebrax.matrix.core.dot):
    Given camera view matrix W and perspective projection Jacobian J at t = W * mu:
@@ -29,7 +29,7 @@ THEORY & MATHEMATICAL FOUNDATION
 
 3. Depth-Sorted Volumetric Alpha-Compositing & RBF Evaluation (algebrax.analysis.gaussian_kernel):
    Gaussians sorted by camera z-depth are rasterized. The 2D spatial Gaussian response
-   G_i(p) at screen pixel p is evaluated via 2D inverse covariance distance, and the
+   G_i(p) at screen pixel p is evaluated via 2D ax.matrix.inverse covariance distance, and the
    accumulated ray color C is computed using alpha-blending:
        C = sum_{i=1}^N c_i * alpha_i * G_i(p) * prod_{j=1}^{i-1} (1 - alpha_j * G_j(p))
 ================================================================================
@@ -37,8 +37,7 @@ THEORY & MATHEMATICAL FOUNDATION
 
 import math
 
-from algebrax.analysis import gaussian_kernel
-from algebrax.matrix.core import dot, transpose
+import algebrax as ax
 
 
 def create_scale_matrix(sx: float, sy: float, sz: float) -> dict[int, dict[int, float]]:
@@ -60,8 +59,8 @@ def create_rotation_matrix(pitch: float, yaw: float, roll: float) -> dict[int, d
     ry = {0: {0: cy, 2: sy}, 1: {1: 1.0}, 2: {0: -sy, 2: cy}}
     rz = {0: {0: cz, 1: -sz}, 1: {0: sz, 1: cz}, 2: {2: 1.0}}
 
-    r_xy = dot(ry, rx)
-    return dot(rz, r_xy)
+    r_xy = ax.matrix.dot(ry, rx)
+    return ax.matrix.dot(rz, r_xy)
 
 
 def compute_3d_covariance(
@@ -72,11 +71,11 @@ def compute_3d_covariance(
     r_mat = create_rotation_matrix(*rot)
 
     # S * S^T (since S is diagonal, S * S^T = S^2)
-    s_sq = dot(s_mat, s_mat)
+    s_sq = ax.matrix.dot(s_mat, s_mat)
 
     # R * S^2 * R^T
-    r_s2 = dot(r_mat, s_sq)
-    return dot(r_s2, transpose(r_mat))
+    r_s2 = ax.matrix.dot(r_mat, s_sq)
+    return ax.matrix.dot(r_s2, ax.matrix.transpose(r_mat))
 
 
 def compute_2d_projected_covariance(
@@ -99,8 +98,8 @@ def compute_2d_projected_covariance(
     }
 
     # T * Sigma * T^T
-    t_sigma = dot(j_mat, sigma_3d)
-    return dot(t_sigma, transpose(j_mat))
+    t_sigma = ax.matrix.dot(j_mat, sigma_3d)
+    return ax.matrix.dot(t_sigma, ax.matrix.transpose(j_mat))
 
 
 def main() -> None:
@@ -111,8 +110,8 @@ def main() -> None:
     print('      covariance matrices, compute 2D perspective screen projections, and')
     print('      perform depth-sorted volumetric alpha-blending.')
 
-    # --- Step 1: 3D Gaussian Covariance Construction (dot & transpose) ---
-    print('\n[Step 1] 3D Gaussian Spatial Covariance Construction (dot & transpose)...')
+    # --- Step 1: 3D Gaussian Covariance Construction (ax.matrix.dot & ax.matrix.transpose) ---
+    print('\n[Step 1] 3D Gaussian Spatial Covariance Construction (ax.matrix.dot & ax.matrix.transpose)...')
     print('Explanation: Sigma = R * S * S^T * R^T defines 3D spatial Gaussian extent.')
 
     # Define two 3D Gaussians in world space
@@ -142,8 +141,8 @@ def main() -> None:
             row_str = ' '.join(f'{g["sigma_3d"].get(r, {}).get(c, 0.0):+6.3f}' for c in range(3))
             print(f'  Row {r}: [{row_str}]')
 
-    # --- Step 2: 2D Screen Perspective Projection (dot) ---
-    print('\n[Step 2] 2D Perspective Screen Covariance Projection (dot)...')
+    # --- Step 2: 2D Screen Perspective Projection (ax.matrix.dot) ---
+    print('\n[Step 2] 2D Perspective Screen Covariance Projection (ax.matrix.dot)...')
     print("Explanation: Sigma' = J * Sigma * J^T projects 3D spatial ellipsoids into 2D screen space.")
 
     focal_len = 2.5
@@ -154,8 +153,8 @@ def main() -> None:
             row_str = ' '.join(f'{g["sigma_2d"].get(r, {}).get(c, 0.0):+6.3f}' for c in range(2))
             print(f'  Row {r}: [{row_str}]')
 
-    # --- Step 3: Depth Sorting & Volumetric Alpha Compositing (gaussian_kernel) ---
-    print('\n[Step 3] Depth-Sorted Volumetric Alpha-Compositing (gaussian_kernel)...')
+    # --- Step 3: Depth Sorting & Volumetric Alpha Compositing (ax.analysis.gaussian_kernel) ---
+    print('\n[Step 3] Depth-Sorted Volumetric Alpha-Compositing (ax.analysis.gaussian_kernel)...')
     print('Explanation: Sorts 3D Gaussians by camera z-depth and accumulates ray color.')
 
     # Sort Gaussians by camera Z depth (front to back or back to front)
@@ -210,7 +209,7 @@ def main() -> None:
 
     # Spatial RBF affinity matrix audit on 2D projected means
     dist_matrix = {0: {1: 1.2}, 1: {0: 1.2}}
-    rbf = gaussian_kernel(dist_matrix, sigma=1.0)
+    rbf = ax.analysis.gaussian_kernel(dist_matrix, sigma=1.0)
     print('\nSpatial Gaussian Kernel Inter-Splat Affinity:')
     print('  Affinity between Splat 1 & Splat 2:', rbf.get(0, {}).get(1, 0.0))
 

@@ -11,6 +11,23 @@ from algebrax.metrics import (
 )
 
 
+def test_deepness():
+    # Depth 0 (empty)
+    assert deepness({}) == 0
+    # Depth 1 (flat)
+    assert deepness({1: 1}) == 1
+    # Depth 2 (nested)
+    assert deepness({1: {2: 2}}) == 2
+    # Depth 3
+    assert deepness({1: {2: {3: 3}}}) == 3
+    # Mixed depth (max wins)
+    assert deepness({1: 1, 2: {3: 3}}) == 2
+
+
+def test_box_counting_no_coords():
+    assert box_counting_dimension({}) == pytest.approx(0.0)
+
+
 def test_density_vector():
     # 2 items, capacity 10 -> 0.2
     obj = {1: 1, 5: 1}
@@ -62,19 +79,6 @@ def test_sparsity_string_value():
     # Bytes
     obj_bytes = {0: b'hello'}
     assert density(obj_bytes, capacity=10) == pytest.approx(0.1)
-
-
-def test_deepness():
-    # Depth 0 (empty)
-    assert deepness({}) == 0
-    # Depth 1 (flat)
-    assert deepness({1: 1}) == 1
-    # Depth 2 (nested)
-    assert deepness({1: {2: 2}}) == 2
-    # Depth 3
-    assert deepness({1: {2: {3: 3}}}) == 3
-    # Mixed depth (max wins)
-    assert deepness({1: 1, 2: {3: 3}}) == 2
 
 
 def test_wideness():

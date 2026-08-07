@@ -17,8 +17,7 @@ Using the **Standard Semiring** $(\mathbb{R}, +, \times)$, `convolve` supports a
 <!-- name: test_image_convolution_linear -->
 
 ```python linenums="1"
-from algebrax.semiring import StandardSemiring
-from algebrax.transforms import convolve
+import algebrax as ax
 
 def add_2d(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
     return (p1[0] + p2[0], p1[1] + p2[1])
@@ -38,11 +37,11 @@ sobel_h = {
 }
 
 # 3. Compute 2D Convolution
-filtered = convolve(
+filtered = ax.transforms.convolve(
     image,
     sobel_h,
     key_op=add_2d,
-    semiring=StandardSemiring(),
+    semiring=ax.semiring.StandardSemiring(),
 )
 
 print(f"Original pixels: {len(image)}, Filtered pixels: {len(filtered)}")
@@ -61,8 +60,7 @@ By swapping the underlying algebraic semiring, `convolve` performs non-linear **
 <!-- name: test_image_convolution_morphology -->
 
 ```python linenums="1"
-from algebrax.semiring import ArcticSemiring, TropicalSemiring
-from algebrax.transforms import convolve
+import algebrax as ax
 
 def add_2d(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
     return (p1[0] + p2[0], p1[1] + p2[1])
@@ -77,11 +75,11 @@ cross_kernel = {
 }
 
 # Morphological Dilation
-dilated = convolve(
+dilated = ax.transforms.convolve(
     image,
     cross_kernel,
     key_op=add_2d,
-    semiring=ArcticSemiring(),
+    semiring=ax.semiring.ArcticSemiring(),
 )
 
 print(f"Dilated image contains {len(dilated)} non-zero pixels (expanded footprint).")

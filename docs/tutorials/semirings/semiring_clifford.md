@@ -21,10 +21,10 @@ The **`CliffordSemiring`** in `algebrax.clifford` implements Clifford Geometric 
 
 ```python
 import math
-from algebrax.clifford import CliffordSemiring, rotor_rotation
+import algebrax as ax
 
-# Instantiate Cl(3, 0) Semiring
-cs = CliffordSemiring(p=3, q=0, r=0)
+# Instantiate Cl(3, 0) ax.semiring.Semiring
+cs = ax.clifford.CliffordSemiring(p=3, q=0, r=0)
 
 # Define 3D Vector v = 3 e1 + 4 e2
 v = {(1,): 3.0, (2,): 4.0}
@@ -35,7 +35,7 @@ print("Vector Squared v^2:", v_sq)
 # Output: {(): 25.0}
 
 # Rotate v in e12 bivector plane by 90 degrees (pi/2)
-v_rot = rotor_rotation(v, bivector=(1, 2), angle_rad=math.pi / 2.0, p=3, q=0, r=0)
+v_rot = ax.clifford.rotor_rotation(v, bivector=(1, 2), angle_rad=math.pi / 2.0, p=3, q=0, r=0)
 print(f"Rotated Vector v': e1={v_rot.get((1,), 0.0):.2f}, e2={v_rot.get((2,), 0.0):.2f}")
 # Output: Rotated Vector v': e1=-4.00, e2=3.00
 ```

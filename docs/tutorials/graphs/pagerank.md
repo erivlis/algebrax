@@ -14,13 +14,12 @@ Where:
 <!-- name: test_pagerank -->
 
 ```python linenums="1"
-from algebrax.semiring import StandardSemiring
-from algebrax.matrix import dot
+import algebrax as ax
 
 def pagerank(graph, alpha=0.85, iterations=20):
     # 1. Convert Adjacency to Stochastic Matrix M
     # Each column must sum to 1.
-    # Since our matrix is row-based (dict[row][col]), we normalize rows
+    # Since our matrix is row-based (dict[row][col]), we ax.probability.normalize rows
     # and then multiply v * M (row vector * matrix).
     
     M = {}
@@ -42,13 +41,13 @@ def pagerank(graph, alpha=0.85, iterations=20):
     v = {node: 1.0 / N for node in all_nodes}
     
     # 3. Power Iteration
-    semiring = StandardSemiring()
+    semiring = ax.semiring.StandardSemiring()
     
     for _ in range(iterations):
         # v_new = v * M
         # We treat v as a 1xN matrix for the library
         v_matrix = {0: v}
-        res_matrix = dot(v_matrix, M, semiring=semiring)
+        res_matrix = ax.matrix.dot(v_matrix, M, semiring=semiring)
         v_next_raw = res_matrix.get(0, {})
         
         # Apply Damping Factor

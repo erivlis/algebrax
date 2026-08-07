@@ -25,11 +25,11 @@ $$\beta_k = \dim(\ker D_k) - \text{rank}(D_{k+1})$$
 ## Python Example: Simplicial Complex Betti Numbers
 
 ```python
-from algebrax.homology import SimplicialComplex
+import algebrax as ax
 
 # 1. 1D Hollow Ring Topology (S^1)
 ring_edges = [(0, 1), (1, 2), (2, 3), (0, 3)]
-sc_ring = SimplicialComplex(ring_edges)
+sc_ring = ax.homology.SimplicialComplex(ring_edges)
 
 # Verify Nilpotency D0 o D1 == 0
 assert sc_ring.verify_nilpotency(k=1)
@@ -40,7 +40,7 @@ print(f"1D Ring Betti Numbers: beta_0={betti_ring[0]}, beta_1={betti_ring[1]}")
 # Output: 1D Ring Betti Numbers: beta_0=1, beta_1=1
 
 # 2. 3D Solid Tetrahedron Topology
-sc_tet = SimplicialComplex([(0, 1, 2, 3)])
+sc_tet = ax.homology.SimplicialComplex([(0, 1, 2, 3)])
 betti_tet = sc_tet.betti_numbers(max_k=2)
 print(f"Solid Tetrahedron Betti Numbers: beta_0={betti_tet[0]}, beta_1={betti_tet[1]}, beta_2={betti_tet[2]}")
 # Output: Solid Tetrahedron Betti Numbers: beta_0=1, beta_1=0, beta_2=0

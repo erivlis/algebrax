@@ -7,6 +7,7 @@ from algebrax.matrix.academic import (
 )
 from algebrax.matrix.core import (
     add,
+    block_diag,
     dot,
     inner,
     kronecker_delta,

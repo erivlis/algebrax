@@ -46,8 +46,7 @@ Below is a 10-line demonstration showing how swapping the semiring parameter in 
 multiplication from **Standard Linear Algebra** to **Tropical Shortest Path** and **Symbolic Provenance Tracking**:
 
 ```python
-from algebrax.matrix import dot
-from algebrax.semiring import DigitalSemiring, ProvenanceSemiring, StandardSemiring, TropicalSemiring
+import algebrax as ax
 
 # 1. Define a Sparse Graph Adjacency / Distance Matrix
 graph = {
@@ -56,12 +55,12 @@ graph = {
 }
 
 # Standard Linear Matrix Multiplication (+, *)
-linear_mult = dot(graph, graph, semiring=StandardSemiring())
+linear_mult = ax.matrix.dot(graph, graph, semiring=ax.semiring.StandardSemiring())
 print("Linear Multiplication (0->2):", linear_mult[0][2])
 # Output: 30.0 (path combination weight)
 
 # Tropical Shortest Path (min, +)
-shortest_path = dot(graph, graph, semiring=TropicalSemiring())
+shortest_path = ax.matrix.dot(graph, graph, semiring=ax.semiring.TropicalSemiring())
 print("Shortest Path Cost (0->1->2):", shortest_path[0][2])
 # Output: 5.0 (min(2 + 3, 10 + inf))
 
@@ -70,7 +69,7 @@ provenance_graph = {
     0: {1: {("rule_A",): 1}, 2: {("rule_C",): 1}},
     1: {2: {("rule_B",): 1}},
 }
-provenance_mult = dot(provenance_graph, provenance_graph, semiring=ProvenanceSemiring())
+provenance_mult = ax.matrix.dot(provenance_graph, provenance_graph, semiring=ax.semiring.ProvenanceSemiring())
 print("Symbolic Derivation Polynomial:", provenance_mult[0][2])
 # Output: {('rule_A', 'rule_B'): 1}
 ```

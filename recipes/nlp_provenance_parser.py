@@ -16,28 +16,26 @@ THEORY & MATHEMATICAL FOUNDATION
 1. Matrix CYK Parsing via Dot Product (algebrax.matrix.core.dot):
    Cocke-Younger-Kasami (CYK) parsing evaluates Context-Free Grammars in Chomsky
    Normal Form (CNF). By treating the parse chart as a triangular sparse matrix,
-   multiplying the chart by itself (`dot(chart, chart, semiring=GrammarSemiring)`)
+   multiplying the chart by itself (`ax.matrix.dot(chart, chart, semiring=GrammarSemiring)`)
    combines adjacent spans (i..k) and (k..j) into (i..j) in O(N^3) time.
 
 2. Symbolic Rule Provenance (algebrax.semiring.ProvenanceSemiring):
-   The Provenance Semiring (Polynomials N[X]) tags grammar rules with symbolic
+   The Provenance ax.semiring.Semiring (Polynomials N[X]) tags grammar rules with symbolic
    variables (e.g. x_rule1, x_rule2). Matrix multiplication yields polynomials
    where each term represents a complete, auditable syntax tree derivation path.
 
 3. Structural Entropy Audit (algebrax.probability.entropy):
-   Shannon entropy H(P) = - sum p_i ln(p_i) over candidate parse tree probabilities
-   quantifies syntactic ambiguity. Low entropy indicates a clear single parse;
-   high entropy signals multiple competing parse interpretations.
+   Shannon ax.probability.entropy H(P) = - sum p_i ln(p_i) over candidate parse tree probabilities
+   quantifies syntactic ambiguity. Low ax.probability.entropy indicates a clear single parse;
+   high ax.probability.entropy signals multiple competing parse interpretations.
 ================================================================================
 """
 
-from algebrax.matrix.core import dot
-from algebrax.probability import entropy
-from algebrax.semiring import ProvenanceSemiring, Semiring
+import algebrax as ax
 
 
-class GrammarSemiring(Semiring[set[str]]):
-    """Semiring where multiplication applies Context-Free Grammar rules (A, B) -> C."""
+class GrammarSemiring(ax.semiring.Semiring[set[str]]):
+    """ax.semiring.Semiring where multiplication applies Context-Free Grammar rules (A, B) -> C."""
 
     def __init__(self, rules: dict[tuple[str, str], set[str]]):
         self.rules = rules
@@ -65,8 +63,8 @@ def main() -> None:
     print('==========================================================================')
     print('Use Case: Natural Language Grammar Lineage & Ambiguity Audit')
     print('==========================================================================')
-    print('Goal: Parse CNF grammar sentences via matrix multiplication (dot), track')
-    print('      symbolic rule provenance polynomials, and audit syntactic entropy.')
+    print('Goal: Parse CNF grammar sentences via matrix multiplication (ax.matrix.dot), track')
+    print('      symbolic rule provenance polynomials, and audit syntactic ax.probability.entropy.')
 
     # 1. Define Lexicon and Grammar Rules in Chomsky Normal Form (CNF)
     print('\n[Step 0] Defining Lexicon and Grammar Rules (CNF)...')
@@ -102,7 +100,7 @@ def main() -> None:
         chart[i][i + 1] = lexicon.get(word, set())
 
     for step in range(n_len):
-        new_spans = dot(chart, chart, semiring=grammar_semiring)
+        new_spans = ax.matrix.dot(chart, chart, semiring=grammar_semiring)
         for r, row in new_spans.items():
             if r not in chart:
                 chart[r] = {}
@@ -113,10 +111,10 @@ def main() -> None:
     print(f'Parsed Full Sentence Non-Terminals (Span 0 -> {n_len}): {final_sentence_nonterminals}')
     assert 'S' in final_sentence_nonterminals
 
-    # --- Step 2: Symbolic Rule Provenance (Provenance Semiring) ---
-    print('\n[Step 2] Symbolic Rule Provenance (ProvenanceSemiring)...')
+    # --- Step 2: Symbolic Rule Provenance (Provenance ax.semiring.Semiring) ---
+    print('\n[Step 2] Symbolic Rule Provenance (ax.semiring.ProvenanceSemiring)...')
     print('Explanation: Multiplies symbolic rule variables into multivariate polynomials.')
-    provenance_semiring = ProvenanceSemiring()
+    provenance_semiring = ax.semiring.ProvenanceSemiring()
 
     rule_x = {('rule_DetN_to_NP',): 1}
     rule_y = {('rule_VNP_to_VP',): 1}
@@ -134,14 +132,14 @@ def main() -> None:
 
     # --- Step 3: Information Entropy & Ambiguity Audit ---
     print('\n[Step 3] Syntax Tree Structural Entropy & Ambiguity Audit...')
-    print('Explanation: Calculates Shannon entropy H(P) = -sum p_i ln(p_i) over parse trees.')
+    print('Explanation: Calculates Shannon ax.probability.entropy H(P) = -sum p_i ln(p_i) over parse trees.')
     candidate_parse_probs = {
         'Parse_Tree_Direct_Object': 0.75,
         'Parse_Tree_Prepositional_Attachment': 0.15,
         'Parse_Tree_Noun_Compound': 0.10,
     }
 
-    parse_entropy = entropy(candidate_parse_probs)
+    parse_entropy = ax.probability.entropy(candidate_parse_probs)
     print('\nCandidate Parse Tree Probability Distribution:')
     for tree_id, prob in candidate_parse_probs.items():
         print(f'  - {tree_id}: {prob * 100:.1f}%')

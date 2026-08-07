@@ -15,11 +15,11 @@ This models **Gauge Theory**, **Robotics Kinematics**, and **Currency Arbitrage*
 <!-- name: test_matrix_semiring -->
 
 ```python linenums="1"
+import algebrax as ax
 import numpy as np
-from algebrax.semiring import Semiring
 
 
-class MatrixSemiring(Semiring[np.ndarray]):
+class MatrixSemiring(ax.semiring.Semiring[np.ndarray]):
     """
     Models a Vector Bundle connection (Parallel Transport).
     Elements are matrices.
@@ -53,7 +53,7 @@ class MatrixSemiring(Semiring[np.ndarray]):
         return a
 
     def power(self, a: np.ndarray, n: int) -> np.ndarray:
-        # Matrix power using binary exponentiation
+        # Matrix ax.matrix.power using binary exponentiation
         if n == 0: return self.one
         res = self.one
         base = a
@@ -84,7 +84,7 @@ ms = MatrixSemiring(dim)
 
 # Transformation A -> B (e.g., Rotate 90 degrees)
 # In Tropical context, this would be costs. Let's use standard matrix mul for rotation.
-# Wait, MatrixSemiring above is Min-Plus. Let's define a Standard Matrix Semiring for Rotation.
+# Wait, MatrixSemiring above is Min-Plus. Let's define a Standard Matrix ax.semiring.Semiring for Rotation.
 
 class StandardMatrixSemiring(MatrixSemiring):
     @property

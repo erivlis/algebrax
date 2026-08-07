@@ -13,9 +13,9 @@ Topological Data Analysis (TDA) & Persistent Homology Recipe using algebrax
 ================================================================================
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
-1. Transitive Closure & Connected Components Betti Number b_0 (BooleanSemiring & matrix.power):
-   BooleanSemiring ({False, True}, OR, AND) models reachability.
-   Computing matrix power M^N over BooleanSemiring yields the transitive closure matrix.
+1. Transitive Closure & Connected Components Betti Number b_0 (ax.semiring.BooleanSemiring & matrix.power):
+   ax.semiring.BooleanSemiring ({False, True}, OR, AND) models reachability.
+   Computing matrix ax.matrix.power M^N over ax.semiring.BooleanSemiring yields the transitive closure matrix.
    The number of distinct equivalence classes in M^N determines the zeroth Betti number b_0(Eps),
    which counts connected topological components at filtration radius Eps.
 
@@ -30,10 +30,7 @@ THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
 """
 
-from algebrax.analysis import forman_ricci_curvature
-from algebrax.matrix.academic import determinant
-from algebrax.matrix.core import power
-from algebrax.semiring import BooleanSemiring
+import algebrax as ax
 
 
 def main() -> None:
@@ -44,9 +41,9 @@ def main() -> None:
     print('      reachability connected components (b_0), Forman-Ricci simplicial edge')
     print('      curvatures, and boundary operator matrix determinants.')
 
-    # --- Step 1: Point Cloud Filtration & Zeroth Betti Number b_0 (BooleanSemiring) ---
-    print('\n[Step 1] Vietoris-Rips Filtration & Betti Number b_0 (BooleanSemiring)...')
-    print('Explanation: Transitive closure M^N over BooleanSemiring ({F, T}, OR, AND)')
+    # --- Step 1: Point Cloud Filtration & Zeroth Betti Number b_0 (ax.semiring.BooleanSemiring) ---
+    print('\n[Step 1] Vietoris-Rips Filtration & Betti Number b_0 (ax.semiring.BooleanSemiring)...')
+    print('Explanation: Transitive closure M^N over ax.semiring.BooleanSemiring ({F, T}, OR, AND)')
     print('             finds connected component equivalence classes b_0(Eps).')
 
     # Point cloud distance matrix for 5 data points
@@ -70,9 +67,9 @@ def main() -> None:
                 row[v] = True
         adjacency_eps[u] = row
 
-    # Transitive Closure M^5 over BooleanSemiring
-    bool_semiring = BooleanSemiring()
-    reachability = power(adjacency_eps, 5, semiring=bool_semiring)
+    # Transitive Closure M^5 over ax.semiring.BooleanSemiring
+    bool_semiring = ax.semiring.BooleanSemiring()
+    reachability = ax.matrix.power(adjacency_eps, 5, semiring=bool_semiring)
 
     # Extract unique connected components (zeroth Betti number b_0)
     components = set()
@@ -90,8 +87,8 @@ def main() -> None:
 
     print(f'\nZeroth Betti Number b_0(Eps=1.5): {b_0} (2 Topological Clusters Detected)')
 
-    # --- Step 2: Simplicial Complex Edge Curvature (forman_ricci_curvature) ---
-    print('\n[Step 2] Simplicial Complex Forman-Ricci Edge Curvature (forman_ricci_curvature)...')
+    # --- Step 2: Simplicial Complex Edge Curvature (ax.analysis.forman_ricci_curvature) ---
+    print('\n[Step 2] Simplicial Complex Forman-Ricci Edge Curvature (ax.analysis.forman_ricci_curvature)...')
     print('Explanation: K < 0 identifies topological bottleneck bridges connecting clusters;')
     print('             K > 0 identifies dense 1-simplex cluster triangles.')
 
@@ -104,7 +101,7 @@ def main() -> None:
         4: {3: 1.2},
     }
 
-    ricci_k = forman_ricci_curvature(simplicial_graph)
+    ricci_k = ax.analysis.forman_ricci_curvature(simplicial_graph)
 
     print('\nForman-Ricci Curvature on 1-Simplices (Edges):')
     for edge, k_val in sorted(ricci_k.items()):
@@ -112,8 +109,8 @@ def main() -> None:
         print(f'  Simplex {edge}: Curvature K = {k_val:+5.2f}{bridge_tag}')
 
     # --- Step 3: Boundary Operator Matrix Determinant ---
-    print('\n[Step 3] Boundary Operator Matrix Determinant (determinant)...')
-    print('Explanation: Computes determinant det(K) of structural Laplacians/Boundary maps.')
+    print('\n[Step 3] Boundary Operator Matrix Determinant (ax.matrix.determinant)...')
+    print('Explanation: Computes ax.matrix.determinant det(K) of structural Laplacians/Boundary maps.')
 
     # 3x3 Boundary Laplacian matrix for Cluster A 1-simplices
     boundary_matrix = {
@@ -122,7 +119,7 @@ def main() -> None:
         2: {0: -1.0, 1: -1.0, 2: 2.0},
     }
 
-    det_b = determinant(boundary_matrix)
+    det_b = ax.matrix.academic.determinant(boundary_matrix)
 
     print('\nBoundary Operator Laplacian Matrix K:')
     for r in sorted(boundary_matrix.keys()):

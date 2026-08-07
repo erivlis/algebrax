@@ -102,8 +102,7 @@ By changing the `semiring` parameter in `matrix.dot`, you can transform standard
 shortest-path solvers or symbolic rule derivation tracking:
 
 ```python
-from algebrax.matrix import dot
-from algebrax.semiring import ProvenanceSemiring, StandardSemiring, TropicalSemiring
+import algebrax as ax
 
 # Define a Sparse Graph Adjacency / Distance Matrix
 graph = {
@@ -112,12 +111,12 @@ graph = {
 }
 
 # 1. Standard Linear Matrix Multiplication (+, *)
-linear_mult = dot(graph, graph, semiring=StandardSemiring())
+linear_mult = ax.matrix.dot(graph, graph, semiring=ax.semiring.StandardSemiring())
 print('Linear Combination (0->2):', linear_mult[0][2])
 # Output: 30.0
 
 # 2. Tropical Shortest Path (min, +)
-shortest_path = dot(graph, graph, semiring=TropicalSemiring())
+shortest_path = ax.matrix.dot(graph, graph, semiring=ax.semiring.TropicalSemiring())
 print('Shortest Path Cost (0->1->2):', shortest_path[0][2])
 # Output: 5.0
 
@@ -126,7 +125,7 @@ provenance_graph = {
     0: {1: {('rule_A',): 1}, 2: {('rule_C',): 1}},
     1: {2: {('rule_B',): 1}},
 }
-provenance_mult = dot(provenance_graph, provenance_graph, semiring=ProvenanceSemiring())
+provenance_mult = ax.matrix.dot(provenance_graph, provenance_graph, semiring=ax.semiring.ProvenanceSemiring())
 print('Symbolic Derivation Polynomial:', provenance_mult[0][2])
 # Output: {('rule_A', 'rule_B'): 1}
 ```

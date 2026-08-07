@@ -13,8 +13,8 @@ Urban Traffic Network Resilience & Bottleneck Analysis Recipe using algebrax
 ================================================================================
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
-1. Tropical Semiring Shortest Paths (algebrax.semiring.TropicalSemiring):
-   The Tropical Semiring (min, +) replaces standard (+, *) matrix multiplication with:
+1. Tropical ax.semiring.Semiring Shortest Paths (algebrax.semiring.TropicalSemiring):
+   The Tropical ax.semiring.Semiring (min, +) replaces standard (+, *) matrix multiplication with:
      (A (x) B)[i, j] = min_k (A[i, k] + B[k, j])
    Evaluating matrix powers M^k over the Tropical semiring computes the shortest travel
    time between all pairs of nodes using paths of exactly length k.
@@ -32,10 +32,7 @@ THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
 """
 
-from algebrax.analysis import forman_ricci_curvature
-from algebrax.matrix.core import power
-from algebrax.probability import markov_steady_state
-from algebrax.semiring import TropicalSemiring
+import algebrax as ax
 
 
 def main() -> None:
@@ -67,14 +64,14 @@ def main() -> None:
         connections = ', '.join([f'{v} ({w:.1f}m)' for v, w in city_network[u].items()])
         print(f'  Hub {u} [{hub_names[u]}]: Connects to -> {connections}')
 
-    # --- Step 1: Tropical Semiring Shortest Travel Time Latency ---
-    print('\n[Step 1] Multi-Step Shortest Path Latencies (Tropical Semiring)...')
+    # --- Step 1: Tropical ax.semiring.Semiring Shortest Travel Time Latency ---
+    print('\n[Step 1] Multi-Step Shortest Path Latencies (Tropical ax.semiring.Semiring)...')
     print('Explanation: Tropical matrix multiplication (A x B)[i, j] = min_k (A[i,k] + B[k,j])')
     print('             computes global minimal travel times without exhaustive Dijkstra loops.')
-    tropical_semiring = TropicalSemiring()
+    tropical_semiring = ax.semiring.TropicalSemiring()
 
-    latency_2step = power(city_network, 2, semiring=tropical_semiring)
-    latency_3step = power(city_network, 3, semiring=tropical_semiring)
+    latency_2step = ax.matrix.power(city_network, 2, semiring=tropical_semiring)
+    latency_3step = ax.matrix.power(city_network, 3, semiring=tropical_semiring)
 
     print('\n2-Step Shortest Path Travel Times Matrix (Minutes):')
     for u in sorted(latency_2step.keys()):
@@ -90,7 +87,7 @@ def main() -> None:
     print('\n[Step 2] Isolating Structural Choke Points (Forman-Ricci Edge Curvature)...')
     print('Explanation: Forman-Ricci curvature detects discrete geometric bottlenecks.')
     print('             Negative curvature (K < 0) pinpoints bridge roads where traffic funnels.')
-    edge_curvatures = forman_ricci_curvature(city_network)
+    edge_curvatures = ax.analysis.forman_ricci_curvature(city_network)
 
     print('\nEdge Curvature Audit Results:')
     for (u, v), k_val in sorted(edge_curvatures.items()):
@@ -99,14 +96,14 @@ def main() -> None:
 
     # --- Step 3: Markov Steady State Equilibrium Traffic Density ---
     print('\n[Step 3] Long-Term Traffic Equilibrium (Markov Steady State)...')
-    print('Explanation: Normalizes inverse travel times into transition probabilities P(u -> v).')
+    print('Explanation: Normalizes ax.matrix.inverse travel times into transition probabilities P(u -> v).')
     print('             Solves pi = pi * P for the stationary distribution of active vehicles.')
     markov_transition = {}
     for u, neighbors in city_network.items():
         total_inv_weight = sum(1.0 / w for w in neighbors.values())
         markov_transition[u] = {v: (1.0 / w) / total_inv_weight for v, w in neighbors.items()}
 
-    steady_state = markov_steady_state(markov_transition)
+    steady_state = ax.probability.markov_steady_state(markov_transition)
 
     print('\nStationary Vehicle Distribution Across City Hubs:')
     for node, prob in sorted(steady_state.items()):

@@ -23,7 +23,7 @@ It allows `algebrax` to compute formal multiplications in **quotient rings** $R[
 ## Python Example: Polynomial Modulo Reduction ($x^2 = -1$)
 
 ```python
-from algebrax.semiring import QuotientMonoidAlgebraSemiring, StandardSemiring
+import algebrax as ax
 
 # 1. Define key operation (addition of exponents for x^a * x^b = x^(a+b))
 def key_op(exp1: int, exp2: int) -> int:
@@ -35,9 +35,9 @@ def mod_x2_plus_1(exp: int, coeff: float) -> list[tuple[int, float]]:
     sign = -1.0 if q % 2 == 1 else 1.0
     return [(r, coeff * sign)]
 
-# 3. Instantiate QuotientMonoidAlgebraSemiring
-semiring = QuotientMonoidAlgebraSemiring[int, float](
-    coeff_semiring=StandardSemiring[float](),
+# 3. Instantiate ax.semiring.QuotientMonoidAlgebraSemiring
+semiring = ax.semiring.QuotientMonoidAlgebraSemiring[int, float](
+    coeff_semiring=ax.semiring.StandardSemiring[float](),
     key_op=key_op,
     zero_key=0,
     quotient_fn=mod_x2_plus_1,

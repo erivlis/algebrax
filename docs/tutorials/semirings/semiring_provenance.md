@@ -11,8 +11,7 @@ Values are multivariate polynomials represented as mappings from sorted variable
 <!-- name: test_provenance_semiring -->
 
 ```python linenums="1"
-from algebrax.semiring import ProvenanceSemiring
-from algebrax.matrix import dot
+import algebrax as ax
 
 # Graph with labeled edges
 # 0 -> 1 (label 'x')
@@ -26,7 +25,7 @@ graph = {
 # Paths of length 2
 # 0->1->2: x * y = xy
 # 0->2: (length 1, not in result)
-paths_len_2 = dot(graph, graph, semiring=ProvenanceSemiring())
+paths_len_2 = ax.matrix.dot(graph, graph, semiring=ax.semiring.ProvenanceSemiring())
 
 print(paths_len_2[0][2])
 # output: {('x', 'y'): 1}

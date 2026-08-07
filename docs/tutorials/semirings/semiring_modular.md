@@ -24,11 +24,10 @@ It serves as a foundational coefficient ring for finite field representations ($
 ## Python Example
 
 ```python
-from algebrax.semiring import ModularSemiring
-from algebrax.matrix import dot
+import algebrax as ax
 
 # Create Z_5 modular ring
-z5 = ModularSemiring(p=5)
+z5 = ax.semiring.ModularSemiring(p=5)
 
 # Ring operations in Z_5
 print("3 + 4 mod 5:", z5.add(3, 4))    # 2
@@ -39,6 +38,6 @@ print("2^4 mod 5:  ", z5.power(2, 4))  # 1
 A = {0: {0: 3, 1: 4}, 1: {0: 2, 1: 1}}
 B = {0: {0: 2, 1: 1}, 1: {0: 4, 1: 3}}
 
-C = dot(A, B, semiring=z5)
+C = ax.matrix.dot(A, B, semiring=z5)
 print("A @ B over Z_5:", C)
 ```

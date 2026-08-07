@@ -14,8 +14,7 @@ this is matrix multiplication over the **Max-Product Semiring** $(\max, \times)$
 <!-- name: test_viterbi_semiring -->
 
 ```python linenums="1"
-from algebrax.semiring import ViterbiSemiring
-from algebrax.matrix import dot
+import algebrax as ax
 
 # HMM State Transition (Probability of A->B)
 # Healthy (H), Fever (F)
@@ -41,7 +40,7 @@ obs_seq = ['N', 'C', 'D']
 # Current State Probabilities
 current_probs = start
 
-semiring = ViterbiSemiring()
+semiring = ax.semiring.ViterbiSemiring()
 
 for obs in obs_seq:
     # 1. Emission: Multiply current state prob by emission prob
@@ -53,17 +52,17 @@ for obs in obs_seq:
 
     # 2. Transition: Propagate to next state (Matrix Vector Mul)
     # next_state = current * transition_matrix
-    # We use dot() but we need to format vectors as matrices for the library
+    # We use ax.matrix.dot() but we need to format vectors as matrices for the library
     # or just do it manually for this vector-matrix step.
 
-    # Let's use the library's dot product.
+    # Let's use the library's ax.matrix.dot product.
     # Vector as 1xN matrix: {0: {'H': p1, 'F': p2}}
     vec_matrix = {0: after_emission}
 
     # Transition matrix needs to be in the right format
     # transitions is already dict-of-dicts
 
-    next_step = dot(vec_matrix, transitions, semiring=semiring)
+    next_step = ax.matrix.dot(vec_matrix, transitions, semiring=semiring)
     current_probs = next_step[0]
 
 print(f"Final Probabilities: {current_probs}")

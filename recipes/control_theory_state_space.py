@@ -13,7 +13,7 @@ Control Theory, State-Space Systems & Dynamical Stability Recipe using algebrax
 ================================================================================
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
-1. Discrete State-Space System Matrix Powers (algebrax.matrix.core.power & dot):
+1. Discrete State-Space System Matrix Powers (algebrax.matrix.core.power & ax.matrix.dot):
    Discrete state-space dynamics x[k+1] = A * x[k] + B * u[k] propagate over time.
    Matrix powers A^k compute the autonomous multi-step state transition matrix.
 
@@ -29,9 +29,7 @@ THEORY & MATHEMATICAL FOUNDATION
 
 import cmath
 
-from algebrax.matrix.academic import determinant
-from algebrax.matrix.core import dot, power
-from algebrax.transforms import z_transform
+import algebrax as ax
 
 
 def main() -> None:
@@ -63,14 +61,14 @@ def main() -> None:
 
     print('\nState Trajectory over Multi-Step Transitions:')
     for k in [1, 2, 5, 10]:
-        a_k = power(a_matrix, k)
+        a_k = ax.matrix.power(a_matrix, k)
         # x[k] = A^k * x[0]
         x1_k = a_k[0].get(0, 0.0) * initial_state[0] + a_k[0].get(1, 0.0) * initial_state[1]
         x2_k = a_k[1].get(0, 0.0) * initial_state[0] + a_k[1].get(1, 0.0) * initial_state[1]
         print(f'  Step k={k:2d}: Position x1 = {x1_k:6.3f}, Velocity x2 = {x2_k:6.3f}')
 
     # --- Step 2: Impulse Response Z-Transform Transfer Function H(z) ---
-    print('\n[Step 2] Impulse Response Z-Transform Transfer Function (z_transform)...')
+    print('\n[Step 2] Impulse Response Z-Transform Transfer Function (ax.transforms.z_transform)...')
     print('Explanation: H(z) = sum_{n} h[n] z^{-n} maps discrete impulse response to Z-domain.')
 
     # Discrete impulse response sequence h[n]
@@ -78,13 +76,13 @@ def main() -> None:
 
     # Evaluate H(z) at complex z = 0.8 + 0.6j
     z_eval = 0.8 + 0.6j
-    h_z = z_transform(impulse_response, z=z_eval)
+    h_z = ax.transforms.z_transform(impulse_response, z=z_eval)
 
     print('\nImpulse Response Sequence h[n]:', impulse_response)
     print(f'Transfer Function H(z = {z_eval}): {h_z:.4f} (Magnitude = {abs(h_z):.4f})')
 
     # --- Step 3: Characteristic Determinant & Stability Audit ---
-    print('\n[Step 3] Characteristic Matrix Stability Audit (determinant)...')
+    print('\n[Step 3] Characteristic Matrix Stability Audit (ax.matrix.determinant)...')
     print('Explanation: det(I - A) audits discrete pole locations and asymptotic stability.')
 
     # Characteristic Matrix (I - A)
@@ -93,7 +91,7 @@ def main() -> None:
         1: {0: 0.1, 1: 1.0 - 0.8},
     }
 
-    det_char = determinant(char_matrix)
+    det_char = ax.matrix.academic.determinant(char_matrix)
 
     print('\nCharacteristic Matrix (I - A):')
     for r in sorted(char_matrix.keys()):

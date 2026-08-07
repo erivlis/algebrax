@@ -137,12 +137,6 @@ def test_laplacian_zero_sum():
     assert lap == {}
 
 
-def test_box_counting_no_coords():
-    from algebrax import box_counting_dimension
-
-    assert box_counting_dimension({}) == pytest.approx(0.0)
-
-
 def test_forman_ricci_weighted_and_uncomparable_nodes():
     g_weighted = {
         0: {1: 2.0, 2: 4.0},

@@ -30,12 +30,9 @@ across varying densities and matrix sizes.
 <!-- name: benchmark_matrix_multiplication -->
 
 ```python linenums="1"
+import algebrax as ax
 import timeit
 import random
-from algebrax.semiring import StandardSemiring
-from algebrax.matrix import dot
-from algebrax.converters import sparse_to_dense_matrix
-from algebrax.metrics import density as calculate_density
 
 
 def generate_sparse_matrix(rows, cols, density=0.1):
@@ -44,7 +41,7 @@ def generate_sparse_matrix(rows, cols, density=0.1):
     for r in range(rows):
         row_data = {}
         for c in range(cols):
-            if random.random() < density:
+            if random.random() < ax.metrics.density:
                 row_data[c] = 1.0
         if row_data:
             matrix[r] = row_data
@@ -78,10 +75,10 @@ def run_benchmark(N, target_density, iterations):
     sparse_B = generate_sparse_matrix(N, N, target_density)
 
     # Use library converter
-    dense_A = sparse_to_dense_matrix(sparse_A, shape=(N, N))
-    dense_B = sparse_to_dense_matrix(sparse_B, shape=(N, N))
+    dense_A = ax.converters.sparse_to_dense_matrix(sparse_A, shape=(N, N))
+    dense_B = ax.converters.sparse_to_dense_matrix(sparse_B, shape=(N, N))
 
-    # Calculate actual density using library function
+    # Calculate actual ax.metrics.density using library function
     actual_density_A = calculate_density(sparse_A, capacity=N * N)
     actual_density_B = calculate_density(sparse_B, capacity=N * N)
     avg_density = (actual_density_A + actual_density_B) / 2
@@ -91,7 +88,7 @@ def run_benchmark(N, target_density, iterations):
     avg_naive = t_naive / iterations
 
     # 2. algebrax Sparse
-    t_sparse = timeit.timeit(lambda: dot(sparse_A, sparse_B, semiring=StandardSemiring()), number=iterations)
+    t_sparse = timeit.timeit(lambda: ax.matrix.dot(sparse_A, sparse_B, semiring=ax.semiring.StandardSemiring()), number=iterations)
     avg_sparse = t_sparse / iterations
 
     speedup = avg_naive / avg_sparse

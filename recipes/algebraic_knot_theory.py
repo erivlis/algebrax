@@ -14,23 +14,22 @@ Algebraic Knot Theory & Topological Invariants Recipe using algebrax
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
 1. Skein Module & Connected Sum Invariants (algebrax.semiring.KnotSemiring):
-   KnotSemiring R[Knots] models Skein modules over the knot connected sum (#) monoid.
+   ax.semiring.KnotSemiring R[Knots] models Skein modules over the knot connected sum (#) monoid.
    Values are formal linear combinations sum_k a_k * K_k where multiplication is the
    connected sum (#) of knot topologies (e.g. Trefoil '3_1' (#) Figure-8 '4_1' = '3_1#4_1').
 
-2. Braid Group Permutations & Parity Signatures (algebrax.group.compose & signature):
+2. Braid Group Permutations & Parity Signatures (algebrax.group.compose & ax.group.signature):
    The Artin Braid group B_n projects onto the symmetric permutation group S_n.
-   `compose` evaluates sequential strand crossings, while `signature` computes
+   `ax.group.compose` evaluates sequential strand crossings, while `ax.group.signature` computes
    crossing parity (-1)^n to determine topological orientation.
 
 3. Polynomial Polynomial Invariants (algebrax.semiring.MonoidAlgebraSemiring):
-   PolynomialSemiring / MonoidAlgebraSemiring computes Jones and Alexander polynomial
+   ax.semiring.PolynomialSemiring / ax.semiring.MonoidAlgebraSemiring computes Jones and Alexander polynomial
    multiplications under knot tensor operations.
 ================================================================================
 """
 
-from algebrax.group import compose, signature
-from algebrax.semiring import KnotSemiring, MonoidAlgebraSemiring, StandardSemiring
+import algebrax as ax
 
 
 def main() -> None:
@@ -40,11 +39,11 @@ def main() -> None:
     print('Goal: Combine 3 distinct algebraic tools from algebrax to evaluate Skein module')
     print('      connected sums, Jones polynomial convolutions, and Braid group signatures.')
 
-    # --- Step 1: Skein Module Connected Sums (KnotSemiring) ---
-    print('\n[Step 1] Skein Module Formal Sums & Connected Sums (KnotSemiring)...')
-    print('Explanation: KnotSemiring R[Knots] multiplies knot topologies via connected sum (#).')
+    # --- Step 1: Skein Module Connected Sums (ax.semiring.KnotSemiring) ---
+    print('\n[Step 1] Skein Module Formal Sums & Connected Sums (ax.semiring.KnotSemiring)...')
+    print('Explanation: ax.semiring.KnotSemiring R[Knots] multiplies knot topologies via connected sum (#).')
 
-    knot_algebra = KnotSemiring(StandardSemiring[float]())
+    knot_algebra = ax.semiring.KnotSemiring(ax.semiring.StandardSemiring[float]())
 
     # Formal knot state A: 2 * Trefoil ('3_1') + 3 * Unknot ('U')
     knot_a = {'3_1': 2.0, 'U': 3.0}
@@ -62,7 +61,7 @@ def main() -> None:
         print(f"  Knot Topology '{knot_id}': Formal Coefficient = {coeff:.2f}")
 
     # --- Step 2: Braid Group Crossing Permutations & Parity Signatures ---
-    print('\n[Step 2] Braid Group Strand Crossings (compose & signature)...')
+    print('\n[Step 2] Braid Group Strand Crossings (ax.group.compose & ax.group.signature)...')
     print('Explanation: B_n braid crossings sigma_i map to permutation mappings in S_n.')
 
     # Braid Generators sigma_1 and sigma_2 for 4-strand braid
@@ -70,11 +69,11 @@ def main() -> None:
     sigma_2 = {0: 0, 1: 2, 2: 1, 3: 3}  # Swap strands 1 and 2
 
     # Braid Word: w = sigma_1 * sigma_2 * sigma_1
-    w_12 = compose(sigma_1, sigma_2)
-    braid_word = compose(w_12, sigma_1)
+    w_12 = ax.group.compose(sigma_1, sigma_2)
+    braid_word = ax.group.compose(w_12, sigma_1)
 
-    sig_s1 = signature(sigma_1)
-    sig_word = signature(braid_word)
+    sig_s1 = ax.group.signature(sigma_1)
+    sig_word = ax.group.signature(braid_word)
 
     print('\nBraid Generator sigma_1 Strand Mapping: ', sigma_1)
     print('Braid Generator sigma_2 Strand Mapping: ', sigma_2)
@@ -84,11 +83,11 @@ def main() -> None:
     print(f'Composed Braid Word Parity Signature:  {sig_word:+d} (Odd Composite Crossing)')
 
     # --- Step 3: Laurent Jones Polynomial Invariant Multiplication ---
-    print('\n[Step 3] Laurent Jones Polynomial Ring Arithmetic (MonoidAlgebraSemiring)...')
+    print('\n[Step 3] Laurent Jones Polynomial Ring Arithmetic (ax.semiring.MonoidAlgebraSemiring)...')
     print('Explanation: Computes Jones polynomial multiplication V(K1 # K2) = V(K1) * V(K2).')
 
     # Laurent polynomial ring over variable exponent key t^k
-    poly_algebra = MonoidAlgebraSemiring(StandardSemiring[float](), zero_key=0)
+    poly_algebra = ax.semiring.MonoidAlgebraSemiring(ax.semiring.StandardSemiring[float](), zero_key=0)
 
     # Trefoil Knot '3_1' Jones Polynomial V(3_1) = -t^{-4} + t^{-3} + t^{-1}
     v_trefoil = {-4: -1.0, -3: 1.0, -1: 1.0}

@@ -5,11 +5,10 @@ The `AlgebraicTrie` is a generalization of a Trie (Prefix Tree) that behaves as 
 <!-- name: test_algebraic_trie -->
 
 ```python linenums="1"
-from algebrax.trie import AlgebraicTrie
-from algebrax.semiring import StandardSemiring
+import algebrax as ax
 
-# Create a Trie that sums values (Standard Semiring)
-trie = AlgebraicTrie(StandardSemiring)
+# Create a Trie that sums values (Standard ax.semiring.Semiring)
+trie = ax.trie.AlgebraicTrie(ax.semiring.StandardSemiring)
 
 # Add paths
 trie.add(["home", "user", "docs"], 1)

@@ -13,9 +13,9 @@ Sheaf Cohomology & Multi-Agent Network Consensus Recipe using algebrax
 ================================================================================
 THEORY & MATHEMATICAL FOUNDATION
 ================================================================================
-1. Sheaf Restriction & Coboundary Operators (algebrax.analysis.gradient & divergence):
+1. Sheaf Restriction & Coboundary Operators (algebrax.analysis.gradient & ax.analysis.divergence):
    Cellular Sheaves assign vector spaces (stalks) to nodes and edges.
-   The discrete exterior derivative d0 (gradient) acts as the 0-th coboundary operator
+   The discrete exterior derivative d0 (ax.analysis.gradient) acts as the 0-th ax.homology.coboundary operator
    delta_0(f)_ij = f(j) - f(i), measuring inconsistency across agent communication channels.
 
 2. Sheaf Laplacian Diffusion & Consensus (algebrax.analysis.laplacian):
@@ -24,13 +24,12 @@ THEORY & MATHEMATICAL FOUNDATION
    consensus when the kernel ker(L) contains non-trivial global sections.
 
 3. Sheaf Monoid Formal Sums (algebrax.semiring.MonoidAlgebraSemiring):
-   MonoidAlgebraSemiring models category formal linear combinations R[M] over agent
+   ax.semiring.MonoidAlgebraSemiring models category formal linear combinations R[M] over agent
    observation sections.
 ================================================================================
 """
 
-from algebrax.analysis import divergence, gradient, laplacian
-from algebrax.semiring import MonoidAlgebraSemiring, StandardSemiring
+import algebrax as ax
 
 
 def main() -> None:
@@ -40,8 +39,8 @@ def main() -> None:
     print('Goal: Combine 3 distinct algebraic tools from algebrax to evaluate cellular')
     print('      sheaf gradients, Laplacian consensus diffusion, and formal monoid sections.')
 
-    # --- Step 1: Sheaf Restriction Mismatch & Coboundary Gradient (gradient) ---
-    print('\n[Step 1] Sheaf Coboundary Gradient delta_0 (gradient)...')
+    # --- Step 1: Sheaf Restriction Mismatch & Coboundary Gradient (ax.analysis.gradient) ---
+    print('\n[Step 1] Sheaf Coboundary Gradient delta_0 (ax.analysis.gradient)...')
     print('Explanation: grad(f)_ij = f(j) - f(i) evaluates inconsistency across agent channels.')
 
     # 4 Autonomous Robots with initial sensor state estimates (e.g. Temperature / Heading)
@@ -56,7 +55,7 @@ def main() -> None:
     }
 
     # Sheaf Coboundary Gradient delta_0(f)
-    coboundary_mismatch = gradient(agent_states, comm_graph)
+    coboundary_mismatch = ax.analysis.gradient(agent_states, comm_graph)
 
     print('\nInitial Agent State Estimates:', agent_states)
     print('\nEdge Communication Mismatch grad(f)_ij:')
@@ -64,8 +63,8 @@ def main() -> None:
         for v, diff in sorted(coboundary_mismatch[u].items()):
             print(f'  Channel ({u} -> {v}): Delta = {diff:+6.1f}')
 
-    # --- Step 2: Sheaf Laplacian Diffusion & Multi-Agent Consensus (laplacian) ---
-    print('\n[Step 2] Multi-Agent Sheaf Laplacian Consensus (laplacian)...')
+    # --- Step 2: Sheaf Laplacian Diffusion & Multi-Agent Consensus (ax.analysis.laplacian) ---
+    print('\n[Step 2] Multi-Agent Sheaf Laplacian Consensus (ax.analysis.laplacian)...')
     print('Explanation: f[t+1] = f[t] - dt * L(f) diffuses state differences toward consensus.')
 
     # Build weighted graph adjacency for Laplacian L
@@ -83,7 +82,7 @@ def main() -> None:
     print(f'  Step t= 0: States = {current_f}')
 
     for step in range(1, 11):
-        l_f = laplacian(current_f, weighted_comm)
+        l_f = ax.analysis.laplacian(current_f, weighted_comm)
         # Gradient descent update: f = f - dt * L(f)
         current_f = {u: current_f[u] - dt * l_f[u] for u in current_f}
 
@@ -94,11 +93,11 @@ def main() -> None:
     target_consensus = sum(agent_states.values()) / len(agent_states)
     print(f'\nTarget Global Mean Consensus: {target_consensus:.2f}')
 
-    # --- Step 3: Sheaf Category Formal Sums (MonoidAlgebraSemiring) ---
-    print('\n[Step 3] Sheaf Category Formal Observation Sums (MonoidAlgebraSemiring)...')
+    # --- Step 3: Sheaf Category Formal Sums (ax.semiring.MonoidAlgebraSemiring) ---
+    print('\n[Step 3] Sheaf Category Formal Observation Sums (ax.semiring.MonoidAlgebraSemiring)...')
     print('Explanation: Formal linear combinations R[M] combine localized agent observation sections.')
 
-    sheaf_algebra = MonoidAlgebraSemiring(StandardSemiring[float](), zero_key='None')
+    sheaf_algebra = ax.semiring.MonoidAlgebraSemiring(ax.semiring.StandardSemiring[float](), zero_key='None')
 
     # Robot 1 local section observation map
     obs_agent1 = {'Obstacle_A': 0.8, 'Target_X': 0.2}

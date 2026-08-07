@@ -29,13 +29,13 @@ It finds wide applications in discrete signal processing (as FIR filters), codin
 ### Example: Polynomials over Integers
 
 ```python
-from algebrax.semiring import PolynomialSemiring, StandardSemiring
+import algebrax as ax
 
 # 1. Define the coefficient semiring (integers)
-int_semiring = StandardSemiring(int)
+int_semiring = ax.semiring.StandardSemiring(int)
 
-# 2. Initialize the PolynomialSemiring (R[x])
-poly_semiring = PolynomialSemiring(int_semiring)
+# 2. Initialize the ax.semiring.PolynomialSemiring (R[x])
+poly_semiring = ax.semiring.PolynomialSemiring(int_semiring)
 
 # p1(x) = 1 + 2x
 p1 = {0: 1, 1: 2}

@@ -20,17 +20,17 @@ where $\text{popcount}(k \wedge m)$ is the bitwise XOR parity count.
 <!-- name: test_walsh_hadamard_transform -->
 
 ```python linenums="1"
-from algebrax.transforms import walsh_hadamard
+import algebrax as ax
 
 # Signal on 2-bit hypercube (Z_2^2)
 f = {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0}
-wht = walsh_hadamard(f, n=4)
+wht = ax.transforms.walsh_hadamard(f, n=4)
 
 print("Walsh-Hadamard Spectrum:", wht)
 # Output: {0: 10.0, 1: -4.0, 2: -2.0, 3: 0.0}
 
 # Dual Self-Inverse Property: WHT(WHT(f)) / N = f
-reconstructed = {k: v / 4.0 for k, v in walsh_hadamard(wht, n=4).items()}
+reconstructed = {k: v / 4.0 for k, v in ax.transforms.walsh_hadamard(wht, n=4).items()}
 print("Reconstructed Signal:   ", reconstructed)
 # Output: {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0}
 ```

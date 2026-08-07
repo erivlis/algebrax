@@ -49,10 +49,10 @@ The `KnotSemiring` is a generic class that defaults to using integer coefficient
 This is the most basic case, forming a Skein module over $\mathbb{Z}$.
 
 ```python
-from algebrax.semiring import KnotSemiring
+import algebrax as ax
 
 # Initialize the semiring (defaults to integer coefficients)
-knot_semiring = KnotSemiring()
+knot_semiring = ax.semiring.KnotSemiring()
 
 # Define two formal sums of knots
 # a = 2 * (3_1) + 1 * (4_1)
@@ -81,13 +81,13 @@ print(f"Multiplication over Integers: {multiplied}")
 By passing a different semiring to the constructor, we can work with other coefficient types.
 
 ```python
-from algebrax.semiring import KnotSemiring, StandardSemiring
+import algebrax as ax
 
 # 1. Define the coefficient semiring (floats)
-float_semiring = StandardSemiring(float)
+float_semiring = ax.semiring.StandardSemiring(float)
 
-# 2. Initialize the KnotSemiring with the float semiring
-knot_semiring_float = KnotSemiring(float_semiring)
+# 2. Initialize the ax.semiring.KnotSemiring with the float semiring
+knot_semiring_float = ax.semiring.KnotSemiring(float_semiring)
 
 # a = 0.5 * (3_1)
 a = {'3_1': 0.5}

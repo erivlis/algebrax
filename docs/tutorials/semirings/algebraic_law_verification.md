@@ -28,12 +28,11 @@ The **`algebrax.verification`** module provides property-based verification of f
 ## Python Example: Programmatic Verification
 
 ```python
-from algebrax.semiring import TropicalSemiring
-from algebrax.verification import get_semiring_samples, verify_semiring_laws
+import algebrax as ax
 
-# Programmatic verification for Tropical Semiring
-semiring, samples = get_semiring_samples("Tropical")
-results = verify_semiring_laws(semiring, samples)
+# Programmatic verification for Tropical ax.semiring.Semiring
+semiring, samples = ax.verification.get_semiring_samples("Tropical")
+results = ax.verification.verify_semiring_laws(semiring, samples)
 
 for axiom, passed in results.items():
     print(f"{axiom:20s}: {'PASS' if passed else 'FAIL'}")
