@@ -64,8 +64,9 @@ test = [
     "hypothesis>=6.165.1",
     "nbmake>=1.5.5",
     # Soft ecosystem dependencies required for converter tests (ax.converters.to_numpy / to_scipy)
-    # and markdown code block execution tests
+    # and notebook / recipe execution tests (recipes/image_processing.ipynb)
     "numpy",
+    "pillow",
     "scipy",
 ]
 
