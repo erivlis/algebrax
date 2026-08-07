@@ -36,6 +36,7 @@
       <a href="https://hatch.pypa.io"><img alt="Hatch project" class="off-glb" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg"></a>
       <a href="https://commitizen-tools.github.io/commitizen"><img alt="commitizen" src="https://custom-icon-badges.demolab.com/badge/commitizen-7e56c2?logo=commitizen&labelColor=grey"></a>
       <a href="https://zensical.org/"><img alt="Zensical" src="https://custom-icon-badges.demolab.com/badge/zensical-ff9100?logo=zensical&labelColor=grey"></a>
+      <a href="https://library-skills.io"><img alt="agentskills" src="https://img.shields.io/badge/agentskills-white?logo=agentskills&labelColor=grey"></a>
     </td>
   </tr>
   <tr>
