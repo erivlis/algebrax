@@ -15,7 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        # https://github.com/actions/python-versions/blob/main/versions-manifest.json
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14", "3.14t" ]
     steps:
       - uses: actions/checkout@v7
 
@@ -38,14 +39,17 @@ jobs:
           uv run pytest tests README.md docs --nbmake recipes/*.ipynb --cov=src --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
 
       - name: Upload coverage reports to Codecov
+        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v7
         with:
+          report_type: coverage
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1.2.1
+        uses: codecov/codecov-action@v7
         with:
+          report_type: test_results
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Run codacy-coverage-reporter
