@@ -50,9 +50,9 @@ def add(m1: SparseMatrix[K, N], m2: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
 
 
 def block(
-    matrix: SparseMatrix[int, V],
-    rows: slice | range,
-    cols: slice | range,
+        matrix: SparseMatrix[int, V],
+        rows: slice | range,
+        cols: slice | range,
 ) -> SparseMatrix[int, V]:
     """
     Extract a sub-matrix (block) from a sparse matrix.
@@ -141,9 +141,9 @@ def block_diag(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]
 
 
 def dot(
-    m1: SparseMatrix[K, V],
-    m2: SparseMatrix[K, V],
-    semiring: Semiring[V] | None = None,
+        m1: SparseMatrix[K, V],
+        m2: SparseMatrix[K, V],
+        semiring: Semiring[V] | None = None,
 ) -> SparseMatrix[K, V]:
     """
     Perform matrix multiplication (dot product) of two sparse matrices.
@@ -166,18 +166,19 @@ def dot(
 
     result = {}
     for r, row1 in m1.items():
-        new_row = defaultdict(lambda: zero)
+        new_row: dict[K, V] = {}
         for k, val1 in row1.items():
             if k in m2:
                 for c, val2 in m2[k].items():
                     term = sr_mul(val1, val2)
-                    current = new_row[c]
-                    new_row[c] = sr_add(current, term)
-
-        # Remove zeros to maintain sparsity
-        cleaned_row = {c: v for c, v in new_row.items() if v != zero}
-        if cleaned_row:
-            result[r] = cleaned_row
+                    if c in new_row:
+                        new_row[c] = sr_add(new_row[c], term)
+                    else:
+                        new_row[c] = term
+        if zero is not None:
+            new_row = {c: v for c, v in new_row.items() if v != zero}
+        if new_row:
+            result[r] = new_row
     return result
 
 
@@ -210,9 +211,9 @@ def hstack(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]:
 
 
 def inner(
-    v1: SparseVector[K, V],
-    v2: SparseVector[K, V],
-    semiring: Semiring[V] | None = None,
+        v1: SparseVector[K, V],
+        v2: SparseVector[K, V],
+        semiring: Semiring[V] | None = None,
 ) -> V:
     """
     Compute the inner product (dot product) of two vectors.
@@ -256,9 +257,9 @@ def kronecker_delta(i: K, j: K) -> int:
 
 
 def mat_vec(
-    matrix: SparseMatrix[K, V],
-    vector: SparseVector[K, V],
-    semiring: Semiring[V] | None = None,
+        matrix: SparseMatrix[K, V],
+        vector: SparseVector[K, V],
+        semiring: Semiring[V] | None = None,
 ) -> SparseVector[K, V]:
     """
     Multiply a matrix by a vector (M * v).
@@ -286,9 +287,9 @@ def mat_vec(
 
 
 def power(
-    matrix: SparseMatrix[K, V],
-    n: int,
-    semiring: Semiring[V] | None = None,
+        matrix: SparseMatrix[K, V],
+        n: int,
+        semiring: Semiring[V] | None = None,
 ) -> SparseMatrix[K, V]:
     """
     Compute the n-th power of a square matrix using binary exponentiation.
@@ -322,9 +323,9 @@ def power(
 
 
 def slice_matrix(
-    matrix: SparseMatrix[K, V],
-    rows: Iterable[K],
-    cols: Iterable[K],
+        matrix: SparseMatrix[K, V],
+        rows: Iterable[K],
+        cols: Iterable[K],
 ) -> SparseMatrix[K, V]:
     """
     Extract a sub-matrix using explicit row and column keys.
@@ -385,9 +386,9 @@ def transpose(matrix: Mapping[K, Mapping[K, V]]) -> dict[K, dict[K, V]]:
 
 
 def vec_mat(
-    vector: SparseVector[K, V],
-    matrix: SparseMatrix[K, V],
-    semiring: Semiring[V] | None = None,
+        vector: SparseVector[K, V],
+        matrix: SparseMatrix[K, V],
+        semiring: Semiring[V] | None = None,
 ) -> SparseVector[K, V]:
     """
     Multiply a vector by a matrix (v * M).
