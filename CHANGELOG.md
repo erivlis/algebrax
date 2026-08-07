@@ -1,3 +1,12 @@
+## v0.6.1 (2026-08-07)
+
+### Refactor
+
+- **matrix**: Refines dot product logic for improved sparsity.
+- **api**: Standardizes module access via `ax` alias and renames `tensordot` to `dot`.
+- **EP-0146**: Completes EP-0146 ergonomics
+- **EP-0145**: Completes type safety and contract hardening.
+
 ## v0.6.0 (2026-08-05)
 
 ### Feat
