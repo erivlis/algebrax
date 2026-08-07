@@ -16,7 +16,8 @@ extra_javascript = [
 nav = [
     { Start = [
         "index.md",
-        "concepts.md"
+        "concepts.md",
+        "comparison.md"
     ] },
     { Tutorials = [
         { "Fundamentals & Verification" = [
