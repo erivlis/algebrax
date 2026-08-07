@@ -60,8 +60,13 @@ test = [
     "pytest-cov",
     "pytest-randomly",
     "pytest-xdist",
-    "markdown-pytest",
+    "markdown-pytest[async]",
     "hypothesis>=6.165.1",
+    "nbmake>=1.5.5",
+    # Soft ecosystem dependencies required for converter tests (ax.converters.to_numpy / to_scipy)
+    # and markdown code block execution tests
+    "numpy",
+    "scipy",
 ]
 
 
