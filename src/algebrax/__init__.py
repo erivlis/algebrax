@@ -63,10 +63,23 @@ from algebrax import (
     tensor,
     transforms,
     trie,
+    typing,
     verification,
+)
+from algebrax.typing import (
+    DenseMatrix,
+    DenseVector,
+    SparseMatrix,
+    SparseTensor,
+    SparseVector,
 )
 
 __all__ = [
+    'DenseMatrix',
+    'DenseVector',
+    'SparseMatrix',
+    'SparseTensor',
+    'SparseVector',
     'analysis',
     'automata',
     'category',
@@ -84,5 +97,6 @@ __all__ = [
     'tensor',
     'transforms',
     'trie',
+    'typing',
     'verification',
 ]

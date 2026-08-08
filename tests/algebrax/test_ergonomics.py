@@ -92,3 +92,21 @@ def test_ecosystem_import_error_message(monkeypatch):
 
     with pytest.raises(ImportError, match="requires scipy"):
         ax.converters.from_scipy(None)
+
+
+def test_top_level_typing_exports():
+    """Verify ax.typing is accessible and core type aliases are re-exported at top-level."""
+    assert hasattr(ax, "typing")
+    assert ax.typing.SparseMatrix is ax.SparseMatrix
+    assert ax.typing.SparseVector is ax.SparseVector
+    assert ax.typing.SparseTensor is ax.SparseTensor
+    assert ax.typing.DenseMatrix is ax.DenseMatrix
+    assert ax.typing.DenseVector is ax.DenseVector
+
+    from algebrax import DenseMatrix, DenseVector, SparseMatrix, SparseTensor, SparseVector
+
+    assert SparseMatrix is ax.typing.SparseMatrix
+    assert SparseVector is ax.typing.SparseVector
+    assert SparseTensor is ax.typing.SparseTensor
+    assert DenseMatrix is ax.typing.DenseMatrix
+    assert DenseVector is ax.typing.DenseVector
