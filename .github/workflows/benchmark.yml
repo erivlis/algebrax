@@ -22,7 +22,11 @@ jobs:
         run: |
           uv sync --group benchmark
 
-      - name: Run CodSpeed Benchmarks
+      - name: Run pytest-benchmark (Walltime Statistics)
+        run: |
+          uv run pytest benchmarks/ --benchmark-only
+
+      - name: Run CodSpeed Benchmarks (Instruction Count & PR Reports)
         uses: CodSpeedHQ/action@v5
         with:
           mode: simulation
