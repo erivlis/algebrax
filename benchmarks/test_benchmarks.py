@@ -1,4 +1,3 @@
-import random
 import sys
 from typing import Any
 
@@ -8,40 +7,11 @@ from mappingtools.structures import Dictifier, LazyDictifier, dictify
 sys.path.insert(0, "src")
 sys.path.insert(0, ".")
 
+from _generators import nested_dict, sparse_matrix, sparse_signal, unbalanced_dict
+
 import algebrax as ax
 
 # region Data Generators
-
-
-def generate_sparse_matrix(rows: int, cols: int, density: float) -> ax.SparseMatrix[int, float]:
-    mat: ax.SparseMatrix[int, float] = {}
-    for r in range(rows):
-        row_dict: dict[int, float] = {}
-        for c in range(cols):
-            if random.random() < density:
-                row_dict[c] = random.uniform(1.0, 10.0)
-        if row_dict:
-            mat[r] = row_dict
-    return mat
-
-
-def generate_sparse_signal(n: int, density: float) -> dict[int, float]:
-    return {i: random.uniform(1.0, 5.0) for i in range(n) if random.random() < density}
-
-
-def create_nested_dict(depth: int, width: int) -> Any:
-    if depth == 0:
-        return 1
-    return {i: create_nested_dict(depth - 1, width) for i in range(width)}
-
-
-def create_unbalanced_dict(depth: int, max_width: int) -> Any:
-    if depth == 0:
-        return 1
-    if random.random() < 0.1:
-        return 1
-    width = random.randint(1, max_width)
-    return {i: create_unbalanced_dict(depth - 1, max_width) for i in range(width)}
 
 
 def naive_dense_multiply(a_mat: list[list[float]], b_mat: list[list[float]]) -> list[list[float]]:
@@ -67,8 +37,8 @@ def naive_dense_multiply(a_mat: list[list[float]], b_mat: list[list[float]]) -> 
 @pytest.mark.benchmark(group="matrix-dot")
 @pytest.mark.parametrize("density", [0.05, 0.25, 0.50, 0.75])
 def test_benchmark_matrix_dot(benchmark, density: float):
-    m_a = generate_sparse_matrix(80, 80, density)
-    m_b = generate_sparse_matrix(80, 80, density)
+    m_a = sparse_matrix(80, 80, density, seed=1)
+    m_b = sparse_matrix(80, 80, density, seed=2)
 
     result = benchmark(ax.matrix.dot, m_a, m_b)
     assert result is not None
@@ -79,8 +49,8 @@ def test_benchmark_matrix_dot(benchmark, density: float):
 def test_benchmark_matrix_dot_vs_naive(benchmark, implementation: str):
     n_dim = 15
     density = 0.20
-    sparse_a = generate_sparse_matrix(n_dim, n_dim, density)
-    sparse_b = generate_sparse_matrix(n_dim, n_dim, density)
+    sparse_a = sparse_matrix(n_dim, n_dim, density, seed=1)
+    sparse_b = sparse_matrix(n_dim, n_dim, density, seed=2)
 
     if implementation == "sparse_dot":
         result = benchmark(ax.matrix.dot, sparse_a, sparse_b)
@@ -95,8 +65,8 @@ def test_benchmark_matrix_dot_vs_naive(benchmark, implementation: str):
 @pytest.mark.benchmark(group="matrix-dot-tropical")
 @pytest.mark.parametrize("density", [0.05, 0.25, 0.50])
 def test_benchmark_matrix_dot_tropical(benchmark, density: float):
-    m_a = generate_sparse_matrix(60, 60, density)
-    m_b = generate_sparse_matrix(60, 60, density)
+    m_a = sparse_matrix(60, 60, density, seed=1)
+    m_b = sparse_matrix(60, 60, density, seed=2)
     trop = ax.semiring.TropicalSemiring()
 
     result = benchmark(ax.matrix.dot, m_a, m_b, semiring=trop)
@@ -106,7 +76,7 @@ def test_benchmark_matrix_dot_tropical(benchmark, density: float):
 @pytest.mark.benchmark(group="matrix-transpose")
 @pytest.mark.parametrize("density", [0.10, 0.50])
 def test_benchmark_matrix_transpose(benchmark, density: float):
-    m_a = generate_sparse_matrix(100, 100, density)
+    m_a = sparse_matrix(100, 100, density)
 
     result = benchmark(ax.matrix.transpose, m_a)
     assert result is not None
@@ -122,10 +92,10 @@ def test_benchmark_matrix_transpose(benchmark, density: float):
 @pytest.mark.parametrize(
     ("scenario", "tree"),
     [
-        ("balanced_d5_w5", create_nested_dict(depth=5, width=5)),
-        ("wide_d2_w100", create_nested_dict(depth=2, width=100)),
-        ("deep_d50_w1", create_nested_dict(depth=50, width=1)),
-        ("unbalanced", create_unbalanced_dict(depth=6, max_width=4)),
+        ("balanced_d5_w5", nested_dict(depth=5, width=5)),
+        ("wide_d2_w100", nested_dict(depth=2, width=100)),
+        ("deep_d50_w1", nested_dict(depth=50, width=1)),
+        ("unbalanced", unbalanced_dict(depth=6, max_width=4)),
     ],
 )
 def test_benchmark_nested_to_flat(benchmark, scenario: str, tree: Any):
@@ -191,8 +161,8 @@ def test_benchmark_dictifier_modes(benchmark, mode: str):
 @pytest.mark.benchmark(group="tensor-einsum")
 @pytest.mark.parametrize("density", [0.05, 0.25, 0.50])
 def test_benchmark_tensor_einsum(benchmark, density: float):
-    t1 = generate_sparse_matrix(50, 50, density)
-    t2 = generate_sparse_matrix(50, 50, density)
+    t1 = sparse_matrix(50, 50, density, seed=1)
+    t2 = sparse_matrix(50, 50, density, seed=2)
 
     result = benchmark(ax.tensor.einsum, "ij,jk->ik", t1, t2)
     assert result is not None
@@ -207,7 +177,7 @@ def test_benchmark_tensor_einsum(benchmark, density: float):
 @pytest.mark.benchmark(group="transforms-dft")
 @pytest.mark.parametrize("density", [0.10, 0.50])
 def test_benchmark_transforms_dft(benchmark, density: float):
-    sig = generate_sparse_signal(150, density)
+    sig = sparse_signal(150, density)
 
     result = benchmark(ax.transforms.dft, sig, 150)
     assert result is not None
@@ -216,8 +186,8 @@ def test_benchmark_transforms_dft(benchmark, density: float):
 @pytest.mark.benchmark(group="transforms-convolve")
 @pytest.mark.parametrize("density", [0.10, 0.50])
 def test_benchmark_transforms_convolve(benchmark, density: float):
-    f = generate_sparse_signal(100, density)
-    g = generate_sparse_signal(100, density)
+    f = sparse_signal(100, density, seed=1)
+    g = sparse_signal(100, density, seed=2)
 
     result = benchmark(ax.transforms.convolve, f, g)
     assert result is not None

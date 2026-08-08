@@ -5,6 +5,12 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  # Allows CodSpeed to trigger backtest performance analysis on historical commits.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # OpenID Connect authentication with CodSpeed
 
 jobs:
   benchmarks:
