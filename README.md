@@ -46,6 +46,7 @@
       <a href="https://github.com/erivlis/algebrax/actions/workflows/test-beta.yml"><img alt="Publish" src="https://github.com/erivlis/algebrax/actions/workflows/test-beta.yml/badge.svg"></a>
       <a href="https://github.com/erivlis/algebrax/actions/workflows/publish.yml"><img alt="Publish" src="https://github.com/erivlis/algebrax/actions/workflows/publish.yml/badge.svg"></a>
       <a href="https://github.com/erivlis/algebrax/actions/workflows/publish-docs.yaml"><img alt="Publish Docs" src="https://github.com/erivlis/algebrax/actions/workflows/publish-docs.yml/badge.svg"></a>
+      <a href="https://app.codspeed.io/erivlis/algebrax?utm_source=badge"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/></a>
     </td>
   </tr>
   <tr>

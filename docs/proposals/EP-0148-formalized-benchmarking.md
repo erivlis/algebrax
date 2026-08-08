@@ -54,7 +54,19 @@ benchmark = [
 ]
 ```
 
-### 2. Standardized Benchmark Suite (`benchmarks/test_benchmarks.py`)
+### 2. Standardized Benchmark Suite (`benchmarks/`)
+
+The suite is split by domain, with all workload inputs produced by the seeded generators in
+`benchmarks/_generators.py` so that a measurement delta between two commits is attributable to a code change and never to
+a change of input data:
+
+| Module                          | Coverage                                                              |
+|:--------------------------------|:----------------------------------------------------------------------|
+| `test_benchmarks.py`            | Matrix products, transposition, flattening, tensors, transforms, tries |
+| `test_linalg_benchmarks.py`     | Matrix algebra, academic invariants, LU/QR/SVD/Cholesky, tensor layout |
+| `test_algebra_benchmarks.py`    | Semiring dispatch, Galois fields, Clifford algebra, groups, categories |
+| `test_graph_benchmarks.py`      | Graph calculus, probability, automata, lattice operations, metrics     |
+
 
 Implement `pytest-benchmark` parameterization for core mathematical operations across size ($N \in \{20, 80, 150\}$) and
 density ($\text{density} \in \{0.05, 0.25, 0.50, 0.75\}$) spectrums:
@@ -125,3 +137,5 @@ jobs:
 
 * **2026-08-08:** Initial Proposal drafted for formalized micro-benchmarking via `pytest-benchmark` and
   `pytest-codspeed`.
+* **2026-08-08:** Suite expanded to cover the full public API surface, workload generation centralized in seeded
+  generators, and the CodSpeed workflow switched to OIDC authentication.
