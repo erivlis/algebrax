@@ -47,7 +47,6 @@
       <a href="https://github.com/erivlis/algebrax/actions/workflows/benchmark.yml"><img alt="Benchmarks" src="https://github.com/erivlis/algebrax/actions/workflows/benchmark.yml/badge.svg"></a>
       <a href="https://github.com/erivlis/algebrax/actions/workflows/publish.yml"><img alt="Publish" src="https://github.com/erivlis/algebrax/actions/workflows/publish.yml/badge.svg"></a>
       <a href="https://github.com/erivlis/algebrax/actions/workflows/publish-docs.yaml"><img alt="Publish Docs" src="https://github.com/erivlis/algebrax/actions/workflows/publish-docs.yml/badge.svg"></a>
-      <a href="https://app.codspeed.io/erivlis/algebrax?utm_source=badge"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/></a>
     </td>
   </tr>
   <tr>
@@ -65,6 +64,7 @@
       <a href="https://app.codacy.com/gh/erivlis/algebrax/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage"><img alt="Codacy Coverage" src="https://app.codacy.com/project/badge/Coverage/8b83a99f939b4883ae2f37d7ec3419d1"/></a>
       <a href="https://www.codefactor.io/repository/github/erivlis/algebrax/overview/main"><img src="https://www.codefactor.io/repository/github/erivlis/algebrax/badge/main" alt="CodeFactor" /></a>
       <a href="https://snyk.io/test/github/erivlis/algebrax"><img alt="Snyk" src="https://snyk.io/test/github/erivlis/algebrax/badge.svg"></a>
+      <a href="https://app.codspeed.io/erivlis/algebrax?utm_source=badge"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/></a>
     </td>
   </tr>
 </table>
