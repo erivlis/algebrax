@@ -67,6 +67,15 @@
       <a href="https://app.codspeed.io/erivlis/algebrax?utm_source=badge"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/></a>
     </td>
   </tr>
+  <tr>
+    <td>Mentions</td>
+    <td>
+      <!-- <a href="https://www.youtube.com/live/k01G0b0Y0Jg?si=030OT8sK3BqPyy8r&t=1028"><img alt="PythonBytes Podcast" src="https://img.shields.io/badge/Python_Bytes-Ep. 361-D7F9FF?logo=applepodcasts&labelColor=blue"></a> -->
+      <!-- a href="https://pythonhub.dev/digest/2024-08-06/"><img alt="Static Badge" src="https://img.shields.io/badge/PythonHub-2024.08.06-gold?labelColor=blue"></a -->
+      <a href="https://pythonhub.dev/digest/2026-08-09/"><img alt="Python Hub" src="https://custom-icon-badges.demolab.com/badge/Python%20Hub-2026.08.09-gold?logo=pythonhub&labelColor=grey"></a>
+      <a href="https://x.com/PythonHub/status/2085323880172749251"><img alt="X" src="https://img.shields.io/twitter/url?url=https%3A%2F%2Fx.com%2FPythonHub%2Fstatus%2F2085323880172749251"></a>
+    </td>
+  </tr>
 </table>
 
 
