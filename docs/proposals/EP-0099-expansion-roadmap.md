@@ -170,6 +170,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0145** | Type Safety Hardening       | Golem    | `typing`, `analysis`, `converters`  | Final    | Future annotations, semiring normalization, collision fix           |
 | **EP-0146** | Developer Ergonomics        | Steward  | `__init__`, `converters`, `display` | Final    | Namespace org, NumPy/SciPy bridges, Jupyter display                 |
 | **EP-0147** | Optional Loop Pragmas       | Shannon  | `benchmarks/`, core loops           | Deferred | Non-invasive `lucen` pragmas, free-threaded GIL-less scaling        |
+| **EP-0148** | Formalized Benchmarking     | Popper   | `benchmarks/`, `.github/`           | Final    | Standardized `pytest-benchmark` suite & CodSpeed CI tracking        |
 
 ---
 

@@ -65,13 +65,14 @@ and documenting design decisions. See [EP-0000](proposals/EP-0000-process.md) fo
 Proposals derived from the [Grand Council Assessment](proposals/EP-0099-expansion-roadmap.md) —
 a comprehensive architectural audit by the 8 Pillars of the Council Framework.
 
-| EP                                                        | Title                                    | Council Sponsor |           Status           |
-|:----------------------------------------------------------|:-----------------------------------------|:----------------|:--------------------------:|
-| [EP-0140](proposals/EP-0140-api-symmetry-restoration.md)  | API Symmetry Restoration                 | ⚖️ Noether      | :material-check-all: Final |
-| [EP-0141](proposals/EP-0141-taxonomy-cleanup.md)          | Structural Taxonomy Cleanup              | 🧩 Russell      | :material-check-all: Final |
-| [EP-0142](proposals/EP-0142-performance-optimizations.md) | Performance & Efficiency Optimizations   | ⚡ Shannon      | :material-check-all: Final |
-| [EP-0143](proposals/EP-0143-documentation-clarity.md)     | Documentation Clarity & Freshman Test    | 💡 Feynman      | :material-check-all: Final |
-| [EP-0144](proposals/EP-0144-testing-hardening.md)         | Testing & Falsifiability Hardening       | 🔬 Popper       | :material-check-all: Final |
-| [EP-0145](proposals/EP-0145-type-safety-hardening.md)     | Type Safety & Contract Hardening         | 🛡️ Golem        | :material-check-all: Final |
-| [EP-0146](proposals/EP-0146-developer-ergonomics.md)      | Developer Ergonomics & Ecosystem Bridges | 🤝 Steward      | :material-check-all: Final |
+| EP                                                        | Title                                    | Council Sponsor |              Status               |
+|:----------------------------------------------------------|:-----------------------------------------|:----------------|:---------------------------------:|
+| [EP-0140](proposals/EP-0140-api-symmetry-restoration.md)  | API Symmetry Restoration                 | ⚖️ Noether      |    :material-check-all: Final     |
+| [EP-0141](proposals/EP-0141-taxonomy-cleanup.md)          | Structural Taxonomy Cleanup              | 🧩 Russell      |    :material-check-all: Final     |
+| [EP-0142](proposals/EP-0142-performance-optimizations.md) | Performance & Efficiency Optimizations   | ⚡ Shannon      |    :material-check-all: Final     |
+| [EP-0143](proposals/EP-0143-documentation-clarity.md)     | Documentation Clarity & Freshman Test    | 💡 Feynman      |    :material-check-all: Final     |
+| [EP-0144](proposals/EP-0144-testing-hardening.md)         | Testing & Falsifiability Hardening       | 🔬 Popper       |    :material-check-all: Final     |
+| [EP-0145](proposals/EP-0145-type-safety-hardening.md)     | Type Safety & Contract Hardening         | 🛡️ Golem        |    :material-check-all: Final     |
+| [EP-0146](proposals/EP-0146-developer-ergonomics.md)      | Developer Ergonomics & Ecosystem Bridges | 🤝 Steward      |    :material-check-all: Final     |
 | [EP-0147](proposals/EP-0147-optional-loop-pragmas.md)     | Optional Loop Pragmas & Concurrency      | ⚡ Shannon      | :material-clock-outline: Deferred |
+| [EP-0148](proposals/EP-0148-formalized-benchmarking.md)   | Formalized Micro-Benchmarking & CodSpeed | 🔬 Popper       |    :material-check-all: Final     |

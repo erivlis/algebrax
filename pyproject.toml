@@ -68,6 +68,12 @@ test = [
     "pillow",
     "scipy",
 ]
+benchmark = [
+    "pytest-benchmark>=4.0.0",
+    "pytest-codspeed>=3.0.0",
+    "hypothesis>=6.165.1",
+    "numpy",
+]
 
 
 [build-system]
