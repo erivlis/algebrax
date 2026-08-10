@@ -210,3 +210,33 @@ The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/recipes) folde
 * **File**: [`lab.py`](https://github.com/erivlis/algebrax/blob/main/recipes/lab.py)
 * **Run**: `uv run recipes/lab.py`
 * **Summary**: Desktop GUI built with DearPyGui featuring 12 interactive modules: real image file convolution with side-by-side texture preview, force-directed graph curvature visualization, semiring matrix powers, CYK parsing, DFA/NFA simulators, signal transforms, and information theory tools.
+
+---
+
+## Development & Golden Source Sync
+
+### Authoring Recipes
+
+All recipes in `recipes/` are authored as Python scripts (`.py`) using **Jupytext Percent format** (`# %%` cell markers)
+as the canonical **Golden Source**. Jupyter Notebooks (`.ipynb`) are auto-generated from these scripts.
+
+### Pre-Commit Hook Setup
+Install the `pre-commit` Git hook to automatically sync `.ipynb` notebooks whenever you edit `.py` recipe scripts:
+
+```bash
+# Ensure local repository hooks directory is active
+git config --local core.hooksPath .git/hooks
+
+# Install pre-commit hook
+uvx pre-commit install
+```
+
+### Manual Synchronization & Testing
+
+```bash
+# Refresh all Jupyter notebooks from Golden Source scripts
+uvx jupytext --to notebook recipes/*.py
+
+# Run automated nbmake tests on all notebooks
+uv run pytest --nbmake recipes/
+```

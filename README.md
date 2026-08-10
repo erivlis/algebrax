@@ -208,6 +208,33 @@ Comprehensive documentation is hosted online and structured into 3 Diátaxis pil
 
 ---
 
+## Development & Contributing
+
+### Golden Source Recipes & Jupytext Sync
+All recipes in `recipes/` are authored as Python scripts (`.py`) using **Jupytext Percent format** (`# %%` cell markers) as the canonical **Golden Source**. Corresponding Jupyter Notebooks (`.ipynb`) are auto-generated from these scripts.
+
+#### Pre-Commit Hook Setup
+Install the `pre-commit` hook to automatically sync `.ipynb` notebooks whenever you modify a `.py` recipe script:
+
+```bash
+# Ensure local repository hooks directory is active (recommended if global hooksPath is set)
+git config --local core.hooksPath .git/hooks
+
+# Install pre-commit hook
+uvx pre-commit install
+```
+
+#### Manual Sync & Testing
+```bash
+# Refresh all Jupyter notebooks from Golden Source scripts
+uvx jupytext --to notebook recipes/*.py
+
+# Run automated tests on all notebooks
+uv run pytest --nbmake recipes/
+```
+
+---
+
 ## License
 
 Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.

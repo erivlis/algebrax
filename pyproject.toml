@@ -195,3 +195,6 @@ multiline-quotes = "single"
 [tool.ruff.lint.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
 max-complexity = 20
+
+[tool.jupytext]
+formats = "py:percent,ipynb"
