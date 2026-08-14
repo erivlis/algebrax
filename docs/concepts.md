@@ -180,7 +180,7 @@ The `algebrax.category` module formalizes category-theoretic compositions.
 
 ## Functional Taxonomy
 
-The following table categorizes the functions in the `algebra` module by their **Domain** (Meaning) and **Operation
+The following table categorizes the functions in the `algebrax` module by their **Domain** (Meaning) and **Operation
 Type**.
 
 ### Legend
