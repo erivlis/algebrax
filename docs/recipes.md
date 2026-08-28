@@ -6,7 +6,8 @@ icon: lucide/chef-hat
 
 # Recipes & Applications
 
-The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/recipes) folder contains runnable use-case scripts, Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrating `algebrax` in real-world scenarios.
+The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/recipes) folder contains runnable use-case scripts,
+Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrating `algebrax` in real-world scenarios.
 
 ---
 
@@ -201,6 +202,30 @@ The [`../recipes/`](https://github.com/erivlis/algebrax/tree/main/recipes) folde
 * **Run**: `uv run recipes/categorical_kleisli_monads.py`
 * **Components**: `category.kleisli_compose`, `semiring.ViterbiSemiring`, `semiring.TropicalSemiring`
 * **Summary**: Formalizes effectful monadic morphisms $f: A \to T(B)$ via Kleisli matrix composition $g \circ_T f = \text{dot}(f, g, \text{semiring})$ across probabilistic, cost-metric, and reachability monads.
+
+---
+
+### Forward-Mode Automatic Differentiation
+* **Files**: [`forward_mode_autodiff.py`](https://github.com/erivlis/algebrax/blob/main/recipes/forward_mode_autodiff.py) | [`forward_mode_autodiff.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/forward_mode_autodiff.ipynb)
+* **Run**: `uv run recipes/forward_mode_autodiff.py`
+* **Components**: `semiring.StandardSemiring`, `matrix.core.dot`, `typing.SparseVector`
+* **Summary**: Executes exact machine-precision Forward-Mode AD via quotient polynomial rings $\mathbb{R}[\epsilon]/(\epsilon^2)$ with custom carrier types `DualNumber` and `GradientDualNumber` plugged into `StandardSemiring(dtype=DualNumber)` with zero library core modifications.
+
+---
+
+### Reverse-Mode Backpropagation & Sparse Neural Networks
+* **Files**: [`sparse_neural_backprop.py`](https://github.com/erivlis/algebrax/blob/main/recipes/sparse_neural_backprop.py) | [`sparse_neural_backprop.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/sparse_neural_backprop.ipynb)
+* **Run**: `uv run recipes/sparse_neural_backprop.py`
+* **Components**: `matrix.core.transpose`, `matrix.core.dot`, `typing.SparseMatrix`
+* **Summary**: Demonstrates the linear algebraic foundation of Deep Learning backpropagation: adjoint pullback via transposed sparse matrix multiplication ($W^T \cdot \bar{z}$) and outer product weight gradients ($\bar{z} \otimes x^T$). Trains a multi-layer sparse neural network (`SparseMLP`) on XOR.
+
+---
+
+### Functional Reverse-Mode Autograd Engine
+* **Files**: [`functional_autograd_engine.py`](https://github.com/erivlis/algebrax/blob/main/recipes/functional_autograd_engine.py) | [`functional_autograd_engine.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/functional_autograd_engine.ipynb)
+* **Run**: `uv run recipes/functional_autograd_engine.py`
+* **Components**: `matrix.core.dot`, `typing.SparseMatrix`
+* **Summary**: Implements a pure functional Reverse-Mode Automatic Differentiation DAG engine in under 100 lines of Python. Features dynamic computation graphs, Vector-Jacobian Product (VJP) closures, reverse topological sort traversal, and parameter optimization.
 
 ---
 
