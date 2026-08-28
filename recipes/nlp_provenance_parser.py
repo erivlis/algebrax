@@ -55,94 +55,81 @@ class GrammarSemiring(ax.semiring.Semiring[set[str]]):
         return result
 
 
-# %% [markdown]
-# ## Step 1: Matrix CYK Parsing via Dot Product (`GrammarSemiring`)
+def parse_cyk(
+    sentence: list[str],
+    lexicon: dict[str, set[str]],
+    grammar_rules: dict[tuple[str, str], set[str]],
+) -> tuple[set[str], dict[int, dict[int, set[str]]]]:
+    """Executes matrix-closure CYK parsing across a tokenized sentence."""
+    grammar_semiring = GrammarSemiring(grammar_rules)
+    n_len = len(sentence)
+    chart: dict[int, dict[int, set[str]]] = {}
+    for i, word in enumerate(sentence):
+        if i not in chart:
+            chart[i] = {}
+        chart[i][i + 1] = lexicon.get(word, set())
 
-# %%
-sentence = ["the", "astronomer", "saw", "stars"]
-lexicon = {
-    "the": {"Det"},
-    "astronomer": {"N", "NP"},
-    "saw": {"V"},
-    "stars": {"N", "NP"},
-}
+    for _ in range(n_len):
+        new_spans = ax.matrix.dot(chart, chart, semiring=grammar_semiring)
+        for r, row in new_spans.items():
+            if r not in chart:
+                chart[r] = {}
+            for c, val in row.items():
+                chart[r][c] = chart[r].get(c, set()) | val
 
-grammar_rules = {
-    ("Det", "N"): {"NP"},
-    ("V", "NP"): {"VP"},
-    ("NP", "VP"): {"S"},
-}
+    final_nonterminals = chart.get(0, {}).get(n_len, set())
+    return final_nonterminals, chart
 
-print(f"Target Sentence: '{' '.join(sentence)}'")
-print("Chomsky Normal Form Binary Rules:")
-for (left, right), parents in grammar_rules.items():
-    print(f"  ({left}, {right}) -> {parents}")
 
-grammar_semiring = GrammarSemiring(grammar_rules)
+def run_demo() -> None:
+    """Executes CYK parsing, provenance polynomials, and ambiguity audit demonstrations."""
+    # Step 1: Matrix CYK Parsing
+    sentence = ["the", "astronomer", "saw", "stars"]
+    lexicon = {
+        "the": {"Det"},
+        "astronomer": {"N", "NP"},
+        "saw": {"V"},
+        "stars": {"N", "NP"},
+    }
+    grammar_rules = {
+        ("Det", "N"): {"NP"},
+        ("V", "NP"): {"VP"},
+        ("NP", "VP"): {"S"},
+    }
 
-n_len = len(sentence)
-chart = {}
-for i, word in enumerate(sentence):
-    if i not in chart:
-        chart[i] = {}
-    chart[i][i + 1] = lexicon.get(word, set())
+    print(f"Target Sentence: '{' '.join(sentence)}'")
+    final_sentence_nonterminals, _ = parse_cyk(sentence, lexicon, grammar_rules)
+    print(f"Parsed Full Sentence Non-Terminals: {final_sentence_nonterminals}")
+    assert "S" in final_sentence_nonterminals
 
-for step in range(n_len):
-    new_spans = ax.matrix.dot(chart, chart, semiring=grammar_semiring)
-    for r, row in new_spans.items():
-        if r not in chart:
-            chart[r] = {}
-        for c, val in row.items():
-            chart[r][c] = chart[r].get(c, set()) | val
+    # Step 2: Symbolic Rule Provenance
+    provenance_semiring = ax.semiring.ProvenanceSemiring()
+    rule_x = {("rule_DetN_to_NP",): 1}
+    rule_y = {("rule_VNP_to_VP",): 1}
+    rule_z = {("rule_NPVP_to_S",): 1}
+    sentence_derivation = provenance_semiring.mul(
+        provenance_semiring.mul(rule_x, rule_y),
+        rule_z,
+    )
+    print("\nSymbolic Rule Derivation Polynomial:")
+    for terms, coeff in sentence_derivation.items():
+        terms_str = " * ".join(terms)
+        print(f"  Coeff {coeff}: {terms_str}")
 
-final_sentence_nonterminals = chart.get(0, {}).get(n_len, set())
-print(f"Parsed Full Sentence Non-Terminals (Span 0 -> {n_len}): {final_sentence_nonterminals}")
-assert "S" in final_sentence_nonterminals
-
-# %% [markdown]
-# ## Step 2: Symbolic Rule Provenance (`ProvenanceSemiring`)
-
-# %%
-provenance_semiring = ax.semiring.ProvenanceSemiring()
-
-rule_x = {("rule_DetN_to_NP",): 1}
-rule_y = {("rule_VNP_to_VP",): 1}
-rule_z = {("rule_NPVP_to_S",): 1}
-
-sentence_derivation = provenance_semiring.mul(
-    provenance_semiring.mul(rule_x, rule_y),
-    rule_z,
-)
-
-print("Symbolic Rule Derivation Polynomial:")
-for terms, coeff in sentence_derivation.items():
-    terms_str = " * ".join(terms)
-    print(f"  Coeff {coeff}: {terms_str}")
-
-# %% [markdown]
-# ## Step 3: Syntax Tree Structural Entropy & Ambiguity Audit (`entropy`)
-
-# %%
-candidate_parse_probs = {
-    "Parse_Tree_Direct_Object": 0.75,
-    "Parse_Tree_Prepositional_Attachment": 0.15,
-    "Parse_Tree_Noun_Compound": 0.10,
-}
-
-parse_entropy = ax.probability.entropy(candidate_parse_probs)
-print("\nCandidate Parse Tree Probability Distribution:")
-for tree_id, prob in candidate_parse_probs.items():
-    print(f"  - {tree_id}: {prob * 100:.1f}%")
-
-print(f"\nParse Tree Structural Entropy H(Trees): {parse_entropy:.4f} nats")
-if parse_entropy < 0.8:
-    print("Audit Verdict: LOW AMBIGUITY - High confidence single parse tree.")
-else:
-    print("Audit Verdict: HIGH AMBIGUITY - Multiple competing parse trees detected.")
+    # Step 3: Syntax Tree Structural Entropy
+    candidate_parse_probs = {
+        "Parse_Tree_Direct_Object": 0.75,
+        "Parse_Tree_Prepositional_Attachment": 0.15,
+        "Parse_Tree_Noun_Compound": 0.10,
+    }
+    parse_entropy = ax.probability.entropy(candidate_parse_probs)
+    print(f"\nParse Tree Structural Entropy H(Trees): {parse_entropy:.4f} nats")
+    assert parse_entropy > 0.0
 
 
 def main() -> None:
     """Entry point for CLI execution."""
+    run_demo()
     print("==========================================================================")
     print("Recipe: Natural Language Grammar Lineage Finished Successfully!")
     print("==========================================================================")

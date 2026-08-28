@@ -33,16 +33,17 @@
 #   $$\mathbf{z} = W \cdot \mathbf{x}, \quad \mathbf{a} = \sigma(\mathbf{z})$$
 #
 # * **Backward Pass (Adjoint Pullback via Transpose $W^T$):**
-#   Given the upstream sensitivity / adjoint vector $\bar{\mathbf{a}} = \frac{\partial L}{\partial \mathbf{a}} \in \mathbb{R}^M$,
+#   Given the upstream sensitivity / adjoint vector
+#   $\bar{\mathbf{a}} = \frac{\partial L}{\partial \mathbf{a}} \in \mathbb{R}^M$,
 #   the local pre-activation adjoint $\bar{\mathbf{z}} = \frac{\partial L}{\partial \mathbf{z}}$ is:
 #   $$\bar{\mathbf{z}} = \bar{\mathbf{a}} \odot \sigma'(\mathbf{z})$$
-#   The adjoint pulled back to the layer's input $\bar{\mathbf{x}} = \frac{\partial L}{\partial \mathbf{x}} \in \mathbb{R}^N$ is:
+#   The adjoint pulled back to the layer's input
+#   $\bar{\mathbf{x}} = \frac{\partial L}{\partial \mathbf{x}} \in \mathbb{R}^N$ is:
 #   $$\bar{\mathbf{x}} = W^T \cdot \bar{\mathbf{z}}$$
-#   In AlgebraX, this corresponds directly to: `ax.matrix.dot(ax.matrix.transpose(W), grad_z)`.
-#
 # ### 2. Weight Gradients as Outer Products
 # The exact gradient of the scalar loss $L$ with respect to each weight matrix entry $W_{ij}$ is:
-# $$\frac{\partial L}{\partial W_{ij}} = \bar{z}_i \cdot x_j \implies \nabla_W L = \bar{\mathbf{z}} \otimes \mathbf{x}^T$$
+# $$\frac{\partial L}{\partial W_{ij}} = \bar{z}_i \cdot x_j$$
+# $$\nabla_W L = \bar{\mathbf{z}} \otimes \mathbf{x}^T$$
 # In AlgebraX, this is computed as a sparse dictionary outer product without dense matrix allocation.
 #
 # ### 3. Why This Scales ($O(1)$ Reverse Pass)
@@ -52,7 +53,8 @@
 # %%
 import math
 import random
-from typing import Callable, Self
+from collections.abc import Callable
+from typing import Self
 
 import algebrax as ax
 from algebrax.typing import SparseMatrix, SparseVector
@@ -103,7 +105,7 @@ class SparseLinearLayer:
             i: {j: rng.gauss(0.0, scale) for j in range(in_features)}
             for i in range(out_features)
         }
-        self.b: dict[int, float] = {i: 0.0 for i in range(out_features)}
+        self.b: dict[int, float] = dict.fromkeys(range(out_features), 0.0)
 
         # Cached activations for the backward pass
         self._last_x: dict[int, float] = {}
@@ -189,9 +191,7 @@ class SparseLinearLayer:
         grad_b: dict[int, float],
         learning_rate: float,
     ) -> None:
-        r"""Gradient descent parameter update: W \leftarrow W - \eta 
-abla W, b \leftarrow b - \eta 
-abla b."""
+        r"""Gradient descent parameter update: W \leftarrow W - \eta \nabla W, b \leftarrow b - \eta \nabla b."""
         for i in self.W:
             for j in self.W[i]:
                 self.W[i][j] -= learning_rate * grad_w.get(i, {}).get(j, 0.0)
@@ -215,8 +215,7 @@ class SparseMLP:
     def forward(self, x: dict[int, float]) -> dict[int, float]:
         r"""Forward pass through all layers."""
         curr = x
-        for i, layer in enumerate(self.layers):
-            is_last = (i == len(self.layers) - 1)
+        for layer in self.layers:
             # Use sigmoid for hidden layers and output
             curr = layer.forward(curr, activation='sigmoid')
         return curr
@@ -254,105 +253,96 @@ class SparseMLP:
 # * Inputs: $(0,0) 	o 0, \quad (0,1) 	o 1, \quad (1,0) 	o 1, \quad (1,1) 	o 0$
 
 # %%
-# Dataset: XOR truth table
-dataset = [
-    ({0: 0.0, 1: 0.0}, {0: 0.0}),
-    ({0: 0.0, 1: 1.0}, {0: 1.0}),
-    ({0: 1.0, 1: 0.0}, {0: 1.0}),
-    ({0: 1.0, 1: 1.0}, {0: 0.0}),
-]
+def train_sparse_mlp(
+    mlp: SparseMLP,
+    data: list[tuple[dict[int, float], dict[int, float]]],
+    epochs: int = 1000,
+    learning_rate: float = 2.0,
+) -> float:
+    r"""Trains a SparseMLP on dataset using backprop gradient descent and returns final MSE loss."""
+    total_epoch_loss = 0.0
+    for _ in range(epochs):
+        total_epoch_loss = 0.0
+        for x_in, y_target in data:
+            y_pred = mlp.forward(x_in)
+            error = y_pred[0] - y_target[0]
+            total_epoch_loss += 0.5 * (error ** 2)
+            loss_grad = {0: error}
+            grads = mlp.backward(loss_grad)
+            mlp.update(grads, learning_rate)
+    return total_epoch_loss
 
-# Create 2-layer network: 2 inputs -> 4 hidden units -> 1 output
-mlp = SparseMLP(layer_sizes=[2, 4, 1], seed=101)
 
-# Training loop using Mean Squared Error (MSE) Loss
-epochs = 3000
-learning_rate = 2.0
+def verify_gradient_finite_difference(
+    mlp: SparseMLP,
+    x_sample: dict[int, float],
+    y_sample: dict[int, float],
+    layer_idx: int = 0,
+    target_i: int = 1,
+    target_j: int = 0,
+    h: float = 1e-5,
+) -> tuple[float, float]:
+    """Verifies backprop analytical gradient against central numerical finite difference."""
+    y_pred = mlp.forward(x_sample)
+    loss_grad = {0: y_pred[0] - y_sample[0]}
+    analytical_grads = mlp.backward(loss_grad)
+    backprop_grad = analytical_grads[layer_idx][0][target_i][target_j]
 
-initial_loss = 0.0
-for x_in, y_target in dataset:
-    y_pred = mlp.forward(x_in)
-    initial_loss += 0.5 * ((y_pred[0] - y_target[0]) ** 2)
+    layer = mlp.layers[layer_idx]
+    orig_w = layer.W[target_i][target_j]
 
-print(f"Initial Untrained MSE Loss: {initial_loss:.4f}")
+    layer.W[target_i][target_j] = orig_w + h
+    y_plus = mlp.forward(x_sample)
+    loss_plus = 0.5 * ((y_plus[0] - y_sample[0]) ** 2)
 
-for epoch in range(epochs):
-    epoch_loss = 0.0
+    layer.W[target_i][target_j] = orig_w - h
+    y_minus = mlp.forward(x_sample)
+    loss_minus = 0.5 * ((y_minus[0] - y_sample[0]) ** 2)
+
+    layer.W[target_i][target_j] = orig_w
+    numerical_grad = (loss_plus - loss_minus) / (2.0 * h)
+    return backprop_grad, numerical_grad
+
+
+def run_demo() -> None:
+    """Executes XOR training demonstration and finite difference validation."""
+    dataset = [
+        ({0: 0.0, 1: 0.0}, {0: 0.0}),
+        ({0: 0.0, 1: 1.0}, {0: 1.0}),
+        ({0: 1.0, 1: 0.0}, {0: 1.0}),
+        ({0: 1.0, 1: 1.0}, {0: 0.0}),
+    ]
+    mlp = SparseMLP(layer_sizes=[2, 4, 1], seed=101)
+
+    initial_loss = 0.0
     for x_in, y_target in dataset:
-        # 1. Forward pass
         y_pred = mlp.forward(x_in)
-        error = y_pred[0] - y_target[0]
-        epoch_loss += 0.5 * (error ** 2)
+        initial_loss += 0.5 * ((y_pred[0] - y_target[0]) ** 2)
+    print(f"Initial Untrained MSE Loss: {initial_loss:.4f}")
 
-        # 2. Loss gradient: d/dy [0.5 * (y - y*)^2] = y - y*
-        loss_grad = {0: error}
+    final_loss = train_sparse_mlp(mlp, dataset, epochs=3000, learning_rate=2.0)
+    print(f"Final Trained MSE Loss after 3000 epochs: {final_loss:.6f}")
+    assert final_loss < 0.01
 
-        # 3. Reverse-mode backpropagation
-        grads = mlp.backward(loss_grad)
+    print("\nXOR Predictions after Training:")
+    for x_in, y_target in dataset:
+        y_pred = mlp.forward(x_in)
+        print(f"  Input: ({x_in[0]:.0f}, {x_in[1]:.0f}) -> Target: {y_target[0]:.0f}, Predicted: {y_pred[0]:.4f}")
+        assert abs(y_pred[0] - y_target[0]) < 0.15
 
-        # 4. Parameter update via Gradient Descent
-        mlp.update(grads, learning_rate=learning_rate)
-
-print(f"Final Trained MSE Loss after {epochs} epochs: {epoch_loss:.6f}")
-assert epoch_loss < 0.01, f"Training failed to converge: final loss {epoch_loss}"
-
-print("\nXOR Predictions after Training:")
-for x_in, y_target in dataset:
-    y_pred = mlp.forward(x_in)
-    print(f"  Input: ({x_in[0]:.0f}, {x_in[1]:.0f}) -> Target: {y_target[0]:.0f}, Predicted: {y_pred[0]:.4f}")
-    assert abs(y_pred[0] - y_target[0]) < 0.15
-
-
-# %% [markdown]
-# ## Step 5: Falsifiability & Gradient Verification (Adjoint vs Finite Differences)
-#
-# We verify that the backpropagation gradients $\nabla_W L$ computed via transposed matrix
-# multiplication match numerical two-sided finite differences:
-# $$\frac{\partial L}{\partial W_{ij}} \approx \frac{L(W_{ij} + h) - L(W_{ij} - h)}{2h}$$
-
-# %%
-test_mlp = SparseMLP(layer_sizes=[2, 3, 1], seed=77)
-x_sample, y_sample = dataset[1]  # (0, 1) -> 1.0
-
-# 1. Analytical gradient from backpropagation
-y_pred = test_mlp.forward(x_sample)
-loss_grad = {0: y_pred[0] - y_sample[0]}
-analytical_grads = test_mlp.backward(loss_grad)
-
-# 2. Numerical gradient via central finite difference for layer 0 weight W[1][0]
-layer0 = test_mlp.layers[0]
-target_i, target_j = 1, 0
-h = 1e-5
-
-original_w = layer0.W[target_i][target_j]
-
-# Loss at W + h
-layer0.W[target_i][target_j] = original_w + h
-y_plus = test_mlp.forward(x_sample)
-loss_plus = 0.5 * ((y_plus[0] - y_sample[0]) ** 2)
-
-# Loss at W - h
-layer0.W[target_i][target_j] = original_w - h
-y_minus = test_mlp.forward(x_sample)
-loss_minus = 0.5 * ((y_minus[0] - y_sample[0]) ** 2)
-
-# Restore weight
-layer0.W[target_i][target_j] = original_w
-
-numerical_grad = (loss_plus - loss_minus) / (2.0 * h)
-backprop_grad = analytical_grads[0][0][target_i][target_j]
-
-print(f"\nGradient Verification for Layer 0 Weight W[{target_i}][{target_j}]:")
-print(f"  Analytical Backprop Gradient: {backprop_grad:.8f}")
-print(f"  Numerical Finite Difference:  {numerical_grad:.8f}")
-print(f"  Absolute Discrepancy:         {abs(backprop_grad - numerical_grad):.2e}")
-
-assert math.isclose(backprop_grad, numerical_grad, rel_tol=1e-5, abs_tol=1e-5)
+    # Gradient verification
+    test_mlp = SparseMLP(layer_sizes=[2, 3, 1], seed=77)
+    bp_grad, num_grad = verify_gradient_finite_difference(test_mlp, dataset[1][0], dataset[1][1])
+    print("\nGradient Verification for Layer 0 Weight W[1][0]:")
+    print(f"  Analytical Backprop Gradient: {bp_grad:.8f}")
+    print(f"  Numerical Finite Difference:  {num_grad:.8f}")
+    print(f"  Absolute Discrepancy:         {abs(bp_grad - num_grad):.2e}")
+    assert math.isclose(bp_grad, num_grad, rel_tol=1e-5, abs_tol=1e-5)
 
 
-# %%
 def main() -> None:
     """Entry point for CLI execution."""
+    run_demo()
     print("==========================================================================")
     print("Recipe: Sparse Neural Backpropagation Finished Successfully!")
     print("==========================================================================")

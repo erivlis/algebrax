@@ -63,6 +63,10 @@ The sidebar is organized into **6 domain categories** covering all 19 interactiv
 └── Information & Crypto
     ├── Markov & Info Theory           (View 9: Markov steps, steady state & Shannon/KL info metrics)
     └── Post-Quantum Key Exchange      (View 3: Diffie-Hellman matrix key exchange over Digital ax.semiring.Semiring)
+├── Automatic Differentiation & Neural Networks
+│   ├── Forward-Mode Autodiff          (View 25: Quotient polynomial ring DualNumber & gradient bundles)
+│   ├── Sparse Neural Backprop         (View 26: Adjoint pullback W^T * z_bar & outer-product weight gradients)
+│   └── Functional Autograd Engine     (View 27: Dynamic computation DAG, reverse topological VJPs & optimization)
 ```
 
 ---
@@ -202,12 +206,24 @@ import json
 import math
 import os
 import random
+import sys
 from collections.abc import Callable, Iterable, Iterator, Mapping
+from pathlib import Path
 from typing import Any
 
 import dearpygui.dearpygui as dpg
 
 import algebrax as ax
+
+# Ensure repo root is accessible for recipe module imports
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from recipes.forward_mode_autodiff import DualNumber, evaluate_dual, evaluate_dual_graph  # noqa: E402
+from recipes.functional_autograd_engine import Value, build_and_evaluate_dag  # noqa: E402
+from recipes.nlp_provenance_parser import GrammarSemiring, parse_cyk  # noqa: E402
+from recipes.sparse_neural_backprop import SparseLinearLayer, SparseMLP, train_sparse_mlp  # noqa: E402
 
 try:
     from PIL import Image
@@ -314,32 +330,7 @@ def display_matrix_in_table(matrix: Mapping[Any, Mapping[Any, Any]], table_tag: 
                         dpg.add_input_text(default_value=val_str, readonly=True, width=-1)
 
 
-# --- Custom ax.semiring.Semiring for CYK Parsing ---
-class GrammarSemiring(ax.semiring.Semiring[set[str]]):
-    def __init__(self, rules: dict[tuple[str, str], set[str]]) -> None:
-        self._rules = rules
-
-    @property
-    def zero(self) -> set[str]:
-        return set()
-
-    @property
-    def one(self) -> set[str]:
-        return set()
-
-    def add(self, a: set[str], b: set[str]) -> set[str]:
-        return a | b
-
-    def mul(self, a: set[str], b: set[str]) -> set[str]:
-        res: set[str] = set()
-        for lhs in a:
-            for rhs in b:
-                if (lhs, rhs) in self._rules:
-                    res.update(self._rules[(lhs, rhs)])
-        return res
-
-
-# --- Custom ax.semiring.Semiring for Convex Hull (Intervals) ---
+# --- Custom Semirings ---
 class IntervalSemiring(ax.semiring.Semiring[tuple[float, float]]):
     @property
     def zero(self) -> tuple[float, float]:
@@ -581,7 +572,6 @@ def run_pagerank() -> None:
 
         v_vec: dict[str, float] = dict.fromkeys(all_nodes, 1.0 / n_nodes)
 
-
         semiring = ax.semiring.StandardSemiring()
 
         for _ in range(iterations):
@@ -619,28 +609,13 @@ def run_cyk_parsing() -> None:
         parsed_rules: dict[str, list[str]] = json.loads(rules_str)
 
         lexicon: dict[str, set[str]] = {k: set(v) for k, v in parsed_lexicon.items()}
-        rules: dict[tuple[str, ...], set[str]] = {tuple(k.split(',')): set(v) for k, v in parsed_rules.items()}
+        rules: dict[tuple[str, str], set[str]] = {
+            (parts[0].strip(), parts[1].strip()): set(v)
+            for k, v in parsed_rules.items()
+            if len(parts := k.split(',')) == 2
+        }
 
-        n_len: int = len(sentence)
-        chart: dict[int, dict[int, set[str]]] = {}
-        for i, word in enumerate(sentence):
-            if i not in chart:
-                chart[i] = {}
-            chart[i][i + 1] = lexicon.get(word, set())
-
-
-        semiring = GrammarSemiring(rules)
-
-        for _ in range(n_len):
-            new_spans = ax.matrix.dot(chart, chart, semiring=semiring)
-            for r, row in new_spans.items():
-                if r not in chart:
-                    chart[r] = {}
-                for c, val in row.items():
-                    current = chart[r].get(c, set())
-                    chart[r][c] = current | val
-
-        final_tags = chart.get(0, {}).get(n_len, set())
+        final_tags, chart = parse_cyk(sentence, lexicon, rules)
 
         dpg.set_value('cyk_result_text', f'Sentence parses as final non-terminals: {list(final_tags)}')
         display_matrix_in_table(chart, 'table_cyk_chart')
@@ -1406,8 +1381,7 @@ def run_clifford_geometric_algebra() -> None:
                 'Blade Component': 'Rotor R = exp(-theta/2 * B)',
                 'Original Vector v': 'R = 1.0',
                 "Rotor Transformed v'": (
-                    f'{math.cos(math.radians(angle_deg) / 2):.3f} - '
-                    f'{math.sin(math.radians(angle_deg) / 2):.3f} e12'
+                    f'{math.cos(math.radians(angle_deg) / 2):.3f} - {math.sin(math.radians(angle_deg) / 2):.3f} e12'
                 ),
             },
         }
@@ -1594,6 +1568,265 @@ def run_categorical_kleisli() -> None:
         )
     except Exception as e:
         dpg.set_value('kleisli_status', f'Error: {e}')
+
+
+# --- Automatic Differentiation & Neural Backprop Callbacks ---
+
+
+def run_forward_mode_autodiff() -> None:
+    try:
+        x_val = float(dpg.get_value('ad_input_x'))
+        fn_choice = dpg.get_value('ad_fn_select')
+        if 'ln(x)*sqrt(x) + sin(x)' in fn_choice and x_val <= 0:
+            dpg.set_value('ad_status', 'Error: x must be strictly positive for ln(x) and sqrt(x).')
+            return
+
+        res_dual, formula = evaluate_dual(fn_choice, x_val)
+
+        edge_x = float(dpg.get_value('ad_edge_x'))
+        edge_y = float(dpg.get_value('ad_edge_y'))
+        path_val = evaluate_dual_graph(edge_x, edge_y)
+
+        dpg.set_value('ad_primal_res', f'{res_dual.val:.6f}')
+        dpg.set_value('ad_tangent_res', f'{res_dual.der:.6f}')
+
+        if dpg.does_item_exist('ad_canvas'):
+            dpg.delete_item('ad_canvas', children_only=True)
+            dpg.draw_rectangle(
+                (0, 0), (700, 200), fill=(18, 18, 24), color=(60, 60, 80), thickness=1, parent='ad_canvas'
+            )
+
+            p0 = (100, 100)
+            p1 = (350, 60)
+            p2_pos = (600, 100)
+
+            dpg.draw_line(p0, p1, color=(100, 200, 255), thickness=3, parent='ad_canvas')
+            dpg.draw_text(
+                (180, 55),
+                f'Edge(0->1): x={edge_x:.1f} (seed dx=1.0)',
+                color=(255, 200, 50),
+                size=13,
+                parent='ad_canvas',
+            )
+
+            dpg.draw_line(p1, p2_pos, color=(100, 200, 255), thickness=3, parent='ad_canvas')
+            dpg.draw_text(
+                (430, 55), f'Edge(1->2): y={edge_y:.1f} (dy=0.0)', color=(255, 200, 50), size=13, parent='ad_canvas'
+            )
+
+            dpg.draw_line(p0, p2_pos, color=(80, 80, 100), thickness=1, parent='ad_canvas')
+
+            for pt, lbl in [(p0, '0'), (p1, '1'), (p2_pos, '2')]:
+                dpg.draw_circle(pt, 18, color=(255, 100, 255), fill=(60, 30, 80), thickness=2, parent='ad_canvas')
+                dpg.draw_text((pt[0] - 6, pt[1] - 8), lbl, color=(255, 255, 255), size=16, parent='ad_canvas')
+
+            dpg.draw_text(
+                (120, 150),
+                f'2-Hop Path Transmission (0 -> 1 -> 2): Value={path_val.val:.2f}, Sensitivity d/dx={path_val.der:.2f}',
+                color=(100, 255, 150),
+                size=14,
+                parent='ad_canvas',
+            )
+
+        table_data = {
+            0: {
+                'Expression / Path': fn_choice,
+                'Primal Value': f'{res_dual.val:.6f}',
+                'Exact Derivative (d/dx)': f'{res_dual.der:.6f}',
+                'Mathematical Formula': formula,
+            },
+            1: {
+                'Expression / Path': 'Graph Path (0 -> 1 -> 2)',
+                'Primal Value': f'{path_val.val:.4f}',
+                'Exact Derivative (d/dx)': f'{path_val.der:.4f}',
+                'Mathematical Formula': 'd/dx (x * y) = y * (dx/dx)',
+            },
+        }
+        display_matrix_in_table(table_data, 'table_ad_res')
+        dpg.set_value('ad_status', 'Evaluated exact forward-mode automatic differentiation via DualNumber!')
+    except Exception as e:
+        dpg.set_value('ad_status', f'Error: {e}')
+
+
+def run_sparse_neural_backprop() -> None:
+    try:
+        ds_choice = dpg.get_value('backprop_dataset')
+        hidden_units = int(dpg.get_value('backprop_hidden'))
+        lr = float(dpg.get_value('backprop_lr'))
+        epochs = int(dpg.get_value('backprop_epochs'))
+
+        if 'XOR' in ds_choice:
+            data = [
+                ({0: 0.0, 1: 0.0}, {0: 0.0}),
+                ({0: 0.0, 1: 1.0}, {0: 1.0}),
+                ({0: 1.0, 1: 0.0}, {0: 1.0}),
+                ({0: 1.0, 1: 1.0}, {0: 0.0}),
+            ]
+        elif 'OR' in ds_choice:
+            data = [
+                ({0: 0.0, 1: 0.0}, {0: 0.0}),
+                ({0: 0.0, 1: 1.0}, {0: 1.0}),
+                ({0: 1.0, 1: 0.0}, {0: 1.0}),
+                ({0: 1.0, 1: 1.0}, {0: 1.0}),
+            ]
+        else:
+            data = [
+                ({0: 0.0, 1: 0.0}, {0: 0.0}),
+                ({0: 0.0, 1: 1.0}, {0: 0.0}),
+                ({0: 1.0, 1: 0.0}, {0: 0.0}),
+                ({0: 1.0, 1: 1.0}, {0: 1.0}),
+            ]
+
+        mlp = SparseMLP(layer_sizes=[2, hidden_units, 1], seed=42)
+        total_epoch_loss = train_sparse_mlp(mlp, data, epochs=epochs, learning_rate=lr)
+
+        dpg.set_value('backprop_loss_text', f'Final MSE Loss: {total_epoch_loss:.6f} (Epochs: {epochs})')
+
+        if dpg.does_item_exist('backprop_canvas'):
+            dpg.delete_item('backprop_canvas', children_only=True)
+            dpg.draw_rectangle(
+                (0, 0), (700, 220), fill=(18, 18, 24), color=(60, 60, 80), thickness=1, parent='backprop_canvas'
+            )
+
+            in_pos = [(120, 70), (120, 150)]
+            h_step = 180 / (hidden_units + 1)
+            hid_pos = [(350, int(20 + (i + 1) * h_step)) for i in range(hidden_units)]
+            out_pos = [(580, 110)]
+
+            for ip in in_pos:
+                for hp in hid_pos:
+                    dpg.draw_line(ip, hp, color=(70, 120, 180, 160), thickness=1, parent='backprop_canvas')
+            for hp in hid_pos:
+                for op in out_pos:
+                    dpg.draw_line(hp, op, color=(180, 90, 70, 160), thickness=1, parent='backprop_canvas')
+
+            for ip, lbl in zip(in_pos, ['x0', 'x1']):
+                dpg.draw_circle(ip, 14, color=(100, 255, 100), fill=(30, 80, 30), parent='backprop_canvas')
+                dpg.draw_text((ip[0] - 8, ip[1] - 7), lbl, color=(255, 255, 255), size=12, parent='backprop_canvas')
+
+            for i, hp in enumerate(hid_pos):
+                dpg.draw_circle(hp, 12, color=(100, 200, 255), fill=(30, 60, 90), parent='backprop_canvas')
+                dpg.draw_text((hp[0] - 6, hp[1] - 6), f'h{i}', color=(255, 255, 255), size=11, parent='backprop_canvas')
+
+            dpg.draw_circle(out_pos[0], 16, color=(255, 120, 100), fill=(90, 40, 30), parent='backprop_canvas')
+            dpg.draw_text(
+                (out_pos[0][0] - 5, out_pos[0][1] - 8), 'y', color=(255, 255, 255), size=14, parent='backprop_canvas'
+            )
+
+            dpg.draw_text(
+                (30, 195),
+                'Forward: z = W*x  |  Backward Pullback: x_bar = W^T * z_bar  |  Grad: z_bar (x) x^T',
+                color=(255, 200, 100),
+                size=13,
+                parent='backprop_canvas',
+            )
+
+        table_data = {}
+        for idx, (x_in, y_target) in enumerate(data):
+            y_pred = mlp.forward(x_in)
+            err = y_pred[0] - y_target[0]
+            table_data[idx] = {
+                'Input (x0, x1)': f'({x_in[0]:.0f}, {x_in[1]:.0f})',
+                'Target (y)': f'{y_target[0]:.1f}',
+                'Predicted Output': f'{y_pred[0]:.4f}',
+                'Error (y - y*)': f'{err:+.4f}',
+            }
+        display_matrix_in_table(table_data, 'table_backprop_res')
+        dpg.set_value('backprop_status', f'Successfully trained {ds_choice} MLP with adjoint backprop!')
+    except Exception as e:
+        dpg.set_value('backprop_status', f'Error: {e}')
+
+
+def run_functional_autograd_engine() -> None:
+    try:
+        expr_choice = dpg.get_value('autograd_expr')
+        vx = float(dpg.get_value('autograd_var_x'))
+        vy = float(dpg.get_value('autograd_var_y'))
+        vz = float(dpg.get_value('autograd_var_z'))
+
+        out, x, y, z, _ = build_and_evaluate_dag(expr_choice, vx, vy, vz)
+
+        dpg.set_value('autograd_f_val', f'{out.data:.6f}')
+        dpg.set_value('autograd_grad_x', f'{x.grad:.6f}')
+        dpg.set_value('autograd_grad_y', f'{y.grad:.6f}')
+
+        if dpg.does_item_exist('autograd_canvas'):
+            dpg.delete_item('autograd_canvas', children_only=True)
+            dpg.draw_rectangle(
+                (0, 0), (700, 220), fill=(18, 18, 24), color=(60, 60, 80), thickness=1, parent='autograd_canvas'
+            )
+
+            pos_x = (80, 50)
+            pos_y = (80, 110)
+            pos_z = (80, 170)
+            pos_mid1 = (280, 70)
+            pos_mid2 = (280, 150)
+            pos_root = (540, 110)
+
+            dpg.draw_line(pos_x, pos_mid1, color=(100, 200, 255), thickness=2, parent='autograd_canvas')
+            dpg.draw_line(pos_y, pos_mid1, color=(100, 200, 255), thickness=2, parent='autograd_canvas')
+            dpg.draw_line(pos_y, pos_mid2, color=(100, 200, 255), thickness=2, parent='autograd_canvas')
+            dpg.draw_line(pos_z, pos_mid2, color=(100, 200, 255), thickness=2, parent='autograd_canvas')
+            dpg.draw_line(pos_mid1, pos_root, color=(255, 180, 100), thickness=2, parent='autograd_canvas')
+            dpg.draw_line(pos_mid2, pos_root, color=(255, 180, 100), thickness=2, parent='autograd_canvas')
+
+            for p, lbl, val, gr in [
+                (pos_x, 'x', x.data, x.grad),
+                (pos_y, 'y', y.data, y.grad),
+                (pos_z, 'z', z.data, z.grad),
+            ]:
+                dpg.draw_circle(p, 16, color=(100, 255, 100), fill=(30, 80, 30), parent='autograd_canvas')
+                dpg.draw_text((p[0] - 6, p[1] - 8), lbl, color=(255, 255, 255), size=14, parent='autograd_canvas')
+                dpg.draw_text(
+                    (p[0] + 20, p[1] - 8),
+                    f'val={val:.2f}, grad={gr:.4f}',
+                    color=(180, 220, 255),
+                    size=12,
+                    parent='autograd_canvas',
+                )
+
+            dpg.draw_circle(pos_root, 20, color=(255, 100, 100), fill=(90, 30, 30), parent='autograd_canvas')
+            dpg.draw_text(
+                (pos_root[0] - 12, pos_root[1] - 8), 'Out', color=(255, 255, 255), size=14, parent='autograd_canvas'
+            )
+            dpg.draw_text(
+                (pos_root[0] - 60, pos_root[1] + 25),
+                f'Root Val={out.data:.4f}, Adjoint=1.0',
+                color=(255, 200, 100),
+                size=13,
+                parent='autograd_canvas',
+            )
+
+        table_data = {
+            0: {
+                'Node / Variable': 'Root Output L',
+                'Forward Value': f'{out.data:.6f}',
+                'Accumulated Adjoint (dL/du)': f'{out.grad:.4f}',
+                'Role': 'Objective Loss / Root DAG Node',
+            },
+            1: {
+                'Node / Variable': 'Leaf Variable x',
+                'Forward Value': f'{x.data:.4f}',
+                'Accumulated Adjoint (dL/du)': f'{x.grad:.6f}',
+                'Role': 'Input Feature / Tunable Parameter',
+            },
+            2: {
+                'Node / Variable': 'Leaf Variable y',
+                'Forward Value': f'{y.data:.4f}',
+                'Accumulated Adjoint (dL/du)': f'{y.grad:.6f}',
+                'Role': 'Input Feature / Tunable Parameter',
+            },
+            3: {
+                'Node / Variable': 'Leaf Variable z',
+                'Forward Value': f'{z.data:.4f}',
+                'Accumulated Adjoint (dL/du)': f'{z.grad:.6f}',
+                'Role': 'Input Feature / Tunable Parameter',
+            },
+        }
+        display_matrix_in_table(table_data, 'table_autograd_res')
+        dpg.set_value('autograd_status', 'Evaluated reverse-mode DAG backpropagation via Vector-Jacobian Products!')
+    except Exception as e:
+        dpg.set_value('autograd_status', f'Error: {e}')
 
 
 # --- Image Convolution Helpers ---
@@ -2978,10 +3211,212 @@ def build_view_categorical_kleisli() -> None:
                     pass
 
 
+def build_view_forward_mode_autodiff() -> None:
+    with dpg.group(tag='view_forward_mode_autodiff_group', show=False):
+        dpg.add_text(
+            'Forward-Mode Automatic Differentiation via Dual Numbers (R[ε]/(ε^2)) & Semiring Polymorphism',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('SCALAR AUTODIFF INPUTS', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=[
+                        'g(x) = ln(x)*sqrt(x) + sin(x)',
+                        'sigmoid(x)',
+                        'exp(x) / (1 + exp(x))',
+                        'x^3 - 4x + cos(x)',
+                    ],
+                    default_value='g(x) = ln(x)*sqrt(x) + sin(x)',
+                    tag='ad_fn_select',
+                    width=250,
+                    callback=lambda: run_forward_mode_autodiff(),
+                )
+                dpg.add_input_float(
+                    default_value=2.0,
+                    tag='ad_input_x',
+                    label='Primal Seed x',
+                    width=120,
+                    callback=lambda: run_forward_mode_autodiff(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('GRAPH TRANSMISSION PARAMETERS', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_input_float(
+                    default_value=2.0,
+                    tag='ad_edge_x',
+                    label='Edge (0->1) x',
+                    width=120,
+                    callback=lambda: run_forward_mode_autodiff(),
+                )
+                dpg.add_input_float(
+                    default_value=3.0,
+                    tag='ad_edge_y',
+                    label='Edge (1->2) y',
+                    width=120,
+                    callback=lambda: run_forward_mode_autodiff(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_button(label='Evaluate Forward Autodiff', callback=run_forward_mode_autodiff, width=250)
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='ad_status', color=(255, 200, 100), wrap=290)
+
+            with dpg.group():
+                dpg.add_text('Network Transmission Sensitivity Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=200, tag='ad_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                with dpg.group(horizontal=True):
+                    with dpg.group():
+                        dpg.add_text('Evaluated Primal Value f(x):')
+                        dpg.add_input_text(default_value='0.000000', readonly=True, tag='ad_primal_res', width=200)
+                    with dpg.group():
+                        dpg.add_text('Exact Analytical Derivative df/dx:')
+                        dpg.add_input_text(default_value='0.000000', readonly=True, tag='ad_tangent_res', width=200)
+                dpg.add_spacer(height=5)
+                dpg.add_text('Forward Differentiation Breakdown (Selectable cells):')
+                with dpg.group(tag='table_ad_res_container'):
+                    pass
+
+
+def build_view_sparse_neural_backprop() -> None:
+    with dpg.group(tag='view_sparse_neural_backprop_group', show=False):
+        dpg.add_text(
+            'Reverse-Mode Backpropagation via Transposed Matrix Multiplication (W^T * z_bar)',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('TRAINING DATASET & ARCHITECTURE', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=['XOR (Non-Linear)', 'OR Gate', 'AND Gate'],
+                    default_value='XOR (Non-Linear)',
+                    tag='backprop_dataset',
+                    width=250,
+                    callback=lambda: run_sparse_neural_backprop(),
+                )
+                dpg.add_input_int(
+                    default_value=4,
+                    min_value=2,
+                    max_value=16,
+                    tag='backprop_hidden',
+                    label='Hidden Units',
+                    width=120,
+                    callback=lambda: run_sparse_neural_backprop(),
+                )
+                dpg.add_input_float(
+                    default_value=2.0,
+                    tag='backprop_lr',
+                    label='Learning Rate',
+                    width=120,
+                )
+                dpg.add_input_int(
+                    default_value=1000,
+                    min_value=100,
+                    max_value=5000,
+                    tag='backprop_epochs',
+                    label='Epochs',
+                    width=120,
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_button(label='Train Sparse MLP with Backprop', callback=run_sparse_neural_backprop, width=250)
+                dpg.add_spacer(height=10)
+                dpg.add_input_text(
+                    default_value='Final MSE Loss: Not Run', readonly=True, tag='backprop_loss_text', width=280
+                )
+                dpg.add_spacer(height=5)
+                dpg.add_text('', tag='backprop_status', color=(255, 200, 100), wrap=290)
+
+            with dpg.group():
+                dpg.add_text('Neural Architecture & Adjoint Pullback Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=220, tag='backprop_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                dpg.add_text('Model Predictions & Classification Convergence (Selectable cells):')
+                with dpg.group(tag='table_backprop_res_container'):
+                    pass
+
+
+def build_view_functional_autograd_engine() -> None:
+    with dpg.group(tag='view_functional_autograd_engine_group', show=False):
+        dpg.add_text(
+            'Functional Reverse-Mode Autograd Engine (Dynamic DAG & Vector-Jacobian Products)',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('COMPUTATION GRAPH EXPRESSION', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=[
+                        'f(x,y) = (x^2*y + sin(x)) / (y + exp(x))',
+                        'Loss = (w1*x1 + w2*x2)^2 + tanh(y)',
+                        'g(x,y,z) = x*y*z + exp(x*z) + ln(y)',
+                    ],
+                    default_value='f(x,y) = (x^2*y + sin(x)) / (y + exp(x))',
+                    tag='autograd_expr',
+                    width=250,
+                    callback=lambda: run_functional_autograd_engine(),
+                )
+                dpg.add_spacer(height=5)
+                dpg.add_input_float(
+                    default_value=1.5,
+                    tag='autograd_var_x',
+                    label='Variable x',
+                    width=120,
+                    callback=lambda: run_functional_autograd_engine(),
+                )
+                dpg.add_input_float(
+                    default_value=2.0,
+                    tag='autograd_var_y',
+                    label='Variable y',
+                    width=120,
+                    callback=lambda: run_functional_autograd_engine(),
+                )
+                dpg.add_input_float(
+                    default_value=1.0,
+                    tag='autograd_var_z',
+                    label='Variable z',
+                    width=120,
+                    callback=lambda: run_functional_autograd_engine(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_button(
+                    label='Execute Reverse Autograd (VJPs)', callback=run_functional_autograd_engine, width=250
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='autograd_status', color=(255, 200, 100), wrap=290)
+
+            with dpg.group():
+                dpg.add_text('Computation Graph DAG & Reverse Adjoint Flow Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=220, tag='autograd_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                with dpg.group(horizontal=True):
+                    with dpg.group():
+                        dpg.add_text('Output Value:')
+                        dpg.add_input_text(default_value='0.000000', readonly=True, tag='autograd_f_val', width=180)
+                    with dpg.group():
+                        dpg.add_text('Gradient df/dx:')
+                        dpg.add_input_text(default_value='0.000000', readonly=True, tag='autograd_grad_x', width=180)
+                    with dpg.group():
+                        dpg.add_text('Gradient df/dy:')
+                        dpg.add_input_text(default_value='0.000000', readonly=True, tag='autograd_grad_y', width=180)
+                dpg.add_spacer(height=5)
+                dpg.add_text('DAG Nodes Forward Values & Backward Adjoints (Selectable cells):')
+                with dpg.group(tag='table_autograd_res_container'):
+                    pass
+
+
 # --- Navigation Sidebar Builder ---
 VIEWS: list[str] = [
     'semiring_matrix_power',
-    'ax.analysis.forman_ricci_curvature',
+    'forman_ricci_curvature',
     'pq_key_exchange',
     'algebraic_trie',
     'pagerank',
@@ -3004,17 +3439,24 @@ VIEWS: list[str] = [
     'clifford_geometric_algebra',
     'galois_finite_fields',
     'categorical_kleisli',
+    'forward_mode_autodiff',
+    'sparse_neural_backprop',
+    'functional_autograd_engine',
 ]
 
 
 def change_view(sender: int | str, app_data: Any, user_data: str) -> None:
     selected_view: str = user_data
     for v in VIEWS:
-        dpg.set_value(f'sel_{v}', (v == selected_view))
-        if v == selected_view:
-            dpg.show_item(f'view_{v}_group')
-        else:
-            dpg.hide_item(f'view_{v}_group')
+        sel_tag = f'sel_{v}'
+        view_tag = f'view_{v}_group'
+        if dpg.does_item_exist(sel_tag):
+            dpg.set_value(sel_tag, (v == selected_view))
+        if dpg.does_item_exist(view_tag):
+            if v == selected_view:
+                dpg.show_item(view_tag)
+            else:
+                dpg.hide_item(view_tag)
 
 
 def build_navigation_sidebar() -> None:
@@ -3025,7 +3467,7 @@ def build_navigation_sidebar() -> None:
 
         with dpg.tree_node(label='Matrix & Graph Algorithms', default_open=True):
             dpg.add_selectable(
-                label='ax.semiring.Semiring Matrix Power',
+                label='Semiring Matrix Power',
                 tag='sel_semiring_matrix_power',
                 callback=change_view,
                 user_data='semiring_matrix_power',
@@ -3035,7 +3477,7 @@ def build_navigation_sidebar() -> None:
                 label='Forman-Ricci Curvature',
                 tag='sel_forman_ricci_curvature',
                 callback=change_view,
-                user_data='ax.analysis.forman_ricci_curvature',
+                user_data='forman_ricci_curvature',
             )
             dpg.add_selectable(
                 label='PageRank Algorithm',
@@ -3180,6 +3622,26 @@ def build_navigation_sidebar() -> None:
                 user_data='pq_key_exchange',
             )
 
+        with dpg.tree_node(label='Automatic Differentiation & Backprop', default_open=True):
+            dpg.add_selectable(
+                label='Forward-Mode Autodiff',
+                tag='sel_forward_mode_autodiff',
+                callback=change_view,
+                user_data='forward_mode_autodiff',
+            )
+            dpg.add_selectable(
+                label='Sparse Neural Backprop',
+                tag='sel_sparse_neural_backprop',
+                callback=change_view,
+                user_data='sparse_neural_backprop',
+            )
+            dpg.add_selectable(
+                label='Functional Autograd Engine',
+                tag='sel_functional_autograd_engine',
+                callback=change_view,
+                user_data='functional_autograd_engine',
+            )
+
 
 # --- Dear PyGui Context & Theme Initialization ---
 
@@ -3273,6 +3735,9 @@ def main() -> None:
                 build_view_clifford_geometric_algebra()
                 build_view_galois_finite_fields()
                 build_view_categorical_kleisli()
+                build_view_forward_mode_autodiff()
+                build_view_sparse_neural_backprop()
+                build_view_functional_autograd_engine()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()

@@ -22,8 +22,9 @@
 # 1. Standard algebraic matrix operations (`ax.matrix.dot`, `ax.matrix.power`, `ax.tensor.einsum`) seamlessly
 #    propagate function evaluations alongside exact directional derivatives and full Jacobian vectors in a
 #    single forward pass.
-# 2. Because dual numbers form a unital commutative ring over standard arithmetic, `ax.semiring.StandardSemiring(dtype=DualNumber)`
-#    executes automatic differentiation out-of-the-box with **zero modifications to the AlgebraX library core**.
+# 2. Because dual numbers form a unital commutative ring over standard arithmetic,
+#    `ax.semiring.StandardSemiring(dtype=DualNumber)` executes automatic differentiation out-of-the-box
+#    with **zero modifications to the AlgebraX library core**.
 #
 # ---
 #
@@ -43,13 +44,13 @@
 #
 # * **Division $\implies$ Quotient Rule**:
 #   Inverting $(c + d\epsilon)$ using the conjugate $(c - d\epsilon)$:
-#   $$\frac{1}{c + d\epsilon} = \frac{c - d\epsilon}{(c + d\epsilon)(c - d\epsilon)} = \frac{c - d\epsilon}{c^2 - d^2\epsilon^2} = \frac{1}{c} - \frac{d}{c^2}\epsilon$$
-#   $$\frac{a + b\epsilon}{c + d\epsilon} = (a + b\epsilon)\left(\frac{1}{c} - \frac{d}{c^2}\epsilon\right) = \frac{a}{c} + \frac{bc - ad}{c^2}\epsilon$$
+#   $$\frac{1}{c + d\epsilon} = \frac{c - d\epsilon}{c^2 - d^2\epsilon^2} = \frac{1}{c} - \frac{d}{c^2}\epsilon$$
+#   $$\frac{a + b\epsilon}{c + d\epsilon} = \frac{a}{c} + \frac{bc - ad}{c^2}\epsilon$$
 #
 # ### 3. Analytic & Transcendental Functions via Formal Power Series
 # For any smooth/analytic function $f: \mathbb{R} \to \mathbb{R}$, its extension to dual numbers
 # $f: \mathbb{D} \to \mathbb{D}$ is evaluated via its formal Taylor series:
-# $$f(a + b\epsilon) = \sum_{k=0}^{\infty} \frac{f^{(k)}(a)}{k!} (b\epsilon)^k = f(a) + f'(a)(b\epsilon) + \frac{f''(a)}{2!}\underbrace{(b\epsilon)^2}_{=0} + \dots$$
+# $$f(a + b\epsilon) = f(a) + f'(a)(b\epsilon) + \frac{f''(a)}{2!}(b\epsilon)^2 + \dots$$
 # Because $\epsilon^k = 0$ for all $k \ge 2$, **all higher-order terms vanish identically and exactly**:
 # $$f(a + b\epsilon) \equiv f(a) + f'(a)b\epsilon$$
 # Thus, computing transcendental functions ($\exp, \sin, \cos, \log$) on dual numbers represents the
@@ -59,9 +60,9 @@
 # Geometrically (in Grothendieck scheme theory and synthetic differential geometry), dual numbers
 # represent points with an attached infinitesimal tangent vector (the tangent bundle $T\mathbb{R}$).
 #
-# Because $(\mathbb{D}, +, \cdot, 0, 1)$ forms a unital commutative ring, `algebrax.semiring.StandardSemiring(dtype=DualNumber)`
-# executes exact multi-hop forward-mode automatic differentiation across sparse matrices and tensors
-# with **zero modifications to the core library**.
+# Because $(\mathbb{D}, +, \cdot, 0, 1)$ forms a unital commutative ring,
+# `algebrax.semiring.StandardSemiring(dtype=DualNumber)` executes exact multi-hop forward-mode
+# automatic differentiation across sparse matrices and tensors with **zero modifications to the core library**.
 
 # %%
 import math
@@ -225,35 +226,24 @@ class DualNumber:
 # Exact differentiation through non-linear functions and composite expressions with machine precision:
 
 # %%
-x = DualNumber(val=1.0, der=1.0)  # Variable x = 1.0 with seed dx/dx = 1.0
-
-# 1. Natural logarithm: d/dx [ln(x)] = 1/x -> at x=1, val=0, der=1.0
-log_x = x.log()
-assert math.isclose(log_x.val, 0.0)
-assert math.isclose(log_x.der, 1.0)
-
-# 2. Square root: d/dx [sqrt(x)] = 1 / (2*sqrt(x)) -> at x=1, val=1.0, der=0.5
-sqrt_x = x.sqrt()
-assert math.isclose(sqrt_x.val, 1.0)
-assert math.isclose(sqrt_x.der, 0.5)
-
-# 3. Logistic Sigmoid: d/dx [sigmoid(x)] at x=0.0
-x0 = DualNumber(val=0.0, der=1.0)
-sig_x0 = x0.sigmoid()
-assert math.isclose(sig_x0.val, 0.5)
-assert math.isclose(sig_x0.der, 0.25)
-
-# 4. Non-linear Composite Function: g(x) = ln(x) * sqrt(x) + sin(x)
-# Analytical: g(1.0) = sin(1.0), g'(1.0) = 1.0 + cos(1.0)
-g_x = (x.log() * x.sqrt()) + x.sin()
-print("Composite Function g(x) = ln(x)*sqrt(x) + sin(x) at x=1.0:")
-print(f"  Exact Value g(1) = {g_x.val:.6f}")
-print(f"  Exact Derivative g'(1) = {g_x.der:.6f}")
-
-expected_val = math.sin(1.0)
-expected_der = 1.0 + math.cos(1.0)
-assert math.isclose(g_x.val, expected_val, rel_tol=1e-9)
-assert math.isclose(g_x.der, expected_der, rel_tol=1e-9)
+def evaluate_dual(fn_name: str, x_val: float) -> tuple[DualNumber, str]:
+    """Parametrically evaluates a scalar function and its exact derivative using DualNumber."""
+    x_dual = DualNumber(val=x_val, der=1.0)
+    if 'ln(x)*sqrt(x) + sin(x)' in fn_name or fn_name == 'composite':
+        if x_val <= 0.0:
+            raise ValueError("x must be strictly positive for ln(x) and sqrt(x).")
+        res = (x_dual.log() * x_dual.sqrt()) + x_dual.sin()
+        formula = "d/dx = (1/x)*sqrt(x) + ln(x)/(2*sqrt(x)) + cos(x)"
+    elif 'sigmoid' in fn_name:
+        res = x_dual.sigmoid()
+        formula = "d/dx = sigmoid(x) * (1 - sigmoid(x))"
+    elif 'exp' in fn_name:
+        res = x_dual.exp() / (DualNumber(1.0) + x_dual.exp())
+        formula = "d/dx = exp(x) / (1 + exp(x))^2"
+    else:
+        res = (x_dual**3) - (x_dual * 4.0) + x_dual.cos()
+        formula = "d/dx = 3x^2 - 4 - sin(x)"
+    return res, formula
 
 
 # %% [markdown]
@@ -262,7 +252,7 @@ assert math.isclose(g_x.der, expected_der, rel_tol=1e-9)
 # ### Mathematical Foundation: Multi-Nilpotent Quotient Algebra
 # For functions of multiple parameters $(w_1, w_2, \dots, w_n)$, we generalize the dual ring to the
 # multi-indeterminate quotient ring:
-# $$\mathbb{D}^n = \mathbb{R}[\epsilon_1, \dots, \epsilon_n] / \langle \epsilon_i \epsilon_j = 0 \quad \forall i, j \rangle$$
+# $$\mathbb{D}^n = \mathbb{R}[\epsilon_1, \dots, \epsilon_n] / \langle \epsilon_i \epsilon_j = 0 \rangle$$
 #
 # Every element $Z \in \mathbb{D}^n$ represents a primal scalar value $v \in \mathbb{R}$ accompanied by a
 # differential 1-form / gradient vector $\mathbf{g} = \nabla f \in \mathbb{R}^n$:
@@ -277,10 +267,12 @@ assert math.isclose(g_x.der, expected_der, rel_tol=1e-9)
 #   $$\nabla (f \pm g) = \nabla f \pm \nabla g \implies \text{Merge and add/subtract sparse keys}$$
 #
 # * **Multivariate Leibniz Product Rule ($\cdot$):**
-#   $$(u + \nabla u \cdot \boldsymbol{\epsilon})(v + \nabla v \cdot \boldsymbol{\epsilon}) = uv + (u \nabla v + v \nabla u) \cdot \boldsymbol{\epsilon} + \sum_{i,j} \nabla_i u \nabla_j v \underbrace{\epsilon_i \epsilon_j}_{=0} = uv + (u \nabla v + v \nabla u) \cdot \boldsymbol{\epsilon}$$
+#   $$\nabla(u v) = u \nabla v + v \nabla u$$
+#   $$(u + \nabla u \cdot \boldsymbol{\epsilon})(v + \nabla v \cdot \boldsymbol{\epsilon})$$
+#   $$= uv + (u \nabla v + v \nabla u) \cdot \boldsymbol{\epsilon}$$
 #
 # * **Multivariate Chain Rule for Analytic Functions ($f: \mathbb{R} \to \mathbb{R}$):**
-#   $$f(v + \nabla v \cdot \boldsymbol{\epsilon}) = f(v) + f'(v) (\nabla v \cdot \boldsymbol{\epsilon}) \implies \text{Scale all gradient components by } f'(v)$$
+#   $$f(v + \nabla v \cdot \boldsymbol{\epsilon}) = f(v) + f'(v) (\nabla v \cdot \boldsymbol{\epsilon})$$
 
 # %%
 class GradientDualNumber:
@@ -380,7 +372,6 @@ class GradientDualNumber:
         s, c = math.sin(self.val), math.cos(self.val)
         return GradientDualNumber(c, {k: -v * s for k, v in self.grad.items()})
 
-
 # %% [markdown]
 # ### Verification: Multivariate Non-Linear Function
 # Let $F(x, y, z) = x^2 y + y \ln(z) + \exp(x z)$ at point $(x=2, y=3, z=1)$:
@@ -390,125 +381,79 @@ class GradientDualNumber:
 # * $\frac{\partial F}{\partial z} = \frac{y}{z} + x \exp(x z) = 3 + 2 e^2 \approx 17.778112$
 
 # %%
-x_var = GradientDualNumber(val=2.0, grad={'x': 1.0})
-y_var = GradientDualNumber(val=3.0, grad={'y': 1.0})
-z_var = GradientDualNumber(val=1.0, grad={'z': 1.0})
-
-F_val = (x_var ** 2) * y_var + y_var * z_var.log() + (x_var * z_var).exp()
-
-print("Multivariate Evaluation of F(x, y, z):")
-print(f"  F(2, 3, 1) = {F_val.val:.6f}")
-print(f"  \u2207F = {F_val.grad}")
-
-e2 = math.exp(2.0)
-assert math.isclose(F_val.val, 12.0 + e2, rel_tol=1e-9)
-assert math.isclose(F_val.grad['x'], 12.0 + e2, rel_tol=1e-9)
-assert math.isclose(F_val.grad['y'], 4.0, rel_tol=1e-9)
-assert math.isclose(F_val.grad['z'], 3.0 + 2.0 * e2, rel_tol=1e-9)
-
-# %% [markdown]
-# ## Step 4: Single-Variable Sensitivity Propagation in Graph Transmission
-#
-# ### Physical & Network Context: Path Transmission Sensitivities
-# In network flow analysis (e.g., electrical grids, telecommunication routing, hydraulic piping),
-# a graph's adjacency matrix $A$ represents transmission capacities between nodes. The matrix
-# power / product $(A^2)_{ij} = \sum_k A_{ik} \cdot A_{kj}$ represents the total 2-hop flow capacity
-# along all paths from source node $i$ to target node $j$.
-#
-# When an edge parameter $x$ (e.g., bandwidth, conductance, pipe diameter) is perturbed, how does
-# the total multi-hop flow $(A^2)_{ij}$ respond?
-#
-# ### Algebraic Propagation via `StandardSemiring(DualNumber)`
-# By parameterizing edge $(0 \to 1)$ as the dual number $x + 1\cdot\epsilon$ (with tangent seed
-# $dx/dx = 1.0$) and keeping other edges constant ($y + 0\cdot\epsilon$), a single matrix multiplication
-# `ax.matrix.dot(network, network, semiring=StandardSemiring(DualNumber))` simultaneously evaluates:
-#
-# 1. **Total Path Transmission (Primal):**
-#    $$(A^2)_{0,2} = A_{0,1} \cdot A_{1,2} = x \cdot y = 2.0 \cdot 3.0 = 6.0$$
-#
-# 2. **Exact Marginal Sensitivity (Tangent):**
-#    $$\frac{d}{dx} (A^2)_{0,2} = \frac{d}{dx} (A_{0,1} A_{1,2}) = \left(\frac{dA_{0,1}}{dx}\right) A_{1,2} + A_{0,1} \left(\frac{dA_{1,2}}{dx}\right) = (1.0)(3.0) + (2.0)(0.0) = 3.0$$
-#
-# This computes exact parameter sensitivities across arbitrary graph topologies without numerical
-# perturbations or finite-difference approximations.
-
-# %%
-# Configure standard semiring parameterized by DualNumber
-dual_semiring = ax.semiring.StandardSemiring(dtype=DualNumber)
-
-# Sparse adjacency matrix where edge (0 -> 1) is parameterized by x = 2.0 with tangent dx/dx = 1.0
-# and edge (1 -> 2) has weight y = 3.0 (constant, dy/dx = 0.0)
-network = {
-    0: {1: DualNumber(val=2.0, der=1.0), 2: DualNumber(val=5.0, der=0.0)},
-    1: {2: DualNumber(val=3.0, der=0.0)},
-}
-
-# 2-step path transmission via matrix multiplication: A^2
-path_2step = ax.matrix.dot(network, network, semiring=dual_semiring)
-
-print("2-Step Network Path Transmission with Exact Sensitivities (d/dx):")
-for src in sorted(path_2step):
-    for dst, dual_val in sorted(path_2step[src].items()):
-        print(f"  Path ({src} -> {dst}): Value = {dual_val.val:.2f}, Sensitivity d/dx = {dual_val.der:.2f}")
-
-# Analytical verification: Path 0 -> 1 -> 2 has value x * y = 2.0 * 3.0 = 6.0, d/dx = y = 3.0
-assert path_2step[0][2].val == 6.0
-assert path_2step[0][2].der == 3.0
-
-# %% [markdown]
-# ## Step 5: Multi-Variable Gradient Flow across Multi-Hop Graphs
-#
-# ### Distributed Parameter Routing & Backpropagation-Free Jacobians
-# In complex networks (e.g., Markov Decision Processes, Multi-Layer Perceptrons, Supply-Chain Pipelines),
-# multiple edges are parameterized by independent tunable weights $(w_1, w_2, w_3)$.
-#
-# Consider a diamond routing topology from Source `A` to Sink `D`:
-# * **Path 1 ($A \to B \to D$):** Traverses edge $(A \to B)$ with weight $w_1 = 1.5$ and edge $(B \to D)$ with weight $w_3 = 3.0$.
-#   Flow contribution: $f_1(w_1, w_3) = w_1 \cdot w_3 = 1.5 \cdot 3.0 = 4.5$.
-# * **Path 2 ($A \to C \to D$):** Traverses edge $(A \to C)$ with weight $w_2 = 2.0$ and fixed edge $(C \to D)$ with constant weight $4.0$.
-#   Flow contribution: $f_2(w_2) = w_2 \cdot 4.0 = 2.0 \cdot 4.0 = 8.0$.
-#
-# The total combined transmission $F(w_1, w_2, w_3)$ is:
-# $$F(w_1, w_2, w_3) = f_1(w_1, w_3) + f_2(w_2) = w_1 w_3 + 4.0 w_2 = 4.5 + 8.0 = 12.5$$
-#
-# ### The Analytic Gradient $\nabla F$
-# The exact partial derivatives with respect to each independent network parameter are:
-# * $\frac{\partial F}{\partial w_1} = w_3 = 3.0$ &nbsp; *(sensitivity to upstream edge $A \to B$)*
-# * $\frac{\partial F}{\partial w_2} = 4.0$ &nbsp; *(sensitivity to alternate route $A \to C$)*
-# * $\frac{\partial F}{\partial w_3} = w_1 = 1.5$ &nbsp; *(sensitivity to downstream bottleneck $B \to D$)*
-#
-# By executing a single sparse contraction `ax.matrix.dot(param_network, param_network)` over
-# `StandardSemiring(GradientDualNumber)`, the complete multi-parameter gradient vector
-# $\nabla F = (\frac{\partial F}{\partial w_1}, \frac{\partial F}{\partial w_2}, \frac{\partial F}{\partial w_3})$
-# is computed in a single forward pass without maintaining computation graphs or tape structures.
-
-# %%
-grad_semiring = ax.semiring.StandardSemiring(dtype=GradientDualNumber)
-
-# Network with multiple named parameters (w1, w2, w3) seeded with their basis unit partials:
-param_network = {
-    'A': {'B': GradientDualNumber(1.5, {'w1': 1.0}), 'C': GradientDualNumber(2.0, {'w2': 1.0})},
-    'B': {'D': GradientDualNumber(3.0, {'w3': 1.0})},
-    'C': {'D': GradientDualNumber(4.0, {})},
-}
-
-result = ax.matrix.dot(param_network, param_network, semiring=grad_semiring)
-total_flow_ad = result['A']['D']
-
-print(f"\nMulti-Variable Flow from A to D: {total_flow_ad}")
-print(f"  Primal Value F(w1, w2, w3) = {total_flow_ad.val:.4f}")
-print(f"  \u2207F = {total_flow_ad.grad}")
-
-# Verification of exact analytical gradients:
-assert total_flow_ad.val == 12.5
-assert total_flow_ad.grad['w1'] == 3.0
-assert total_flow_ad.grad['w2'] == 4.0
-assert total_flow_ad.grad['w3'] == 1.5
+def evaluate_multivariate_function(vx: float = 2.0, vy: float = 3.0, vz: float = 1.0) -> GradientDualNumber:
+    """Evaluates F(x, y, z) = x^2*y + y*ln(z) + exp(x*z) with full gradient vector ∇F."""
+    x_var = GradientDualNumber(val=vx, grad={'x': 1.0})
+    y_var = GradientDualNumber(val=vy, grad={'y': 1.0})
+    z_var = GradientDualNumber(val=vz, grad={'z': 1.0})
+    return (x_var ** 2) * y_var + y_var * z_var.log() + (x_var * z_var).exp()
 
 
-# %%
+def evaluate_dual_graph(edge_x: float = 2.0, edge_y: float = 3.0) -> DualNumber:
+    """Evaluates 2-hop graph path transmission (0 -> 1 -> 2) and marginal sensitivity d/dx."""
+    dual_semiring = ax.semiring.StandardSemiring(dtype=DualNumber)
+    network = {
+        0: {1: DualNumber(val=edge_x, der=1.0), 2: DualNumber(val=5.0, der=0.0)},
+        1: {2: DualNumber(val=edge_y, der=0.0)},
+    }
+    path_2step = ax.matrix.dot(network, network, semiring=dual_semiring)
+    return path_2step.get(0, {}).get(2, DualNumber(0.0, 0.0))
+
+
+def evaluate_diamond_gradient(w1: float = 1.5, w2: float = 2.0, w3: float = 3.0) -> GradientDualNumber:
+    """Evaluates multi-variable gradient flow ∇F across diamond routing network."""
+    grad_semiring = ax.semiring.StandardSemiring(dtype=GradientDualNumber)
+    param_network = {
+        'A': {'B': GradientDualNumber(w1, {'w1': 1.0}), 'C': GradientDualNumber(w2, {'w2': 1.0})},
+        'B': {'D': GradientDualNumber(w3, {'w3': 1.0})},
+        'C': {'D': GradientDualNumber(4.0, {})},
+    }
+    result = ax.matrix.dot(param_network, param_network, semiring=grad_semiring)
+    return result['A']['D']
+
+
+def run_demo() -> None:
+    """Executes the tutorial walkthrough demonstrations and analytical verifications."""
+    # Step 2 demo
+    res, _formula = evaluate_dual('ln(x)*sqrt(x) + sin(x)', 1.0)
+    print("Composite Function g(x) = ln(x)*sqrt(x) + sin(x) at x=1.0:")
+    print(f"  Exact Value g(1) = {res.val:.6f}")
+    print(f"  Exact Derivative g'(1) = {res.der:.6f}")
+    assert math.isclose(res.val, math.sin(1.0), rel_tol=1e-9)
+    assert math.isclose(res.der, 1.0 + math.cos(1.0), rel_tol=1e-9)
+
+    # Step 3 demo
+    f_val = evaluate_multivariate_function(2.0, 3.0, 1.0)
+    print("\nMultivariate Evaluation of F(x, y, z):")
+    print(f"  F(2, 3, 1) = {f_val.val:.6f}")
+    print(f"  ∇F = {f_val.grad}")
+    e2 = math.exp(2.0)
+    assert math.isclose(f_val.val, 12.0 + e2, rel_tol=1e-9)
+    assert math.isclose(f_val.grad['x'], 12.0 + e2, rel_tol=1e-9)
+    assert math.isclose(f_val.grad['y'], 4.0, rel_tol=1e-9)
+    assert math.isclose(f_val.grad['z'], 3.0 + 2.0 * e2, rel_tol=1e-9)
+
+    # Step 4 demo
+    path_val = evaluate_dual_graph(2.0, 3.0)
+    print("\n2-Step Network Path Transmission with Exact Sensitivities (d/dx):")
+    print(f"  Path (0 -> 2): Value = {path_val.val:.2f}, Sensitivity d/dx = {path_val.der:.2f}")
+    assert path_val.val == 6.0
+    assert path_val.der == 3.0
+
+    # Step 5 demo
+    total_flow_ad = evaluate_diamond_gradient(1.5, 2.0, 3.0)
+    print(f"\nMulti-Variable Flow from A to D: {total_flow_ad}")
+    print(f"  Primal Value F(w1, w2, w3) = {total_flow_ad.val:.4f}")
+    print(f"  ∇F = {total_flow_ad.grad}")
+    assert total_flow_ad.val == 12.5
+    assert total_flow_ad.grad['w1'] == 3.0
+    assert total_flow_ad.grad['w2'] == 4.0
+    assert total_flow_ad.grad['w3'] == 1.5
+
+
 def main() -> None:
     """Entry point for CLI execution."""
+    run_demo()
     print("==========================================================================")
     print("Recipe: Forward-Mode Automatic Differentiation Finished Successfully!")
     print("==========================================================================")

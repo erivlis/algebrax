@@ -32,9 +32,11 @@
 # graph is assigned an **adjoint sensitivity** $\bar{u}$:
 # $$\bar{u} = \frac{\partial L}{\partial u}$$
 #
-# For any binary operation $z = f(u, v)$, when the upstream adjoint $\bar{z} = \frac{\partial L}{\partial z}$
-# is known, the local Vector-Jacobian Product (VJP) pulls the adjoint back to the parent inputs:
-# $$\bar{u} \mathrel{+}= \bar{z} \cdot \frac{\partial f}{\partial u}, \quad \bar{v} \mathrel{+}= \bar{z} \cdot \frac{\partial f}{\partial v}$$
+# For any binary operation $z = f(u, v)$, when the upstream adjoint
+# $\bar{z} = \frac{\partial L}{\partial z}$ is known, the local Vector-Jacobian
+# Product (VJP) pulls the adjoint back to the parent inputs:
+# $$\bar{u} \mathrel{+}= \bar{z} \cdot \frac{\partial f}{\partial u}$$
+# $$\bar{v} \mathrel{+}= \bar{z} \cdot \frac{\partial f}{\partial v}$$
 #
 # ### 2. Reverse Topological Sorting
 # Because a node $u$ may contribute to multiple downstream branches (e.g. $z = u \cdot v + u^2$),
@@ -47,7 +49,8 @@
 
 # %%
 import math
-from typing import Callable, Self
+from collections.abc import Callable
+from typing import Self
 
 import algebrax as ax
 from algebrax.typing import SparseMatrix, SparseVector
@@ -243,143 +246,137 @@ class Value:
 # Evaluated at $x = 1.5, y = 2.0$.
 
 # %%
-x = Value(1.5, label='x')
-y = Value(2.0, label='y')
+def build_and_evaluate_dag(
+    expr_type: str,
+    vx: float,
+    vy: float,
+    vz: float,
+) -> tuple[Value, Value, Value, Value, str]:
+    """Constructs an autograd DAG from continuous inputs, executes backward VJPs, and returns nodes."""
+    x = Value(vx, label='x')
+    y = Value(vy, label='y')
+    z = Value(vz, label='z')
 
-# Forward pass building dynamic computation graph
-num = (x ** 2) * y + x.sin()
-den = y + x.exp()
-f = num / den
+    if '(x^2*y + sin(x)) / (y + exp(x))' in expr_type:
+        num = (x ** 2) * y + x.sin()
+        den = y + x.exp()
+        out = num / den
+        out.label = 'f(x, y)'
+        desc = "Quotient rule DAG: (x^2*y + sin(x)) / (y + exp(x))"
+    elif 'Loss = (w1*x1 + w2*x2)^2 + tanh(y)' in expr_type:
+        w1 = Value(0.8, label='w1')
+        w2 = Value(-0.5, label='w2')
+        y_lin = w1 * x + w2 * z
+        out = (y_lin ** 2) + y.tanh()
+        out.label = 'Loss'
+        desc = "Quadratic loss + tanh activation over linear combination"
+    else:
+        out = x * y * z + (x * z).exp() + y.log()
+        out.label = 'g(x, y, z)'
+        desc = "Multi-variable composite: x*y*z + exp(x*z) + ln(y)"
 
-# Reverse-mode backpropagation
-f.backward()
-
-print("Reverse-Mode Automatic Differentiation on f(x, y):")
-print(f"  f(1.5, 2.0) = {f.data:.6f}")
-print(f"  df/dx (Backprop) = {x.grad:.8f}")
-print(f"  df/dy (Backprop) = {y.grad:.8f}")
-
-# Analytical validation via quotient rule:
-# num = 1.5^2 * 2 + sin(1.5) = 4.5 + 0.997495 = 5.497495
-# den = 2 + exp(1.5) = 2 + 4.481689 = 6.481689
-# d(num)/dx = 2*x*y + cos(x) = 6.0 + 0.070737 = 6.070737
-# d(den)/dx = exp(x) = 4.481689
-# df/dx = (d(num)/dx * den - num * d(den)/dx) / den^2
-num_val = (1.5 ** 2) * 2.0 + math.sin(1.5)
-den_val = 2.0 + math.exp(1.5)
-dnum_dx = 2.0 * 1.5 * 2.0 + math.cos(1.5)
-dden_dx = math.exp(1.5)
-expected_df_dx = (dnum_dx * den_val - num_val * dden_dx) / (den_val ** 2)
-
-dnum_dy = 1.5 ** 2
-dden_dy = 1.0
-expected_df_dy = (dnum_dy * den_val - num_val * dden_dy) / (den_val ** 2)
-
-assert math.isclose(f.data, num_val / den_val, rel_tol=1e-9)
-assert math.isclose(x.grad, expected_df_dx, rel_tol=1e-7)
-assert math.isclose(y.grad, expected_df_dy, rel_tol=1e-7)
+    out.backward()
+    return out, x, y, z, desc
 
 
-# %% [markdown]
-# ## Step 3: Sparse Matrix Vector Contraction over `Value` Nodes
-#
-# Because `Value` implements standard addition and multiplication, we can pass sparse matrices of `Value`
-# nodes directly to AlgebraX's `ax.matrix.dot`!
+def optimize_polynomial_regression(
+    train_data: list[tuple[float, float]],
+    iterations: int = 600,
+    learning_rate: float = 0.02,
+) -> tuple[Value, Value, Value, float]:
+    """Fits polynomial w1*x^2 + w2*x + b using autograd gradient descent."""
+    w1 = Value(0.5, label='w1')
+    w2 = Value(-0.5, label='w2')
+    b = Value(0.0, label='b')
+    params = [w1, w2, b]
 
-# %%
-# Sparse weight matrix W: 2 outputs x 3 inputs
-W = {
-    0: {0: Value(0.5, label='W00'), 1: Value(-0.2, label='W01'), 2: Value(0.8, label='W02')},
-    1: {0: Value(1.2, label='W10'), 1: Value(0.3, label='W11'), 2: Value(-0.5, label='W12')},
-}
-
-# Input sparse column vector x
-x_vec = {
-    0: {0: Value(1.0, label='x0')},
-    1: {0: Value(2.0, label='x1')},
-    2: {0: Value(-1.0, label='x2')},
-}
-
-# 1. Forward matrix multiplication: y = W \cdot x
-y_vec = ax.matrix.dot(W, x_vec)
-
-# 2. Non-linear activation & scalar loss: L = (y_0)^2 + 	anh(y_1)
-y0 = y_vec[0][0]
-y1 = y_vec[1][0]
-loss = (y0 ** 2) + y1.tanh()
-
-# 3. Single-call reverse backpropagation
-loss.backward()
-
-print("\nSparse Matrix Contraction Loss & Adjoint Gradients:")
-print(f"  Loss = {loss.data:.6f}")
-print(f"  y0 = {y0.data:.4f}, y1 = {y1.data:.4f}")
-print(f"  dL/dW00 = {W[0][0].grad:.4f} (expected: 2 * y0 * x0 = {2.0 * y0.data * 1.0:.4f})")
-print(f"  dL/dW01 = {W[0][1].grad:.4f} (expected: 2 * y0 * x1 = {2.0 * y0.data * 2.0:.4f})")
-print(f"  dL/dx0  = {x_vec[0][0].grad:.4f}")
-
-# Verification:
-assert math.isclose(W[0][0].grad, 2.0 * y0.data * 1.0, rel_tol=1e-7)
-assert math.isclose(W[0][1].grad, 2.0 * y0.data * 2.0, rel_tol=1e-7)
-
-
-# %% [markdown]
-# ## Step 4: End-to-End Parameter Optimization via Autograd
-#
-# We optimize parameters $(w_1, w_2, b)$ to fit a target function $y = w_1 x^2 + w_2 x + b$.
-
-# %%
-# Target ground truth parameters: w1*=2.0, w2*=0.5, b*=1.0
-ground_truth_fn = lambda x_val: 2.0 * (x_val ** 2) + 0.5 * x_val + 1.0
-sample_points = [-2.0, -1.0, 0.0, 1.0, 2.0]
-train_data = [(x_val, ground_truth_fn(x_val)) for x_val in sample_points]
-
-# Trainable parameters initialized away from ground truth
-w1 = Value(0.5, label='w1')
-w2 = Value(-0.5, label='w2')
-b = Value(0.0, label='b')
-params = [w1, w2, b]
-
-learning_rate = 0.02
-iterations = 600
-
-for it in range(iterations):
-    # Forward pass: Compute total MSE loss across dataset
     total_loss = Value(0.0)
-    for x_val, y_true in train_data:
-        x_node = Value(x_val)
-        y_pred = w1 * (x_node ** 2) + w2 * x_node + b
-        diff = y_pred - y_true
-        total_loss = total_loss + (diff ** 2)
+    for _ in range(iterations):
+        total_loss = Value(0.0)
+        for x_val, y_true in train_data:
+            x_node = Value(x_val)
+            y_pred = w1 * (x_node ** 2) + w2 * x_node + b
+            diff = y_pred - y_true
+            total_loss = total_loss + (diff ** 2)
 
-    total_loss = total_loss / len(train_data)
+        total_loss = total_loss / len(train_data)
+        for p in params:
+            p.grad = 0.0
 
-    # Reset parameter gradients
-    for p in params:
-        p.grad = 0.0
+        total_loss.backward()
+        for p in params:
+            p.data -= learning_rate * p.grad
 
-    # Reverse-mode backpropagation
-    total_loss.backward()
-
-    # Gradient descent step
-    for p in params:
-        p.data -= learning_rate * p.grad
-
-print(f"\nOptimization Results after {iterations} iterations:")
-print(f"  Trained w1 = {w1.data:.4f} (target: 2.0000)")
-print(f"  Trained w2 = {w2.data:.4f} (target: 0.5000)")
-print(f"  Trained b  = {b.data:.4f} (target: 1.0000)")
-print(f"  Final MSE Loss = {total_loss.data:.6f}")
-
-assert total_loss.data < 0.001
-assert math.isclose(w1.data, 2.0, abs_tol=0.05)
-assert math.isclose(w2.data, 0.5, abs_tol=0.05)
-assert math.isclose(b.data, 1.0, abs_tol=0.05)
+    return w1, w2, b, total_loss.data
 
 
-# %%
+def run_demo() -> None:
+    """Executes autograd DAG evaluation and polynomial regression demonstrations."""
+    # Step 2 demo: Quotient rule DAG
+    f, x, y, _, _ = build_and_evaluate_dag('(x^2*y + sin(x)) / (y + exp(x))', 1.5, 2.0, 1.0)
+    print("Reverse-Mode Automatic Differentiation on f(x, y):")
+    print(f"  f(1.5, 2.0) = {f.data:.6f}")
+    print(f"  df/dx (Backprop) = {x.grad:.8f}")
+    print(f"  df/dy (Backprop) = {y.grad:.8f}")
+
+    num_val = (1.5 ** 2) * 2.0 + math.sin(1.5)
+    den_val = 2.0 + math.exp(1.5)
+    dnum_dx = 2.0 * 1.5 * 2.0 + math.cos(1.5)
+    dden_dx = math.exp(1.5)
+    expected_df_dx = (dnum_dx * den_val - num_val * dden_dx) / (den_val ** 2)
+    dnum_dy = 1.5 ** 2
+    dden_dy = 1.0
+    expected_df_dy = (dnum_dy * den_val - num_val * dden_dy) / (den_val ** 2)
+
+    assert math.isclose(f.data, num_val / den_val, rel_tol=1e-9)
+    assert math.isclose(x.grad, expected_df_dx, rel_tol=1e-7)
+    assert math.isclose(y.grad, expected_df_dy, rel_tol=1e-7)
+
+    # Step 3 demo: Sparse Matrix Vector Contraction over Value nodes
+    w_mat = {
+        0: {0: Value(0.5, label='W00'), 1: Value(-0.2, label='W01'), 2: Value(0.8, label='W02')},
+        1: {0: Value(1.2, label='W10'), 1: Value(0.3, label='W11'), 2: Value(-0.5, label='W12')},
+    }
+    x_vec = {
+        0: {0: Value(1.0, label='x0')},
+        1: {0: Value(2.0, label='x1')},
+        2: {0: Value(-1.0, label='x2')},
+    }
+    y_vec = ax.matrix.dot(w_mat, x_vec)
+    y0 = y_vec[0][0]
+    y1 = y_vec[1][0]
+    loss = (y0 ** 2) + y1.tanh()
+    loss.backward()
+
+    print("\nSparse Matrix Contraction Loss & Adjoint Gradients:")
+    print(f"  Loss = {loss.data:.6f}")
+    print(f"  dL/dW00 = {w_mat[0][0].grad:.4f}")
+    print(f"  dL/dW01 = {w_mat[0][1].grad:.4f}")
+    assert math.isclose(w_mat[0][0].grad, 2.0 * y0.data * 1.0, rel_tol=1e-7)
+    assert math.isclose(w_mat[0][1].grad, 2.0 * y0.data * 2.0, rel_tol=1e-7)
+
+    # Step 4 demo: Polynomial regression fitting
+    def ground_truth_fn(x_val: float) -> float:
+        return 2.0 * (x_val ** 2) + 0.5 * x_val + 1.0
+
+    sample_points = [-2.0, -1.0, 0.0, 1.0, 2.0]
+    train_data = [(x_val, ground_truth_fn(x_val)) for x_val in sample_points]
+    w1, w2, b, final_mse = optimize_polynomial_regression(train_data, iterations=600, learning_rate=0.02)
+
+    print("\nOptimization Results after 600 iterations:")
+    print(f"  Trained w1 = {w1.data:.4f} (target: 2.0000)")
+    print(f"  Trained w2 = {w2.data:.4f} (target: 0.5000)")
+    print(f"  Trained b  = {b.data:.4f} (target: 1.0000)")
+    print(f"  Final MSE Loss = {final_mse:.6f}")
+    assert final_mse < 0.001
+    assert math.isclose(w1.data, 2.0, abs_tol=0.05)
+    assert math.isclose(w2.data, 0.5, abs_tol=0.05)
+    assert math.isclose(b.data, 1.0, abs_tol=0.05)
+
+
 def main() -> None:
     """Entry point for CLI execution."""
+    run_demo()
     print("==========================================================================")
     print("Recipe: Functional Autograd Engine Finished Successfully!")
     print("==========================================================================")
