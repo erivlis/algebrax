@@ -66,6 +66,7 @@
       <a href="https://www.codefactor.io/repository/github/erivlis/algebrax/overview/main"><img src="https://www.codefactor.io/repository/github/erivlis/algebrax/badge/main" alt="CodeFactor" /></a>
       <a href="https://snyk.io/test/github/erivlis/algebrax"><img alt="Snyk" src="https://snyk.io/test/github/erivlis/algebrax/badge.svg"></a>
       <a href="https://app.codspeed.io/erivlis/algebrax?utm_source=badge"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/></a>
+      <a href="https://scorecard.dev/viewer/?uri=github.com/erivlis/algebrax"><img src="https://api.scorecard.dev/projects/github.com/erivlis/algebrax/badge" alt="OpenSSF Scorecard"/></a>
     </td>
   </tr>
   <tr>
@@ -176,7 +177,9 @@ real-world scenarios:
 | **Simplicial Homology**        |     [`🐍`](recipes/topological_homology_betti.py) &nbsp; [`📓`](recipes/topological_homology_betti.ipynb)     | `homology.SimplicialComplex`, `homology.betti_numbers`, `analysis.SparseChainComplex`                        |
 | **Clifford Geometric Algebra** |      [`🐍`](recipes/clifford_rotor_kinematics.py) &nbsp; [`📓`](recipes/clifford_rotor_kinematics.ipynb)      | `clifford.CliffordSemiring`, `clifford.rotor_rotation`, `semiring.QuotientMonoidAlgebraSemiring`             |
 | **Galois Finite Fields**       |      [`🐍`](recipes/galois_field_cryptography.py) &nbsp; [`📓`](recipes/galois_field_cryptography.ipynb)      | `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `semiring.QuotientMonoidAlgebraSemiring`               |
-| **Categorical Kleisli Monads** |     [`🐍`](recipes/categorical_kleisli_monads.py) &nbsp; [`📓`](recipes/categorical_kleisli_monads.ipynb)     | `category.kleisli_compose`, `semiring.ViterbiSemiring`, `semiring.TropicalSemiring`                          |
+| **Forward-Mode Autodiff**      |          [`🐍`](recipes/forward_mode_autodiff.py) &nbsp; [`📓`](recipes/forward_mode_autodiff.ipynb)          | `StandardSemiring(DualNumber)`, `GradientDualNumber`, multi-hop gradient flow                                |
+| **Sparse Neural Backprop**     |         [`🐍`](recipes/sparse_neural_backprop.py) &nbsp; [`📓`](recipes/sparse_neural_backprop.ipynb)         | `matrix.transpose`, `matrix.dot`, adjoint pullback $W^T \cdot \bar{z}$, outer products                       |
+| **Functional Autograd Engine** |     [`🐍`](recipes/functional_autograd_engine.py) &nbsp; [`📓`](recipes/functional_autograd_engine.ipynb)     | `Value` computational DAG, reverse topological VJP traversal, parameter optimization                         |
 
 Run any recipe using `uv`:
 
