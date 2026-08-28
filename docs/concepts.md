@@ -57,7 +57,24 @@ A Group where the operation is also **Commutative**:
 
 **Example**: Integers under addition $(\mathbb{Z}, +)$.
 
-### 4. Semiring $(S, \oplus, \otimes)$
+### 4. Groupoid $\mathcal{G}$
+
+A **Groupoid** generalizes a Group to multi-state systems. It can be defined as a small Category in which **every morphism is an isomorphism (invertible)**, or as a set equipped with a *partial* binary composition $\circ$ satisfying:
+
+* **Partial Composition**: $g \circ f$ is defined only when the codomain (target) of $f$ equals the domain (source) of $g$.
+* **Associativity**: $(h \circ g) \circ f = h \circ (g \circ f)$ whenever composable.
+* **Identities**: For every state/object $A$, there exists an identity morphism $\text{id}_A$.
+* **Inverses**: For every morphism $f: A \to B$, there exists an inverse morphism $f^{-1}: B \to A$ such that:
+  $$f \circ f^{-1} = \text{id}_B \quad \text{and} \quad f^{-1} \circ f = \text{id}_A$$
+
+**Examples & Applications**:
+
+* **Group vs Groupoid**: A Group is a Groupoid with *only one object* (all elements are everywhere composable).
+* **Patch Theory (Darcs VCS)**: Repository states are objects; diff patches $P: \text{State}_1 \to \text{State}_2$ are groupoid morphisms. Every patch has a formal inverse $P^{-1}$, and patches compose along valid execution paths.
+* **Topological Fundamental Groupoid $\Pi_1(X)$**: Continuous path transformations in point clouds and simplicial complexes (`algebrax.homology`).
+* **Permutations** (`algebrax.group`): Full permutations form a single-object groupoid (a Group), while partial bijection transformations form a multi-object groupoid.
+
+### 5. Semiring $(S, \oplus, \otimes)$
 
 A set $S$ with two operations, Addition ($\oplus$) and Multiplication ($\otimes$), satisfying:
 
@@ -78,7 +95,7 @@ Semirings are organized into categorical sub-modules under `algebrax.semiring`:
 * **`structures`**: `StringSemiring`, `KCollapsedSemiring`. Formal path languages, bounded counting.
 * **`algebraic`**: `MonoidAlgebraSemiring`, `PolynomialSemiring`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordSemiring`, `GaloisFieldSemiring`. Free & quotient monoid algebras, skein modules, Clifford multivectors, finite fields.
 
-### 5. Ring $(R, +, \cdot)$
+### 6. Ring $(R, +, \cdot)$
 
 A Semiring that **has additive inverses**.
 
@@ -86,7 +103,7 @@ A Semiring that **has additive inverses**.
 
 **Example**: Integers $\mathbb{Z}$, Square Matrices $M_n (\mathbb{R})$.
 
-### 6. Field $(F, +, \cdot)$
+### 7. Field $(F, +, \cdot)$
 
 A Ring where **multiplication has inverses** (for non-zero elements).
 
@@ -94,7 +111,7 @@ A Ring where **multiplication has inverses** (for non-zero elements).
 
 **Example**: Real Numbers $\mathbb{R}$, Complex Numbers $\mathbb{C}$.
 
-### 7. Algebra (over a Field)
+### 8. Algebra (over a Field)
 
 A Vector Space equipped with a bilinear product.
 
@@ -103,14 +120,14 @@ A Vector Space equipped with a bilinear product.
 
 **Example**: The set of $N \times N$ matrices forms an Algebra.
 
-### 8. Ideal
+### 9. Ideal
 
 A subset $I$ of a Ring $R$ that absorbs multiplication.
 
 * If $x \in I$ and $r \in R$, then $r \cdot x \in I$.
 * Used to define Quotient Rings (e.g., Modular Arithmetic).
 
-### 9. Clifford Algebra (Geometric Algebra)
+### 10. Clifford Algebra (Geometric Algebra)
 
 An associative algebra equipped with a quadratic form, unifying scalars, vectors, and higher-order blades (bivectors,
 trivectors).
