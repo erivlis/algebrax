@@ -160,39 +160,26 @@ def test_hilbert_threshold():
 
 
 def test_hilbert_odd_n():
-    # n=3. half_n=1.
-    # k=0: keep.
-    # k=1: < 1? No. k=1 is half_n.
-    # Wait, half_n = 3//2 = 1.
-    # k=1. 0 < k < 1 is False.
-    # k=1 == half_n. n%2 != 0. So condition (k==half_n and n%2==0) is False.
-    # So k=1 falls to 'else' (negative freq)?
-    # Wait, for n=3 (odd), Nyquist is not at integer index.
-    # Frequencies: 0, 1, 2.
-    # 0: DC.
-    # 1: Positive.
-    # 2: Negative (-1).
-    # My logic:
-    # half_n = 1.
-    # k=0: keep.
-    # k=1: 0 < 1 < 1 False.
-    # k=1 == 1 and 3%2==0 False.
-    # So k=1 is treated as negative? That's WRONG.
-    # For n=3, k=1 is positive.
-    # Logic should be:
-    # if k == 0: keep
-    # elif k < (n+1)/2: positive (x2)
-    # else: negative (x0)
+    # For n=3, the frequencies are k=0, 1, 2.
+    # k=0 is DC, k=1 is positive, k=2 is negative (-1).
+    # The hilbert transform should keep k=0, double k=1, and zero out k=2.
+    n = 3
+    # Signal is a cosine with frequency k=1: cos(2*pi*m/3)
+    signal = {0: 1.0, 1: -0.5, 2: -0.5}
 
-    # My current logic:
-    # half_n = n // 2
-    # 0 < k < half_n
-    # For n=3, half_n=1. 0 < k < 1 is empty.
-    # So k=1 is dropped.
-    # This is a BUG in hilbert() for odd n.
-    # But I am writing tests to cover branches, not fix bugs yet.
-    # Actually, I should fix the bug.
-    pass
+    # The analytic signal should be exp(j*2*pi*m/3)
+    analytic_sig = hilbert(signal, n=n)
+
+    # Expected values
+    expected = {
+        0: 1.0 + 0.0j,
+        1: -0.5 + 0.8660254037844386j,
+        2: -0.5 - 0.8660254037844386j,
+    }
+
+    assert len(analytic_sig) == len(expected)
+    for m in range(n):
+        assert analytic_sig[m] == pytest.approx(expected[m])
 
 
 def test_lorentz_zero_result():
