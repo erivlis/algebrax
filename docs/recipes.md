@@ -229,6 +229,22 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Quantum Feynman Path Integrals & Interference
+* **Files**: [`quantum_feynman_path_integral.py`](https://github.com/erivlis/algebrax/blob/main/recipes/quantum_feynman_path_integral.py) | [`quantum_feynman_path_integral.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/quantum_feynman_path_integral.ipynb)
+* **Run**: `uv run recipes/quantum_feynman_path_integral.py`
+* **Components**: `semiring.StandardSemiring(dtype=complex)`, `matrix.core.dot`, `typing.SparseMatrix`
+* **Summary**: Simulates Richard Feynman's discrete sum-over-histories formulation of quantum mechanics using standard Python `complex` numbers and `StandardSemiring(dtype=complex)`. Evaluates multi-path wave interference, double-slit diffraction, topological Aharonov-Bohm phase shifts ($\Delta \phi = \frac{q\Phi}{\hbar}$), and Born's rule probabilities ($P = |K|^2$) with zero custom physics classes.
+
+---
+
+### Relativistic Dirac Spinors & Spacetime Algebra
+* **Files**: [`relativistic_dirac_spinor.py`](https://github.com/erivlis/algebrax/blob/main/recipes/relativistic_dirac_spinor.py) | [`relativistic_dirac_spinor.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/relativistic_dirac_spinor.ipynb)
+* **Run**: `uv run recipes/relativistic_dirac_spinor.py`
+* **Components**: `clifford.CliffordSemiring(p=1, q=3)`, `matrix.core.dot`, `typing.SparseVector`
+* **Summary**: Implements relativistic spin-$\frac{1}{2}$ Dirac fermions in Hestenes' Spacetime Algebra (STA) over Minkowski spacetime $\mathbb{R}^{1,3}$. Represents 4-spinors $\Psi$ as even multivectors $\psi \in Cl^+(1, 3)$, proves the $4\pi$ rotation periodicity ($\psi(2\pi) = -\psi(0), \psi(4\pi) = +\psi(0)$), evaluates hyperbolic Lorentz boosts ($L = \exp(-\frac{\xi}{2}\gamma_0\gamma_k)$), computes conserved future-directed timelike probability 4-currents ($J = \psi \gamma_0 \psi^\dagger$), and routes spinor wavepackets through causal Minkowski diamond lattices.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab

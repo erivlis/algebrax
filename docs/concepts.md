@@ -88,12 +88,12 @@ A set $S$ with two operations, Addition ($\oplus$) and Multiplication ($\otimes$
 **Examples in Library** (`algebrax.semiring`):
 
 Semirings are organized into categorical sub-modules under `algebrax.semiring`:
-* **`arithmetic`**: `StandardSemiring` $(\mathbb{R}, +, \times)$. Standard Matrix Multiplication.
+* **`arithmetic`**: `StandardSemiring` over real numbers $(\mathbb{R}, +, \times)$ or complex amplitudes $(\mathbb{C}, +, \times)$ (quantum path integrals, discrete wave interference).
 * **`optimization`**: `TropicalSemiring` $(\mathbb{R} \cup \{\infty\}, \min, +)$, `ArcticSemiring`, `ViterbiSemiring`, `ReliabilitySemiring`, `BottleneckSemiring`, `MinTimesSemiring`. Shortest path and capacity algorithms.
 * **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations.
 * **`statistical`**: `LogSemiring`, `ExpectationSemiring`, `VarianceSemiring`, `DualNumberSemiring`. Probabilistic inference, moments, automatic differentiation.
 * **`structures`**: `StringSemiring`, `KCollapsedSemiring`. Formal path languages, bounded counting.
-* **`algebraic`**: `MonoidAlgebraSemiring`, `PolynomialSemiring`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordSemiring`, `GaloisFieldSemiring`. Free & quotient monoid algebras, skein modules, Clifford multivectors, finite fields.
+* **`algebraic`**: `MonoidAlgebraSemiring`, `PolynomialSemiring`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordSemiring` ($Cl(p,q,r)$ geometric algebras and Spacetime Dirac spinors), `GaloisFieldSemiring`. Free & quotient monoid algebras, skein modules, Clifford multivectors, finite fields.
 
 ### 6. Ring $(R, +, \cdot)$
 
