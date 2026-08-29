@@ -223,6 +223,17 @@ if str(REPO_ROOT) not in sys.path:
 from recipes.forward_mode_autodiff import DualNumber, evaluate_dual, evaluate_dual_graph  # noqa: E402
 from recipes.functional_autograd_engine import Value, build_and_evaluate_dag  # noqa: E402
 from recipes.nlp_provenance_parser import GrammarSemiring, parse_cyk  # noqa: E402
+from recipes.quantum_feynman_path_integral import (  # noqa: E402
+    simulate_aharonov_bohm_effect,
+    simulate_double_slit,
+    simulate_two_path_interference,
+)
+from recipes.relativistic_dirac_spinor import (  # noqa: E402
+    boost_spinor,
+    compute_dirac_current,
+    create_dirac_spinor,
+    rotate_spinor,
+)
 from recipes.sparse_neural_backprop import SparseLinearLayer, SparseMLP, train_sparse_mlp  # noqa: E402
 
 try:
@@ -1829,6 +1840,275 @@ def run_functional_autograd_engine() -> None:
         dpg.set_value('autograd_status', f'Error: {e}')
 
 
+def run_quantum_feynman_path_integral() -> None:
+    try:
+        exp_type = dpg.get_value('quantum_exp_type')
+        slit_sep = float(dpg.get_value('quantum_slit_sep'))
+        wavelength = float(dpg.get_value('quantum_wavelength'))
+        flux = float(dpg.get_value('quantum_flux'))
+
+        if dpg.does_item_exist('quantum_path_canvas'):
+            dpg.delete_item('quantum_path_canvas', children_only=True)
+            dpg.draw_rectangle(
+                (0, 0), (700, 220), fill=(15, 18, 26), color=(50, 60, 90), thickness=1, parent='quantum_path_canvas'
+            )
+
+        table_data: dict[int | str, dict[str, str]] = {}
+
+        if 'Double-Slit' in exp_type:
+            results = simulate_double_slit(
+                slit_separation=slit_sep,
+                screen_distance=10.0,
+                wavelength=wavelength,
+                num_detectors=15,
+            )
+            # Draw Double-Slit Geometry & Wave Fringes on Canvas
+            if dpg.does_item_exist('quantum_path_canvas'):
+                # Source
+                dpg.draw_circle(
+                    (60, 110), 12, color=(100, 255, 255), fill=(30, 80, 100), parent='quantum_path_canvas'
+                )
+                dpg.draw_text((45, 130), 'Source', color=(200, 240, 255), size=12, parent='quantum_path_canvas')
+
+                # Slits barrier
+                dpg.draw_line((220, 20), (220, 90), color=(180, 180, 200), thickness=4, parent='quantum_path_canvas')
+                dpg.draw_line((220, 130), (220, 200), color=(180, 180, 200), thickness=4, parent='quantum_path_canvas')
+                dpg.draw_circle(
+                    (220, 95), 6, color=(255, 200, 100), fill=(255, 255, 100), parent='quantum_path_canvas'
+                )
+                dpg.draw_circle(
+                    (220, 125), 6, color=(255, 200, 100), fill=(255, 255, 100), parent='quantum_path_canvas'
+                )
+                dpg.draw_text((230, 85), 'Slit A', color=(255, 200, 100), size=11, parent='quantum_path_canvas')
+                dpg.draw_text((230, 125), 'Slit B', color=(255, 200, 100), size=11, parent='quantum_path_canvas')
+
+                # Rays to center screen
+                dpg.draw_line(
+                    (60, 110), (220, 95), color=(100, 200, 255, 140), thickness=1, parent='quantum_path_canvas'
+                )
+                dpg.draw_line(
+                    (60, 110), (220, 125), color=(100, 200, 255, 140), thickness=1, parent='quantum_path_canvas'
+                )
+
+                # Draw Screen Detector Fringes (Intensity Bar Chart)
+                max_p = max(r['probability'] for r in results) if results else 1.0
+                max_p = max(max_p, 1e-9)
+
+                for i, r in enumerate(results):
+                    y_scr = int(25 + i * (170 / (len(results) - 1)))
+                    bar_len = int((r['probability'] / max_p) * 200)
+                    # Screen line
+                    dpg.draw_line(
+                        (450, y_scr),
+                        (450 + bar_len, y_scr),
+                        color=(100, 255, 150),
+                        thickness=6,
+                        parent='quantum_path_canvas',
+                    )
+                    dpg.draw_text(
+                        (455 + bar_len, y_scr - 6),
+                        f"{r['probability']:.3f}",
+                        color=(200, 255, 200),
+                        size=10,
+                        parent='quantum_path_canvas',
+                    )
+                    dpg.draw_line(
+                        (220, 95), (450, y_scr), color=(80, 120, 180, 40), thickness=1, parent='quantum_path_canvas'
+                    )
+                    dpg.draw_line(
+                        (220, 125), (450, y_scr), color=(80, 120, 180, 40), thickness=1, parent='quantum_path_canvas'
+                    )
+
+                dpg.draw_text(
+                    (450, 10),
+                    'Detector Screen Intensity P = |K|^2',
+                    color=(100, 255, 150),
+                    size=13,
+                    parent='quantum_path_canvas',
+                )
+
+            for idx, r in enumerate(results):
+                table_data[idx] = {
+                    'Screen Detector': r['detector'],
+                    'Spatial y': f"{r['y_pos']:+6.2f}",
+                    'Complex Amplitude': f"{r['amplitude']}",
+                    'Born Probability P': f"{r['probability']:.6f}",
+                }
+            dpg.set_value('quantum_path_status', 'Simulated 2-step Feynman sum-over-histories with wave interference!')
+
+        elif 'Aharonov-Bohm' in exp_type:
+            z_ab, p_ab = simulate_aharonov_bohm_effect(magnetic_flux=flux)
+            if dpg.does_item_exist('quantum_path_canvas'):
+                dpg.draw_circle(
+                    (350, 110), 30, color=(255, 100, 100), fill=(80, 20, 20), thickness=2, parent='quantum_path_canvas'
+                )
+                dpg.draw_text(
+                    (310, 105), 'Solenoid (B=0)', color=(255, 150, 150), size=12, parent='quantum_path_canvas'
+                )
+                dpg.draw_text(
+                    (330, 125), f'Flux Φ={flux:.2f}π', color=(255, 220, 100), size=11, parent='quantum_path_canvas'
+                )
+                # Top path
+                dpg.draw_line(
+                    (100, 110), (350, 40), color=(100, 200, 255), thickness=2, parent='quantum_path_canvas'
+                )
+                dpg.draw_line(
+                    (350, 40), (600, 110), color=(100, 200, 255), thickness=2, parent='quantum_path_canvas'
+                )
+                dpg.draw_text(
+                    (280, 20), 'Path 1: +qΦ/2ħ', color=(100, 200, 255), size=12, parent='quantum_path_canvas'
+                )
+                # Bottom path
+                dpg.draw_line(
+                    (100, 110), (350, 180), color=(100, 255, 180), thickness=2, parent='quantum_path_canvas'
+                )
+                dpg.draw_line(
+                    (350, 180), (600, 110), color=(100, 255, 180), thickness=2, parent='quantum_path_canvas'
+                )
+                dpg.draw_text(
+                    (280, 195), 'Path 2: -qΦ/2ħ', color=(100, 255, 180), size=12, parent='quantum_path_canvas'
+                )
+                # Detector
+                dpg.draw_circle(
+                    (600, 110), 16, color=(255, 255, 100), fill=(90, 90, 20), parent='quantum_path_canvas'
+                )
+                dpg.draw_text(
+                    (570, 140), f'Detector P = {p_ab:.4f}', color=(255, 255, 150), size=13, parent='quantum_path_canvas'
+                )
+
+            table_data[0] = {
+                'Experiment': 'Aharonov-Bohm Gauge Shift',
+                'Magnetic Flux (Φ)': f'{flux:.4f} rad',
+                'Total Amplitude K': f'{z_ab}',
+                'Interference Probability P': f'{p_ab:.6f}',
+            }
+            dpg.set_value(
+                'quantum_path_status', f'Calculated topological Aharonov-Bohm phase shift with Flux={flux:.2f}!'
+            )
+
+        display_matrix_in_table(table_data, 'table_quantum_path_res')
+    except Exception as e:
+        dpg.set_value('quantum_path_status', f'Error: {e}')
+
+
+def run_relativistic_dirac_spinor() -> None:
+    try:
+        tr_type = dpg.get_value('dirac_transform_type')
+        angle_deg = float(dpg.get_value('dirac_angle_deg'))
+        rapidity = float(dpg.get_value('dirac_rapidity'))
+        scalar_val = float(dpg.get_value('dirac_scalar'))
+        biv12_val = float(dpg.get_value('dirac_spin_12'))
+
+        psi_init = create_dirac_spinor(scalar=scalar_val, bivector_12=biv12_val)
+
+        if 'Rotation' in tr_type:
+            rad = math.radians(angle_deg)
+            psi_transformed = rotate_spinor(psi_init, angle_rad=rad, plane=(2, 3))
+            tr_desc = f'Spatial Rotation in (x,y)-plane by {angle_deg:.1f}° (4π Periodicity)'
+        else:
+            psi_transformed = boost_spinor(psi_init, rapidity=rapidity, axis=1)
+            tr_desc = f'Relativistic Lorentz Boost along x-axis with Rapidity ξ = {rapidity:.2f}'
+
+        # Compute conserved Dirac 4-current
+        current_init = compute_dirac_current(psi_init)
+        current_trans = compute_dirac_current(psi_transformed)
+
+        # Draw Spinor Circle and 4-Current vectors on Canvas
+        if dpg.does_item_exist('dirac_spinor_canvas'):
+            dpg.delete_item('dirac_spinor_canvas', children_only=True)
+            dpg.draw_rectangle(
+                (0, 0), (700, 220), fill=(18, 16, 24), color=(60, 45, 80), thickness=1, parent='dirac_spinor_canvas'
+            )
+
+            # Left side: 4π Double-Covering Spinor Cycle
+            center_spinor = (180, 110)
+            radius = 70
+            dpg.draw_circle(center_spinor, radius, color=(120, 80, 180), thickness=1, parent='dirac_spinor_canvas')
+            dpg.draw_line(
+                (center_spinor[0] - radius - 10, center_spinor[1]),
+                (center_spinor[0] + radius + 10, center_spinor[1]),
+                color=(60, 60, 80),
+                parent='dirac_spinor_canvas',
+            )
+            dpg.draw_line(
+                (center_spinor[0], center_spinor[1] - radius - 10),
+                (center_spinor[0], center_spinor[1] + radius + 10),
+                color=(60, 60, 80),
+                parent='dirac_spinor_canvas',
+            )
+
+            # Half-angle spinor orientation: theta_spinor = angle_deg / 2
+            half_rad = math.radians(angle_deg) / 2.0 if 'Rotation' in tr_type else 0.0
+            pt_x = int(center_spinor[0] + radius * math.cos(half_rad))
+            pt_y = int(center_spinor[1] - radius * math.sin(half_rad))
+
+            dpg.draw_line(
+                center_spinor, (pt_x, pt_y), color=(255, 100, 200), thickness=3, parent='dirac_spinor_canvas'
+            )
+            dpg.draw_circle(
+                (pt_x, pt_y), 6, color=(255, 200, 255), fill=(255, 100, 200), parent='dirac_spinor_canvas'
+            )
+            dpg.draw_text(
+                (center_spinor[0] - 80, 15),
+                'Spin-1/2 Rotor R = exp(-θ/2 B_12)',
+                color=(255, 180, 220),
+                size=12,
+                parent='dirac_spinor_canvas',
+            )
+            dpg.draw_text(
+                (center_spinor[0] - 60, 195),
+                f'Rotor Half-Angle: {math.degrees(half_rad):.1f}°',
+                color=(200, 160, 255),
+                size=11,
+                parent='dirac_spinor_canvas',
+            )
+
+            # Right side: Conserved Dirac Current J^mu Flow
+            center_j = (520, 110)
+            dpg.draw_circle(center_j, 60, color=(70, 100, 150), thickness=1, parent='dirac_spinor_canvas')
+            j0_val = current_trans.get((1,), 0.0)
+            j1_val = current_trans.get((2,), 0.0)
+
+            j_vec_end = (int(center_j[0] + j1_val * 35), int(center_j[1] - j0_val * 35))
+            dpg.draw_line(center_j, j_vec_end, color=(100, 255, 150), thickness=3, parent='dirac_spinor_canvas')
+            dpg.draw_circle(j_vec_end, 5, color=(200, 255, 200), fill=(100, 255, 150), parent='dirac_spinor_canvas')
+            dpg.draw_text(
+                (center_j[0] - 80, 15),
+                'Dirac 4-Current J = ψ γ_0 ψ^†',
+                color=(100, 255, 150),
+                size=12,
+                parent='dirac_spinor_canvas',
+            )
+            dpg.draw_text(
+                (center_j[0] - 70, 195),
+                f'Density J^0: {j0_val:.4f} > 0',
+                color=(150, 255, 200),
+                size=11,
+                parent='dirac_spinor_canvas',
+            )
+
+        table_data = {
+            0: {
+                'Spinor State / Multivector': 'Initial State ψ(0)',
+                'Scalar α': f"{psi_init.get((), 0.0):.4f}",
+                'Spin Bivector B_12': f"{psi_init.get((2, 3), 0.0):.4f}",
+                'Boost Bivector B_01': f"{psi_init.get((1, 2), 0.0):.4f}",
+                'Current Density J^0': f"{current_init.get((1,), 0.0):.4f}",
+            },
+            1: {
+                'Spinor State / Multivector': f'Transformed State ψ ({tr_desc})',
+                'Scalar α': f"{psi_transformed.get((), 0.0):.4f}",
+                'Spin Bivector B_12': f"{psi_transformed.get((2, 3), 0.0):.4f}",
+                'Boost Bivector B_01': f"{psi_transformed.get((1, 2), 0.0):.4f}",
+                'Current Density J^0': f"{current_trans.get((1,), 0.0):.4f}",
+            },
+        }
+        display_matrix_in_table(table_data, 'table_dirac_res')
+        dpg.set_value('dirac_status', f'Computed relativistic Dirac spinor rotor transformation: {tr_desc}!')
+    except Exception as e:
+        dpg.set_value('dirac_status', f'Error: {e}')
+
+
 # --- Image Convolution Helpers ---
 IMAGE_PRESETS: dict[str, str] = {
     'Cross Pattern (8x8)': (
@@ -3413,6 +3693,158 @@ def build_view_functional_autograd_engine() -> None:
                     pass
 
 
+def build_view_quantum_feynman_path_integral() -> None:
+    with dpg.group(tag='view_quantum_feynman_path_integral_group', show=False):
+        dpg.add_text(
+            'Discrete Feynman Path Integrals, Complex Probability Amplitude Semirings & Wave Interference',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('QUANTUM EXPERIMENT SETUP', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=['Double-Slit Diffraction', 'Aharonov-Bohm Gauge Phase Shift'],
+                    default_value='Double-Slit Diffraction',
+                    tag='quantum_exp_type',
+                    width=250,
+                    callback=lambda: run_quantum_feynman_path_integral(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('PATH ACTION & GEOMETRY', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_slider_float(
+                    default_value=2.0,
+                    min_value=0.5,
+                    max_value=6.0,
+                    tag='quantum_slit_sep',
+                    label='Slit Sep (d)',
+                    width=180,
+                    callback=lambda: run_quantum_feynman_path_integral(),
+                )
+                dpg.add_slider_float(
+                    default_value=1.0,
+                    min_value=0.2,
+                    max_value=3.0,
+                    tag='quantum_wavelength',
+                    label='Wavelength (λ)',
+                    width=180,
+                    callback=lambda: run_quantum_feynman_path_integral(),
+                )
+                dpg.add_slider_float(
+                    default_value=0.0,
+                    min_value=0.0,
+                    max_value=3.14159,
+                    tag='quantum_flux',
+                    label='Magnetic Flux (Φ)',
+                    width=180,
+                    callback=lambda: run_quantum_feynman_path_integral(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_button(
+                    label='Sum Path Integrals K = Σ exp(iS/ħ)', callback=run_quantum_feynman_path_integral, width=250
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='quantum_path_status', color=(255, 200, 100), wrap=290)
+
+            with dpg.group():
+                dpg.add_text('Quantum Superposition Interference & Detector Screen Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=220, tag='quantum_path_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                dpg.add_text('Feynman Path Summation & Born Rule Probabilities (Selectable cells):')
+                create_bordered_table(
+                    tag='table_quantum_path_res',
+                    columns=['Screen Detector', 'Spatial y', 'Complex Amplitude', 'Born Probability P'],
+                    width=680,
+                )
+
+
+def build_view_relativistic_dirac_spinor() -> None:
+    with dpg.group(tag='view_relativistic_dirac_spinor_group', show=False):
+        dpg.add_text(
+            'Relativistic Dirac Spinors, Clifford Spacetime Algebra Cl(1,3) & Conserved 4-Currents',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('LORENTZ & ROTOR TRANSFORM', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=['Spatial Rotation (x-y plane)', 'Lorentz Boost (x-axis)'],
+                    default_value='Spatial Rotation (x-y plane)',
+                    tag='dirac_transform_type',
+                    width=250,
+                    callback=lambda: run_relativistic_dirac_spinor(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('TRANSFORMATION PARAMETERS', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_slider_float(
+                    default_value=180.0,
+                    min_value=0.0,
+                    max_value=720.0,
+                    tag='dirac_angle_deg',
+                    label='Angle (Deg, up to 4π)',
+                    width=180,
+                    callback=lambda: run_relativistic_dirac_spinor(),
+                )
+                dpg.add_slider_float(
+                    default_value=0.8,
+                    min_value=0.0,
+                    max_value=3.0,
+                    tag='dirac_rapidity',
+                    label='Boost Rapidity (ξ)',
+                    width=180,
+                    callback=lambda: run_relativistic_dirac_spinor(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('SPINOR INITIAL COMPONENTS', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_input_float(
+                    default_value=1.0,
+                    tag='dirac_scalar',
+                    label='Scalar α',
+                    width=120,
+                    callback=lambda: run_relativistic_dirac_spinor(),
+                )
+                dpg.add_input_float(
+                    default_value=0.5,
+                    tag='dirac_spin_12',
+                    label='Bivector B_12',
+                    width=120,
+                    callback=lambda: run_relativistic_dirac_spinor(),
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_button(
+                    label='Apply Rotor ψ\' = R ψ R^†', callback=run_relativistic_dirac_spinor, width=250
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='dirac_status', color=(255, 200, 100), wrap=290)
+
+            with dpg.group():
+                dpg.add_text(
+                    'Dirac Spin-1/2 4π Orientation & Conserved Current J^μ Flow Canvas:', color=(180, 180, 180)
+                )
+                with dpg.drawlist(width=700, height=220, tag='dirac_spinor_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                dpg.add_text('Multivector Components & Probability Current Density (Selectable cells):')
+                create_bordered_table(
+                    tag='table_dirac_res',
+                    columns=[
+                        'Spinor State / Multivector',
+                        'Scalar α',
+                        'Spin Bivector B_12',
+                        'Boost Bivector B_01',
+                        'Current Density J^0',
+                    ],
+                    width=680,
+                )
+
+
 # --- Navigation Sidebar Builder ---
 VIEWS: list[str] = [
     'semiring_matrix_power',
@@ -3442,6 +3874,8 @@ VIEWS: list[str] = [
     'forward_mode_autodiff',
     'sparse_neural_backprop',
     'functional_autograd_engine',
+    'quantum_feynman_path_integral',
+    'relativistic_dirac_spinor',
 ]
 
 
@@ -3642,6 +4076,20 @@ def build_navigation_sidebar() -> None:
                 user_data='functional_autograd_engine',
             )
 
+        with dpg.tree_node(label='Quantum & Spacetime Mechanics', default_open=True):
+            dpg.add_selectable(
+                label='Quantum Path Integrals',
+                tag='sel_quantum_feynman_path_integral',
+                callback=change_view,
+                user_data='quantum_feynman_path_integral',
+            )
+            dpg.add_selectable(
+                label='Relativistic Dirac Spinors',
+                tag='sel_relativistic_dirac_spinor',
+                callback=change_view,
+                user_data='relativistic_dirac_spinor',
+            )
+
 
 # --- Dear PyGui Context & Theme Initialization ---
 
@@ -3738,6 +4186,8 @@ def main() -> None:
                 build_view_forward_mode_autodiff()
                 build_view_sparse_neural_backprop()
                 build_view_functional_autograd_engine()
+                build_view_quantum_feynman_path_integral()
+                build_view_relativistic_dirac_spinor()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()

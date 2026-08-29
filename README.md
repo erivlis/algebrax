@@ -149,37 +149,39 @@ print('Symbolic Derivation Polynomial:', provenance_mult[0][2])
 
 ## Use Case Recipes & Jupyter Notebooks
 
-The [`recipes/`](recipes) directory contains standalone CLI scripts and matching interactive `.ipynb` notebooks for 19
+The [`recipes/`](recipes) directory contains standalone CLI scripts and matching interactive `.ipynb` notebooks for 28
 real-world scenarios:
 
-| Category                       |                                               Recipe & Notebook                                               | Core Algebraic Components                                                                                    |
-|:-------------------------------|:-------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------|
-| **Image Processing**           |               [`🐍`](recipes/image_processing.py) &nbsp; [`📓`](recipes/image_processing.ipynb)               | `transforms.convolve`, `StandardSemiring`, `ArcticSemiring`, `TropicalSemiring`                              |
-| **Traffic Resilience**         |     [`🐍`](recipes/traffic_network_resilience.py) &nbsp; [`📓`](recipes/traffic_network_resilience.ipynb)     | `semiring.TropicalSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`                               |
-| **NLP Parsing**                |          [`🐍`](recipes/nlp_provenance_parser.py) &nbsp; [`📓`](recipes/nlp_provenance_parser.ipynb)          | `matrix.dot`, `semiring.ProvenanceSemiring`, `probability.entropy`                                           |
-| **Post-Quantum Security**      |   [`🐍`](recipes/post_quantum_crypto_exchange.py) &nbsp; [`📓`](recipes/post_quantum_crypto_exchange.ipynb)   | `semiring.DigitalSemiring`, `transforms.z_transform`, `probability.mutual_information`                       |
-| **Supply Chain Logistics**     | [`🐍`](recipes/supply_chain_optimal_transport.py) &nbsp; [`📓`](recipes/supply_chain_optimal_transport.ipynb) | `trie.AlgebraicTrie`, `lattice.join`, `lattice.meet`, `probability.kl_divergence`                            |
-| **Financial Risk**             |       [`🐍`](recipes/financial_risk_portfolio.py) &nbsp; [`📓`](recipes/financial_risk_portfolio.ipynb)       | `automata.simulate_dfa`, `matrix.academic.eigen_centrality`, `semiring.VarianceSemiring`                     |
-| **Structural Analysis**        |  [`🐍`](recipes/vibration_structural_analysis.py) &nbsp; [`📓`](recipes/vibration_structural_analysis.ipynb)  | `group.compose`, `group.signature`, `matrix.academic.determinant`, `transforms.hilbert`                      |
-| **Telecommunications**         |        [`🐍`](recipes/telecom_fractal_network.py) &nbsp; [`📓`](recipes/telecom_fractal_network.ipynb)        | `transforms.walsh_hadamard`, `analysis.laplacian`, `metrics.box_counting_dimension`                          |
-| **Quantum Optimization**       |    [`🐍`](recipes/quantum_convex_optimization.py) &nbsp; [`📓`](recipes/quantum_convex_optimization.ipynb)    | `transforms.legendre_fenchel`, `matrix.block_diag`, `matrix.trace`, `automata.simulate_nfa`                  |
-| **Sensor Reliability**         |     [`🐍`](recipes/sensor_network_reliability.py) &nbsp; [`📓`](recipes/sensor_network_reliability.ipynb)     | `semiring.ViterbiSemiring`, `matrix.power`, `analysis.gaussian_kernel`, `analysis.gradient`                  |
-| **Holographic Duality**        |      [`🐍`](recipes/holographic_bulk_boundary.py) &nbsp; [`📓`](recipes/holographic_bulk_boundary.ipynb)      | `analysis.forman_ricci_curvature`, `analysis.divergence`, `trie.AlgebraicTrie`, `probability.entropy`        |
-| **Optical Holography**         |  [`🐍`](recipes/optical_holography_simulation.py) &nbsp; [`📓`](recipes/optical_holography_simulation.ipynb)  | `transforms.dft`, `transforms.idft`, `probability.entropy`                                                   |
-| **Topological Data Analysis**  |      [`🐍`](recipes/topological_data_analysis.py) &nbsp; [`📓`](recipes/topological_data_analysis.ipynb)      | `semiring.BooleanSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`, `matrix.academic.determinant` |
-| **Control Theory**             |     [`🐍`](recipes/control_theory_state_space.py) &nbsp; [`📓`](recipes/control_theory_state_space.ipynb)     | `matrix.power`, `transforms.z_transform`, `matrix.academic.determinant`                                      |
-| **Algebraic Knot Theory**      |          [`🐍`](recipes/algebraic_knot_theory.py) &nbsp; [`📓`](recipes/algebraic_knot_theory.ipynb)          | `semiring.KnotSemiring`, `semiring.MonoidAlgebraSemiring`, `group.compose`, `group.signature`                |
-| **Sheaf Cohomology**           |     [`🐍`](recipes/sheaf_cohomology_consensus.py) &nbsp; [`📓`](recipes/sheaf_cohomology_consensus.ipynb)     | `analysis.gradient`, `analysis.laplacian`, `semiring.MonoidAlgebraSemiring`                                  |
-| **Trajectoid Kinematics**      |  [`🐍`](recipes/trajectoid_rolling_kinematics.py) &nbsp; [`📓`](recipes/trajectoid_rolling_kinematics.ipynb)  | `analysis.gradient`, `matrix.dot`, `metrics.sparsity`                                                        |
-| **Sparse Tensor Einsum**       |           [`🐍`](recipes/sparse_tensor_einsum.py) &nbsp; [`📓`](recipes/sparse_tensor_einsum.ipynb)           | `tensor.einsum`, `tensor.outer_product`, `tensor.tensordot`, `tensor.flatten_tensor`                         |
-| **Black Hole Spacetime**       | [`🐍`](recipes/blackhole_spacetime_simulation.py) &nbsp; [`📓`](recipes/blackhole_spacetime_simulation.ipynb) | `tensor.einsum`, `transforms.z_transform`, `analysis.gradient`, `probability.entropy`                        |
-| **3D Gaussian Splatting**      |   [`🐍`](recipes/gaussian_splatting_rendering.py) &nbsp; [`📓`](recipes/gaussian_splatting_rendering.ipynb)   | `matrix.dot`, `matrix.transpose`, `analysis.gaussian_kernel`                                                 |
-| **Simplicial Homology**        |     [`🐍`](recipes/topological_homology_betti.py) &nbsp; [`📓`](recipes/topological_homology_betti.ipynb)     | `homology.SimplicialComplex`, `homology.betti_numbers`, `analysis.SparseChainComplex`                        |
-| **Clifford Geometric Algebra** |      [`🐍`](recipes/clifford_rotor_kinematics.py) &nbsp; [`📓`](recipes/clifford_rotor_kinematics.ipynb)      | `clifford.CliffordSemiring`, `clifford.rotor_rotation`, `semiring.QuotientMonoidAlgebraSemiring`             |
-| **Galois Finite Fields**       |      [`🐍`](recipes/galois_field_cryptography.py) &nbsp; [`📓`](recipes/galois_field_cryptography.ipynb)      | `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `semiring.QuotientMonoidAlgebraSemiring`               |
-| **Forward-Mode Autodiff**      |          [`🐍`](recipes/forward_mode_autodiff.py) &nbsp; [`📓`](recipes/forward_mode_autodiff.ipynb)          | `StandardSemiring(DualNumber)`, `GradientDualNumber`, multi-hop gradient flow                                |
-| **Sparse Neural Backprop**     |         [`🐍`](recipes/sparse_neural_backprop.py) &nbsp; [`📓`](recipes/sparse_neural_backprop.ipynb)         | `matrix.transpose`, `matrix.dot`, adjoint pullback $W^T \cdot \bar{z}$, outer products                       |
-| **Functional Autograd Engine** |     [`🐍`](recipes/functional_autograd_engine.py) &nbsp; [`📓`](recipes/functional_autograd_engine.ipynb)     | `Value` computational DAG, reverse topological VJP traversal, parameter optimization                         |
+| Category                       |                                               Recipe & Notebook                                               | Core Algebraic Components                                                                                        |
+|:-------------------------------|:-------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------|
+| **Image Processing**           |               [`🐍`](recipes/image_processing.py) &nbsp; [`📓`](recipes/image_processing.ipynb)               | `transforms.convolve`, `StandardSemiring`, `ArcticSemiring`, `TropicalSemiring`                                  |
+| **Traffic Resilience**         |     [`🐍`](recipes/traffic_network_resilience.py) &nbsp; [`📓`](recipes/traffic_network_resilience.ipynb)     | `semiring.TropicalSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`                                   |
+| **NLP Parsing**                |          [`🐍`](recipes/nlp_provenance_parser.py) &nbsp; [`📓`](recipes/nlp_provenance_parser.ipynb)          | `matrix.dot`, `semiring.ProvenanceSemiring`, `probability.entropy`                                               |
+| **Post-Quantum Security**      |   [`🐍`](recipes/post_quantum_crypto_exchange.py) &nbsp; [`📓`](recipes/post_quantum_crypto_exchange.ipynb)   | `semiring.DigitalSemiring`, `transforms.z_transform`, `probability.mutual_information`                           |
+| **Supply Chain Logistics**     | [`🐍`](recipes/supply_chain_optimal_transport.py) &nbsp; [`📓`](recipes/supply_chain_optimal_transport.ipynb) | `trie.AlgebraicTrie`, `lattice.join`, `lattice.meet`, `probability.kl_divergence`                                |
+| **Financial Risk**             |       [`🐍`](recipes/financial_risk_portfolio.py) &nbsp; [`📓`](recipes/financial_risk_portfolio.ipynb)       | `automata.simulate_dfa`, `matrix.academic.eigen_centrality`, `semiring.VarianceSemiring`                         |
+| **Structural Analysis**        |  [`🐍`](recipes/vibration_structural_analysis.py) &nbsp; [`📓`](recipes/vibration_structural_analysis.ipynb)  | `group.compose`, `group.signature`, `matrix.academic.determinant`, `transforms.hilbert`                          |
+| **Telecommunications**         |        [`🐍`](recipes/telecom_fractal_network.py) &nbsp; [`📓`](recipes/telecom_fractal_network.ipynb)        | `transforms.walsh_hadamard`, `analysis.laplacian`, `metrics.box_counting_dimension`                              |
+| **Quantum Optimization**       |    [`🐍`](recipes/quantum_convex_optimization.py) &nbsp; [`📓`](recipes/quantum_convex_optimization.ipynb)    | `transforms.legendre_fenchel`, `matrix.block_diag`, `matrix.trace`, `automata.simulate_nfa`                      |
+| **Sensor Reliability**         |     [`🐍`](recipes/sensor_network_reliability.py) &nbsp; [`📓`](recipes/sensor_network_reliability.ipynb)     | `semiring.ViterbiSemiring`, `matrix.power`, `analysis.gaussian_kernel`, `analysis.gradient`                      |
+| **Holographic Duality**        |      [`🐍`](recipes/holographic_bulk_boundary.py) &nbsp; [`📓`](recipes/holographic_bulk_boundary.ipynb)      | `analysis.forman_ricci_curvature`, `analysis.divergence`, `trie.AlgebraicTrie`, `probability.entropy`            |
+| **Optical Holography**         |  [`🐍`](recipes/optical_holography_simulation.py) &nbsp; [`📓`](recipes/optical_holography_simulation.ipynb)  | `transforms.dft`, `transforms.idft`, `probability.entropy`                                                       |
+| **Topological Data Analysis**  |      [`🐍`](recipes/topological_data_analysis.py) &nbsp; [`📓`](recipes/topological_data_analysis.ipynb)      | `semiring.BooleanSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`, `matrix.academic.determinant`     |
+| **Control Theory**             |     [`🐍`](recipes/control_theory_state_space.py) &nbsp; [`📓`](recipes/control_theory_state_space.ipynb)     | `matrix.power`, `transforms.z_transform`, `matrix.academic.determinant`                                          |
+| **Algebraic Knot Theory**      |          [`🐍`](recipes/algebraic_knot_theory.py) &nbsp; [`📓`](recipes/algebraic_knot_theory.ipynb)          | `semiring.KnotSemiring`, `semiring.MonoidAlgebraSemiring`, `group.compose`, `group.signature`                    |
+| **Sheaf Cohomology**           |     [`🐍`](recipes/sheaf_cohomology_consensus.py) &nbsp; [`📓`](recipes/sheaf_cohomology_consensus.ipynb)     | `analysis.gradient`, `analysis.laplacian`, `semiring.MonoidAlgebraSemiring`                                      |
+| **Trajectoid Kinematics**      |  [`🐍`](recipes/trajectoid_rolling_kinematics.py) &nbsp; [`📓`](recipes/trajectoid_rolling_kinematics.ipynb)  | `analysis.gradient`, `matrix.dot`, `metrics.sparsity`                                                            |
+| **Sparse Tensor Einsum**       |           [`🐍`](recipes/sparse_tensor_einsum.py) &nbsp; [`📓`](recipes/sparse_tensor_einsum.ipynb)           | `tensor.einsum`, `tensor.outer_product`, `tensor.tensordot`, `tensor.flatten_tensor`                             |
+| **Black Hole Spacetime**       | [`🐍`](recipes/blackhole_spacetime_simulation.py) &nbsp; [`📓`](recipes/blackhole_spacetime_simulation.ipynb) | `tensor.einsum`, `transforms.z_transform`, `analysis.gradient`, `probability.entropy`                            |
+| **3D Gaussian Splatting**      |   [`🐍`](recipes/gaussian_splatting_rendering.py) &nbsp; [`📓`](recipes/gaussian_splatting_rendering.ipynb)   | `matrix.dot`, `matrix.transpose`, `analysis.gaussian_kernel`                                                     |
+| **Simplicial Homology**        |     [`🐍`](recipes/topological_homology_betti.py) &nbsp; [`📓`](recipes/topological_homology_betti.ipynb)     | `homology.SimplicialComplex`, `homology.betti_numbers`, `analysis.SparseChainComplex`                            |
+| **Clifford Geometric Algebra** |      [`🐍`](recipes/clifford_rotor_kinematics.py) &nbsp; [`📓`](recipes/clifford_rotor_kinematics.ipynb)      | `clifford.CliffordSemiring`, `clifford.rotor_rotation`, `semiring.QuotientMonoidAlgebraSemiring`                 |
+| **Galois Finite Fields**       |      [`🐍`](recipes/galois_field_cryptography.py) &nbsp; [`📓`](recipes/galois_field_cryptography.ipynb)      | `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `semiring.QuotientMonoidAlgebraSemiring`                   |
+| **Forward-Mode Autodiff**      |          [`🐍`](recipes/forward_mode_autodiff.py) &nbsp; [`📓`](recipes/forward_mode_autodiff.ipynb)          | `StandardSemiring(DualNumber)`, `GradientDualNumber`, multi-hop gradient flow                                    |
+| **Sparse Neural Backprop**     |         [`🐍`](recipes/sparse_neural_backprop.py) &nbsp; [`📓`](recipes/sparse_neural_backprop.ipynb)         | `matrix.transpose`, `matrix.dot`, adjoint pullback $W^T \cdot \bar{z}$, outer products                           |
+| **Functional Autograd Engine** |     [`🐍`](recipes/functional_autograd_engine.py) &nbsp; [`📓`](recipes/functional_autograd_engine.ipynb)     | `Value` computational DAG, reverse topological VJP traversal, parameter optimization                             |
+| **Quantum Path Integrals**     |  [`🐍`](recipes/quantum_feynman_path_integral.py) &nbsp; [`📓`](recipes/quantum_feynman_path_integral.ipynb)  | `StandardSemiring(dtype=complex)`, native `complex`, discrete Feynman path summation, Born's rule, Aharonov-Bohm |
+| **Relativistic Dirac Spinors** |      [`🐍`](recipes/relativistic_dirac_spinor.py) &nbsp; [`📓`](recipes/relativistic_dirac_spinor.ipynb)      | `clifford.CliffordSemiring(1,3)`, Dirac spinors $\psi \in Cl^+(1,3)$, $4\pi$ rotation periodicity, 4-current $J$ |
 
 Run any recipe using `uv`:
 
@@ -206,8 +208,7 @@ uv run recipes/lab.py
 Comprehensive documentation is hosted online and structured into 3 Diátaxis pillars:
 
 * 🚀 [**Start**](docs/index.md): Installation, quickstart, and core philosophy.
-* 📖 [**Tutorials**](docs/tutorials/semirings/semiring_standard.md): In-depth guides for Semirings, Tries, Transforms,
-  Graphs, and Benchmarks.
+* 📖 [**Tutorials**](docs/tutorials/semirings/semiring_standard.md): In-depth guides for Semirings, Tries, Transforms, Graphs, and Benchmarks.
 * 🍳 [**Recipes & GUI Lab**](docs/recipes.md): Real-world use cases and laboratory documentation.
 
 ---
@@ -215,9 +216,12 @@ Comprehensive documentation is hosted online and structured into 3 Diátaxis pil
 ## Development & Contributing
 
 ### Golden Source Recipes & Jupytext Sync
-All recipes in `recipes/` are authored as Python scripts (`.py`) using **Jupytext Percent format** (`# %%` cell markers) as the canonical **Golden Source**. Corresponding Jupyter Notebooks (`.ipynb`) are auto-generated from these scripts.
+
+All recipes in `recipes/` are authored as Python scripts (`.py`) using **Jupytext Percent format** (`# %%` cell markers)
+as the canonical **Golden Source**. Corresponding Jupyter Notebooks (`.ipynb`) are auto-generated from these scripts.
 
 #### Pre-Commit Hook Setup
+
 Install the `pre-commit` hook to automatically sync `.ipynb` notebooks whenever you modify a `.py` recipe script:
 
 ```bash
@@ -229,6 +233,7 @@ uvx pre-commit install
 ```
 
 #### Manual Sync & Testing
+
 ```bash
 # Refresh all Jupyter notebooks from Golden Source scripts
 uvx jupytext --to notebook recipes/*.py
