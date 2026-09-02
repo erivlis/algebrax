@@ -245,6 +245,14 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Distributed Vector Clocks & Causal Semilattices
+* **Files**: [`distributed_vector_clocks.py`](https://github.com/erivlis/algebrax/blob/main/recipes/distributed_vector_clocks.py) | [`distributed_vector_clocks.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/distributed_vector_clocks.ipynb)
+* **Run**: `uv run recipes/distributed_vector_clocks.py`
+* **Components**: `lattice.combine`, `semiring.ArcticSemiring`, `semiring.BooleanSemiring`, `matrix.core.dot`
+* **Summary**: Models asynchronous multi-process distributed systems, Lamport's Happened-Before relation ($\to$), and Mattern/Fidge Vector Clock timestamps over coordinate Join-Semilattices $(\mathbb{N}^k, \le, \vee)$. Evaluates pairwise event causality matrices ($a \to b$ vs $a \parallel b$), contracts multi-hop message DAGs via Boolean reachability and Arctic $(\max, +)$ critical path latency, and demonstrates state-based CRDT replica synchronization.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab

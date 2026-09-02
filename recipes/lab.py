@@ -220,6 +220,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from recipes.distributed_vector_clocks import (  # noqa: E402
+    compare_vector_clocks,
+    compute_causal_dag_analysis,
+    compute_causality_matrix,
+    merge_vector_clocks,
+    simulate_distributed_cluster,
+    synchronize_crdt_replicas,
+)
 from recipes.forward_mode_autodiff import DualNumber, evaluate_dual, evaluate_dual_graph  # noqa: E402
 from recipes.functional_autograd_engine import Value, build_and_evaluate_dag  # noqa: E402
 from recipes.nlp_provenance_parser import GrammarSemiring, parse_cyk  # noqa: E402
@@ -2109,6 +2117,318 @@ def run_relativistic_dirac_spinor() -> None:
         dpg.set_value('dirac_status', f'Error: {e}')
 
 
+def run_distributed_vector_clocks() -> None:
+    try:
+        view_mode = dpg.get_value('vclock_view_mode')
+        trace = simulate_distributed_cluster()
+
+        if dpg.does_item_exist('vclock_canvas'):
+            dpg.delete_item('vclock_canvas', children_only=True)
+            dpg.draw_rectangle(
+                (0, 0), (700, 220), fill=(16, 20, 28), color=(45, 60, 90), thickness=1, parent='vclock_canvas'
+            )
+
+            if 'Event Log' in view_mode:
+                # Process horizontal lanes
+                proc_y = {'P0': 50, 'P1': 110, 'P2': 170}
+                for proc, y in proc_y.items():
+                    dpg.draw_line((60, y), (660, y), color=(60, 75, 100), thickness=2, parent='vclock_canvas')
+                    dpg.draw_text((15, y - 8), proc, color=(150, 200, 255), size=14, parent='vclock_canvas')
+
+                # Event positions x along timeline
+                event_x = {
+                    'e0_1': 100,
+                    'e0_2': 180,
+                    'e1_1': 140,
+                    'e1_2': 280,
+                    'e2_1': 220,
+                    'e1_3': 380,
+                    'e2_2': 480,
+                }
+
+                # Draw Message Transmission Arrows
+                # M1: e0_2 (180, 50) -> e1_2 (280, 110)
+                dpg.draw_line(
+                    (event_x['e0_2'], proc_y['P0']),
+                    (event_x['e1_2'], proc_y['P1']),
+                    color=(255, 200, 100, 180),
+                    thickness=2,
+                    parent='vclock_canvas',
+                )
+                dpg.draw_text(
+                    (200, 70), 'Msg M1 (P0->P1)', color=(255, 220, 120), size=11, parent='vclock_canvas'
+                )
+
+                # M2: e1_3 (380, 110) -> e2_2 (480, 170)
+                dpg.draw_line(
+                    (event_x['e1_3'], proc_y['P1']),
+                    (event_x['e2_2'], proc_y['P2']),
+                    color=(100, 255, 200, 180),
+                    thickness=2,
+                    parent='vclock_canvas',
+                )
+                dpg.draw_text(
+                    (400, 130), 'Msg M2 (P1->P2)', color=(120, 255, 220), size=11, parent='vclock_canvas'
+                )
+
+                # Draw Event Nodes
+                for e_id, info in trace.items():
+                    px = event_x.get(e_id, 300)
+                    py = proc_y.get(info['process'], 110)
+                    color_node = (
+                        (100, 220, 255)
+                        if info['type'] == 'LOCAL'
+                        else (255, 180, 100)
+                        if info['type'] == 'SEND'
+                        else (100, 255, 150)
+                    )
+                    dpg.draw_circle(
+                        (px, py), 8, color=(255, 255, 255), fill=color_node, thickness=1, parent='vclock_canvas'
+                    )
+                    v_compact = ','.join(str(info['vector_clock'].get(p, 0)) for p in ['P0', 'P1', 'P2'])
+                    dpg.draw_text((px - 12, py - 24), e_id, color=(220, 230, 255), size=12, parent='vclock_canvas')
+                    dpg.draw_text(
+                        (px - 18, py + 12),
+                        f'V=<{v_compact}>',
+                        color=(180, 200, 220),
+                        size=10,
+                        parent='vclock_canvas',
+                    )
+
+            elif 'Causality Matrix' in view_mode:
+                # Draw 7x7 Graphical Causality Grid
+                event_keys = list(trace.keys())
+                causal_mat = compute_causality_matrix(trace)
+                cell_size = 24
+                start_x, start_y = 90, 30
+
+                # Column headers
+                for j, ej in enumerate(event_keys):
+                    dpg.draw_text(
+                        (start_x + j * cell_size + 4, start_y - 18),
+                        ej[1:],
+                        color=(200, 220, 255),
+                        size=11,
+                        parent='vclock_canvas',
+                    )
+
+                # Grid cells
+                for i, ei in enumerate(event_keys):
+                    dpg.draw_text(
+                        (start_x - 35, start_y + i * cell_size + 4),
+                        ei,
+                        color=(200, 220, 255),
+                        size=11,
+                        parent='vclock_canvas',
+                    )
+                    for j, ej in enumerate(event_keys):
+                        rel = causal_mat[ei][ej]
+                        if rel == 'precedes':
+                            fill_c = (40, 160, 80)
+                            sym = '->'
+                        elif rel == 'succeeds':
+                            fill_c = (40, 80, 180)
+                            sym = '<-'
+                        elif rel == 'concurrent':
+                            fill_c = (180, 50, 160)
+                            sym = '||'
+                        else:
+                            fill_c = (50, 50, 60)
+                            sym = '='
+
+                        cx = start_x + j * cell_size
+                        cy = start_y + i * cell_size
+                        dpg.draw_rectangle(
+                            (cx, cy),
+                            (cx + cell_size - 2, cy + cell_size - 2),
+                            fill=fill_c,
+                            color=(80, 90, 120),
+                            parent='vclock_canvas',
+                        )
+                        dpg.draw_text((cx + 5, cy + 3), sym, color=(255, 255, 255), size=11, parent='vclock_canvas')
+
+                # Legend on right side
+                dpg.draw_text(
+                    (310, 25),
+                    'Causality Partial Order (Happened-Before):',
+                    color=(150, 200, 255),
+                    size=13,
+                    parent='vclock_canvas',
+                )
+                dpg.draw_rectangle((310, 55), (325, 70), fill=(40, 160, 80), parent='vclock_canvas')
+                dpg.draw_text(
+                    (335, 55), 'Precedes (a -> b)  [c1 < c2]', color=(100, 255, 150), size=12, parent='vclock_canvas'
+                )
+
+                dpg.draw_rectangle((310, 85), (325, 100), fill=(40, 80, 180), parent='vclock_canvas')
+                dpg.draw_text(
+                    (335, 85), 'Succeeds (b -> a)  [c1 > c2]', color=(100, 180, 255), size=12, parent='vclock_canvas'
+                )
+
+                dpg.draw_rectangle((310, 115), (325, 130), fill=(180, 50, 160), parent='vclock_canvas')
+                dpg.draw_text(
+                    (335, 115),
+                    'Concurrent (a || b) [Incomparable]',
+                    color=(255, 120, 240),
+                    size=12,
+                    parent='vclock_canvas',
+                )
+
+                dpg.draw_rectangle((310, 145), (325, 160), fill=(50, 50, 60), parent='vclock_canvas')
+                dpg.draw_text(
+                    (335, 145),
+                    'Identity (a == b)  [Identical event]',
+                    color=(180, 180, 180),
+                    size=12,
+                    parent='vclock_canvas',
+                )
+
+            else:
+                # Mode 3: CRDT Join-Semilattice Supremum Tree
+                rep_a = {'node_1': 4, 'node_2': 2, 'node_3': 0}
+                rep_b = {'node_1': 1, 'node_2': 5, 'node_3': 3}
+                merged, _ = synchronize_crdt_replicas(rep_a, rep_b)
+
+                # Replica Alpha Box (Top Left)
+                dpg.draw_rectangle(
+                    (40, 25), (250, 95), fill=(20, 35, 55), color=(60, 140, 220), thickness=2, parent='vclock_canvas'
+                )
+                dpg.draw_text(
+                    (50, 30), 'Replica Alpha (Divergent)', color=(100, 200, 255), size=12, parent='vclock_canvas'
+                )
+                dpg.draw_text(
+                    (50, 50), 'State: <n1:4, n2:2, n3:0>', color=(200, 230, 255), size=12, parent='vclock_canvas'
+                )
+                # Component bars
+                dpg.draw_line(
+                    (50, 75), (50 + 4 * 18, 75), color=(100, 200, 255), thickness=6, parent='vclock_canvas'
+                )
+                dpg.draw_line(
+                    (50, 85), (50 + 2 * 18, 85), color=(100, 200, 255), thickness=6, parent='vclock_canvas'
+                )
+
+                # Replica Beta Box (Bottom Left)
+                dpg.draw_rectangle(
+                    (40, 120), (250, 190), fill=(45, 30, 20), color=(220, 140, 60), thickness=2, parent='vclock_canvas'
+                )
+                dpg.draw_text(
+                    (50, 125), 'Replica Beta (Divergent)', color=(255, 180, 100), size=12, parent='vclock_canvas'
+                )
+                dpg.draw_text(
+                    (50, 145), 'State: <n1:1, n2:5, n3:3>', color=(255, 220, 180), size=12, parent='vclock_canvas'
+                )
+                # Component bars
+                dpg.draw_line(
+                    (50, 168), (50 + 1 * 18, 168), color=(255, 180, 100), thickness=5, parent='vclock_canvas'
+                )
+                dpg.draw_line(
+                    (50, 176), (50 + 5 * 18, 176), color=(255, 180, 100), thickness=5, parent='vclock_canvas'
+                )
+                dpg.draw_line(
+                    (50, 184), (50 + 3 * 18, 184), color=(255, 180, 100), thickness=5, parent='vclock_canvas'
+                )
+
+                # Merge Convergence Arrows
+                dpg.draw_line((250, 60), (390, 100), color=(255, 255, 150), thickness=2, parent='vclock_canvas')
+                dpg.draw_line((250, 155), (390, 115), color=(255, 255, 150), thickness=2, parent='vclock_canvas')
+                dpg.draw_text((275, 95), 'Join ∨ (LUB)', color=(255, 255, 150), size=12, parent='vclock_canvas')
+
+                # Merged State Box (Right)
+                dpg.draw_rectangle(
+                    (390, 45), (660, 170), fill=(20, 45, 30), color=(60, 220, 120), thickness=2, parent='vclock_canvas'
+                )
+                dpg.draw_text(
+                    (405, 55),
+                    'CRDT Lattice Supremum (Merged)',
+                    color=(100, 255, 150),
+                    size=13,
+                    parent='vclock_canvas',
+                )
+                dpg.draw_text(
+                    (405, 80),
+                    'V_merged = <n1:4, n2:5, n3:3>',
+                    color=(220, 255, 220),
+                    size=13,
+                    parent='vclock_canvas',
+                )
+                dpg.draw_text(
+                    (405, 105),
+                    'Resolved via component-wise max',
+                    color=(160, 220, 180),
+                    size=11,
+                    parent='vclock_canvas',
+                )
+
+                # Component bars for merged
+                dpg.draw_line(
+                    (405, 130), (405 + 4 * 18, 130), color=(100, 255, 150), thickness=5, parent='vclock_canvas'
+                )
+                dpg.draw_line(
+                    (405, 142), (405 + 5 * 18, 142), color=(100, 255, 150), thickness=5, parent='vclock_canvas'
+                )
+                dpg.draw_line(
+                    (405, 154), (405 + 3 * 18, 154), color=(100, 255, 150), thickness=5, parent='vclock_canvas'
+                )
+
+        table_data: dict[int | str, dict[str, str]] = {}
+        if 'Event Log' in view_mode:
+            for idx, (e_id, info) in enumerate(trace.items()):
+                v_str = ', '.join(f'{p}:{info["vector_clock"].get(p, 0)}' for p in ['P0', 'P1', 'P2'])
+                table_data[idx] = {
+                    'Event ID': e_id,
+                    'Process': info['process'],
+                    'Type': info['type'],
+                    'Lamport Clock (L)': str(info['scalar_clock']),
+                    'Vector Clock (V)': f'<{v_str}>',
+                    'Description': info['desc'],
+                }
+            dpg.set_value(
+                'vclock_status', 'Simulated asynchronous multi-process message trace with Vector Clock joins!'
+            )
+        elif 'Causality Matrix' in view_mode:
+            causal_mat = compute_causality_matrix(trace)
+            for idx, e1 in enumerate(trace):
+                row_dict = {'Event': e1}
+                for e2 in trace:
+                    row_dict[e2] = causal_mat[e1][e2]
+                table_data[idx] = row_dict
+            dpg.set_value(
+                'vclock_status', 'Computed pairwise causal precedence (precedes, succeeds, concurrent) matrix!'
+            )
+        else:
+            rep_a = {'node_1': 4, 'node_2': 2, 'node_3': 0}
+            rep_b = {'node_1': 1, 'node_2': 5, 'node_3': 3}
+            merged, rel = synchronize_crdt_replicas(rep_a, rep_b)
+            table_data = {
+                0: {
+                    'Replica State': 'Replica Alpha (Local)',
+                    'node_1': '4',
+                    'node_2': '2',
+                    'node_3': '0',
+                    'Causal Relation': rel,
+                },
+                1: {
+                    'Replica State': 'Replica Beta (Remote)',
+                    'node_1': '1',
+                    'node_2': '5',
+                    'node_3': '3',
+                    'Causal Relation': rel,
+                },
+                2: {
+                    'Replica State': 'Lattice Join (Supremum)',
+                    'node_1': str(merged['node_1']),
+                    'node_2': str(merged['node_2']),
+                    'node_3': str(merged['node_3']),
+                    'Causal Relation': 'Merged Convergence',
+                },
+            }
+            dpg.set_value('vclock_status', 'Synchronized divergent CRDT replicas via Join-Semilattice supremum!')
+
+        display_matrix_in_table(table_data, 'table_vclock_res')
+    except Exception as e:
+        dpg.set_value('vclock_status', f'Error: {e}')
+
+
 # --- Image Convolution Helpers ---
 IMAGE_PRESETS: dict[str, str] = {
     'Cross Pattern (8x8)': (
@@ -3754,11 +4074,8 @@ def build_view_quantum_feynman_path_integral() -> None:
                     pass
                 dpg.add_spacer(height=5)
                 dpg.add_text('Feynman Path Summation & Born Rule Probabilities (Selectable cells):')
-                create_bordered_table(
-                    tag='table_quantum_path_res',
-                    columns=['Screen Detector', 'Spatial y', 'Complex Amplitude', 'Born Probability P'],
-                    width=680,
-                )
+                with dpg.group(tag='table_quantum_path_res_container'):
+                    pass
 
 
 def build_view_relativistic_dirac_spinor() -> None:
@@ -3832,17 +4149,45 @@ def build_view_relativistic_dirac_spinor() -> None:
                     pass
                 dpg.add_spacer(height=5)
                 dpg.add_text('Multivector Components & Probability Current Density (Selectable cells):')
-                create_bordered_table(
-                    tag='table_dirac_res',
-                    columns=[
-                        'Spinor State / Multivector',
-                        'Scalar α',
-                        'Spin Bivector B_12',
-                        'Boost Bivector B_01',
-                        'Current Density J^0',
-                    ],
-                    width=680,
+                with dpg.group(tag='table_dirac_res_container'):
+                    pass
+
+
+def build_view_distributed_vector_clocks() -> None:
+    with dpg.group(tag='view_distributed_vector_clocks_group', show=False):
+        dpg.add_text(
+            'Distributed Causal Ordering, Lamport Clocks & Vector Clock Join-Semilattices',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.child_window(width=310, height=520, border=True):
+                dpg.add_text('DISTRIBUTED TRACE CONFIG', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_combo(
+                    items=['Event Log & Vector Clocks', 'Causality Matrix (Partial Order)', 'CRDT Replica Sync'],
+                    default_value='Event Log & Vector Clocks',
+                    tag='vclock_view_mode',
+                    width=250,
+                    callback=lambda: run_distributed_vector_clocks(),
                 )
+                dpg.add_spacer(height=10)
+                dpg.add_button(
+                    label='Simulate Cluster & Sync (∨)',
+                    callback=run_distributed_vector_clocks,
+                    width=250,
+                )
+                dpg.add_spacer(height=10)
+                dpg.add_text('', tag='vclock_status', color=(255, 200, 100), wrap=290)
+
+            with dpg.group():
+                dpg.add_text('Distributed Multi-Process Timeline & Causal Message Flow Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=220, tag='vclock_canvas'):
+                    pass
+                dpg.add_spacer(height=5)
+                dpg.add_text('Logical Timestamps, Causality Partial Order & Lattice Joins:')
+                with dpg.group(tag='table_vclock_res_container'):
+                    pass
 
 
 # --- Navigation Sidebar Builder ---
@@ -3876,6 +4221,7 @@ VIEWS: list[str] = [
     'functional_autograd_engine',
     'quantum_feynman_path_integral',
     'relativistic_dirac_spinor',
+    'distributed_vector_clocks',
 ]
 
 
@@ -4042,7 +4388,7 @@ def build_navigation_sidebar() -> None:
                 user_data='categorical_kleisli',
             )
 
-        with dpg.tree_node(label='Information & Crypto', default_open=True):
+        with dpg.tree_node(label='Information, Distributed & Crypto', default_open=True):
             dpg.add_selectable(
                 label='Markov & Info Theory',
                 tag='sel_markov_info_theory',
@@ -4054,6 +4400,12 @@ def build_navigation_sidebar() -> None:
                 tag='sel_pq_key_exchange',
                 callback=change_view,
                 user_data='pq_key_exchange',
+            )
+            dpg.add_selectable(
+                label='Distributed Vector Clocks',
+                tag='sel_distributed_vector_clocks',
+                callback=change_view,
+                user_data='distributed_vector_clocks',
             )
 
         with dpg.tree_node(label='Automatic Differentiation & Backprop', default_open=True):
@@ -4188,6 +4540,7 @@ def main() -> None:
                 build_view_functional_autograd_engine()
                 build_view_quantum_feynman_path_integral()
                 build_view_relativistic_dirac_spinor()
+                build_view_distributed_vector_clocks()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()

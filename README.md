@@ -149,7 +149,7 @@ print('Symbolic Derivation Polynomial:', provenance_mult[0][2])
 
 ## Use Case Recipes & Jupyter Notebooks
 
-The [`recipes/`](recipes) directory contains standalone CLI scripts and matching interactive `.ipynb` notebooks for 28
+The [`recipes/`](recipes) directory contains standalone CLI scripts and matching interactive `.ipynb` notebooks for 29
 real-world scenarios:
 
 | Category                       |                                               Recipe & Notebook                                               | Core Algebraic Components                                                                                        |
@@ -182,6 +182,7 @@ real-world scenarios:
 | **Functional Autograd Engine** |     [`🐍`](recipes/functional_autograd_engine.py) &nbsp; [`📓`](recipes/functional_autograd_engine.ipynb)     | `Value` computational DAG, reverse topological VJP traversal, parameter optimization                             |
 | **Quantum Path Integrals**     |  [`🐍`](recipes/quantum_feynman_path_integral.py) &nbsp; [`📓`](recipes/quantum_feynman_path_integral.ipynb)  | `StandardSemiring(dtype=complex)`, native `complex`, discrete Feynman path summation, Born's rule, Aharonov-Bohm |
 | **Relativistic Dirac Spinors** |      [`🐍`](recipes/relativistic_dirac_spinor.py) &nbsp; [`📓`](recipes/relativistic_dirac_spinor.ipynb)      | `clifford.CliffordSemiring(1,3)`, Dirac spinors $\psi \in Cl^+(1,3)$, $4\pi$ rotation periodicity, 4-current $J$ |
+| **Distributed Vector Clocks**  | [`🐍`](recipes/distributed_vector_clocks.py) &nbsp; [`📓`](recipes/distributed_vector_clocks.ipynb)           | `lattice.combine` (supremum join), `semiring.ArcticSemiring`, causal Happened-Before $\to$, CRDT version vectors  |
 
 Run any recipe using `uv`:
 
