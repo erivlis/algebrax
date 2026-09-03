@@ -72,21 +72,22 @@ for asset_id, score in sorted(centrality_scores.items(), key=lambda x: x[1], rev
 # %%
 variance_semiring = ax.semiring.VarianceSemiring()
 
+# 3-tuple: (p, m1, m2) where m1 = E[X]*p and m2 = E[X^2]*p
 market_graph = {
-    0: {1: (0.6, 2.4, 2.4, 9.6), 2: (0.4, 4.8, 4.8, 57.6)},
-    1: {3: (1.0, 5.0, 5.0, 25.0)},
-    2: {3: (1.0, 15.0, 15.0, 225.0)},
+    0: {1: (0.6, 2.4, 9.6),
+        2: (0.4, 4.8, 57.6)},
+    1: {3: (1.0, 5.0, 25.0)},
+    2: {3: (1.0, 15.0, 225.0)},
     3: {},
 }
 
 m2 = ax.matrix.power(market_graph, 2, semiring=variance_semiring)
 path_stats = m2.get(0, {}).get(3, variance_semiring.zero)
 
-p, r, _, t = path_stats
-exp_return = r / p if p else 0.0
-var_return = (t / p) - (exp_return**2) if p else 0.0
+exp_return = variance_semiring.mean(path_stats)
+var_return = variance_semiring.variance(path_stats)
 
-print(f'\n2-Step Portfolio Path Raw Stats (p, r, s, t): {path_stats}')
+print(f'\n2-Step Portfolio Path Raw Moments (p, m1, m2): {path_stats}')
 print(f'Expected Return E[X]: {exp_return:.2f}%')
 print(f'Return Variance Var(X): {var_return:.2f} (%^2)')
 print(f'Volatility StdDev sigma: {var_return**0.5:.2f}%')
