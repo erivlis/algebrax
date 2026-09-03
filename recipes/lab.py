@@ -382,6 +382,8 @@ def semiring_change_callback(sender: int | str, app_data: str) -> None:
     elif semiring_name == 'Provenance':
         val = '{\n  "0": {"1": {"x": 1}, "2": {"z": 1}},\n  "1": {"2": {"y": 1}},\n  "2": {"0": {"w": 1}}\n}'
     elif semiring_name == 'Variance':
+        val = '{\n  "0": {"1": [0.5, 1.0, 2.0]},\n  "1": {"2": [1.0, 8.0, 64.0]}\n}'
+    elif semiring_name == 'BivariateVariance':
         val = '{\n  "0": {"1": [0.5, 1.0, 1.0, 2.0]},\n  "1": {"2": [1.0, 8.0, 8.0, 64.0]}\n}'
     elif semiring_name == 'Digital':
         val = '{\n  "0": {"0": 123, "1": 456},\n  "1": {"0": 789, "1": 12}\n}'
@@ -431,10 +433,17 @@ def run_semiring_power() -> None:
         elif semiring_name == 'Variance':
             semiring = ax.semiring.VarianceSemiring()
 
-            def parse_variance(x: list[Any]) -> tuple[float, float, float, float]:
-                return (float(x[0]), float(x[1]), float(x[2]), float(x[3]))
+            def parse_variance(x: list[Any]) -> tuple[float, float, float]:
+                return (float(x[0]), float(x[1]), float(x[2]))
 
             parser = parse_variance
+        elif semiring_name == 'BivariateVariance':
+            semiring = ax.semiring.BivariateVarianceSemiring()
+
+            def parse_biv_variance(x: list[Any]) -> tuple[float, float, float, float]:
+                return (float(x[0]), float(x[1]), float(x[2]), float(x[3]))
+
+            parser = parse_biv_variance
         elif semiring_name == 'Digital':
             semiring = ax.semiring.DigitalSemiring()
             parser = int
@@ -2796,6 +2805,7 @@ def build_view_semiring() -> None:
                     'Expectation',
                     'Provenance',
                     'Variance',
+                    'BivariateVariance',
                     'Digital',
                     'Modular',
                     'Interval (Convex Hull)',
