@@ -125,7 +125,7 @@ Format sparse matrices, vectors, and tries as HTML tables for Jupyter Notebook i
 ```python
 from algebrax.display import display_matrix, display_vector, display_trie
 
-html_table = display_matrix(matrix, title="Adjacency Matrix")
+html_table = display_matrix(matrix, title='Adjacency Matrix')
 ```
 
 ## Advanced Semiring Usage
