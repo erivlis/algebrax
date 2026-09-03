@@ -585,28 +585,32 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
         if order < 0:
             raise ValueError(f'order must be a non-negative integer, got {order}')
         self.order = order
+        self._dim = order + 1
+        self._zero = (0.0,) * self._dim
+        self._one = (1.0, *(0.0 for _ in range(order)))
         self._pascal = _get_pascal_table(order)
 
     @property
     def zero(self) -> tuple[float, ...]:
-        return (0.0,) * (self.order + 1)
+        return self._zero
 
     @property
     def one(self) -> tuple[float, ...]:
-        return (1.0,) + (0.0,) * self.order
+        return self._one
 
     def add(self, a: tuple[float, ...], b: tuple[float, ...]) -> tuple[float, ...]:
-        if len(a) != self.order + 1 or len(b) != self.order + 1:
-            raise ValueError(f'Operands must have length {self.order + 1}')
+        dim = self._dim
+        if len(a) != dim or len(b) != dim:
+            raise ValueError(f'Operands must have length {dim}')
         return tuple(u + v for u, v in zip(a, b))
 
     def mul(self, a: tuple[float, ...], b: tuple[float, ...]) -> tuple[float, ...]:
-        if len(a) != self.order + 1 or len(b) != self.order + 1:
-            raise ValueError(f'Operands must have length {self.order + 1}')
-        order = self.order
+        dim = self._dim
+        if len(a) != dim or len(b) != dim:
+            raise ValueError(f'Operands must have length {dim}')
         pascal = self._pascal
-        res = [0.0] * (order + 1)
-        for k in range(order + 1):
+        res = [0.0] * dim
+        for k in range(dim):
             coeffs = pascal[k]
             acc = 0.0
             for j in range(k + 1):
@@ -615,18 +619,18 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
         return tuple(res)
 
     def nsum(self, a: tuple[float, ...], n: int) -> tuple[float, ...]:
-        if len(a) != self.order + 1:
-            raise ValueError(f'Operand must have length {self.order + 1}')
+        if len(a) != self._dim:
+            raise ValueError(f'Operand must have length {self._dim}')
         if n == 0:
-            return self.zero
+            return self._zero
         return tuple(val * n for val in a)
 
     def power(self, a: tuple[float, ...], n: int) -> tuple[float, ...]:
-        if len(a) != self.order + 1:
-            raise ValueError(f'Operand must have length {self.order + 1}')
+        if len(a) != self._dim:
+            raise ValueError(f'Operand must have length {self._dim}')
         if n == 0:
-            return self.one
-        res = self.one
+            return self._one
+        res = self._one
         base = a
         while n > 0:
             if n % 2 == 1:
@@ -636,11 +640,12 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
         return res
 
     def star(self, a: tuple[float, ...]) -> tuple[float, ...]:
-        if len(a) != self.order + 1:
-            raise ValueError(f'Operand must have length {self.order + 1}')
+        dim = self._dim
+        if len(a) != dim:
+            raise ValueError(f'Operand must have length {dim}')
         p = a[0]
         if p >= 1.0:
-            return (float('inf'),) * (self.order + 1)
+            return (float('inf'),) * dim
         if self.order == 0:
             return (1.0 / (1.0 - p),)
         if self.order == 1:
@@ -650,13 +655,24 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
 
         scale = 1.0 / (1.0 - p)
         scaled_nil = (0.0, *(val * scale for val in a[1:]))
-        cur_nil = self.one
-        nil_sum = [0.0] * (self.order + 1)
-        for _ in range(self.order + 1):
-            for k in range(self.order + 1):
+        cur_nil = self._one
+        nil_sum = [0.0] * dim
+        for _ in range(dim):
+            for k in range(dim):
                 nil_sum[k] += cur_nil[k]
             cur_nil = self.mul(cur_nil, scaled_nil)
         return tuple(val * scale for val in nil_sum)
+
+
+@functools.lru_cache(maxsize=4096)
+def _multivariate_transition(
+    alpha: tuple[int, ...], beta: tuple[int, ...], order: int
+) -> tuple[tuple[int, ...], int] | None:
+    gamma = tuple(x + y for x, y in zip(alpha, beta))
+    if sum(gamma) > order:
+        return None
+    coeff = math.prod(math.comb(g, a_i) for g, a_i in zip(gamma, alpha))
+    return gamma, coeff
 
 
 class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], float]]):
@@ -675,6 +691,8 @@ class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], flo
             raise ValueError(f'order must be >= 0, got {order}')
         self.num_vars = num_vars
         self.order = order
+        self._zero_key = (0,) * num_vars
+        self._one = {self._zero_key: 1.0}
 
     @property
     def zero(self) -> dict[tuple[int, ...], float]:
@@ -682,29 +700,32 @@ class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], flo
 
     @property
     def one(self) -> dict[tuple[int, ...], float]:
-        return {(0,) * self.num_vars: 1.0}
+        return dict(self._one)
 
     def add(self, a: dict[tuple[int, ...], float], b: dict[tuple[int, ...], float]) -> dict[tuple[int, ...], float]:
         res = dict(a)
+        num_vars = self.num_vars
+        order = self.order
         for k, v in b.items():
-            if len(k) != self.num_vars:
-                raise ValueError(f'Multi-index {k} dimension does not match num_vars={self.num_vars}')
-            if sum(k) <= self.order:
+            if len(k) != num_vars:
+                raise ValueError(f'Multi-index {k} dimension does not match num_vars={num_vars}')
+            if sum(k) <= order:
                 res[k] = res.get(k, 0.0) + v
         return {k: v for k, v in res.items() if not math.isclose(v, 0.0, abs_tol=1e-15)}
 
     def mul(self, a: dict[tuple[int, ...], float], b: dict[tuple[int, ...], float]) -> dict[tuple[int, ...], float]:
         res: dict[tuple[int, ...], float] = {}
         order = self.order
+        num_vars = self.num_vars
         for alpha, v1 in a.items():
-            if len(alpha) != self.num_vars:
-                raise ValueError(f'Multi-index {alpha} dimension does not match num_vars={self.num_vars}')
+            if len(alpha) != num_vars:
+                raise ValueError(f'Multi-index {alpha} dimension does not match num_vars={num_vars}')
             for beta, v2 in b.items():
-                if len(beta) != self.num_vars:
-                    raise ValueError(f'Multi-index {beta} dimension does not match num_vars={self.num_vars}')
-                gamma = tuple(x + y for x, y in zip(alpha, beta))
-                if sum(gamma) <= order:
-                    coeff = math.prod(math.comb(g, a_i) for g, a_i in zip(gamma, alpha))
+                if len(beta) != num_vars:
+                    raise ValueError(f'Multi-index {beta} dimension does not match num_vars={num_vars}')
+                trans = _multivariate_transition(alpha, beta, order)
+                if trans is not None:
+                    gamma, coeff = trans
                     res[gamma] = res.get(gamma, 0.0) + coeff * v1 * v2
         return {k: v for k, v in res.items() if not math.isclose(v, 0.0, abs_tol=1e-15)}
 
@@ -726,7 +747,7 @@ class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], flo
         return res
 
     def star(self, a: dict[tuple[int, ...], float]) -> dict[tuple[int, ...], float]:
-        zero_key = (0,) * self.num_vars
+        zero_key = self._zero_key
         p = a.get(zero_key, 0.0)
         if p >= 1.0:
             return {k: float('inf') for k in a}

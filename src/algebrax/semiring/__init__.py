@@ -28,14 +28,14 @@ from algebrax.semiring.optimization import (
     ViterbiSemiring,
 )
 from algebrax.semiring.statistical import (
+    BivariateCovarianceSemiring,
+    BivariateVarianceSemiring,
     ExpectationSemiring,
     KurtosisSemiring,
     LogSemiring,
     MultivariateMomentSemiring,
-    SecondMomentSemiring,
     SkewnessSemiring,
     StatisticalMomentSemiring,
-    ThirdMomentSemiring,
     VarianceSemiring,
 )
 from algebrax.semiring.structures import KCollapsedSemiring, StringSemiring
@@ -43,6 +43,8 @@ from algebrax.semiring.structures import KCollapsedSemiring, StringSemiring
 __all__ = [
     'ArcticSemiring',
     'BinomialConvolutionSemiring',
+    'BivariateCovarianceSemiring',
+    'BivariateVarianceSemiring',
     'BooleanSemiring',
     'BottleneckSemiring',
     'CliffordSemiring',
@@ -66,13 +68,11 @@ __all__ = [
     'QuantumCliffordSemiring',
     'QuotientMonoidAlgebraSemiring',
     'ReliabilitySemiring',
-    'SecondMomentSemiring',
     'Semiring',
     'SkewnessSemiring',
     'StandardSemiring',
     'StatisticalMomentSemiring',
     'StringSemiring',
-    'ThirdMomentSemiring',
     'TropicalSemiring',
     'VarianceSemiring',
     'ViterbiSemiring',

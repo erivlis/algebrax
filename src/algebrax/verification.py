@@ -159,6 +159,8 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
     from algebrax.semiring import (
         ArcticSemiring,
         BinomialConvolutionSemiring,
+        BivariateCovarianceSemiring,
+        BivariateVarianceSemiring,
         BooleanSemiring,
         BottleneckSemiring,
         CliffordSemiring,
@@ -182,7 +184,6 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
         QuantumCliffordSemiring,
         QuotientMonoidAlgebraSemiring,
         ReliabilitySemiring,
-        SecondMomentSemiring,
         SkewnessSemiring,
         StandardSemiring,
         StatisticalMomentSemiring,
@@ -205,14 +206,21 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
         'Lukasiewicz': (LukasiewiczSemiring(), [0.0, 1.0, 0.3, 0.7, 0.5]),
         'Log': (LogSemiring(), [float('-inf'), 0.0, -1.2, -0.5, -3.0]),
         'Expectation': (ExpectationSemiring(), [(0.0, 0.0), (1.0, 0.0), (0.5, 1.5), (0.8, 2.0)]),
-        'Variance': (VarianceSemiring(), [(0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0), (0.5, 1.0, 1.0, 2.0)]),
+        'Variance': (
+            VarianceSemiring(),
+            [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.5, 1.0, 2.0), (0.8, 0.5, 1.5)],
+        ),
+        'BivariateVariance': (
+            BivariateVarianceSemiring(),
+            [(0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0), (0.5, 1.0, 1.0, 2.0)],
+        ),
+        'BivariateCovariance': (
+            BivariateCovarianceSemiring(),
+            [(0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0), (0.5, 1.0, 1.0, 2.0)],
+        ),
         'Skewness': (
             SkewnessSemiring(),
             [(0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0), (0.5, 1.0, 2.0, 3.0), (0.8, 0.5, 1.5, 2.5)],
-        ),
-        'SecondMoment': (
-            SecondMomentSemiring(),
-            [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.5, 1.0, 2.0), (0.8, 0.5, 1.5)],
         ),
         'Kurtosis': (
             KurtosisSemiring(),

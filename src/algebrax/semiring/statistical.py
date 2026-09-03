@@ -74,19 +74,18 @@ class ExpectationSemiring(DualNumberSemiring):
     """
 
 
-class VarianceSemiring(Semiring[tuple[float, float, float, float]]):
+class BivariateVarianceSemiring(Semiring[tuple[float, float, float, float]]):
     """
-    The Second-Order Expectation / Second-Order Dual Number Semiring (Li & Eisner, 2009).
+    The Bivariate Second-Order Expectation / Covariance Semiring (Li & Eisner, 2009).
     Values are 4-tuples (p, r, s, t) corresponding to R[ε1, ε2] / (ε1^2, ε2^2).
-    Used for: Computing Variance, Covariances, Hessians, and second central moments.
+    Used for: Computing Bivariate Covariances, Hessians, and joint second central moments of 2 variables.
 
-    If r and s track the same variable (e.g., length), then:
     - p: Total probability (Z)
-    - r: First moment (E[X] * Z)
-    - s: First moment (E[X] * Z)
-    - t: Second moment (E[X^2] * Z)
+    - r: First moment along feature X (E[X] * Z)
+    - s: First moment along feature Y (E[Y] * Z)
+    - t: Second raw cross-moment (E[XY] * Z)
 
-    Variance = (t/p) - (r/p)^2.
+    Cov(X, Y) = (t/p) - (r/p)*(s/p).
     """
 
     @property
@@ -140,80 +139,10 @@ class VarianceSemiring(Semiring[tuple[float, float, float, float]]):
         return res
 
     def star(self, a: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
-        raise NotImplementedError('Kleene star not implemented for VarianceSemiring')
+        raise NotImplementedError('Kleene star not implemented for BivariateVarianceSemiring')
 
 
-class SkewnessSemiring(Semiring[tuple[float, float, float, float]]):
-    r"""
-    The Third-Order Moment / Skewness Semiring.
-    Values are 4-tuples (p, m1, m2, m3) representing:
-    - p: Total probability mass (Z = \sum p_i)
-    - m1: First raw moment (\sum p_i x_i = E[X] * Z)
-    - m2: Second raw moment (\sum p_i x_i^2 = E[X^2] * Z)
-    - m3: Third raw moment (\sum p_i x_i^3 = E[X^3] * Z)
-
-    Isomorphic to the divided power Taylor jet algebra \mathbb{R}[\epsilon] / (\epsilon^4).
-
-    Statistical metrics:
-    - Mean: \mu = m1 / p
-    - Variance: \sigma^2 = (m2 / p) - \mu^2
-    - Third Central Moment: \mu_3 = (m3 / p) - 3 \mu (m2 / p) + 2 \mu^3
-    - Skewness: \gamma_1 = \mu_3 / (\sigma^3)
-    """
-
-    @property
-    def zero(self) -> tuple[float, float, float, float]:
-        return 0.0, 0.0, 0.0, 0.0
-
-    @property
-    def one(self) -> tuple[float, float, float, float]:
-        return 1.0, 0.0, 0.0, 0.0
-
-    def add(
-        self, a: tuple[float, float, float, float], b: tuple[float, float, float, float]
-    ) -> tuple[float, float, float, float]:
-        return a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3]
-
-    def mul(
-        self, a: tuple[float, float, float, float], b: tuple[float, float, float, float]
-    ) -> tuple[float, float, float, float]:
-        p1, m1_1, m2_1, m3_1 = a
-        p2, m1_2, m2_2, m3_2 = b
-
-        # Binomial convolution:
-        # p = p1 * p2
-        p = p1 * p2
-        # m1 = p1*m1_2 + p2*m1_1
-        m1 = p1 * m1_2 + p2 * m1_1
-        # m2 = p1*m2_2 + 2*m1_1*m1_2 + p2*m2_1
-        m2 = p1 * m2_2 + 2.0 * m1_1 * m1_2 + p2 * m2_1
-        # m3 = p1*m3_2 + 3*m2_1*m1_2 + 3*m1_1*m2_2 + p2*m3_1
-        m3 = p1 * m3_2 + 3.0 * m2_1 * m1_2 + 3.0 * m1_1 * m2_2 + p2 * m3_1
-
-        return p, m1, m2, m3
-
-    def nsum(self, a: tuple[float, float, float, float], n: int) -> tuple[float, float, float, float]:
-        if n == 0:
-            return 0.0, 0.0, 0.0, 0.0
-        return a[0] * n, a[1] * n, a[2] * n, a[3] * n
-
-    def power(self, a: tuple[float, float, float, float], n: int) -> tuple[float, float, float, float]:
-        if n == 0:
-            return 1.0, 0.0, 0.0, 0.0
-        res = (1.0, 0.0, 0.0, 0.0)
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.mul(res, base)
-            base = self.mul(base, base)
-            n //= 2
-        return res
-
-    def star(self, a: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
-        raise NotImplementedError('Kleene star not implemented for SkewnessSemiring')
-
-
-ThirdMomentSemiring = SkewnessSemiring
+BivariateCovarianceSemiring = BivariateVarianceSemiring
 
 
 class StatisticalMomentSemiring(BinomialConvolutionSemiring):
@@ -265,11 +194,41 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
         return cm[4] / (cm[2] ** 2)
 
 
-class SecondMomentSemiring(StatisticalMomentSemiring):
-    """Univariate 2nd-order moment semiring (order=2). Carrier is 3-tuple (p, m1, m2)."""
+class VarianceSemiring(StatisticalMomentSemiring):
+    """
+    Univariate 2nd-order moment and variance semiring over R[ε]/(ε^3).
+    Values are 3-tuples (p, m1, m2) representing:
+    - p: Total probability mass (Z = sum p_i)
+    - m1: First raw moment (sum p_i x_i = E[X] * Z)
+    - m2: Second raw moment (sum p_i x_i^2 = E[X^2] * Z)
+
+    Statistical metrics:
+    - Mean: mu = m1 / p
+    - Variance: var = (m2 / p) - mu^2
+    """
 
     def __init__(self) -> None:
         super().__init__(order=2)
+
+
+class SkewnessSemiring(StatisticalMomentSemiring):
+    """
+    Univariate 3rd-order moment and skewness semiring over R[ε]/(ε^4).
+    Values are 4-tuples (p, m1, m2, m3) representing:
+    - p: Total probability mass (Z = sum p_i)
+    - m1: First raw moment (sum p_i x_i = E[X] * Z)
+    - m2: Second raw moment (sum p_i x_i^2 = E[X^2] * Z)
+    - m3: Third raw moment (sum p_i x_i^3 = E[X^3] * Z)
+
+    Statistical metrics:
+    - Mean: mu = m1 / p
+    - Variance: var = (m2 / p) - mu^2
+    - Third Central Moment: mu3 = (m3 / p) - 3*mu*(m2 / p) + 2*mu^3
+    - Skewness: gamma1 = mu3 / (var^1.5)
+    """
+
+    def __init__(self) -> None:
+        super().__init__(order=3)
 
 
 class KurtosisSemiring(StatisticalMomentSemiring):
