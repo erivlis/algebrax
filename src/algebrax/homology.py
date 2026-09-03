@@ -290,5 +290,3 @@ def cohomology_rank(complex: SparseChainComplex, k: int) -> int:
         num_k = len(d_k1)
 
     return max(num_k - rank_dk - rank_dk1, 0)
-
-

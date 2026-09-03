@@ -92,7 +92,7 @@ class KCollapsedSemiring(Semiring[int]):
             return 1
         # a^n in this semiring is min(k, a^n)
         # We can compute a^n normally and clamp.
-        return min(self.k, a ** n)
+        return min(self.k, a**n)
 
     def star(self, a: int) -> int:
         # 1 + a + a^2 + ...

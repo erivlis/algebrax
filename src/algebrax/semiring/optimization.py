@@ -111,7 +111,7 @@ class ViterbiSemiring(Semiring[float]):
         return a
 
     def power(self, a: float, n: int) -> float:
-        return a ** n
+        return a**n
 
     def star(self, a: float) -> float:
         return 1.0
@@ -192,7 +192,7 @@ class MinTimesSemiring(Semiring[float]):
         return a
 
     def power(self, a: float, n: int) -> float:
-        return a ** n
+        return a**n
 
     def star(self, a: float) -> float:
         if a < 1.0:

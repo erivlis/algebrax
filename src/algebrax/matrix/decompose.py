@@ -148,9 +148,7 @@ def qr(matrix: SparseMatrix) -> tuple[SparseMatrix, SparseMatrix]:
     )
 
 
-def svd(
-    matrix: SparseMatrix, k: int | None = None
-) -> tuple[SparseMatrix, SparseVector[int, float], SparseMatrix]:
+def svd(matrix: SparseMatrix, k: int | None = None) -> tuple[SparseMatrix, SparseVector[int, float], SparseMatrix]:
     """
     Compute Singular Value Decomposition (SVD) for a sparse matrix A:
         A ≈ U @ diag(S) @ V^T
@@ -295,9 +293,7 @@ def recompose_qr(q_mat: SparseMatrix, r_mat: SparseMatrix) -> SparseMatrix:
     return dot(q_mat, r_mat)
 
 
-def recompose_svd(
-    u: SparseMatrix, s: SparseVector[int, float], v_t: SparseMatrix
-) -> SparseMatrix:
+def recompose_svd(u: SparseMatrix, s: SparseVector[int, float], v_t: SparseMatrix) -> SparseMatrix:
     """
     Reconstruct the sparse matrix A from its SVD components (U, S, V_T):
         A ≈ U @ diag(S) @ V_T
@@ -331,5 +327,3 @@ def recompose_cholesky(l_mat: SparseMatrix) -> SparseMatrix:
     from algebrax.matrix.core import dot, transpose
 
     return dot(l_mat, transpose(l_mat))
-
-

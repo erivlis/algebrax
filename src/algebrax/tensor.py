@@ -28,8 +28,8 @@ __all__ = [
 
 
 def _get_semiring_and_items(
-        tensor: Any,
-        default_semiring: Semiring[V] | None = None,
+    tensor: Any,
+    default_semiring: Semiring[V] | None = None,
 ) -> tuple[Semiring[V], list[tuple[tuple, Any]]]:
     """Helper to extract semiring instance and item list from AlgebraicTrie or dict."""
     if isinstance(tensor, AlgebraicTrie):
@@ -44,9 +44,9 @@ def _get_semiring_and_items(
 
 
 def einsum(
-        subscripts: str,
-        *tensors: Any,
-        semiring: Semiring[V] | None = None,
+    subscripts: str,
+    *tensors: Any,
+    semiring: Semiring[V] | None = None,
 ) -> Any:
     """
     Perform generalized Einstein summation over arbitrary rank sparse tensors.
@@ -113,9 +113,9 @@ def einsum(
     add_op = semiring.add
 
     def _contract_recursive(
-            tensor_idx: int,
-            current_assignment: dict[str, Any],
-            accumulated_val: Any,
+        tensor_idx: int,
+        current_assignment: dict[str, Any],
+        accumulated_val: Any,
     ) -> None:
         if tensor_idx == len(parsed_tensors):
             # Form output key tuple
@@ -154,9 +154,9 @@ def einsum(
 
 
 def outer_product(
-        tensor_a: Any,
-        tensor_b: Any,
-        semiring: Semiring[V] | None = None,
+    tensor_a: Any,
+    tensor_b: Any,
+    semiring: Semiring[V] | None = None,
 ) -> AlgebraicTrie[Any, V]:
     """
     Compute the outer tensor product A (x) B over a semiring.
@@ -195,10 +195,10 @@ def outer_product(
 
 
 def dot(
-        tensor_a: Any,
-        tensor_b: Any,
-        axes: int | tuple[list[int], list[int]] = 1,
-        semiring: Semiring[V] | None = None,
+    tensor_a: Any,
+    tensor_b: Any,
+    axes: int | tuple[list[int], list[int]] = 1,
+    semiring: Semiring[V] | None = None,
 ) -> AlgebraicTrie[Any, V]:
     """
     Compute tensor contraction over specified axes.
@@ -282,7 +282,6 @@ def unflatten_tensor(flat: Mapping[tuple, Any]) -> dict[Any, Any]:
     return dict(flat_to_nested(flat))
 
 
-
 def permute_tensor(
     tensor: Mapping[tuple, Any],
     permutation: tuple[int, ...],
@@ -323,5 +322,3 @@ def unpermute_tensor(
     for idx, orig_pos in enumerate(permutation):
         inv_perm[orig_pos] = idx
     return permute_tensor(tensor, tuple(inv_perm))
-
-

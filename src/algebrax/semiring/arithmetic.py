@@ -3,11 +3,12 @@ Standard arithmetic semirings.
 """
 
 import operator
+from numbers import Number
 from typing import Generic, TypeVar
 
 from algebrax.semiring._base import Semiring
 
-T_num = TypeVar('T_num', bound=float | int | complex)
+T_num = TypeVar('T_num', bound=float | int | complex | Number)
 
 
 class StandardSemiring(Semiring[T_num], Generic[T_num]):
@@ -17,7 +18,7 @@ class StandardSemiring(Semiring[T_num], Generic[T_num]):
     Used for: Standard Linear Algebra, Physics.
     """
 
-    def __init__(self, dtype: type[T_num] = float):
+    def __init__(self, dtype: type[T_num] = float) -> None:
         self._dtype = dtype
         self._zero = self._dtype(0)
         self._one = self._dtype(1)
@@ -40,7 +41,7 @@ class StandardSemiring(Semiring[T_num], Generic[T_num]):
         return a * n
 
     def power(self, a: T_num, n: int) -> T_num:
-        return a ** n
+        return a**n
 
     def star(self, a: T_num) -> T_num:
         """

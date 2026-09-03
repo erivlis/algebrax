@@ -26,10 +26,10 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Generic[K, T]):
     """
 
     def __init__(
-            self,
-            coeff_semiring: Semiring[T],
-            key_op: Callable[[K, K], K] = operator.add,
-            zero_key: K = 0,
+        self,
+        coeff_semiring: Semiring[T],
+        key_op: Callable[[K, K], K] = operator.add,
+        zero_key: K = 0,
     ):
         self.coeff_semiring = coeff_semiring
         self.key_op = key_op
@@ -174,11 +174,11 @@ class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T], Generic[K, T]):
     """
 
     def __init__(
-            self,
-            coeff_semiring: Semiring[T],
-            key_op: Callable[[K, K], K] = operator.add,
-            zero_key: K = 0,  # type: ignore[assignment]
-            quotient_fn: Callable[[K, T], Iterable[tuple[K, T]]] | None = None,
+        self,
+        coeff_semiring: Semiring[T],
+        key_op: Callable[[K, K], K] = operator.add,
+        zero_key: K = 0,  # type: ignore[assignment]
+        quotient_fn: Callable[[K, T], Iterable[tuple[K, T]]] | None = None,
     ):
         super().__init__(coeff_semiring, key_op, zero_key)
         self.quotient_fn = quotient_fn
@@ -318,9 +318,7 @@ class GaloisFieldSemiring(QuotientMonoidAlgebraSemiring[int, int]):
     Values are field elements represented as sparse polynomial vectors dict[int, int].
     """
 
-    def __init__(
-        self, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)
-    ):
+    def __init__(self, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)):
         self.p = p
         self.irreduc_poly = irreduc_poly
 

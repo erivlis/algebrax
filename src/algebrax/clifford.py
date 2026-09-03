@@ -11,16 +11,70 @@ and spatial/spacetime rotor transformations without matrix conversions or gimbal
 
 import math
 
-from algebrax.semiring.algebraic import CliffordSemiring
+from algebrax.semiring.algebraic import (
+    CliffordSemiring,
+    GeneralizedCliffordSemiring,
+    QuantumCliffordSemiring,
+)
 from algebrax.typing import SparseVector
 
 
+def gca_product(
+    a: SparseVector[tuple[int, ...], complex],
+    b: SparseVector[tuple[int, ...], complex],
+    n_order: int = 3,
+    num_generators: int = 2,
+    signatures: tuple[complex, ...] | None = None,
+) -> SparseVector[tuple[int, ...], complex]:
+    """
+    Compute the Generalized Clifford Algebra (GCA) product A * B.
+    e_j * e_k = omega * e_k * e_j  (for j < k, omega = exp(2*pi*i / n)).
+
+    Args:
+        a: First GCA multivector.
+        b: Second GCA multivector.
+        n_order: Cyclic root-of-unity order n (default 3).
+        num_generators: Number of generators m (default 2).
+        signatures: Nilpotence signatures alpha_j where e_j^n = alpha_j * 1.
+
+    Returns:
+        The GCA product multivector.
+    """
+    gca = GeneralizedCliffordSemiring(n_order=n_order, num_generators=num_generators, signatures=signatures)
+    return gca.mul(a, b)
+
+
+def quantum_clifford_product(
+    a: SparseVector[tuple[int, ...], complex],
+    b: SparseVector[tuple[int, ...], complex],
+    q: complex = 1.0 + 0j,
+    num_generators: int = 2,
+    signatures: tuple[complex, ...] | None = None,
+) -> SparseVector[tuple[int, ...], complex]:
+    """
+    Compute the q-Deformed Quantum Clifford product A * B.
+    e_j * e_k = -q * e_k * e_j  (for j < k).
+
+    Args:
+        a: First quantum multivector.
+        b: Second quantum multivector.
+        q: Deformation parameter q (default 1.0 + 0j).
+        num_generators: Number of generators m (default 2).
+        signatures: Signature factors where e_j^2 = alpha_j * 1.
+
+    Returns:
+        The Quantum Clifford product multivector.
+    """
+    qc = QuantumCliffordSemiring(q=q, num_generators=num_generators, signatures=signatures)
+    return qc.mul(a, b)
+
+
 def geometric_product(
-        a: SparseVector[tuple[int, ...], float],
-        b: SparseVector[tuple[int, ...], float],
-        p: int = 3,
-        q: int = 0,
-        r: int = 0,
+    a: SparseVector[tuple[int, ...], float],
+    b: SparseVector[tuple[int, ...], float],
+    p: int = 3,
+    q: int = 0,
+    r: int = 0,
 ) -> SparseVector[tuple[int, ...], float]:
     """
     Compute the Clifford Geometric Product A * B over blade keys.
@@ -47,12 +101,12 @@ def geometric_product(
 
 
 def rotor_rotation(
-        v: SparseVector[tuple[int, ...], float],
-        bivector: tuple[int, int],
-        angle_rad: float,
-        p: int = 3,
-        q: int = 0,
-        r: int = 0,
+    v: SparseVector[tuple[int, ...], float],
+    bivector: tuple[int, int],
+    angle_rad: float,
+    p: int = 3,
+    q: int = 0,
+    r: int = 0,
 ) -> SparseVector[tuple[int, ...], float]:
     """
     Rotate a vector/multivector v using Rotor R = exp(-theta/2 * B) = cos(theta/2) - sin(theta/2) * B.
