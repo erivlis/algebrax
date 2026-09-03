@@ -41,7 +41,7 @@ import algebrax as ax
 digital_semiring = ax.semiring.DigitalSemiring()
 
 pub_m = {0: {0: 123, 1: 456}, 1: {0: 789, 1: 12}}
-print(f"Public Generator Matrix M: {pub_m}")
+print(f'Public Generator Matrix M: {pub_m}')
 
 alice_a = {0: {0: 11, 1: 99}, 1: {0: 99, 1: 11}}
 bob_b = {0: {0: 22, 1: 88}, 1: {0: 88, 1: 22}}
@@ -52,8 +52,8 @@ u_msg = ax.matrix.dot(am, alice_a, digital_semiring)
 bm = ax.matrix.dot(bob_b, pub_m, digital_semiring)
 v_msg = ax.matrix.dot(bm, bob_b, digital_semiring)
 
-print(f"Alice transmits public message U: {u_msg}")
-print(f"Bob   transmits public message V: {v_msg}")
+print(f'Alice transmits public message U: {u_msg}')
+print(f'Bob   transmits public message V: {v_msg}')
 
 av = ax.matrix.dot(alice_a, v_msg, digital_semiring)
 key_alice = ax.matrix.dot(av, alice_a, digital_semiring)
@@ -64,7 +64,7 @@ key_bob = ax.matrix.dot(bu, bob_b, digital_semiring)
 print(f"\nAlice's Derived Shared Secret Key: {key_alice}")
 print(f"Bob's   Derived Shared Secret Key: {key_bob}")
 keys_match = key_alice == key_bob
-print(f"Key Agreement Status: {'SUCCESSFUL (Matching Keys)' if keys_match else 'FAILED'}")
+print(f'Key Agreement Status: {"SUCCESSFUL (Matching Keys)" if keys_match else "FAILED"}')
 assert keys_match
 
 # %% [markdown]
@@ -79,35 +79,35 @@ z_point = complex(0.5, (shared_scalar % 10) / 10.0)
 z_eval = ax.transforms.z_transform(payload_signal, z_point)
 mag, phase = cmath.polar(z_eval)
 
-print(f"Input Payload Signal Vector f(t): {payload_signal}")
-print(f"Shared Key Evaluation Point z: {z_point}")
-print(f"Evaluated Z-Transform X(z): {z_eval.real:.4f} + {z_eval.imag:.4f}j")
-print(f"  Complex Magnitude |X(z)| = {mag:.4f}, Phase = {phase:.4f} rad")
+print(f'Input Payload Signal Vector f(t): {payload_signal}')
+print(f'Shared Key Evaluation Point z: {z_point}')
+print(f'Evaluated Z-Transform X(z): {z_eval.real:.4f} + {z_eval.imag:.4f}j')
+print(f'  Complex Magnitude |X(z)| = {mag:.4f}, Phase = {phase:.4f} rad')
 
 # %% [markdown]
 # ## Step 3: Information Privacy Audit (`mutual_information`)
 
 # %%
 joint_distribution = {
-    "Msg_0": {"Cipher_0": 0.25, "Cipher_1": 0.25},
-    "Msg_1": {"Cipher_0": 0.25, "Cipher_1": 0.25},
+    'Msg_0': {'Cipher_0': 0.25, 'Cipher_1': 0.25},
+    'Msg_1': {'Cipher_0': 0.25, 'Cipher_1': 0.25},
 }
 
 mi_val = ax.probability.mutual_information(joint_distribution)
-print(f"Mutual Information I(Plaintext; Ciphertext): {mi_val:.6f} nats")
+print(f'Mutual Information I(Plaintext; Ciphertext): {mi_val:.6f} nats')
 
 if mi_val < 1e-6:
-    print("Security Audit Verdict: SECURE - Perfect zero information leakage.")
+    print('Security Audit Verdict: SECURE - Perfect zero information leakage.')
 else:
-    print("Security Audit Verdict: UNSECURE - Information leakage detected.")
+    print('Security Audit Verdict: UNSECURE - Information leakage detected.')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Post-Quantum Key Exchange Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Post-Quantum Key Exchange Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

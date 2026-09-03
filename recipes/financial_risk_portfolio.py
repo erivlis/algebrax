@@ -34,18 +34,18 @@ import algebrax as ax
 
 # %%
 trading_dfa = {
-    0: {"buy_signal": 1, "hold": 0, "risk_alert": 2},
-    1: {"sell_signal": 0, "risk_alert": 2, "hold": 1},
-    2: {"clear_alert": 0, "hold": 2},
+    0: {'buy_signal': 1, 'hold': 0, 'risk_alert': 2},
+    1: {'sell_signal': 0, 'risk_alert': 2, 'hold': 1},
+    2: {'clear_alert': 0, 'hold': 2},
 }
 
-market_signal_stream = ["buy_signal", "hold", "risk_alert", "hold", "clear_alert", "buy_signal"]
-print(f"Market Signal Stream: {market_signal_stream}")
+market_signal_stream = ['buy_signal', 'hold', 'risk_alert', 'hold', 'clear_alert', 'buy_signal']
+print(f'Market Signal Stream: {market_signal_stream}')
 
 initial_state = 0
 final_state = ax.automata.simulate_dfa(initial_state, market_signal_stream, trading_dfa)
-state_labels = {0: "Cash", 1: "Invested", 2: "Risk_Hedge"}
-print(f"Final Execution State: State {final_state} [{state_labels.get(final_state, 'Unknown')}]")
+state_labels = {0: 'Cash', 1: 'Invested', 2: 'Risk_Hedge'}
+print(f'Final Execution State: State {final_state} [{state_labels.get(final_state, "Unknown")}]')
 assert final_state == 1
 
 # %% [markdown]
@@ -59,12 +59,12 @@ asset_correlation = {
     3: {0: 0.8, 1: 0.1, 2: 0.5, 3: 1.0},
 }
 
-asset_names = {0: "Tech ETF", 1: "Bond Index", 2: "Commodities", 3: "Crypto Index"}
+asset_names = {0: 'Tech ETF', 1: 'Bond Index', 2: 'Commodities', 3: 'Crypto Index'}
 centrality_scores = ax.matrix.academic.eigen_centrality(asset_correlation)
 
-print("\nAsset Spectral Centrality Scores:")
+print('\nAsset Spectral Centrality Scores:')
 for asset_id, score in sorted(centrality_scores.items(), key=lambda x: x[1], reverse=True):
-    print(f"  Asset {asset_id} [{asset_names[asset_id]}]: Centrality = {score:.4f}")
+    print(f'  Asset {asset_id} [{asset_names[asset_id]}]: Centrality = {score:.4f}')
 
 # %% [markdown]
 # ## Step 3: Multi-Step Return Expectation & Variance (`VarianceSemiring`)
@@ -86,18 +86,18 @@ p, r, _, t = path_stats
 exp_return = r / p if p else 0.0
 var_return = (t / p) - (exp_return**2) if p else 0.0
 
-print(f"\n2-Step Portfolio Path Raw Stats (p, r, s, t): {path_stats}")
-print(f"Expected Return E[X]: {exp_return:.2f}%")
-print(f"Return Variance Var(X): {var_return:.2f} (%^2)")
-print(f"Volatility StdDev sigma: {var_return**0.5:.2f}%")
+print(f'\n2-Step Portfolio Path Raw Stats (p, r, s, t): {path_stats}')
+print(f'Expected Return E[X]: {exp_return:.2f}%')
+print(f'Return Variance Var(X): {var_return:.2f} (%^2)')
+print(f'Volatility StdDev sigma: {var_return**0.5:.2f}%')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Financial Risk Engineering Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Financial Risk Engineering Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

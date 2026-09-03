@@ -27,13 +27,13 @@ import algebrax as ax
 ring_edges = [(0, 1), (1, 2), (2, 3), (0, 3)]
 sc_ring = ax.homology.SimplicialComplex(ring_edges)
 
-print("1D Hollow Ring Topological Complex (S^1):")
-print("  Simplices 0D (vertices):", len(sc_ring._simplices.get(0, set())))
-print("  Simplices 1D (edges):", len(sc_ring._simplices.get(1, set())))
+print('1D Hollow Ring Topological Complex (S^1):')
+print('  Simplices 0D (vertices):', len(sc_ring._simplices.get(0, set())))
+print('  Simplices 1D (edges):', len(sc_ring._simplices.get(1, set())))
 
 assert sc_ring.verify_nilpotency(k=1)
 betti_ring = sc_ring.betti_numbers(max_k=1)
-print(f"  Betti Numbers: beta_0 = {betti_ring[0]} (components), beta_1 = {betti_ring[1]} (1D loop holes)")
+print(f'  Betti Numbers: beta_0 = {betti_ring[0]} (components), beta_1 = {betti_ring[1]} (1D loop holes)')
 
 assert betti_ring[0] == 1
 assert betti_ring[1] == 1
@@ -43,17 +43,17 @@ assert betti_ring[1] == 1
 
 # %%
 sc_tet = ax.homology.SimplicialComplex([(0, 1, 2, 3)])
-print("\n3D Solid Tetrahedron Complex:")
-print("  Simplices 0D:", len(sc_tet._simplices.get(0, set())))
-print("  Simplices 1D:", len(sc_tet._simplices.get(1, set())))
-print("  Simplices 2D:", len(sc_tet._simplices.get(2, set())))
-print("  Simplices 3D:", len(sc_tet._simplices.get(3, set())))
+print('\n3D Solid Tetrahedron Complex:')
+print('  Simplices 0D:', len(sc_tet._simplices.get(0, set())))
+print('  Simplices 1D:', len(sc_tet._simplices.get(1, set())))
+print('  Simplices 2D:', len(sc_tet._simplices.get(2, set())))
+print('  Simplices 3D:', len(sc_tet._simplices.get(3, set())))
 
 assert sc_tet.verify_nilpotency(k=2)
 assert sc_tet.verify_nilpotency(k=3)
 
 betti_tet = sc_tet.betti_numbers(max_k=2)
-print(f"  Betti Numbers: beta_0 = {betti_tet[0]}, beta_1 = {betti_tet[1]}, beta_2 = {betti_tet[2]}")
+print(f'  Betti Numbers: beta_0 = {betti_tet[0]}, beta_1 = {betti_tet[1]}, beta_2 = {betti_tet[2]}')
 
 assert betti_tet[0] == 1
 assert betti_tet[1] == 0
@@ -62,10 +62,10 @@ assert betti_tet[2] == 0
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Topological Homology & Betti Barcodes Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Topological Homology & Betti Barcodes Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

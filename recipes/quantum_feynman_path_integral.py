@@ -87,6 +87,7 @@ def born_rule(amplitude: complex) -> float:
 # * **Out-of-phase ($\Delta \theta = \pi$):** $z_1 = 1.0, z_2 = -1.0 \implies z = 0.0 \implies P = 0.0$ (Dark fringe)
 # * **Quadrature ($\Delta \theta = \pi/2$):** $z_1 = 1.0, z_2 = i \implies z = 1 + i \implies P = 2.0$
 
+
 # %%
 def simulate_two_path_interference(
     phase_diff_rad: float,
@@ -113,6 +114,7 @@ def simulate_two_path_interference(
 # computes the exact Feynman sum-over-histories:
 # $$K(S \to D_k) = \sum_{\text{slit}} e^{i S_{S \to \text{slit}}/\hbar} \cdot e^{i S_{\text{slit} \to D_k}/\hbar}$$
 
+
 # %%
 def simulate_double_slit(
     slit_separation: float = 2.0,
@@ -138,18 +140,13 @@ def simulate_double_slit(
     amp_s_b = path_action(k_wave * d_source_b, h_bar=h_bar)
 
     # Layer 2: Slits to Screen Detectors (at x = 5 + screen_distance)
-    y_coords = [
-        -screen_span / 2.0 + i * (screen_span / (num_detectors - 1))
-        for i in range(num_detectors)
-    ]
+    y_coords = [-screen_span / 2.0 + i * (screen_span / (num_detectors - 1)) for i in range(num_detectors)]
 
-    layer1_matrix: dict[str, dict[str, complex]] = {
-        'Source': {'Slit_A': amp_s_a, 'Slit_B': amp_s_b}
-    }
+    layer1_matrix: dict[str, dict[str, complex]] = {'Source': {'Slit_A': amp_s_a, 'Slit_B': amp_s_b}}
 
     layer2_matrix: dict[str, dict[str, complex]] = {'Slit_A': {}, 'Slit_B': {}}
     for i, y_det in enumerate(y_coords):
-        det_id = f"D_{i:02d}"
+        det_id = f'D_{i:02d}'
         d_a_det = math.hypot(screen_distance, y_det - y_slit_a)
         d_b_det = math.hypot(screen_distance, y_det - y_slit_b)
 
@@ -170,17 +167,19 @@ def simulate_double_slit(
 
     results = []
     for i, y_det in enumerate(y_coords):
-        det_id = f"D_{i:02d}"
+        det_id = f'D_{i:02d}'
         amp = source_results.get(det_id, 0j)
         p_val = born_rule(amp)
-        results.append({
-            'detector': det_id,
-            'y_pos': y_det,
-            'real': amp.real,
-            'imag': amp.imag,
-            'amplitude': amp,
-            'probability': p_val,
-        })
+        results.append(
+            {
+                'detector': det_id,
+                'y_pos': y_det,
+                'real': amp.real,
+                'imag': amp.imag,
+                'amplitude': amp,
+                'probability': p_val,
+            }
+        )
     return results
 
 
@@ -194,6 +193,7 @@ def simulate_double_slit(
 #
 # Even though the magnetic field $\mathbf{B} = \nabla \times \mathbf{A} = 0$ along both trajectories,
 # the interference pattern on the screen shifts proportionally to $\Phi$.
+
 
 # %%
 def simulate_aharonov_bohm_effect(
@@ -222,6 +222,7 @@ def simulate_aharonov_bohm_effect(
 # $$M_{x, x\pm 1} = \frac{1}{\sqrt{2}} \exp\left(i \frac{S_{\text{tunnel}}}{\hbar}\right)$$
 # $$M_{x, x} = \exp\left(-i \frac{V_x \Delta t}{\hbar}\right)$$
 
+
 # %%
 def propagate_quantum_lattice_walk(
     lattice_size: int = 15,
@@ -247,9 +248,7 @@ def propagate_quantum_lattice_walk(
 
     # Initial state: localized at center node
     center = lattice_size // 2
-    state_vector: dict[int, dict[int, complex]] = {
-        0: {center: complex(1.0, 0.0)}
-    }
+    state_vector: dict[int, dict[int, complex]] = {0: {center: complex(1.0, 0.0)}}
 
     # Time evolution: state(t) = state(0) * M^T
     current_state = state_vector
@@ -257,62 +256,60 @@ def propagate_quantum_lattice_walk(
         current_state = ax.matrix.dot(current_state, step_matrix, semiring=quantum_semiring)
 
     final_amps = current_state.get(0, {})
-    probabilities = {
-        node: born_rule(amp) for node, amp in final_amps.items()
-    }
+    probabilities = {node: born_rule(amp) for node, amp in final_amps.items()}
     return probabilities, final_amps
 
 
 # %%
 def run_demo() -> None:
     """Executes demonstrations and analytical verifications for quantum path integrals."""
-    print("=== Step 1: Two-Path Quantum Superposition Interference ===")
+    print('=== Step 1: Two-Path Quantum Superposition Interference ===')
     z_constructive, p_constructive = simulate_two_path_interference(0.0)
-    print(f"  In-phase (Δθ = 0.0): Total Amp = {z_constructive}, P = {p_constructive:.4f} (Expected: 4.0)")
+    print(f'  In-phase (Δθ = 0.0): Total Amp = {z_constructive}, P = {p_constructive:.4f} (Expected: 4.0)')
     assert math.isclose(p_constructive, 4.0, abs_tol=1e-7)
 
     z_destructive, p_destructive = simulate_two_path_interference(math.pi)
-    print(f"  Out-of-phase (Δθ = π): Total Amp = {z_destructive}, P = {p_destructive:.4f} (Expected: 0.0)")
+    print(f'  Out-of-phase (Δθ = π): Total Amp = {z_destructive}, P = {p_destructive:.4f} (Expected: 0.0)')
     assert math.isclose(p_destructive, 0.0, abs_tol=1e-7)
 
     z_quad, p_quad = simulate_two_path_interference(math.pi / 2.0)
-    print(f"  Quadrature (Δθ = π/2): Total Amp = {z_quad}, P = {p_quad:.4f} (Expected: 2.0)")
+    print(f'  Quadrature (Δθ = π/2): Total Amp = {z_quad}, P = {p_quad:.4f} (Expected: 2.0)')
     assert math.isclose(p_quad, 2.0, abs_tol=1e-7)
 
-    print("\n=== Step 2: Double-Slit Diffraction Simulation ===")
+    print('\n=== Step 2: Double-Slit Diffraction Simulation ===')
     slit_results = simulate_double_slit(slit_separation=2.0, num_detectors=7)
     for res in slit_results:
-        print(f"  Detector {res['detector']} (y={res['y_pos']:+5.1f}): P = {res['probability']:.6f}")
+        print(f'  Detector {res["detector"]} (y={res["y_pos"]:+5.1f}): P = {res["probability"]:.6f}')
 
     # Central detector should have constructive peak
     center_idx = len(slit_results) // 2
     assert slit_results[center_idx]['probability'] > slit_results[0]['probability']
 
-    print("\n=== Step 3: Aharonov-Bohm Topological Phase Shift ===")
+    print('\n=== Step 3: Aharonov-Bohm Topological Phase Shift ===')
     flux_0 = 0.0
     _, p_flux0 = simulate_aharonov_bohm_effect(flux_0)
-    print(f"  Flux Φ = 0.0: P = {p_flux0:.4f}")
+    print(f'  Flux Φ = 0.0: P = {p_flux0:.4f}')
     assert math.isclose(p_flux0, 4.0, abs_tol=1e-7)
 
     flux_pi = math.pi
     _, p_flux_pi = simulate_aharonov_bohm_effect(flux_pi)
-    print(f"  Flux Φ = π (Destructive): P = {p_flux_pi:.4f}")
+    print(f'  Flux Φ = π (Destructive): P = {p_flux_pi:.4f}')
     assert math.isclose(p_flux_pi, 0.0, abs_tol=1e-7)
 
-    print("\n=== Step 4: Multi-Hop Discrete Quantum Lattice Walk ===")
+    print('\n=== Step 4: Multi-Hop Discrete Quantum Lattice Walk ===')
     probs, _ = propagate_quantum_lattice_walk(lattice_size=11, num_steps=3)
     total_p = sum(probs.values())
-    print(f"  Lattice Walk Total Preserved Norm: {total_p:.4f}")
+    print(f'  Lattice Walk Total Preserved Norm: {total_p:.4f}')
     assert total_p > 0.0
 
 
 def main() -> None:
     """Entry point for CLI and script execution."""
     run_demo()
-    print("==========================================================================")
-    print("Recipe: Discrete Feynman Path Integrals Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Discrete Feynman Path Integrals Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -40,9 +40,9 @@ flip_h = {0: 1, 1: 0, 2: 3, 3: 2}
 
 combined_motion = ax.group.compose(rot_90, flip_h)
 
-print(f"90° Rotation Permutation (r): {rot_90} [Parity sgn: {ax.group.signature(rot_90):+d}]")
-print(f"Horizontal Flip Permutation (s): {flip_h} [Parity sgn: {ax.group.signature(flip_h):+d}]")
-print(f"Combined Motion (s o r):        {combined_motion} [Parity sgn: {ax.group.signature(combined_motion):+d}]")
+print(f'90° Rotation Permutation (r): {rot_90} [Parity sgn: {ax.group.signature(rot_90):+d}]')
+print(f'Horizontal Flip Permutation (s): {flip_h} [Parity sgn: {ax.group.signature(flip_h):+d}]')
+print(f'Combined Motion (s o r):        {combined_motion} [Parity sgn: {ax.group.signature(combined_motion):+d}]')
 
 # %% [markdown]
 # ## Step 2: Structural Stiffness Coupling Determinant (`ax.matrix.determinant`)
@@ -55,15 +55,15 @@ stiffness_matrix = {
 }
 
 det_k = ax.matrix.academic.determinant(stiffness_matrix)
-print("\nStiffness Matrix K:")
+print('\nStiffness Matrix K:')
 for r in sorted(stiffness_matrix.keys()):
-    print(f"  Row {r}: {stiffness_matrix[r]}")
+    print(f'  Row {r}: {stiffness_matrix[r]}')
 
-print(f"\nSystem Stiffness Determinant det(K): {det_k:.2f}")
+print(f'\nSystem Stiffness Determinant det(K): {det_k:.2f}')
 if det_k > 0:
-    print("Status: STABLE RIGID STRUCTURE (Non-singular, det(K) > 0)")
+    print('Status: STABLE RIGID STRUCTURE (Non-singular, det(K) > 0)')
 else:
-    print("Status: WARNING - SINGULAR UNCONSTRAINED STRUCTURE (det(K) = 0)")
+    print('Status: WARNING - SINGULAR UNCONSTRAINED STRUCTURE (det(K) = 0)')
 
 # %% [markdown]
 # ## Step 3: Instantaneous Vibration Envelope Extraction (`transforms.hilbert`)
@@ -74,23 +74,23 @@ raw_vibration = {i: math.sin(2 * math.pi * i / 4) * (3.0 if 6 <= i <= 10 else 1.
 
 analytic_signal = ax.transforms.hilbert(raw_vibration, n=n_samples)
 
-print("\nVibration Sensor Signal & Instantaneous Envelope:")
-print("  Index | Raw Signal x[n] | Analytic Envelope |a[n]|")
-print("  -----------------------------------------------")
+print('\nVibration Sensor Signal & Instantaneous Envelope:')
+print('  Index | Raw Signal x[n] | Analytic Envelope |a[n]|')
+print('  -----------------------------------------------')
 for i in range(n_samples):
     raw_val = raw_vibration.get(i, 0.0)
     complex_val = analytic_signal.get(i, 0j)
     envelope_mag = abs(complex_val)
-    tag = " <== TRANSIENT BURST SPIKE" if envelope_mag > 2.0 else ""
-    print(f"  {i:5d} | {raw_val:14.4f} | {envelope_mag:20.4f}{tag}")
+    tag = ' <== TRANSIENT BURST SPIKE' if envelope_mag > 2.0 else ''
+    print(f'  {i:5d} | {raw_val:14.4f} | {envelope_mag:20.4f}{tag}')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Vibration Structural Analysis Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Vibration Structural Analysis Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

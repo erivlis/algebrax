@@ -94,29 +94,29 @@ def compute_2d_projected_covariance(
 # %%
 gaussians = [
     {
-        "id": "Gaussian_Red",
-        "pos": (0.0, 0.0, 4.0),
-        "scale": (0.8, 0.3, 0.3),
-        "rot": (0.2, 0.5, 0.0),
-        "color": (1.0, 0.2, 0.2),
-        "opacity": 0.85,
+        'id': 'Gaussian_Red',
+        'pos': (0.0, 0.0, 4.0),
+        'scale': (0.8, 0.3, 0.3),
+        'rot': (0.2, 0.5, 0.0),
+        'color': (1.0, 0.2, 0.2),
+        'opacity': 0.85,
     },
     {
-        "id": "Gaussian_Blue",
-        "pos": (0.5, 0.3, 3.5),
-        "scale": (0.4, 0.7, 0.4),
-        "rot": (0.0, -0.3, 0.4),
-        "color": (0.2, 0.4, 1.0),
-        "opacity": 0.75,
+        'id': 'Gaussian_Blue',
+        'pos': (0.5, 0.3, 3.5),
+        'scale': (0.4, 0.7, 0.4),
+        'rot': (0.0, -0.3, 0.4),
+        'color': (0.2, 0.4, 1.0),
+        'opacity': 0.75,
     },
 ]
 
 for g in gaussians:
-    g["sigma_3d"] = compute_3d_covariance(g["scale"], g["rot"])
-    print(f"\n3D Covariance Matrix Sigma for {g['id']}:")
+    g['sigma_3d'] = compute_3d_covariance(g['scale'], g['rot'])
+    print(f'\n3D Covariance Matrix Sigma for {g["id"]}:')
     for r in range(3):
-        row_str = " ".join(f"{g['sigma_3d'].get(r, {}).get(c, 0.0):+6.3f}" for c in range(3))
-        print(f"  Row {r}: [{row_str}]")
+        row_str = ' '.join(f'{g["sigma_3d"].get(r, {}).get(c, 0.0):+6.3f}' for c in range(3))
+        print(f'  Row {r}: [{row_str}]')
 
 # %% [markdown]
 # ## Step 2: 2D Perspective Screen Covariance Projection ($\Sigma' = J \Sigma J^T$)
@@ -124,37 +124,37 @@ for g in gaussians:
 # %%
 focal_len = 2.5
 for g in gaussians:
-    g["sigma_2d"] = compute_2d_projected_covariance(g["sigma_3d"], g["pos"], focal_length=focal_len)
+    g['sigma_2d'] = compute_2d_projected_covariance(g['sigma_3d'], g['pos'], focal_length=focal_len)
     print(f"\n2D Screen Covariance Matrix Sigma' for {g['id']}:")
     for r in range(2):
-        row_str = " ".join(f"{g['sigma_2d'].get(r, {}).get(c, 0.0):+6.3f}" for c in range(2))
-        print(f"  Row {r}: [{row_str}]")
+        row_str = ' '.join(f'{g["sigma_2d"].get(r, {}).get(c, 0.0):+6.3f}' for c in range(2))
+        print(f'  Row {r}: [{row_str}]')
 
 # %% [markdown]
 # ## Step 3: Depth Sorting & Volumetric Alpha Compositing (`gaussian_kernel`)
 
 # %%
-sorted_gaussians = sorted(gaussians, key=lambda g: g["pos"][2])
+sorted_gaussians = sorted(gaussians, key=lambda g: g['pos'][2])
 
-print("\nDepth-Sorted Gaussian Sequence:")
+print('\nDepth-Sorted Gaussian Sequence:')
 for idx, g in enumerate(sorted_gaussians):
-    print(f"  Order {idx + 1}: {g['id']} at Depth Z = {g['pos'][2]:.2f} (Opacity alpha = {g['opacity']:.2f})")
+    print(f'  Order {idx + 1}: {g["id"]} at Depth Z = {g["pos"][2]:.2f} (Opacity alpha = {g["opacity"]:.2f})')
 
 screen_center = (0.0, 0.0)
 accum_color = [0.0, 0.0, 0.0]
 transmittance = 1.0
 
-print(f"\nRay Marching Alpha-Blending at Screen Center {screen_center}:")
+print(f'\nRay Marching Alpha-Blending at Screen Center {screen_center}:')
 for g in sorted_gaussians:
-    tx, ty, tz = g["pos"]
+    tx, ty, tz = g['pos']
     proj_x = focal_len * tx / tz
     proj_y = focal_len * ty / tz
     dx = screen_center[0] - proj_x
     dy = screen_center[1] - proj_y
 
-    a = g["sigma_2d"].get(0, {}).get(0, 0.1)
-    c = g["sigma_2d"].get(1, {}).get(1, 0.1)
-    b = g["sigma_2d"].get(0, {}).get(1, 0.0)
+    a = g['sigma_2d'].get(0, {}).get(0, 0.1)
+    c = g['sigma_2d'].get(1, {}).get(1, 0.1)
+    b = g['sigma_2d'].get(0, {}).get(1, 0.0)
     det = max(a * c - b * b, 1e-6)
 
     inv_a = c / det
@@ -164,22 +164,22 @@ for g in sorted_gaussians:
     mah_dist = 0.5 * (dx * (inv_a * dx + inv_b * dy) + dy * (inv_b * dx + inv_c * dy))
     response = math.exp(-max(mah_dist, 0.0))
 
-    effective_alpha = g["opacity"] * response
+    effective_alpha = g['opacity'] * response
     weight = effective_alpha * transmittance
 
     for channel in range(3):
-        accum_color[channel] += weight * g["color"][channel]
+        accum_color[channel] += weight * g['color'][channel]
 
     transmittance *= 1.0 - effective_alpha
 
-    print(f"  {g['id']}: G = {response:.4f}, Weight = {weight:.4f}, Transmittance = {transmittance:.4f}")
+    print(f'  {g["id"]}: G = {response:.4f}, Weight = {weight:.4f}, Transmittance = {transmittance:.4f}')
 
-print(f"\nFinal Accumulated Screen Color: R={accum_color[0]:.3f}, G={accum_color[1]:.3f}, B={accum_color[2]:.3f}")
+print(f'\nFinal Accumulated Screen Color: R={accum_color[0]:.3f}, G={accum_color[1]:.3f}, B={accum_color[2]:.3f}')
 
 dist_matrix = {0: {1: 1.2}, 1: {0: 1.2}}
 rbf = ax.analysis.gaussian_kernel(dist_matrix, sigma=1.0)
-print("\nSpatial Gaussian Kernel Inter-Splat Affinity:")
-print("  Affinity between Splat 1 & Splat 2:", rbf.get(0, {}).get(1, 0.0))
+print('\nSpatial Gaussian Kernel Inter-Splat Affinity:')
+print('  Affinity between Splat 1 & Splat 2:', rbf.get(0, {}).get(1, 0.0))
 
 assert len(sorted_gaussians) == 2
 assert accum_color[0] > 0.0
@@ -187,10 +187,10 @@ assert accum_color[0] > 0.0
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: 3D Gaussian Splatting Projective Rendering Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: 3D Gaussian Splatting Projective Rendering Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

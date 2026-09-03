@@ -1873,17 +1873,13 @@ def run_quantum_feynman_path_integral() -> None:
             # Draw Double-Slit Geometry & Wave Fringes on Canvas
             if dpg.does_item_exist('quantum_path_canvas'):
                 # Source
-                dpg.draw_circle(
-                    (60, 110), 12, color=(100, 255, 255), fill=(30, 80, 100), parent='quantum_path_canvas'
-                )
+                dpg.draw_circle((60, 110), 12, color=(100, 255, 255), fill=(30, 80, 100), parent='quantum_path_canvas')
                 dpg.draw_text((45, 130), 'Source', color=(200, 240, 255), size=12, parent='quantum_path_canvas')
 
                 # Slits barrier
                 dpg.draw_line((220, 20), (220, 90), color=(180, 180, 200), thickness=4, parent='quantum_path_canvas')
                 dpg.draw_line((220, 130), (220, 200), color=(180, 180, 200), thickness=4, parent='quantum_path_canvas')
-                dpg.draw_circle(
-                    (220, 95), 6, color=(255, 200, 100), fill=(255, 255, 100), parent='quantum_path_canvas'
-                )
+                dpg.draw_circle((220, 95), 6, color=(255, 200, 100), fill=(255, 255, 100), parent='quantum_path_canvas')
                 dpg.draw_circle(
                     (220, 125), 6, color=(255, 200, 100), fill=(255, 255, 100), parent='quantum_path_canvas'
                 )
@@ -1915,7 +1911,7 @@ def run_quantum_feynman_path_integral() -> None:
                     )
                     dpg.draw_text(
                         (455 + bar_len, y_scr - 6),
-                        f"{r['probability']:.3f}",
+                        f'{r["probability"]:.3f}',
                         color=(200, 255, 200),
                         size=10,
                         parent='quantum_path_canvas',
@@ -1938,9 +1934,9 @@ def run_quantum_feynman_path_integral() -> None:
             for idx, r in enumerate(results):
                 table_data[idx] = {
                     'Screen Detector': r['detector'],
-                    'Spatial y': f"{r['y_pos']:+6.2f}",
-                    'Complex Amplitude': f"{r['amplitude']}",
-                    'Born Probability P': f"{r['probability']:.6f}",
+                    'Spatial y': f'{r["y_pos"]:+6.2f}',
+                    'Complex Amplitude': f'{r["amplitude"]}',
+                    'Born Probability P': f'{r["probability"]:.6f}',
                 }
             dpg.set_value('quantum_path_status', 'Simulated 2-step Feynman sum-over-histories with wave interference!')
 
@@ -1957,29 +1953,17 @@ def run_quantum_feynman_path_integral() -> None:
                     (330, 125), f'Flux Φ={flux:.2f}π', color=(255, 220, 100), size=11, parent='quantum_path_canvas'
                 )
                 # Top path
-                dpg.draw_line(
-                    (100, 110), (350, 40), color=(100, 200, 255), thickness=2, parent='quantum_path_canvas'
-                )
-                dpg.draw_line(
-                    (350, 40), (600, 110), color=(100, 200, 255), thickness=2, parent='quantum_path_canvas'
-                )
-                dpg.draw_text(
-                    (280, 20), 'Path 1: +qΦ/2ħ', color=(100, 200, 255), size=12, parent='quantum_path_canvas'
-                )
+                dpg.draw_line((100, 110), (350, 40), color=(100, 200, 255), thickness=2, parent='quantum_path_canvas')
+                dpg.draw_line((350, 40), (600, 110), color=(100, 200, 255), thickness=2, parent='quantum_path_canvas')
+                dpg.draw_text((280, 20), 'Path 1: +qΦ/2ħ', color=(100, 200, 255), size=12, parent='quantum_path_canvas')
                 # Bottom path
-                dpg.draw_line(
-                    (100, 110), (350, 180), color=(100, 255, 180), thickness=2, parent='quantum_path_canvas'
-                )
-                dpg.draw_line(
-                    (350, 180), (600, 110), color=(100, 255, 180), thickness=2, parent='quantum_path_canvas'
-                )
+                dpg.draw_line((100, 110), (350, 180), color=(100, 255, 180), thickness=2, parent='quantum_path_canvas')
+                dpg.draw_line((350, 180), (600, 110), color=(100, 255, 180), thickness=2, parent='quantum_path_canvas')
                 dpg.draw_text(
                     (280, 195), 'Path 2: -qΦ/2ħ', color=(100, 255, 180), size=12, parent='quantum_path_canvas'
                 )
                 # Detector
-                dpg.draw_circle(
-                    (600, 110), 16, color=(255, 255, 100), fill=(90, 90, 20), parent='quantum_path_canvas'
-                )
+                dpg.draw_circle((600, 110), 16, color=(255, 255, 100), fill=(90, 90, 20), parent='quantum_path_canvas')
                 dpg.draw_text(
                     (570, 140), f'Detector P = {p_ab:.4f}', color=(255, 255, 150), size=13, parent='quantum_path_canvas'
                 )
@@ -2050,12 +2034,8 @@ def run_relativistic_dirac_spinor() -> None:
             pt_x = int(center_spinor[0] + radius * math.cos(half_rad))
             pt_y = int(center_spinor[1] - radius * math.sin(half_rad))
 
-            dpg.draw_line(
-                center_spinor, (pt_x, pt_y), color=(255, 100, 200), thickness=3, parent='dirac_spinor_canvas'
-            )
-            dpg.draw_circle(
-                (pt_x, pt_y), 6, color=(255, 200, 255), fill=(255, 100, 200), parent='dirac_spinor_canvas'
-            )
+            dpg.draw_line(center_spinor, (pt_x, pt_y), color=(255, 100, 200), thickness=3, parent='dirac_spinor_canvas')
+            dpg.draw_circle((pt_x, pt_y), 6, color=(255, 200, 255), fill=(255, 100, 200), parent='dirac_spinor_canvas')
             dpg.draw_text(
                 (center_spinor[0] - 80, 15),
                 'Spin-1/2 Rotor R = exp(-θ/2 B_12)',
@@ -2098,17 +2078,17 @@ def run_relativistic_dirac_spinor() -> None:
         table_data = {
             0: {
                 'Spinor State / Multivector': 'Initial State ψ(0)',
-                'Scalar α': f"{psi_init.get((), 0.0):.4f}",
-                'Spin Bivector B_12': f"{psi_init.get((2, 3), 0.0):.4f}",
-                'Boost Bivector B_01': f"{psi_init.get((1, 2), 0.0):.4f}",
-                'Current Density J^0': f"{current_init.get((1,), 0.0):.4f}",
+                'Scalar α': f'{psi_init.get((), 0.0):.4f}',
+                'Spin Bivector B_12': f'{psi_init.get((2, 3), 0.0):.4f}',
+                'Boost Bivector B_01': f'{psi_init.get((1, 2), 0.0):.4f}',
+                'Current Density J^0': f'{current_init.get((1,), 0.0):.4f}',
             },
             1: {
                 'Spinor State / Multivector': f'Transformed State ψ ({tr_desc})',
-                'Scalar α': f"{psi_transformed.get((), 0.0):.4f}",
-                'Spin Bivector B_12': f"{psi_transformed.get((2, 3), 0.0):.4f}",
-                'Boost Bivector B_01': f"{psi_transformed.get((1, 2), 0.0):.4f}",
-                'Current Density J^0': f"{current_trans.get((1,), 0.0):.4f}",
+                'Scalar α': f'{psi_transformed.get((), 0.0):.4f}',
+                'Spin Bivector B_12': f'{psi_transformed.get((2, 3), 0.0):.4f}',
+                'Boost Bivector B_01': f'{psi_transformed.get((1, 2), 0.0):.4f}',
+                'Current Density J^0': f'{current_trans.get((1,), 0.0):.4f}',
             },
         }
         display_matrix_in_table(table_data, 'table_dirac_res')
@@ -2155,9 +2135,7 @@ def run_distributed_vector_clocks() -> None:
                     thickness=2,
                     parent='vclock_canvas',
                 )
-                dpg.draw_text(
-                    (200, 70), 'Msg M1 (P0->P1)', color=(255, 220, 120), size=11, parent='vclock_canvas'
-                )
+                dpg.draw_text((200, 70), 'Msg M1 (P0->P1)', color=(255, 220, 120), size=11, parent='vclock_canvas')
 
                 # M2: e1_3 (380, 110) -> e2_2 (480, 170)
                 dpg.draw_line(
@@ -2167,9 +2145,7 @@ def run_distributed_vector_clocks() -> None:
                     thickness=2,
                     parent='vclock_canvas',
                 )
-                dpg.draw_text(
-                    (400, 130), 'Msg M2 (P1->P2)', color=(120, 255, 220), size=11, parent='vclock_canvas'
-                )
+                dpg.draw_text((400, 130), 'Msg M2 (P1->P2)', color=(120, 255, 220), size=11, parent='vclock_canvas')
 
                 # Draw Event Nodes
                 for e_id, info in trace.items():
@@ -2300,12 +2276,8 @@ def run_distributed_vector_clocks() -> None:
                     (50, 50), 'State: <n1:4, n2:2, n3:0>', color=(200, 230, 255), size=12, parent='vclock_canvas'
                 )
                 # Component bars
-                dpg.draw_line(
-                    (50, 75), (50 + 4 * 18, 75), color=(100, 200, 255), thickness=6, parent='vclock_canvas'
-                )
-                dpg.draw_line(
-                    (50, 85), (50 + 2 * 18, 85), color=(100, 200, 255), thickness=6, parent='vclock_canvas'
-                )
+                dpg.draw_line((50, 75), (50 + 4 * 18, 75), color=(100, 200, 255), thickness=6, parent='vclock_canvas')
+                dpg.draw_line((50, 85), (50 + 2 * 18, 85), color=(100, 200, 255), thickness=6, parent='vclock_canvas')
 
                 # Replica Beta Box (Bottom Left)
                 dpg.draw_rectangle(
@@ -2318,15 +2290,9 @@ def run_distributed_vector_clocks() -> None:
                     (50, 145), 'State: <n1:1, n2:5, n3:3>', color=(255, 220, 180), size=12, parent='vclock_canvas'
                 )
                 # Component bars
-                dpg.draw_line(
-                    (50, 168), (50 + 1 * 18, 168), color=(255, 180, 100), thickness=5, parent='vclock_canvas'
-                )
-                dpg.draw_line(
-                    (50, 176), (50 + 5 * 18, 176), color=(255, 180, 100), thickness=5, parent='vclock_canvas'
-                )
-                dpg.draw_line(
-                    (50, 184), (50 + 3 * 18, 184), color=(255, 180, 100), thickness=5, parent='vclock_canvas'
-                )
+                dpg.draw_line((50, 168), (50 + 1 * 18, 168), color=(255, 180, 100), thickness=5, parent='vclock_canvas')
+                dpg.draw_line((50, 176), (50 + 5 * 18, 176), color=(255, 180, 100), thickness=5, parent='vclock_canvas')
+                dpg.draw_line((50, 184), (50 + 3 * 18, 184), color=(255, 180, 100), thickness=5, parent='vclock_canvas')
 
                 # Merge Convergence Arrows
                 dpg.draw_line((250, 60), (390, 100), color=(255, 255, 150), thickness=2, parent='vclock_canvas')
@@ -4135,9 +4101,7 @@ def build_view_relativistic_dirac_spinor() -> None:
                     callback=lambda: run_relativistic_dirac_spinor(),
                 )
                 dpg.add_spacer(height=10)
-                dpg.add_button(
-                    label='Apply Rotor ψ\' = R ψ R^†', callback=run_relativistic_dirac_spinor, width=250
-                )
+                dpg.add_button(label="Apply Rotor ψ' = R ψ R^†", callback=run_relativistic_dirac_spinor, width=250)
                 dpg.add_spacer(height=10)
                 dpg.add_text('', tag='dirac_status', color=(255, 200, 100), wrap=290)
 

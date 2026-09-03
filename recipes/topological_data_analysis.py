@@ -63,13 +63,13 @@ for u in sorted(reachability.keys()):
 
 b_0 = len(components)
 
-print(f"Filtration Threshold Radius Eps: {eps_threshold}")
-print("Adjacency Graph (Distance <= 1.5):", adjacency_eps)
-print("\nConnected Components at Radius Eps = 1.5:")
+print(f'Filtration Threshold Radius Eps: {eps_threshold}')
+print('Adjacency Graph (Distance <= 1.5):', adjacency_eps)
+print('\nConnected Components at Radius Eps = 1.5:')
 for idx, comp in enumerate(sorted(components), 1):
-    print(f"  Component {idx}: Points {comp}")
+    print(f'  Component {idx}: Points {comp}')
 
-print(f"\nZeroth Betti Number b_0(Eps=1.5): {b_0} (2 Topological Clusters Detected)")
+print(f'\nZeroth Betti Number b_0(Eps=1.5): {b_0} (2 Topological Clusters Detected)')
 
 # %% [markdown]
 # ## Step 2: Simplicial Complex Edge Curvature (`forman_ricci_curvature`)
@@ -87,10 +87,10 @@ simplicial_graph = {
 
 ricci_k = ax.analysis.forman_ricci_curvature(simplicial_graph)
 
-print("\nForman-Ricci Curvature on 1-Simplices (Edges):")
+print('\nForman-Ricci Curvature on 1-Simplices (Edges):')
 for edge, k_val in sorted(ricci_k.items()):
-    bridge_tag = " <== INTER-CLUSTER TOPOLOGICAL BRIDGE" if k_val < 0 else " <== INTRA-CLUSTER SIMPLEX"
-    print(f"  Simplex {edge}: Curvature K = {k_val:+5.2f}{bridge_tag}")
+    bridge_tag = ' <== INTER-CLUSTER TOPOLOGICAL BRIDGE' if k_val < 0 else ' <== INTRA-CLUSTER SIMPLEX'
+    print(f'  Simplex {edge}: Curvature K = {k_val:+5.2f}{bridge_tag}')
 
 # %% [markdown]
 # ## Step 3: Boundary Operator Matrix Determinant (`ax.matrix.determinant`)
@@ -105,20 +105,20 @@ boundary_matrix = {
 
 det_b = ax.matrix.academic.determinant(boundary_matrix)
 
-print("\nBoundary Operator Laplacian Matrix K:")
+print('\nBoundary Operator Laplacian Matrix K:')
 for r in sorted(boundary_matrix.keys()):
-    print(f"  Row {r}: {boundary_matrix[r]}")
+    print(f'  Row {r}: {boundary_matrix[r]}')
 
-print(f"\nBoundary Matrix Determinant det(K): {det_b:.2f}")
-print("Interpretation: det(K) = 0 confirms presence of 0-mode (connected component invariant).")
+print(f'\nBoundary Matrix Determinant det(K): {det_b:.2f}')
+print('Interpretation: det(K) = 0 confirms presence of 0-mode (connected component invariant).')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Topological Data Analysis (TDA) Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Topological Data Analysis (TDA) Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

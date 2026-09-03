@@ -51,10 +51,10 @@ bulk_boundary_graph = {
 
 ricci_k = ax.analysis.forman_ricci_curvature(bulk_boundary_graph)
 
-print("\nForman-Ricci Curvature across Bulk-Boundary Graph Edges:")
+print('\nForman-Ricci Curvature across Bulk-Boundary Graph Edges:')
 for edge, k_val in sorted(ricci_k.items()):
-    edge_type = "BULK INTERIOR" if 0 in edge else "BULK-BOUNDARY INTERFACE"
-    print(f"  Edge {edge} [{edge_type}]: Curvature K = {k_val:+5.2f}")
+    edge_type = 'BULK INTERIOR' if 0 in edge else 'BULK-BOUNDARY INTERFACE'
+    print(f'  Edge {edge} [{edge_type}]: Curvature K = {k_val:+5.2f}')
 
 # %% [markdown]
 # ## Step 2: Discrete Holographic Gauss-Stokes Divergence (`analysis.divergence`)
@@ -74,49 +74,49 @@ boundary_nodes = [3, 4, 5, 6]
 total_bulk_div = sum(div_f.get(v, 0.0) for v in bulk_nodes)
 total_boundary_flux = sum(div_f.get(v, 0.0) for v in boundary_nodes)
 
-print("\nDiscrete Field Divergence at Nodes:")
+print('\nDiscrete Field Divergence at Nodes:')
 for v in sorted(div_f.keys()):
-    label = "BULK NODE" if v in bulk_nodes else "BOUNDARY NODE"
-    print(f"  Node {v} [{label}]: div(F) = {div_f[v]:+6.1f}")
+    label = 'BULK NODE' if v in bulk_nodes else 'BOUNDARY NODE'
+    print(f'  Node {v} [{label}]: div(F) = {div_f[v]:+6.1f}')
 
-print(f"\nTotal Bulk Field Divergence:     {total_bulk_div:+6.1f}")
-print(f"Total Boundary Inflow/Outflow:   {total_boundary_flux:+6.1f}")
-print(f"Holographic Divergence Theorem:  Sum = {total_bulk_div + total_boundary_flux:.1f} (Exact Conservation)")
+print(f'\nTotal Bulk Field Divergence:     {total_bulk_div:+6.1f}')
+print(f'Total Boundary Inflow/Outflow:   {total_boundary_flux:+6.1f}')
+print(f'Holographic Divergence Theorem:  Sum = {total_bulk_div + total_boundary_flux:.1f} (Exact Conservation)')
 
 # %% [markdown]
 # ## Step 3: MERA Tensor Network Subtree Contraction (`AlgebraicTrie`)
 
 # %%
 mera_trie = ax.trie.AlgebraicTrie()
-mera_trie[("IR_Root", "Scale_1", "Site_A")] = 0.40
-mera_trie[("IR_Root", "Scale_1", "Site_B")] = 0.35
-mera_trie[("IR_Root", "Scale_2", "Site_C")] = 0.15
-mera_trie[("IR_Root", "Scale_2", "Site_D")] = 0.10
+mera_trie[('IR_Root', 'Scale_1', 'Site_A')] = 0.40
+mera_trie[('IR_Root', 'Scale_1', 'Site_B')] = 0.35
+mera_trie[('IR_Root', 'Scale_2', 'Site_C')] = 0.15
+mera_trie[('IR_Root', 'Scale_2', 'Site_D')] = 0.10
 
-scale_1_weight = mera_trie.contract(("IR_Root", "Scale_1"))
-scale_2_weight = mera_trie.contract(("IR_Root", "Scale_2"))
-total_mera_weight = mera_trie.contract(("IR_Root",))
+scale_1_weight = mera_trie.contract(('IR_Root', 'Scale_1'))
+scale_2_weight = mera_trie.contract(('IR_Root', 'Scale_2'))
+total_mera_weight = mera_trie.contract(('IR_Root',))
 
-print("\nMERA Hierarchical Tensor Network Contents:")
+print('\nMERA Hierarchical Tensor Network Contents:')
 for key, weight in mera_trie.items():
-    print(f"  Tensor Branch {key}: Weight = {weight:.2f}")
+    print(f'  Tensor Branch {key}: Weight = {weight:.2f}')
 
-print(f"\nContracted IR Scale 1 Subtree Weight: {scale_1_weight:.2f}")
-print(f"Contracted IR Scale 2 Subtree Weight: {scale_2_weight:.2f}")
-print(f"Total MERA Boundary Contracted State: {total_mera_weight:.2f}")
+print(f'\nContracted IR Scale 1 Subtree Weight: {scale_1_weight:.2f}')
+print(f'Contracted IR Scale 2 Subtree Weight: {scale_2_weight:.2f}')
+print(f'Total MERA Boundary Contracted State: {total_mera_weight:.2f}')
 
 # %% [markdown]
 # ## Step 4: Ryu-Takayanagi Boundary Entanglement Entropy & Mutual Information
 
 # %%
-boundary_state_a = {"00": 0.50, "01": 0.25, "10": 0.15, "11": 0.10}
-boundary_state_b = {"00": 0.40, "01": 0.30, "10": 0.20, "11": 0.10}
+boundary_state_a = {'00': 0.50, '01': 0.25, '10': 0.15, '11': 0.10}
+boundary_state_b = {'00': 0.40, '01': 0.30, '10': 0.20, '11': 0.10}
 
 joint_state_ab = {
-    "00": {"00": 0.30, "01": 0.10},
-    "01": {"00": 0.05, "01": 0.20},
-    "10": {"10": 0.15, "11": 0.05},
-    "11": {"10": 0.05, "11": 0.10},
+    '00': {'00': 0.30, '01': 0.10},
+    '01': {'00': 0.05, '01': 0.20},
+    '10': {'10': 0.15, '11': 0.05},
+    '11': {'10': 0.05, '11': 0.10},
 }
 
 entropy_a = ax.probability.entropy(boundary_state_a)
@@ -125,18 +125,18 @@ mi_ab = ax.probability.mutual_information(joint_state_ab)
 
 minimal_cut_area = entropy_a * 4.0
 
-print(f"\nBoundary Subsystem A Entanglement Entropy S(A):  {entropy_a:.4f} bits")
-print(f"Boundary Subsystem B Entanglement Entropy S(B):  {entropy_b:.4f} bits")
-print(f"Ryu-Takayanagi Minimal Bulk Cut Area Area(gamma_A): {minimal_cut_area:.4f} (G_N units)")
-print(f"Quantum Mutual Information I(A; B):               {mi_ab:.4f} bits")
+print(f'\nBoundary Subsystem A Entanglement Entropy S(A):  {entropy_a:.4f} bits')
+print(f'Boundary Subsystem B Entanglement Entropy S(B):  {entropy_b:.4f} bits')
+print(f'Ryu-Takayanagi Minimal Bulk Cut Area Area(gamma_A): {minimal_cut_area:.4f} (G_N units)')
+print(f'Quantum Mutual Information I(A; B):               {mi_ab:.4f} bits')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Holographic Bulk-Boundary Duality Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Holographic Bulk-Boundary Duality Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

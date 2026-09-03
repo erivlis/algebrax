@@ -36,14 +36,14 @@ import algebrax as ax
 # %%
 knot_algebra = ax.semiring.KnotSemiring(ax.semiring.StandardSemiring[float]())
 
-knot_a = {"3_1": 2.0, "U": 3.0}
-knot_b = {"4_1": 1.0, "U": 4.0}
+knot_a = {'3_1': 2.0, 'U': 3.0}
+knot_b = {'4_1': 1.0, 'U': 4.0}
 
 composite_knot = knot_algebra.mul(knot_a, knot_b)
 
-print("Knot State A: ", knot_a)
-print("Knot State B: ", knot_b)
-print("\nConnected Sum Topological Product A (#) B:")
+print('Knot State A: ', knot_a)
+print('Knot State B: ', knot_b)
+print('\nConnected Sum Topological Product A (#) B:')
 for knot_id, coeff in sorted(composite_knot.items()):
     print(f"  Knot Topology '{knot_id}': Formal Coefficient = {coeff:.2f}")
 
@@ -61,12 +61,12 @@ braid_word = ax.group.compose(w_12, sigma_1)
 sig_s1 = ax.group.signature(sigma_1)
 sig_word = ax.group.signature(braid_word)
 
-print("\nBraid Generator sigma_1 Strand Mapping: ", sigma_1)
-print("Braid Generator sigma_2 Strand Mapping: ", sigma_2)
-print(f"Composed Braid Word w = sigma_1*sigma_2*sigma_1: {braid_word}")
+print('\nBraid Generator sigma_1 Strand Mapping: ', sigma_1)
+print('Braid Generator sigma_2 Strand Mapping: ', sigma_2)
+print(f'Composed Braid Word w = sigma_1*sigma_2*sigma_1: {braid_word}')
 
-print(f"\nGenerator sigma_1 Parity Signature: {sig_s1:+d} (Odd Crossing)")
-print(f"Composed Braid Word Parity Signature:  {sig_word:+d} (Odd Composite Crossing)")
+print(f'\nGenerator sigma_1 Parity Signature: {sig_s1:+d} (Odd Crossing)')
+print(f'Composed Braid Word Parity Signature:  {sig_word:+d} (Odd Composite Crossing)')
 
 # %% [markdown]
 # ## Step 3: Laurent Jones Polynomial Ring Arithmetic (`MonoidAlgebraSemiring`)
@@ -83,19 +83,19 @@ v_figure8 = {-2: 1.0, -1: -1.0, 0: 1.0, 1: -1.0, 2: 1.0}
 
 v_composite = poly_algebra.mul(v_trefoil, v_figure8)
 
-print("\nTrefoil V(3_1) Jones Polynomial Coefficients:  ", v_trefoil)
-print("Figure-8 V(4_1) Jones Polynomial Coefficients: ", v_figure8)
-print("\nComposite Knot V(3_1 # 4_1) Polynomial Product:")
+print('\nTrefoil V(3_1) Jones Polynomial Coefficients:  ', v_trefoil)
+print('Figure-8 V(4_1) Jones Polynomial Coefficients: ', v_figure8)
+print('\nComposite Knot V(3_1 # 4_1) Polynomial Product:')
 for exp in sorted(v_composite.keys()):
-    print(f"  Term t^{exp:+d}: Coefficient = {v_composite[exp]:+5.1f}")
+    print(f'  Term t^{exp:+d}: Coefficient = {v_composite[exp]:+5.1f}')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Algebraic Knot Theory & Invariants Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Algebraic Knot Theory & Invariants Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

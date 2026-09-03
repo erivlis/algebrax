@@ -126,6 +126,7 @@ def clifford_reverse(mv: SparseVector[tuple[int, ...], float]) -> dict[tuple[int
 # * Timelike bivectors ($\gamma_{01}, \gamma_{02}, \gamma_{03}$): electric / boost components $\mathbf{E}$
 # * Pseudoscalar ($I = \gamma_{0123}$): chiral / phase component $\beta$
 
+
 # %%
 def create_dirac_spinor(
     scalar: float = 1.0,
@@ -161,6 +162,7 @@ def create_dirac_spinor(
 # We verify that $\psi(2\pi) = -\psi(0)$ and $\psi(4\pi) = +\psi(0)$, establishing the
 # fundamental spin-$\frac{1}{2}$ topological character.
 
+
 # %%
 def rotate_spinor(
     psi: dict[tuple[int, ...], float],
@@ -184,6 +186,7 @@ def rotate_spinor(
 #
 # A Lorentz boost with velocity $v = c \tanh(\xi)$ along spatial axis $k$ corresponds to the hyperbolic rotor:
 # $$L(\xi) = \cosh\left(\frac{\xi}{2}\right) - \sinh\left(\frac{\xi}{2}\right) \gamma_0 \gamma_k$$
+
 
 # %%
 def boost_spinor(
@@ -213,6 +216,7 @@ def boost_spinor(
 # Because $\gamma_0^2 = +1$ and $\psi \psi^\dagger \ge 0$, the time component $J^0 = \rho \ge 0$ is
 # strictly positive-definite, and $J$ is everywhere **future-directed and timelike** ($J^2 \ge 0$).
 
+
 # %%
 def compute_dirac_current(
     psi: dict[tuple[int, ...], float],
@@ -235,6 +239,7 @@ def compute_dirac_current(
 #
 # We evaluate the multi-hop transmission of a Dirac spinor wavepacket across a discrete Minkowski
 # causal diamond grid from emission event `Origin` through intermediate spacetime nodes to detector `Target`.
+
 
 # %%
 def propagate_dirac_causal_graph(
@@ -260,9 +265,7 @@ def propagate_dirac_causal_graph(
     edge_origin_left = cs.mul(prop_forward, rotor_left)
     edge_origin_right = cs.mul(prop_forward, boost_right)
 
-    network_l1 = {
-        'Origin': {'Event_Left': edge_origin_left, 'Event_Right': edge_origin_right}
-    }
+    network_l1 = {'Origin': {'Event_Left': edge_origin_left, 'Event_Right': edge_origin_right}}
     network_l2 = {
         'Event_Left': {'Target': prop_forward},
         'Event_Right': {'Target': prop_forward},
@@ -283,53 +286,53 @@ def propagate_dirac_causal_graph(
 # %%
 def run_demo() -> None:
     """Executes verification and walkthrough demonstrations for Dirac spinors."""
-    print("=== Step 1: Dirac Basis Verification ===")
+    print('=== Step 1: Dirac Basis Verification ===')
     basis = create_dirac_basis()
     cs = get_sta_semiring()
 
     # Verify gamma_0^2 = +1, gamma_1^2 = -1
     g0_sq = cs.mul(basis['gamma_0'], basis['gamma_0'])
     g1_sq = cs.mul(basis['gamma_1'], basis['gamma_1'])
-    print(f"  gamma_0^2 = {g0_sq.get((), 0.0):+.1f} (Timelike +1)")
-    print(f"  gamma_1^2 = {g1_sq.get((), 0.0):+.1f} (Spacelike -1)")
+    print(f'  gamma_0^2 = {g0_sq.get((), 0.0):+.1f} (Timelike +1)')
+    print(f'  gamma_1^2 = {g1_sq.get((), 0.0):+.1f} (Spacelike -1)')
     assert math.isclose(g0_sq.get((), 0.0), 1.0)
     assert math.isclose(g1_sq.get((), 0.0), -1.0)
 
-    print("\n=== Step 2: Spinor 4π Periodicity Verification ===")
+    print('\n=== Step 2: Spinor 4π Periodicity Verification ===')
     psi_rest = create_dirac_spinor(scalar=1.0, bivector_12=0.5)
 
     psi_2pi = rotate_spinor(psi_rest, 2.0 * math.pi)
     psi_4pi = rotate_spinor(psi_rest, 4.0 * math.pi)
 
-    print(f"  Initial Spinor:     {psi_rest}")
-    print(f"  Rotated by 2π:      {psi_2pi} (Sign flipped!)")
-    print(f"  Rotated by 4π:      {psi_4pi} (Identity restored!)")
+    print(f'  Initial Spinor:     {psi_rest}')
+    print(f'  Rotated by 2π:      {psi_2pi} (Sign flipped!)')
+    print(f'  Rotated by 4π:      {psi_4pi} (Identity restored!)')
 
     assert math.isclose(psi_2pi.get((), 0.0), -psi_rest.get((), 0.0), abs_tol=1e-7)
     assert math.isclose(psi_4pi.get((), 0.0), +psi_rest.get((), 0.0), abs_tol=1e-7)
 
-    print("\n=== Step 3: Conserved Dirac 4-Current J ===")
+    print('\n=== Step 3: Conserved Dirac 4-Current J ===')
     j_curr = compute_dirac_current(psi_rest)
-    print(f"  Probability Density J^0: {j_curr.get((1,), 0.0):.4f}")
-    print(f"  Spatial Flow Vector J:   {j_curr}")
+    print(f'  Probability Density J^0: {j_curr.get((1,), 0.0):.4f}')
+    print(f'  Spatial Flow Vector J:   {j_curr}')
     assert j_curr.get((1,), 0.0) > 0.0  # Positive probability density
 
-    print("\n=== Step 4: Spacetime Diamond Graph Propagation ===")
+    print('\n=== Step 4: Spacetime Diamond Graph Propagation ===')
     res_prop = propagate_dirac_causal_graph(psi_rest)
     final_sp = res_prop['Final_Spinor']
-    print(f"  Detected Spinor at Target: {final_sp}")
+    print(f'  Detected Spinor at Target: {final_sp}')
     j_target = compute_dirac_current(final_sp)
-    print(f"  Target Current Density J^0: {j_target.get((1,), 0.0):.4f}")
+    print(f'  Target Current Density J^0: {j_target.get((1,), 0.0):.4f}')
     assert j_target.get((1,), 0.0) > 0.0
 
 
 def main() -> None:
     """Entry point for CLI and script execution."""
     run_demo()
-    print("==========================================================================")
-    print("Recipe: Relativistic Dirac Spinors Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Relativistic Dirac Spinors Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

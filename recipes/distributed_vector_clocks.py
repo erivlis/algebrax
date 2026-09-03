@@ -93,12 +93,12 @@ def compare_vector_clocks(c1: dict[str, int], c2: dict[str, int]) -> str:
     le21 = all(c2.get(k, 0) <= c1.get(k, 0) for k in all_keys)
 
     if le12 and le21:
-        return "equal"
+        return 'equal'
     if le12:
-        return "precedes"
+        return 'precedes'
     if le21:
-        return "succeeds"
-    return "concurrent"
+        return 'succeeds'
+    return 'concurrent'
 
 
 # %% [markdown]
@@ -114,13 +114,14 @@ def compare_vector_clocks(c1: dict[str, int], c2: dict[str, int]) -> str:
 # * **Event `e1_3`**: `P1` sends message $M_2$ to `P2` ($L=4, V=(2,3,0)$).
 # * **Event `e2_2`**: `P2` receives $M_2$ from `P1` ($L=\max(1, 4)+1=5, V=(2,3,2)$).
 
+
 # %%
 def simulate_distributed_cluster() -> dict[str, dict[str, Any]]:
     """Simulates an asynchronous distributed execution across 3 processes,
 
     tracking Lamport scalar clocks and Vector clocks for every event.
     """
-    processes = ["P0", "P1", "P2"]
+    processes = ['P0', 'P1', 'P2']
 
     # Initial state
     scalar_clocks = dict.fromkeys(processes, 0)
@@ -133,54 +134,54 @@ def simulate_distributed_cluster() -> dict[str, dict[str, Any]]:
         scalar_clocks[proc] += 1
         vector_clocks[proc] = tick_vector_clock(vector_clocks[proc], proc)
         event_log[event_id] = {
-            "event_id": event_id,
-            "process": proc,
-            "type": "LOCAL",
-            "desc": description,
-            "scalar_clock": scalar_clocks[proc],
-            "vector_clock": dict(vector_clocks[proc]),
+            'event_id': event_id,
+            'process': proc,
+            'type': 'LOCAL',
+            'desc': description,
+            'scalar_clock': scalar_clocks[proc],
+            'vector_clock': dict(vector_clocks[proc]),
         }
 
     def send_event(event_id: str, msg_id: str, src: str, dest: str, description: str) -> None:
         scalar_clocks[src] += 1
         vector_clocks[src] = tick_vector_clock(vector_clocks[src], src)
         inflight_messages[msg_id] = {
-            "scalar": scalar_clocks[src],
-            "vector": dict(vector_clocks[src]),
+            'scalar': scalar_clocks[src],
+            'vector': dict(vector_clocks[src]),
         }
         event_log[event_id] = {
-            "event_id": event_id,
-            "process": src,
-            "type": "SEND",
-            "desc": f"{description} (Send {msg_id} -> {dest})",
-            "scalar_clock": scalar_clocks[src],
-            "vector_clock": dict(vector_clocks[src]),
-            "msg_id": msg_id,
+            'event_id': event_id,
+            'process': src,
+            'type': 'SEND',
+            'desc': f'{description} (Send {msg_id} -> {dest})',
+            'scalar_clock': scalar_clocks[src],
+            'vector_clock': dict(vector_clocks[src]),
+            'msg_id': msg_id,
         }
 
     def receive_event(event_id: str, msg_id: str, dest: str, description: str) -> None:
         msg = inflight_messages[msg_id]
-        scalar_clocks[dest] = max(scalar_clocks[dest], msg["scalar"]) + 1
-        merged_v = merge_vector_clocks(vector_clocks[dest], msg["vector"])
+        scalar_clocks[dest] = max(scalar_clocks[dest], msg['scalar']) + 1
+        merged_v = merge_vector_clocks(vector_clocks[dest], msg['vector'])
         vector_clocks[dest] = tick_vector_clock(merged_v, dest)
         event_log[event_id] = {
-            "event_id": event_id,
-            "process": dest,
-            "type": "RECEIVE",
-            "desc": f"{description} (Recv {msg_id})",
-            "scalar_clock": scalar_clocks[dest],
-            "vector_clock": dict(vector_clocks[dest]),
-            "msg_id": msg_id,
+            'event_id': event_id,
+            'process': dest,
+            'type': 'RECEIVE',
+            'desc': f'{description} (Recv {msg_id})',
+            'scalar_clock': scalar_clocks[dest],
+            'vector_clock': dict(vector_clocks[dest]),
+            'msg_id': msg_id,
         }
 
     # Trace execution
-    local_event("e0_1", "P0", "P0 initializes transaction batch")
-    send_event("e0_2", "M1", "P0", "P1", "P0 sends replicated state M1 to P1")
-    local_event("e1_1", "P1", "P1 processes local write")
-    receive_event("e1_2", "M1", "P1", "P1 applies replicated state M1 from P0")
-    local_event("e2_1", "P2", "P2 handles independent user query")
-    send_event("e1_3", "M2", "P1", "P2", "P1 forwards checkpoint M2 to P2")
-    receive_event("e2_2", "M2", "P2", "P2 synchronizes checkpoint M2 from P1")
+    local_event('e0_1', 'P0', 'P0 initializes transaction batch')
+    send_event('e0_2', 'M1', 'P0', 'P1', 'P0 sends replicated state M1 to P1')
+    local_event('e1_1', 'P1', 'P1 processes local write')
+    receive_event('e1_2', 'M1', 'P1', 'P1 applies replicated state M1 from P0')
+    local_event('e2_1', 'P2', 'P2 handles independent user query')
+    send_event('e1_3', 'M2', 'P1', 'P2', 'P1 forwards checkpoint M2 to P2')
+    receive_event('e2_2', 'M2', 'P2', 'P2 synchronizes checkpoint M2 from P1')
 
     return event_log
 
@@ -192,6 +193,7 @@ def simulate_distributed_cluster() -> dict[str, dict[str, Any]]:
 # Notice how `e1_1` ($L=1, V=(0,1,0)$) and `e0_1` ($L=1, V=(1,0,0)$) are identified as **concurrent** ($a \parallel b$),
 # while scalar clocks alone could not distinguish causal succession from concurrent execution.
 
+
 # %%
 def compute_causality_matrix(
     event_log: dict[str, dict[str, Any]],
@@ -201,9 +203,9 @@ def compute_causality_matrix(
     matrix: dict[str, dict[str, str]] = {e1: {} for e1 in event_ids}
 
     for e1 in event_ids:
-        v1 = event_log[e1]["vector_clock"]
+        v1 = event_log[e1]['vector_clock']
         for e2 in event_ids:
-            v2 = event_log[e2]["vector_clock"]
+            v2 = event_log[e2]['vector_clock']
             matrix[e1][e2] = compare_vector_clocks(v1, v2)
 
     return matrix
@@ -217,6 +219,7 @@ def compute_causality_matrix(
 # We evaluate:
 # 1. **Causal Reachability Matrix:** Contracting the adjacency matrix $E$ via `ax.matrix.power` over `BooleanSemiring`.
 # 2. **Earliest Arrival Time:** Contracting transmission weights over `ArcticSemiring` $(\max, +)$.
+
 
 # %%
 def compute_causal_dag_analysis(
@@ -233,7 +236,7 @@ def compute_causal_dag_analysis(
     # 1. Intra-process sequential edges (weight = 1 ms local latency)
     proc_events: dict[str, list[str]] = {}
     for e_id, data in event_log.items():
-        proc_events.setdefault(data["process"], []).append(e_id)
+        proc_events.setdefault(data['process'], []).append(e_id)
 
     for _, e_list in proc_events.items():
         for idx in range(len(e_list) - 1):
@@ -242,10 +245,10 @@ def compute_causal_dag_analysis(
             direct_adj_arctic[u][v] = 1.0
 
     # 2. Inter-process message edges (weight = 5 ms network latency)
-    sends = {data["msg_id"]: e_id for e_id, data in event_log.items() if data["type"] == "SEND"}
+    sends = {data['msg_id']: e_id for e_id, data in event_log.items() if data['type'] == 'SEND'}
     for e_id, data in event_log.items():
-        if data["type"] == "RECEIVE":
-            msg_id = data.get("msg_id")
+        if data['type'] == 'RECEIVE':
+            msg_id = data.get('msg_id')
             if msg_id and msg_id in sends:
                 src_event = sends[msg_id]
                 direct_adj_bool[src_event][e_id] = True
@@ -286,6 +289,7 @@ def compute_causal_dag_analysis(
 #
 # We demonstrate deterministic synchronization between two diverging replica nodes `Replica_Alpha` and `Replica_Beta`.
 
+
 # %%
 def synchronize_crdt_replicas(
     state_alpha: dict[str, int],
@@ -300,58 +304,58 @@ def synchronize_crdt_replicas(
 # %%
 def run_demo() -> None:
     """Executes distributed causal ordering simulation and analytical verifications."""
-    print("=== Step 1: Distributed Message Passing Trace ===")
+    print('=== Step 1: Distributed Message Passing Trace ===')
     trace = simulate_distributed_cluster()
     for e_id, info in trace.items():
-        v_str = ", ".join(f"{p}:{info['vector_clock'].get(p, 0)}" for p in ['P0', 'P1', 'P2'])
+        v_str = ', '.join(f'{p}:{info["vector_clock"].get(p, 0)}' for p in ['P0', 'P1', 'P2'])
         desc = info['desc']
         proc = info['process']
         etype = info['type']
         s_clk = info['scalar_clock']
-        print(f"  Event [{e_id:4s}] ({proc}) {etype:7s} | L={s_clk} | V=({v_str}) | {desc}")
+        print(f'  Event [{e_id:4s}] ({proc}) {etype:7s} | L={s_clk} | V=({v_str}) | {desc}')
 
-    print("\n=== Step 2: Causality & Concurrency Classification Matrix ===")
+    print('\n=== Step 2: Causality & Concurrency Classification Matrix ===')
     causal_mat = compute_causality_matrix(trace)
-    print("  Comparing e0_1 vs e1_1:", causal_mat["e0_1"]["e1_1"], "(Expected: concurrent)")
-    assert causal_mat["e0_1"]["e1_1"] == "concurrent"
-    assert causal_mat["e1_1"]["e0_1"] == "concurrent"
+    print('  Comparing e0_1 vs e1_1:', causal_mat['e0_1']['e1_1'], '(Expected: concurrent)')
+    assert causal_mat['e0_1']['e1_1'] == 'concurrent'
+    assert causal_mat['e1_1']['e0_1'] == 'concurrent'
 
-    print("  Comparing e0_1 vs e1_2:", causal_mat["e0_1"]["e1_2"], "(Expected: precedes)")
-    assert causal_mat["e0_1"]["e1_2"] == "precedes"
-    assert causal_mat["e1_2"]["e0_1"] == "succeeds"
+    print('  Comparing e0_1 vs e1_2:', causal_mat['e0_1']['e1_2'], '(Expected: precedes)')
+    assert causal_mat['e0_1']['e1_2'] == 'precedes'
+    assert causal_mat['e1_2']['e0_1'] == 'succeeds'
 
-    print("  Comparing e0_1 vs e2_2:", causal_mat["e0_1"]["e2_2"], "(Expected: precedes via 2-hop causality)")
-    assert causal_mat["e0_1"]["e2_2"] == "precedes"
+    print('  Comparing e0_1 vs e2_2:', causal_mat['e0_1']['e2_2'], '(Expected: precedes via 2-hop causality)')
+    assert causal_mat['e0_1']['e2_2'] == 'precedes'
 
-    print("\n=== Step 3: Causal Graph Contraction & Arctic Critical Latency ===")
+    print('\n=== Step 3: Causal Graph Contraction & Arctic Critical Latency ===')
     reach, latencies = compute_causal_dag_analysis(trace)
-    print(f"  Causal Reachability from e0_1 to e2_2: {reach.get('e0_1', {}).get('e2_2', False)}")
-    assert reach.get("e0_1", {}).get("e2_2", False) is True
+    print(f'  Causal Reachability from e0_1 to e2_2: {reach.get("e0_1", {}).get("e2_2", False)}')
+    assert reach.get('e0_1', {}).get('e2_2', False) is True
 
     # Path e0_1 -> e0_2 (1ms) -> e1_2 (5ms) -> e1_3 (1ms) -> e2_2 (5ms) = 12ms
-    lat_e01_e22 = latencies.get("e0_1", {}).get("e2_2", 0.0)
-    print(f"  Critical Path Latency from e0_1 to e2_2: {lat_e01_e22:.1f} ms")
+    lat_e01_e22 = latencies.get('e0_1', {}).get('e2_2', 0.0)
+    print(f'  Critical Path Latency from e0_1 to e2_2: {lat_e01_e22:.1f} ms')
     assert lat_e01_e22 >= 12.0
 
-    print("\n=== Step 4: CRDT Replicas Join-Semilattice Synchronization ===")
-    rep_a = {"node_1": 4, "node_2": 2, "node_3": 0}
-    rep_b = {"node_1": 1, "node_2": 5, "node_3": 3}
+    print('\n=== Step 4: CRDT Replicas Join-Semilattice Synchronization ===')
+    rep_a = {'node_1': 4, 'node_2': 2, 'node_3': 0}
+    rep_b = {'node_1': 1, 'node_2': 5, 'node_3': 3}
     merged, relation = synchronize_crdt_replicas(rep_a, rep_b)
-    print(f"  Replica A: {rep_a}")
-    print(f"  Replica B: {rep_b}")
-    print(f"  Relation : {relation} (Concurrent Divergence)")
-    print(f"  Merged   : {merged}")
-    assert relation == "concurrent"
-    assert merged == {"node_1": 4, "node_2": 5, "node_3": 3}
+    print(f'  Replica A: {rep_a}')
+    print(f'  Replica B: {rep_b}')
+    print(f'  Relation : {relation} (Concurrent Divergence)')
+    print(f'  Merged   : {merged}')
+    assert relation == 'concurrent'
+    assert merged == {'node_1': 4, 'node_2': 5, 'node_3': 3}
 
 
 def main() -> None:
     """Entry point for CLI and script execution."""
     run_demo()
-    print("==========================================================================")
-    print("Recipe: Distributed Vector Clocks & Causal Semilattices Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Distributed Vector Clocks & Causal Semilattices Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

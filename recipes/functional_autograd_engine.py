@@ -58,15 +58,17 @@ from algebrax.typing import SparseMatrix, SparseVector
 # %% [markdown]
 # ## Step 1: Definition of the `Value` Autograd Computational Node
 
+
 # %%
 class Value:
     r"""A computational scalar node tracking values, children, and local adjoint pullback closures (VJPs)."""
+
     __slots__ = ('_backward', '_prev', 'data', 'grad', 'label')
 
     def __init__(
         self,
         data: float | int,
-        _children: tuple["Value", ...] = (),
+        _children: tuple['Value', ...] = (),
         label: str = '',
     ) -> None:
         self.data = float(data)
@@ -76,12 +78,12 @@ class Value:
         self.label = label
 
     def __repr__(self) -> str:
-        name_str = f"'{self.label}', " if self.label else ""
-        return f"Value({name_str}data={self.data:.4f}, grad={self.grad:.4f})"
+        name_str = f"'{self.label}', " if self.label else ''
+        return f'Value({name_str}data={self.data:.4f}, grad={self.grad:.4f})'
 
     # --- Elementary Arithmetic Operations with Local VJP Pullbacks ---
 
-    def __add__(self, other: Self | float | int) -> "Value":
+    def __add__(self, other: Self | float | int) -> 'Value':
         o = other if isinstance(other, Value) else Value(other)
         out = Value(self.data + o.data, (self, o))
 
@@ -93,19 +95,19 @@ class Value:
         out._backward = _backward
         return out
 
-    def __radd__(self, other: Self | float | int) -> "Value":
+    def __radd__(self, other: Self | float | int) -> 'Value':
         return self.__add__(other)
 
-    def __neg__(self) -> "Value":
+    def __neg__(self) -> 'Value':
         return self * -1.0
 
-    def __sub__(self, other: Self | float | int) -> "Value":
+    def __sub__(self, other: Self | float | int) -> 'Value':
         return self + (-other)
 
-    def __rsub__(self, other: Self | float | int) -> "Value":
+    def __rsub__(self, other: Self | float | int) -> 'Value':
         return Value(other) - self
 
-    def __mul__(self, other: Self | float | int) -> "Value":
+    def __mul__(self, other: Self | float | int) -> 'Value':
         o = other if isinstance(other, Value) else Value(other)
         out = Value(self.data * o.data, (self, o))
 
@@ -117,19 +119,19 @@ class Value:
         out._backward = _backward
         return out
 
-    def __rmul__(self, other: Self | float | int) -> "Value":
+    def __rmul__(self, other: Self | float | int) -> 'Value':
         return self.__mul__(other)
 
-    def __truediv__(self, other: Self | float | int) -> "Value":
+    def __truediv__(self, other: Self | float | int) -> 'Value':
         o = other if isinstance(other, Value) else Value(other)
-        return self * (o ** -1.0)
+        return self * (o**-1.0)
 
-    def __rtruediv__(self, other: Self | float | int) -> "Value":
+    def __rtruediv__(self, other: Self | float | int) -> 'Value':
         return Value(other) / self
 
-    def __pow__(self, power: float | int) -> "Value":
+    def __pow__(self, power: float | int) -> 'Value':
         p = float(power)
-        out = Value(self.data ** p, (self,))
+        out = Value(self.data**p, (self,))
 
         def _backward() -> None:
             # Power rule: d(u^p)/du = p * u^(p-1)
@@ -140,7 +142,7 @@ class Value:
 
     # --- Transcendental Functions & Non-Linearities ---
 
-    def exp(self) -> "Value":
+    def exp(self) -> 'Value':
         e = math.exp(self.data)
         out = Value(e, (self,))
 
@@ -151,9 +153,9 @@ class Value:
         out._backward = _backward
         return out
 
-    def log(self) -> "Value":
+    def log(self) -> 'Value':
         if self.data <= 0.0:
-            raise ValueError("Logarithm undefined for non-positive values.")
+            raise ValueError('Logarithm undefined for non-positive values.')
         out = Value(math.log(self.data), (self,))
 
         def _backward() -> None:
@@ -163,7 +165,7 @@ class Value:
         out._backward = _backward
         return out
 
-    def sin(self) -> "Value":
+    def sin(self) -> 'Value':
         out = Value(math.sin(self.data), (self,))
 
         def _backward() -> None:
@@ -173,7 +175,7 @@ class Value:
         out._backward = _backward
         return out
 
-    def cos(self) -> "Value":
+    def cos(self) -> 'Value':
         out = Value(math.cos(self.data), (self,))
 
         def _backward() -> None:
@@ -183,18 +185,18 @@ class Value:
         out._backward = _backward
         return out
 
-    def tanh(self) -> "Value":
+    def tanh(self) -> 'Value':
         t = math.tanh(self.data)
         out = Value(t, (self,))
 
         def _backward() -> None:
             # d(tanh(u))/du = 1 - tanh^2(u)
-            self.grad += (1.0 - t ** 2) * out.grad
+            self.grad += (1.0 - t**2) * out.grad
 
         out._backward = _backward
         return out
 
-    def sigmoid(self) -> "Value":
+    def sigmoid(self) -> 'Value':
         s = 1.0 / (1.0 + math.exp(-self.data)) if self.data >= 0 else math.exp(self.data) / (1.0 + math.exp(self.data))
         out = Value(s, (self,))
 
@@ -205,7 +207,7 @@ class Value:
         out._backward = _backward
         return out
 
-    def relu(self) -> "Value":
+    def relu(self) -> 'Value':
         out = Value(max(0.0, self.data), (self,))
 
         def _backward() -> None:
@@ -245,6 +247,7 @@ class Value:
 # $$f(x, y) = \frac{x^2 \cdot y + \sin(x)}{y + \exp(x)}$$
 # Evaluated at $x = 1.5, y = 2.0$.
 
+
 # %%
 def build_and_evaluate_dag(
     expr_type: str,
@@ -258,22 +261,22 @@ def build_and_evaluate_dag(
     z = Value(vz, label='z')
 
     if '(x^2*y + sin(x)) / (y + exp(x))' in expr_type:
-        num = (x ** 2) * y + x.sin()
+        num = (x**2) * y + x.sin()
         den = y + x.exp()
         out = num / den
         out.label = 'f(x, y)'
-        desc = "Quotient rule DAG: (x^2*y + sin(x)) / (y + exp(x))"
+        desc = 'Quotient rule DAG: (x^2*y + sin(x)) / (y + exp(x))'
     elif 'Loss = (w1*x1 + w2*x2)^2 + tanh(y)' in expr_type:
         w1 = Value(0.8, label='w1')
         w2 = Value(-0.5, label='w2')
         y_lin = w1 * x + w2 * z
-        out = (y_lin ** 2) + y.tanh()
+        out = (y_lin**2) + y.tanh()
         out.label = 'Loss'
-        desc = "Quadratic loss + tanh activation over linear combination"
+        desc = 'Quadratic loss + tanh activation over linear combination'
     else:
         out = x * y * z + (x * z).exp() + y.log()
         out.label = 'g(x, y, z)'
-        desc = "Multi-variable composite: x*y*z + exp(x*z) + ln(y)"
+        desc = 'Multi-variable composite: x*y*z + exp(x*z) + ln(y)'
 
     out.backward()
     return out, x, y, z, desc
@@ -295,9 +298,9 @@ def optimize_polynomial_regression(
         total_loss = Value(0.0)
         for x_val, y_true in train_data:
             x_node = Value(x_val)
-            y_pred = w1 * (x_node ** 2) + w2 * x_node + b
+            y_pred = w1 * (x_node**2) + w2 * x_node + b
             diff = y_pred - y_true
-            total_loss = total_loss + (diff ** 2)
+            total_loss = total_loss + (diff**2)
 
         total_loss = total_loss / len(train_data)
         for p in params:
@@ -314,19 +317,19 @@ def run_demo() -> None:
     """Executes autograd DAG evaluation and polynomial regression demonstrations."""
     # Step 2 demo: Quotient rule DAG
     f, x, y, _, _ = build_and_evaluate_dag('(x^2*y + sin(x)) / (y + exp(x))', 1.5, 2.0, 1.0)
-    print("Reverse-Mode Automatic Differentiation on f(x, y):")
-    print(f"  f(1.5, 2.0) = {f.data:.6f}")
-    print(f"  df/dx (Backprop) = {x.grad:.8f}")
-    print(f"  df/dy (Backprop) = {y.grad:.8f}")
+    print('Reverse-Mode Automatic Differentiation on f(x, y):')
+    print(f'  f(1.5, 2.0) = {f.data:.6f}')
+    print(f'  df/dx (Backprop) = {x.grad:.8f}')
+    print(f'  df/dy (Backprop) = {y.grad:.8f}')
 
-    num_val = (1.5 ** 2) * 2.0 + math.sin(1.5)
+    num_val = (1.5**2) * 2.0 + math.sin(1.5)
     den_val = 2.0 + math.exp(1.5)
     dnum_dx = 2.0 * 1.5 * 2.0 + math.cos(1.5)
     dden_dx = math.exp(1.5)
-    expected_df_dx = (dnum_dx * den_val - num_val * dden_dx) / (den_val ** 2)
-    dnum_dy = 1.5 ** 2
+    expected_df_dx = (dnum_dx * den_val - num_val * dden_dx) / (den_val**2)
+    dnum_dy = 1.5**2
     dden_dy = 1.0
-    expected_df_dy = (dnum_dy * den_val - num_val * dden_dy) / (den_val ** 2)
+    expected_df_dy = (dnum_dy * den_val - num_val * dden_dy) / (den_val**2)
 
     assert math.isclose(f.data, num_val / den_val, rel_tol=1e-9)
     assert math.isclose(x.grad, expected_df_dx, rel_tol=1e-7)
@@ -345,29 +348,29 @@ def run_demo() -> None:
     y_vec = ax.matrix.dot(w_mat, x_vec)
     y0 = y_vec[0][0]
     y1 = y_vec[1][0]
-    loss = (y0 ** 2) + y1.tanh()
+    loss = (y0**2) + y1.tanh()
     loss.backward()
 
-    print("\nSparse Matrix Contraction Loss & Adjoint Gradients:")
-    print(f"  Loss = {loss.data:.6f}")
-    print(f"  dL/dW00 = {w_mat[0][0].grad:.4f}")
-    print(f"  dL/dW01 = {w_mat[0][1].grad:.4f}")
+    print('\nSparse Matrix Contraction Loss & Adjoint Gradients:')
+    print(f'  Loss = {loss.data:.6f}')
+    print(f'  dL/dW00 = {w_mat[0][0].grad:.4f}')
+    print(f'  dL/dW01 = {w_mat[0][1].grad:.4f}')
     assert math.isclose(w_mat[0][0].grad, 2.0 * y0.data * 1.0, rel_tol=1e-7)
     assert math.isclose(w_mat[0][1].grad, 2.0 * y0.data * 2.0, rel_tol=1e-7)
 
     # Step 4 demo: Polynomial regression fitting
     def ground_truth_fn(x_val: float) -> float:
-        return 2.0 * (x_val ** 2) + 0.5 * x_val + 1.0
+        return 2.0 * (x_val**2) + 0.5 * x_val + 1.0
 
     sample_points = [-2.0, -1.0, 0.0, 1.0, 2.0]
     train_data = [(x_val, ground_truth_fn(x_val)) for x_val in sample_points]
     w1, w2, b, final_mse = optimize_polynomial_regression(train_data, iterations=600, learning_rate=0.02)
 
-    print("\nOptimization Results after 600 iterations:")
-    print(f"  Trained w1 = {w1.data:.4f} (target: 2.0000)")
-    print(f"  Trained w2 = {w2.data:.4f} (target: 0.5000)")
-    print(f"  Trained b  = {b.data:.4f} (target: 1.0000)")
-    print(f"  Final MSE Loss = {final_mse:.6f}")
+    print('\nOptimization Results after 600 iterations:')
+    print(f'  Trained w1 = {w1.data:.4f} (target: 2.0000)')
+    print(f'  Trained w2 = {w2.data:.4f} (target: 0.5000)')
+    print(f'  Trained b  = {b.data:.4f} (target: 1.0000)')
+    print(f'  Final MSE Loss = {final_mse:.6f}')
     assert final_mse < 0.001
     assert math.isclose(w1.data, 2.0, abs_tol=0.05)
     assert math.isclose(w2.data, 0.5, abs_tol=0.05)
@@ -377,10 +380,10 @@ def run_demo() -> None:
 def main() -> None:
     """Entry point for CLI execution."""
     run_demo()
-    print("==========================================================================")
-    print("Recipe: Functional Autograd Engine Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Functional Autograd Engine Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

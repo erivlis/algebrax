@@ -30,10 +30,10 @@ gf = ax.galois.GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1)
 a = {4: 1}
 b = {4: 1}
 
-print("Field Element Multiplication in GF(2^8):")
-print("  a = x^4, b = x^4")
+print('Field Element Multiplication in GF(2^8):')
+print('  a = x^4, b = x^4')
 res_poly = gf.mul(a, b)
-print("  a * b mod (x^8 + x^4 + x^3 + x + 1) =", res_poly)
+print('  a * b mod (x^8 + x^4 + x^3 + x + 1) =', res_poly)
 assert res_poly == {0: 1, 1: 1, 3: 1, 4: 1}
 
 # %% [markdown]
@@ -50,17 +50,17 @@ state = {
 }
 
 out_state = ax.galois.gf_matrix_mul(mix_col, state, p=2)
-print("AES MixColumns Matrix Transformation over GF(2^8):")
-print("  Input State:", state)
-print("  Output Transformed State:", out_state)
+print('AES MixColumns Matrix Transformation over GF(2^8):')
+print('  Input State:', state)
+print('  Output Transformed State:', out_state)
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Galois Finite Field GF(2^8) Cryptography Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Galois Finite Field GF(2^8) Cryptography Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

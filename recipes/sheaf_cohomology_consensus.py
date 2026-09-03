@@ -43,11 +43,11 @@ comm_graph = {
 
 coboundary_mismatch = ax.analysis.gradient(agent_states, comm_graph)
 
-print("Initial Agent State Estimates:", agent_states)
-print("\nEdge Communication Mismatch grad(f)_ij:")
+print('Initial Agent State Estimates:', agent_states)
+print('\nEdge Communication Mismatch grad(f)_ij:')
 for u in sorted(coboundary_mismatch.keys()):
     for v, diff in sorted(coboundary_mismatch[u].items()):
-        print(f"  Channel ({u} -> {v}): Delta = {diff:+6.1f}")
+        print(f'  Channel ({u} -> {v}): Delta = {diff:+6.1f}')
 
 # %% [markdown]
 # ## Step 2: Multi-Agent Sheaf Laplacian Consensus (`analysis.laplacian`)
@@ -63,8 +63,8 @@ weighted_comm = {
 current_f = dict(agent_states)
 dt = 0.2
 
-print("\nConsensus Iterations over Sheaf Laplacian L:")
-print(f"  Step t= 0: States = {current_f}")
+print('\nConsensus Iterations over Sheaf Laplacian L:')
+print(f'  Step t= 0: States = {current_f}')
 
 for step in range(1, 11):
     l_f = ax.analysis.laplacian(current_f, weighted_comm)
@@ -72,33 +72,33 @@ for step in range(1, 11):
 
     if step in [1, 2, 5, 10]:
         formatted_f = {u: round(val, 2) for u, val in current_f.items()}
-        print(f"  Step t={step:2d}: States = {formatted_f}")
+        print(f'  Step t={step:2d}: States = {formatted_f}')
 
 target_consensus = sum(agent_states.values()) / len(agent_states)
-print(f"\nTarget Global Mean Consensus: {target_consensus:.2f}")
+print(f'\nTarget Global Mean Consensus: {target_consensus:.2f}')
 
 # %% [markdown]
 # ## Step 3: Sheaf Category Formal Observation Sums (`MonoidAlgebraSemiring`)
 
 # %%
-sheaf_algebra = ax.semiring.MonoidAlgebraSemiring(ax.semiring.StandardSemiring[float](), zero_key="None")
+sheaf_algebra = ax.semiring.MonoidAlgebraSemiring(ax.semiring.StandardSemiring[float](), zero_key='None')
 
-obs_agent1 = {"Obstacle_A": 0.8, "Target_X": 0.2}
-obs_agent2 = {"Obstacle_A": 0.5, "Target_Y": 0.5}
+obs_agent1 = {'Obstacle_A': 0.8, 'Target_X': 0.2}
+obs_agent2 = {'Obstacle_A': 0.5, 'Target_Y': 0.5}
 
 section_sum = sheaf_algebra.add(obs_agent1, obs_agent2)
 
-print("\nRobot 1 Observation Section: ", obs_agent1)
-print("Robot 2 Observation Section: ", obs_agent2)
-print("Combined Sheaf Section Sum:  ", section_sum)
+print('\nRobot 1 Observation Section: ', obs_agent1)
+print('Robot 2 Observation Section: ', obs_agent2)
+print('Combined Sheaf Section Sum:  ', section_sum)
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Sheaf Cohomology & Consensus Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Sheaf Cohomology & Consensus Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

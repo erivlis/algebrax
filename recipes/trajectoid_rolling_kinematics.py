@@ -75,11 +75,11 @@ grad_y = ax.analysis.gradient(path_y, time_graph)
 vx = {t: grad_x[t][(t + 1) % n_steps] for t in range(n_steps)}
 vy = {t: grad_y[t][(t + 1) % n_steps] for t in range(n_steps)}
 
-print("Target 2D Figure-Eight Lemniscate Path Samples:")
+print('Target 2D Figure-Eight Lemniscate Path Samples:')
 for t in range(0, n_steps, 4):
-    pos_str = f"({path_x[t]:+6.2f}, {path_y[t]:+6.2f})"
-    vel_str = f"({vx[t]:+6.2f}, {vy[t]:+6.2f})"
-    print(f"  Time t={t:2d}: Position = {pos_str}, Velocity = {vel_str}")
+    pos_str = f'({path_x[t]:+6.2f}, {path_y[t]:+6.2f})'
+    vel_str = f'({vx[t]:+6.2f}, {vy[t]:+6.2f})'
+    print(f'  Time t={t:2d}: Position = {pos_str}, Velocity = {vel_str}')
 
 # %% [markdown]
 # ## Step 2: Non-Holonomic SO(3) Rotation Matrix Composition (`ax.matrix.dot`)
@@ -107,10 +107,10 @@ for t in range(n_steps):
     current_pos[0] += vx[t]
     current_pos[1] += vy[t]
 
-print("\nSO(3) Orientation Matrix R(T) after Complete Rolling Cycle:")
+print('\nSO(3) Orientation Matrix R(T) after Complete Rolling Cycle:')
 for r in sorted(current_r.keys()):
     formatted_row = {c: round(val, 3) for c, val in current_r[r].items()}
-    print(f"  Row {r}: {formatted_row}")
+    print(f'  Row {r}: {formatted_row}')
 
 # %% [markdown]
 # ## Step 3: Spatial Path Tracking & Sparsity Audit (`metrics.sparsity`)
@@ -126,18 +126,18 @@ for t in range(n_steps):
 avg_error = total_error / n_steps
 r_sparsity = ax.metrics.sparsity(current_r)
 
-print(f"\nTotal Spatial Path Deviation:   {total_error:.4f} units")
-print(f"Average Step Tracking Error:     {avg_error:.4f} units")
-print(f"SO(3) Contact Matrix Sparsity:   {r_sparsity * 100:.1f}%")
-print(f"Periodicity Loop Closure Audit:  {'PASSED (CLOSED TRAJECTORY)' if avg_error < 2.0 else 'DRIFT DETECTED'}")
+print(f'\nTotal Spatial Path Deviation:   {total_error:.4f} units')
+print(f'Average Step Tracking Error:     {avg_error:.4f} units')
+print(f'SO(3) Contact Matrix Sparsity:   {r_sparsity * 100:.1f}%')
+print(f'Periodicity Loop Closure Audit:  {"PASSED (CLOSED TRAJECTORY)" if avg_error < 2.0 else "DRIFT DETECTED"}')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Trajectoid Rolling Kinematics Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Trajectoid Rolling Kinematics Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

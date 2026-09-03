@@ -45,16 +45,16 @@ city_network = {
 }
 
 hub_names = {
-    0: "Downtown Hub",
-    1: "North Suburb",
-    2: "East Industrial",
-    3: "South Port",
-    4: "West Airport",
+    0: 'Downtown Hub',
+    1: 'North Suburb',
+    2: 'East Industrial',
+    3: 'South Port',
+    4: 'West Airport',
 }
 
 for u in sorted(city_network.keys()):
-    connections = ", ".join([f"{v} ({w:.1f}m)" for v, w in city_network[u].items()])
-    print(f"  Hub {u} [{hub_names[u]}]: Connects to -> {connections}")
+    connections = ', '.join([f'{v} ({w:.1f}m)' for v, w in city_network[u].items()])
+    print(f'  Hub {u} [{hub_names[u]}]: Connects to -> {connections}')
 
 # %% [markdown]
 # ## Step 2: Multi-Step Shortest Path Latencies (Tropical Semiring)
@@ -67,14 +67,14 @@ tropical_semiring = ax.semiring.TropicalSemiring()
 latency_2step = ax.matrix.power(city_network, 2, semiring=tropical_semiring)
 latency_3step = ax.matrix.power(city_network, 3, semiring=tropical_semiring)
 
-print("\n2-Step Shortest Path Travel Times Matrix (Minutes):")
+print('\n2-Step Shortest Path Travel Times Matrix (Minutes):')
 for u in sorted(latency_2step.keys()):
     for v, time_val in sorted(latency_2step[u].items()):
-        if time_val != float("inf"):
-            print(f"  Hub {u} [{hub_names[u]}] -> Hub {v} [{hub_names[v]}]: {time_val:.1f} min")
+        if time_val != float('inf'):
+            print(f'  Hub {u} [{hub_names[u]}] -> Hub {v} [{hub_names[v]}]: {time_val:.1f} min')
 
-dt_to_airport = latency_3step.get(0, {}).get(4, float("inf"))
-print(f"\nDowntown -> Airport 3-step travel time: {dt_to_airport:.1f} minutes")
+dt_to_airport = latency_3step.get(0, {}).get(4, float('inf'))
+print(f'\nDowntown -> Airport 3-step travel time: {dt_to_airport:.1f} minutes')
 
 # %% [markdown]
 # ## Step 3: Isolating Structural Choke Points (Forman-Ricci Edge Curvature)
@@ -84,10 +84,10 @@ print(f"\nDowntown -> Airport 3-step travel time: {dt_to_airport:.1f} minutes")
 # %%
 edge_curvatures = ax.analysis.forman_ricci_curvature(city_network)
 
-print("\nEdge Curvature Audit Results:")
+print('\nEdge Curvature Audit Results:')
 for (u, v), k_val in sorted(edge_curvatures.items()):
-    classification = "CRITICAL CHOKE POINT (Bridge)" if k_val < 0 else "Cluster / Well-Connected"
-    print(f"  Road ({u} <-> {v}) [{hub_names[u]} <-> {hub_names[v]}]: K = {k_val:+.4f} [{classification}]")
+    classification = 'CRITICAL CHOKE POINT (Bridge)' if k_val < 0 else 'Cluster / Well-Connected'
+    print(f'  Road ({u} <-> {v}) [{hub_names[u]} <-> {hub_names[v]}]: K = {k_val:+.4f} [{classification}]')
 
 # %% [markdown]
 # ## Step 4: Long-Term Traffic Equilibrium (Markov Steady State)
@@ -101,17 +101,17 @@ for u, neighbors in city_network.items():
 
 steady_state = ax.probability.markov_steady_state(markov_transition)
 
-print("\nStationary Vehicle Distribution Across City Hubs:")
+print('\nStationary Vehicle Distribution Across City Hubs:')
 for node, prob in sorted(steady_state.items()):
-    print(f"  Hub {node} [{hub_names[node]}]: {prob * 100:.2f}% of total city traffic")
+    print(f'  Hub {node} [{hub_names[node]}]: {prob * 100:.2f}% of total city traffic')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Urban Traffic Network Resilience & Bottleneck Analysis Finished!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Urban Traffic Network Resilience & Bottleneck Analysis Finished!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -38,13 +38,13 @@ wht_spectrum = ax.transforms.walsh_hadamard(telemetry_payload, n=8)
 
 reconstructed = {k: v / 8.0 for k, v in ax.transforms.walsh_hadamard(wht_spectrum, n=8).items()}
 
-print(f"Original 8-bit Telemetry Stream: {telemetry_payload}")
-print("\nWalsh-Hadamard Spectrum (WHT):")
+print(f'Original 8-bit Telemetry Stream: {telemetry_payload}')
+print('\nWalsh-Hadamard Spectrum (WHT):')
 for k in sorted(wht_spectrum.keys()):
-    print(f"  Walsh Code {k}: {wht_spectrum[k]:+6.1f}")
+    print(f'  Walsh Code {k}: {wht_spectrum[k]:+6.1f}')
 
-print(f"\nReconstructed Payload (1/N * WHT^2): {reconstructed}")
-print(f"Exact Reconstruction Match: {telemetry_payload == reconstructed}")
+print(f'\nReconstructed Payload (1/N * WHT^2): {reconstructed}')
+print(f'Exact Reconstruction Match: {telemetry_payload == reconstructed}')
 
 # %% [markdown]
 # ## Step 2: Mesh Network Traffic Flow & Laplacian (`laplacian` & `divergence`)
@@ -69,14 +69,14 @@ traffic_flow = {
 
 flow_div = ax.analysis.divergence(traffic_flow)
 
-print("\nGraph Laplacian Signal Vector L(f) = div(grad f):")
+print('\nGraph Laplacian Signal Vector L(f) = div(grad f):')
 for r in sorted(lap_vector.keys()):
-    print(f"  Node {r}: {lap_vector[r]:+6.1f} dBm")
+    print(f'  Node {r}: {lap_vector[r]:+6.1f} dBm')
 
-print("\nNetwork Traffic Divergence div(F):")
+print('\nNetwork Traffic Divergence div(F):')
 for node, div_val in sorted(flow_div.items()):
-    role = "SOURCE (Net Outflow)" if div_val > 0 else ("SINK (Net Inflow)" if div_val < 0 else "BALANCED")
-    print(f"  Node {node}: {div_val:+6.1f} Mbps [{role}]")
+    role = 'SOURCE (Net Outflow)' if div_val > 0 else ('SINK (Net Inflow)' if div_val < 0 else 'BALANCED')
+    print(f'  Node {node}: {div_val:+6.1f} Mbps [{role}]')
 
 # %% [markdown]
 # ## Step 3: Spatial Cell Tower Fractal Dimension (`box_counting_dimension`)
@@ -98,16 +98,16 @@ tower_points = {
 }
 
 fractal_dim = ax.metrics.box_counting_dimension(tower_points, min_box_size=1, max_box_size=4)
-print(f"\nSpatial Tower Grid Points: {len(tower_points)} locations")
-print(f"Minkowski-Bouligand Box Dimension D_0: {fractal_dim:.4f}")
+print(f'\nSpatial Tower Grid Points: {len(tower_points)} locations')
+print(f'Minkowski-Bouligand Box Dimension D_0: {fractal_dim:.4f}')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Telecommunications & Fractal Analysis Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Telecommunications & Fractal Analysis Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

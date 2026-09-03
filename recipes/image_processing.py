@@ -92,7 +92,7 @@ DILATION_CROSS_3X3 = {
 
 def print_sparse_image_2d(img: Mapping[tuple[int, int], float], title: str, rows: int = 8, cols: int = 8) -> None:
     """Helper to display a 2D sparse image mapping as an ASCII intensity grid."""
-    print(f"\n--- {title} ---")
+    print(f'\n--- {title} ---')
     min_r = min((r for r, _ in img), default=0)
     max_r = max((r for r, _ in img), default=rows - 1)
     min_c = min((c for _, c in img), default=0)
@@ -103,17 +103,17 @@ def print_sparse_image_2d(img: Mapping[tuple[int, int], float], title: str, rows
         for c in range(min_c, max_c + 1):
             val = img.get((r, c), 0.0)
             if val > 0.7:
-                char = "██"
+                char = '██'
             elif val > 0.3:
-                char = "▒▒"
+                char = '▒▒'
             elif val > 0.05:
-                char = "░░"
+                char = '░░'
             elif val < -0.3:
-                char = "--"
+                char = '--'
             else:
-                char = "  "
+                char = '  '
             line.append(char)
-        print("".join(line))
+        print(''.join(line))
 
 
 # %% [markdown]
@@ -126,8 +126,8 @@ for r in range(8):
         if r in (3, 4) or c in (3, 4):
             synthetic_image[(r, c)] = 1.0
 
-print_sparse_image_2d(synthetic_image, "Original Synthetic 8x8 Image (Cross Pattern)")
-print(f"Total non-zero active pixels: {len(synthetic_image)}")
+print_sparse_image_2d(synthetic_image, 'Original Synthetic 8x8 Image (Cross Pattern)')
+print(f'Total non-zero active pixels: {len(synthetic_image)}')
 
 # %% [markdown]
 # ## Step 2: Linear Edge Detection via 2D Convolution (Standard Semiring)
@@ -141,8 +141,8 @@ sobel_h_result = ax.transforms.convolve(
     key_op=add_2d,
     semiring=ax.semiring.StandardSemiring(),
 )
-print_sparse_image_2d(sobel_h_result, "Sobel Horizontal Edge Response (+, *)")
-print(f"Output pixels generated: {len(sobel_h_result)}")
+print_sparse_image_2d(sobel_h_result, 'Sobel Horizontal Edge Response (+, *)')
+print(f'Output pixels generated: {len(sobel_h_result)}')
 
 # %% [markdown]
 # ## Step 3: Morphological Dilation via 2D Convolution (Max-Plus / Arctic Semiring)
@@ -156,8 +156,8 @@ dilated_result = ax.transforms.convolve(
     key_op=add_2d,
     semiring=ax.semiring.ArcticSemiring(),
 )
-print_sparse_image_2d(dilated_result, "Morphological Dilation Output (Max-Plus)")
-print(f"Expanded active pixel count: {len(dilated_result)} (vs original {len(synthetic_image)})")
+print_sparse_image_2d(dilated_result, 'Morphological Dilation Output (Max-Plus)')
+print(f'Expanded active pixel count: {len(dilated_result)} (vs original {len(synthetic_image)})')
 
 # %% [markdown]
 # ## Step 4: Real Image File Ingestion & Sharpening (Pillow Integration)
@@ -166,8 +166,8 @@ print(f"Expanded active pixel count: {len(dilated_result)} (vs original {len(syn
 try:
     from PIL import Image
 
-    print("Pillow (PIL) detected. Creating a 16x16 synthetic PIL Image with a centered square...")
-    im = Image.new("L", (16, 16), color=0)
+    print('Pillow (PIL) detected. Creating a 16x16 synthetic PIL Image with a centered square...')
+    im = Image.new('L', (16, 16), color=0)
     for r in range(4, 12):
         for c in range(4, 12):
             im.putpixel((c, r), 255)
@@ -180,7 +180,7 @@ try:
             if pixel_val > 0:
                 sparse_img[(r, c)] = pixel_val
 
-    print(f"Ingested {width}x{height} image with {len(sparse_img)} active non-zero pixels.")
+    print(f'Ingested {width}x{height} image with {len(sparse_img)} active non-zero pixels.')
 
     sharpened_img = ax.transforms.convolve(
         sparse_img,
@@ -189,19 +189,19 @@ try:
         semiring=ax.semiring.StandardSemiring(),
     )
 
-    print_sparse_image_2d(sparse_img, "Pillow 16x16 Input Square Image", rows=16, cols=16)
-    print_sparse_image_2d(sharpened_img, "AlgebraX Convolved (Sharpen Filter)", rows=16, cols=16)
+    print_sparse_image_2d(sparse_img, 'Pillow 16x16 Input Square Image', rows=16, cols=16)
+    print_sparse_image_2d(sharpened_img, 'AlgebraX Convolved (Sharpen Filter)', rows=16, cols=16)
 
 except ImportError:
-    print("(Install Pillow to run real PIL Image file conversion demo)")
+    print('(Install Pillow to run real PIL Image file conversion demo)')
 
 
 def main() -> None:
     """Entry point for CLI script execution."""
-    print("==========================================================================")
-    print("Recipe: 2D Image Filtering & Mathematical Morphology via ax.semiring.Semiring Convolve")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: 2D Image Filtering & Mathematical Morphology via ax.semiring.Semiring Convolve')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

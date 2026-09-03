@@ -62,6 +62,7 @@ from algebrax.typing import SparseMatrix, SparseVector
 # %% [markdown]
 # ## Step 1: Activation Functions and Their Exact Derivatives
 
+
 # %%
 def sigmoid(x: float) -> float:
     r"""Logistic sigmoid activation: \sigma(x) = 1 / (1 + \exp(-x))."""
@@ -90,6 +91,7 @@ def relu_derivative(x: float) -> float:
 # %% [markdown]
 # ## Step 2: Definition of the Sparse Linear Layer with Transposed Backprop
 
+
 # %%
 class SparseLinearLayer:
     r"""A fully connected sparse neural network layer Wx + b with transposed adjoint backprop."""
@@ -102,8 +104,7 @@ class SparseLinearLayer:
         # Xavier / Glorot weight initialization
         scale = math.sqrt(2.0 / (in_features + out_features))
         self.W: dict[int, dict[int, float]] = {
-            i: {j: rng.gauss(0.0, scale) for j in range(in_features)}
-            for i in range(out_features)
+            i: {j: rng.gauss(0.0, scale) for j in range(in_features)} for i in range(out_features)
         }
         self.b: dict[int, float] = dict.fromkeys(range(out_features), 0.0)
 
@@ -122,10 +123,7 @@ class SparseLinearLayer:
         z_col = ax.matrix.dot(self.W, x_col)
 
         # Extract pre-activations and add bias: z = Wx + b
-        self._last_z = {
-            i: z_col.get(i, {}).get(0, 0.0) + self.b.get(i, 0.0)
-            for i in range(self.out_features)
-        }
+        self._last_z = {i: z_col.get(i, {}).get(0, 0.0) + self.b.get(i, 0.0) for i in range(self.out_features)}
 
         # 2. Non-linear activation: a = \sigma(z)
         if activation == 'sigmoid':
@@ -154,14 +152,10 @@ class SparseLinearLayer:
         # 1. Elementwise activation derivative: \bar{z} = \bar{a} \odot \sigma'(z)
         if activation == 'sigmoid':
             grad_z = {
-                i: grad_output.get(i, 0.0) * sigmoid_derivative(self._last_a[i])
-                for i in range(self.out_features)
+                i: grad_output.get(i, 0.0) * sigmoid_derivative(self._last_a[i]) for i in range(self.out_features)
             }
         elif activation == 'relu':
-            grad_z = {
-                i: grad_output.get(i, 0.0) * relu_derivative(self._last_z[i])
-                for i in range(self.out_features)
-            }
+            grad_z = {i: grad_output.get(i, 0.0) * relu_derivative(self._last_z[i]) for i in range(self.out_features)}
         else:
             grad_z = dict(grad_output)
 
@@ -169,10 +163,7 @@ class SparseLinearLayer:
         w_transpose = ax.matrix.transpose(self.W)
         grad_z_col = {i: {0: val} for i, val in grad_z.items()}
         grad_x_col = ax.matrix.dot(w_transpose, grad_z_col)
-        grad_input = {
-            j: grad_x_col.get(j, {}).get(0, 0.0)
-            for j in range(self.in_features)
-        }
+        grad_input = {j: grad_x_col.get(j, {}).get(0, 0.0) for j in range(self.in_features)}
 
         # 3. Outer product weight gradients: \nabla W = \bar{z} \otimes x^T
         grad_w = {
@@ -202,14 +193,14 @@ class SparseLinearLayer:
 # %% [markdown]
 # ## Step 3: Multi-Layer Sparse Neural Network (`SparseMLP`)
 
+
 # %%
 class SparseMLP:
     """Multi-layer perceptron constructed entirely from sparse matrix layers."""
 
     def __init__(self, layer_sizes: list[int], seed: int = 42) -> None:
         self.layers: list[SparseLinearLayer] = [
-            SparseLinearLayer(layer_sizes[i], layer_sizes[i + 1], seed=seed + i)
-            for i in range(len(layer_sizes) - 1)
+            SparseLinearLayer(layer_sizes[i], layer_sizes[i + 1], seed=seed + i) for i in range(len(layer_sizes) - 1)
         ]
 
     def forward(self, x: dict[int, float]) -> dict[int, float]:
@@ -252,6 +243,7 @@ class SparseMLP:
 # The XOR problem is the canonical benchmark for non-linear multi-layer backpropagation:
 # * Inputs: $(0,0) 	o 0, \quad (0,1) 	o 1, \quad (1,0) 	o 1, \quad (1,1) 	o 0$
 
+
 # %%
 def train_sparse_mlp(
     mlp: SparseMLP,
@@ -266,7 +258,7 @@ def train_sparse_mlp(
         for x_in, y_target in data:
             y_pred = mlp.forward(x_in)
             error = y_pred[0] - y_target[0]
-            total_epoch_loss += 0.5 * (error ** 2)
+            total_epoch_loss += 0.5 * (error**2)
             loss_grad = {0: error}
             grads = mlp.backward(loss_grad)
             mlp.update(grads, learning_rate)
@@ -318,35 +310,35 @@ def run_demo() -> None:
     for x_in, y_target in dataset:
         y_pred = mlp.forward(x_in)
         initial_loss += 0.5 * ((y_pred[0] - y_target[0]) ** 2)
-    print(f"Initial Untrained MSE Loss: {initial_loss:.4f}")
+    print(f'Initial Untrained MSE Loss: {initial_loss:.4f}')
 
     final_loss = train_sparse_mlp(mlp, dataset, epochs=3000, learning_rate=2.0)
-    print(f"Final Trained MSE Loss after 3000 epochs: {final_loss:.6f}")
+    print(f'Final Trained MSE Loss after 3000 epochs: {final_loss:.6f}')
     assert final_loss < 0.01
 
-    print("\nXOR Predictions after Training:")
+    print('\nXOR Predictions after Training:')
     for x_in, y_target in dataset:
         y_pred = mlp.forward(x_in)
-        print(f"  Input: ({x_in[0]:.0f}, {x_in[1]:.0f}) -> Target: {y_target[0]:.0f}, Predicted: {y_pred[0]:.4f}")
+        print(f'  Input: ({x_in[0]:.0f}, {x_in[1]:.0f}) -> Target: {y_target[0]:.0f}, Predicted: {y_pred[0]:.4f}')
         assert abs(y_pred[0] - y_target[0]) < 0.15
 
     # Gradient verification
     test_mlp = SparseMLP(layer_sizes=[2, 3, 1], seed=77)
     bp_grad, num_grad = verify_gradient_finite_difference(test_mlp, dataset[1][0], dataset[1][1])
-    print("\nGradient Verification for Layer 0 Weight W[1][0]:")
-    print(f"  Analytical Backprop Gradient: {bp_grad:.8f}")
-    print(f"  Numerical Finite Difference:  {num_grad:.8f}")
-    print(f"  Absolute Discrepancy:         {abs(bp_grad - num_grad):.2e}")
+    print('\nGradient Verification for Layer 0 Weight W[1][0]:')
+    print(f'  Analytical Backprop Gradient: {bp_grad:.8f}')
+    print(f'  Numerical Finite Difference:  {num_grad:.8f}')
+    print(f'  Absolute Discrepancy:         {abs(bp_grad - num_grad):.2e}')
     assert math.isclose(bp_grad, num_grad, rel_tol=1e-5, abs_tol=1e-5)
 
 
 def main() -> None:
     """Entry point for CLI execution."""
     run_demo()
-    print("==========================================================================")
-    print("Recipe: Sparse Neural Backpropagation Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Sparse Neural Backpropagation Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

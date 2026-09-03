@@ -84,56 +84,56 @@ def parse_cyk(
 def run_demo() -> None:
     """Executes CYK parsing, provenance polynomials, and ambiguity audit demonstrations."""
     # Step 1: Matrix CYK Parsing
-    sentence = ["the", "astronomer", "saw", "stars"]
+    sentence = ['the', 'astronomer', 'saw', 'stars']
     lexicon = {
-        "the": {"Det"},
-        "astronomer": {"N", "NP"},
-        "saw": {"V"},
-        "stars": {"N", "NP"},
+        'the': {'Det'},
+        'astronomer': {'N', 'NP'},
+        'saw': {'V'},
+        'stars': {'N', 'NP'},
     }
     grammar_rules = {
-        ("Det", "N"): {"NP"},
-        ("V", "NP"): {"VP"},
-        ("NP", "VP"): {"S"},
+        ('Det', 'N'): {'NP'},
+        ('V', 'NP'): {'VP'},
+        ('NP', 'VP'): {'S'},
     }
 
     print(f"Target Sentence: '{' '.join(sentence)}'")
     final_sentence_nonterminals, _ = parse_cyk(sentence, lexicon, grammar_rules)
-    print(f"Parsed Full Sentence Non-Terminals: {final_sentence_nonterminals}")
-    assert "S" in final_sentence_nonterminals
+    print(f'Parsed Full Sentence Non-Terminals: {final_sentence_nonterminals}')
+    assert 'S' in final_sentence_nonterminals
 
     # Step 2: Symbolic Rule Provenance
     provenance_semiring = ax.semiring.ProvenanceSemiring()
-    rule_x = {("rule_DetN_to_NP",): 1}
-    rule_y = {("rule_VNP_to_VP",): 1}
-    rule_z = {("rule_NPVP_to_S",): 1}
+    rule_x = {('rule_DetN_to_NP',): 1}
+    rule_y = {('rule_VNP_to_VP',): 1}
+    rule_z = {('rule_NPVP_to_S',): 1}
     sentence_derivation = provenance_semiring.mul(
         provenance_semiring.mul(rule_x, rule_y),
         rule_z,
     )
-    print("\nSymbolic Rule Derivation Polynomial:")
+    print('\nSymbolic Rule Derivation Polynomial:')
     for terms, coeff in sentence_derivation.items():
-        terms_str = " * ".join(terms)
-        print(f"  Coeff {coeff}: {terms_str}")
+        terms_str = ' * '.join(terms)
+        print(f'  Coeff {coeff}: {terms_str}')
 
     # Step 3: Syntax Tree Structural Entropy
     candidate_parse_probs = {
-        "Parse_Tree_Direct_Object": 0.75,
-        "Parse_Tree_Prepositional_Attachment": 0.15,
-        "Parse_Tree_Noun_Compound": 0.10,
+        'Parse_Tree_Direct_Object': 0.75,
+        'Parse_Tree_Prepositional_Attachment': 0.15,
+        'Parse_Tree_Noun_Compound': 0.10,
     }
     parse_entropy = ax.probability.entropy(candidate_parse_probs)
-    print(f"\nParse Tree Structural Entropy H(Trees): {parse_entropy:.4f} nats")
+    print(f'\nParse Tree Structural Entropy H(Trees): {parse_entropy:.4f} nats')
     assert parse_entropy > 0.0
 
 
 def main() -> None:
     """Entry point for CLI execution."""
     run_demo()
-    print("==========================================================================")
-    print("Recipe: Natural Language Grammar Lineage Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Natural Language Grammar Lineage Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

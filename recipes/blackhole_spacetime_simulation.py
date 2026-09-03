@@ -60,15 +60,15 @@ g_inv[(1, 1)] = f_r
 g_inv[(2, 2)] = 1.0 / (r_eval**2)
 g_inv[(3, 3)] = 1.0 / (r_eval**2)
 
-identity_check = ax.tensor.einsum("ma,an->mn", g_inv, g_metric)
+identity_check = ax.tensor.einsum('ma,an->mn', g_inv, g_metric)
 
-print(f"Schwarzschild Event Horizon Radius r_s: {r_s:.1f} km")
-print(f"Evaluated Radial Distance r:             {r_eval:.1f} km (r = 2.0 r_s)")
-print(f"Time Dilation Metric Factor g_tt:       {g_metric[(0, 0)]:.4f}")
-print(f"Radial Spatial Metric Factor g_rr:       {g_metric[(1, 1)]:.4f}")
-print("\nMetric Tensor Contraction Identity Check (g^{mu a} * g_{a n}):")
+print(f'Schwarzschild Event Horizon Radius r_s: {r_s:.1f} km')
+print(f'Evaluated Radial Distance r:             {r_eval:.1f} km (r = 2.0 r_s)')
+print(f'Time Dilation Metric Factor g_tt:       {g_metric[(0, 0)]:.4f}')
+print(f'Radial Spatial Metric Factor g_rr:       {g_metric[(1, 1)]:.4f}')
+print('\nMetric Tensor Contraction Identity Check (g^{mu a} * g_{a n}):')
 for mu in range(4):
-    print(f"  Diagonal Element ({mu}, {mu}): {identity_check[(mu, mu)]:.4f}")
+    print(f'  Diagonal Element ({mu}, {mu}): {identity_check[(mu, mu)]:.4f}')
 
 # %% [markdown]
 # ## Step 2: Gravitational Redshift & Signal Dilation (`transforms.z_transform`)
@@ -76,15 +76,15 @@ for mu in range(4):
 
 # %%
 redshift_factor = (1.0 / math.sqrt(f_r)) - 1.0
-print(f"\nGravitational Redshift Factor z_red: {redshift_factor * 100:.2f}%")
+print(f'\nGravitational Redshift Factor z_red: {redshift_factor * 100:.2f}%')
 
 emitted_signal = {0: 1.0, 1: 0.8, 2: 0.6, 3: 0.4, 4: 0.2}
 
 z_complex = (1.0 + redshift_factor) * (math.cos(math.pi / 4) + 1j * math.sin(math.pi / 4))
 redshifted_hz = ax.transforms.z_transform(emitted_signal, z=z_complex)
 
-print("Emitted Photon Pulse Signal h[n]:", emitted_signal)
-print(f"Redshifted Z-Transform H(z = {z_complex:.2f}): {redshifted_hz:.4f} (Magnitude = {abs(redshifted_hz):.4f})")
+print('Emitted Photon Pulse Signal h[n]:', emitted_signal)
+print(f'Redshifted Z-Transform H(z = {z_complex:.2f}): {redshifted_hz:.4f} (Magnitude = {abs(redshifted_hz):.4f})')
 
 # %% [markdown]
 # ## Step 3: Gravitational Lensing Ray Deflection & Spatial Curvature
@@ -109,17 +109,17 @@ b_impact = 3.0 * r_s
 deflection_angle_rad = 2.0 * r_s / b_impact
 deflection_deg = math.degrees(deflection_angle_rad)
 
-print(f"\nPhoton Impact Parameter b:          {b_impact:.1f} km (b = 3.0 r_s)")
-print(f"Einstein Gravitational Deflection:   {deflection_angle_rad:.4f} rad ({deflection_deg:.2f} deg)")
+print(f'\nPhoton Impact Parameter b:          {b_impact:.1f} km (b = 3.0 r_s)')
+print(f'Einstein Gravitational Deflection:   {deflection_angle_rad:.4f} rad ({deflection_deg:.2f} deg)')
 
-print("\nGravitational Field Radial Gradient d(phi)/dr:")
+print('\nGravitational Field Radial Gradient d(phi)/dr:')
 for u in sorted(field_gradient.keys()):
     for v, g_val in field_gradient[u].items():
-        print(f"  Gradient Edge ({u} -> {v}): Delta_phi = {g_val:+8.4f}")
+        print(f'  Gradient Edge ({u} -> {v}): Delta_phi = {g_val:+8.4f}')
 
-print("\nForman-Ricci Spatial Curvature near Photon Sphere:")
+print('\nForman-Ricci Spatial Curvature near Photon Sphere:')
 for edge, k_val in sorted(ricci_k.items()):
-    print(f"  Edge {edge}: Curvature K = {k_val:+5.2f}")
+    print(f'  Edge {edge}: Curvature K = {k_val:+5.2f}')
 
 # %% [markdown]
 # ## Step 4: Bekenstein-Hawking Entropy & Quantum Information Audit (`entropy` & `kl_divergence`)
@@ -135,18 +135,18 @@ s_infalling = ax.probability.entropy(infalling_state)
 s_hawking = ax.probability.entropy(hawking_scrambled)
 info_scrambling_kl = ax.probability.kl_divergence(infalling_state, hawking_scrambled)
 
-print(f"\nEvent Horizon Surface Area A:       {area_km2:.2f} km^2")
-print(f"Infalling Matter Entropy S_in:       {s_infalling:.4f} bits")
-print(f"Hawking Radiation Thermal Entropy:   {s_hawking:.4f} bits (Near Maximal Thermalization)")
-print(f"Information Scrambling KL-Divergence: {info_scrambling_kl:.4f} bits")
+print(f'\nEvent Horizon Surface Area A:       {area_km2:.2f} km^2')
+print(f'Infalling Matter Entropy S_in:       {s_infalling:.4f} bits')
+print(f'Hawking Radiation Thermal Entropy:   {s_hawking:.4f} bits (Near Maximal Thermalization)')
+print(f'Information Scrambling KL-Divergence: {info_scrambling_kl:.4f} bits')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Schwarzschild Black Hole Simulation Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Schwarzschild Black Hole Simulation Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

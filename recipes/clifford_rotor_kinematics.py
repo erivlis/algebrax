@@ -30,12 +30,12 @@ import algebrax as ax
 cs = ax.semiring.CliffordSemiring(p=3, q=0, r=0)
 
 v = {(1,): 3.0, (2,): 4.0}
-print("Initial 3D Spatial Vector v:")
-print(f"  v = {v[(1,)]} e1 + {v[(2,)]} e2")
+print('Initial 3D Spatial Vector v:')
+print(f'  v = {v[(1,)]} e1 + {v[(2,)]} e2')
 
 v_sq = cs.mul(v, v)
 norm_sq = v_sq.get((), 0.0)
-print(f"  Geometric Vector Squared v^2 = {norm_sq:.2f} (Magnitude |v| = {math.sqrt(norm_sq):.2f})")
+print(f'  Geometric Vector Squared v^2 = {norm_sq:.2f} (Magnitude |v| = {math.sqrt(norm_sq):.2f})')
 assert abs(norm_sq - 25.0) < 1e-6
 
 # %% [markdown]
@@ -43,7 +43,7 @@ assert abs(norm_sq - 25.0) < 1e-6
 
 # %%
 v_rot = ax.clifford.rotor_rotation(v, bivector=(1, 2), angle_rad=math.pi / 2.0, p=3, q=0, r=0)
-print("Vector after 90-degree Rotor Rotation in e12 Plane:")
+print('Vector after 90-degree Rotor Rotation in e12 Plane:')
 print(f"  v' = {v_rot.get((1,), 0.0):.2f} e1 + {v_rot.get((2,), 0.0):.2f} e2")
 
 assert abs(v_rot.get((1,), 0.0) - (-4.0)) < 1e-6
@@ -52,10 +52,10 @@ assert abs(v_rot.get((2,), 0.0) - 3.0) < 1e-6
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Clifford Geometric Algebra & Rotor Rotations Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Clifford Geometric Algebra & Rotor Rotations Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

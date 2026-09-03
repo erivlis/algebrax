@@ -42,16 +42,16 @@ a_matrix = {
 
 initial_state = {0: 10.0, 1: 0.0}
 
-print("System Dynamics Matrix A:")
+print('System Dynamics Matrix A:')
 for r in sorted(a_matrix.keys()):
-    print(f"  Row {r}: {a_matrix[r]}")
+    print(f'  Row {r}: {a_matrix[r]}')
 
-print("\nState Trajectory over Multi-Step Transitions:")
+print('\nState Trajectory over Multi-Step Transitions:')
 for k in [1, 2, 5, 10]:
     a_k = ax.matrix.power(a_matrix, k)
     x1_k = a_k[0].get(0, 0.0) * initial_state[0] + a_k[0].get(1, 0.0) * initial_state[1]
     x2_k = a_k[1].get(0, 0.0) * initial_state[0] + a_k[1].get(1, 0.0) * initial_state[1]
-    print(f"  Step k={k:2d}: Position x1 = {x1_k:6.3f}, Velocity x2 = {x2_k:6.3f}")
+    print(f'  Step k={k:2d}: Position x1 = {x1_k:6.3f}, Velocity x2 = {x2_k:6.3f}')
 
 # %% [markdown]
 # ## Step 2: Impulse Response Z-Transform Transfer Function $H(z)$ (`z_transform`)
@@ -63,8 +63,8 @@ impulse_response = {0: 1.0, 1: 0.5, 2: 0.25, 3: 0.125, 4: 0.0625}
 z_eval = 0.8 + 0.6j
 h_z = ax.transforms.z_transform(impulse_response, z=z_eval)
 
-print("Impulse Response Sequence h[n]:", impulse_response)
-print(f"Transfer Function H(z = {z_eval}): {h_z:.4f} (Magnitude = {abs(h_z):.4f})")
+print('Impulse Response Sequence h[n]:', impulse_response)
+print(f'Transfer Function H(z = {z_eval}): {h_z:.4f} (Magnitude = {abs(h_z):.4f})')
 
 # %% [markdown]
 # ## Step 3: Characteristic Matrix Stability Audit (`ax.matrix.determinant`)
@@ -78,21 +78,21 @@ char_matrix = {
 
 det_char = ax.matrix.academic.determinant(char_matrix)
 
-print("Characteristic Matrix (I - A):")
+print('Characteristic Matrix (I - A):')
 for r in sorted(char_matrix.keys()):
-    print(f"  Row {r}: {char_matrix[r]}")
+    print(f'  Row {r}: {char_matrix[r]}')
 
-print(f"\nCharacteristic Determinant det(I - A): {det_char:.4f}")
+print(f'\nCharacteristic Determinant det(I - A): {det_char:.4f}')
 is_stable = det_char > 0
-print(f"Asymptotic Stability Audit: {'STABLE SYSTEM' if is_stable else 'UNSTABLE SYSTEM'}")
+print(f'Asymptotic Stability Audit: {"STABLE SYSTEM" if is_stable else "UNSTABLE SYSTEM"}')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
-    print("==========================================================================")
-    print("Recipe: Control Theory & State-Space Systems Finished Successfully!")
-    print("==========================================================================")
+    print('==========================================================================')
+    print('Recipe: Control Theory & State-Space Systems Finished Successfully!')
+    print('==========================================================================')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
