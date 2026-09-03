@@ -352,6 +352,7 @@ def test_viterbi_semiring_methods():
 def test_all_specialized_semirings_coverage():
     from algebrax.semiring import (
         ArcticSemiring,
+        BivariateVarianceSemiring,
         DigitalSemiring,
         DualNumberSemiring,
         ExpectationSemiring,
@@ -458,17 +459,24 @@ def test_all_specialized_semirings_coverage():
     assert exp_s.star((0.5, 1.0)) == (2.0, 4.0)
     assert exp_s.star((1.5, 1.0)) == (float('inf'), float('inf'))
 
-    var_s = VarianceSemiring()
-    assert var_s.zero == (0.0, 0.0, 0.0, 0.0)
-    assert var_s.one == (1.0, 0.0, 0.0, 0.0)
-    assert var_s.add((1.0, 2.0, 3.0, 4.0), (5.0, 6.0, 7.0, 8.0)) == (6.0, 8.0, 10.0, 12.0)
-    assert var_s.mul((1.0, 2.0, 3.0, 4.0), (5.0, 6.0, 7.0, 8.0))[0] == 5.0
-    assert var_s.nsum((1.0, 2.0, 3.0, 4.0), 0) == (0.0, 0.0, 0.0, 0.0)
-    assert var_s.nsum((1.0, 2.0, 3.0, 4.0), 2) == (2.0, 4.0, 6.0, 8.0)
-    assert var_s.power((2.0, 1.0, 1.0, 1.0), 0) == (1.0, 0.0, 0.0, 0.0)
-    assert var_s.power((2.0, 1.0, 1.0, 1.0), 2)[0] == 4.0
+    bivar_s = BivariateVarianceSemiring()
+    assert bivar_s.zero == (0.0, 0.0, 0.0, 0.0)
+    assert bivar_s.one == (1.0, 0.0, 0.0, 0.0)
+    assert bivar_s.add((1.0, 2.0, 3.0, 4.0), (5.0, 6.0, 7.0, 8.0)) == (6.0, 8.0, 10.0, 12.0)
+    assert bivar_s.mul((1.0, 2.0, 3.0, 4.0), (5.0, 6.0, 7.0, 8.0))[0] == 5.0
+    assert bivar_s.nsum((1.0, 2.0, 3.0, 4.0), 0) == (0.0, 0.0, 0.0, 0.0)
+    assert bivar_s.nsum((1.0, 2.0, 3.0, 4.0), 2) == (2.0, 4.0, 6.0, 8.0)
+    assert bivar_s.power((2.0, 1.0, 1.0, 1.0), 0) == (1.0, 0.0, 0.0, 0.0)
+    assert bivar_s.power((2.0, 1.0, 1.0, 1.0), 2)[0] == 4.0
     with pytest.raises(NotImplementedError):
-        var_s.star((1.0, 1.0, 1.0, 1.0))
+        bivar_s.star((1.0, 1.0, 1.0, 1.0))
+
+    var_s = VarianceSemiring()
+    assert var_s.order == 2
+    assert var_s.zero == (0.0, 0.0, 0.0)
+    assert var_s.one == (1.0, 0.0, 0.0)
+    assert var_s.add((1.0, 2.0, 4.0), (3.0, 6.0, 12.0)) == (4.0, 8.0, 16.0)
+    assert var_s.variance((1.0, 2.0, 5.0)) == pytest.approx(1.0)
 
     luk_s = LukasiewiczSemiring()
     assert luk_s.zero == 0.0
@@ -545,9 +553,8 @@ def test_semiring_branch_coverage():
 
 
 def test_skewness_semiring():
-    from algebrax.semiring import SkewnessSemiring, ThirdMomentSemiring
+    from algebrax.semiring import SkewnessSemiring
 
-    assert SkewnessSemiring is ThirdMomentSemiring
     s = SkewnessSemiring()
 
     assert s.zero == (0.0, 0.0, 0.0, 0.0)
@@ -575,12 +582,10 @@ def test_skewness_semiring():
     assert par[2] == pytest.approx(6.5)  # E[X^2] = 0.5*4 + 0.5*9 = 6.5
     assert par[3] == pytest.approx(17.5)  # E[X^3] = 0.5*8 + 0.5*27 = 17.5
 
-    # Variance and Skewness
-    mean = par[1] / par[0]
-    var = (par[2] / par[0]) - mean**2
-    mu3 = (par[3] / par[0]) - 3 * mean * (par[2] / par[0]) + 2 * (mean**3)
-    assert var == pytest.approx(0.25)
-    assert mu3 == pytest.approx(0.0)  # Symmetric distribution -> skewness is 0
+    # Variance and Skewness via built-in decoders
+    assert s.mean(par) == pytest.approx(2.5)
+    assert s.variance(par) == pytest.approx(0.25)
+    assert s.skewness(par) == pytest.approx(0.0)  # Symmetric distribution -> skewness is 0
 
     # Power and nsum
     pow3 = s.power(e1, 3)
@@ -641,7 +646,7 @@ def test_binomial_convolution_semiring_1d():
 def test_statistical_moment_semiring_and_decoders():
     import math
 
-    from algebrax.semiring import KurtosisSemiring, SecondMomentSemiring, StatisticalMomentSemiring
+    from algebrax.semiring import KurtosisSemiring, StatisticalMomentSemiring, VarianceSemiring
 
     sem = StatisticalMomentSemiring(order=4)
 
@@ -664,10 +669,10 @@ def test_statistical_moment_semiring_and_decoders():
     assert all(math.isnan(x) for x in sem.raw_moments(z))
     assert all(math.isnan(x) for x in sem.central_moments(z))
 
-    # SecondMomentSemiring and KurtosisSemiring aliases
-    sm = SecondMomentSemiring()
-    assert sm.order == 2
-    assert sm.variance(sm.add((0.5, 1.0, 2.0), (0.5, 2.0, 8.0))) == pytest.approx(1.0)
+    # VarianceSemiring (order=2) and KurtosisSemiring (order=4) aliases
+    vm = VarianceSemiring()
+    assert vm.order == 2
+    assert vm.variance(vm.add((0.5, 1.0, 2.0), (0.5, 2.0, 8.0))) == pytest.approx(1.0)
 
     ks = KurtosisSemiring()
     assert ks.order == 4
