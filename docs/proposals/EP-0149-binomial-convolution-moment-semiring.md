@@ -55,13 +55,13 @@ Currently, AlgebraX provides separate disconnected classes for low-order moment 
 
 | Dimension ($d$) |   Order ($K$)    |          Representation           | Mathematical Meaning                                                    | Subsumes / Powers                    |
 |:---------------:|:----------------:|:---------------------------------:|:------------------------------------------------------------------------|:-------------------------------------|
-|   **$d = 1$**   |     $K = 1$      |       2-tuple: $(m_0, m_1)$       | Mean / 1st Moment                                                       | `ExpectationSemiring`                |
-|   **$d = 1$**   |     $K = 2$      |    3-tuple: $(m_0, m_1, m_2)$     | Univariate Variance                                                     | `SecondMomentSemiring`               |
-|   **$d = 1$**   |     $K = 3$      |   4-tuple: $(m_0, \dots, m_3)$    | Skewness / Asymmetry                                                    | `SkewnessSemiring`                   |
-|   **$d = 1$**   |     $K = 4$      |   5-tuple: $(m_0, \dots, m_4)$    | Kurtosis / Tail Risk                                                    | `KurtosisSemiring`                   |
-|   **$d = 2$**   | individual deg 1 |      4-tuple: $(p, r, s, t)$      | **Bivariate Covariance $\text{Cov}(X, Y)$**                             | **`VarianceSemiring` (Li & Eisner)** |
-|  **$d \ge 2$**  |     $K = 1$      |         $(1 + d)$ values          | Gradient Vector $\nabla f$ / Jacobians                                  | `GradientDualNumber`                 |
-|  **$d \ge 2$**  |     $K = 2$      | $1 + d + \frac{d(d+1)}{2}$ values | **Full Covariance Matrix $\boldsymbol{\Sigma}$ & Hessian $\mathbf{H}$** | Multi-objective Graph Risk           |
+|   **$d = 1$**   |     $K = 1$      |       2-tuple: $(m_0, m_1)$       | Mean / 1st Moment                                                       | `ExpectationSemiring`                               |
+|   **$d = 1$**   |     $K = 2$      |    3-tuple: $(m_0, m_1, m_2)$     | Univariate Variance                                                     | `VarianceSemiring`                                  |
+|   **$d = 1$**   |     $K = 3$      |   4-tuple: $(m_0, \dots, m_3)$    | Skewness / Asymmetry                                                    | `SkewnessSemiring`                                  |
+|   **$d = 1$**   |     $K = 4$      |   5-tuple: $(m_0, \dots, m_4)$    | Kurtosis / Tail Risk                                                    | `KurtosisSemiring`                                  |
+|   **$d = 2$**   | individual deg 1 |      4-tuple: $(p, r, s, t)$      | **Bivariate Covariance $\text{Cov}(X, Y)$**                             | **`BivariateVarianceSemiring` (Li & Eisner)**       |
+|  **$d \ge 2$**  |     $K = 1$      |         $(1 + d)$ values          | Gradient Vector $\nabla f$ / Jacobians                                  | `GradientDualNumber`                                |
+|  **$d \ge 2$**  |     $K = 2$      | $1 + d + \frac{d(d+1)}{2}$ values | **Full Covariance Matrix $\boldsymbol{\Sigma}$ & Hessian $\mathbf{H}$** | `MultivariateMomentSemiring`                        |
 
 ---
 
