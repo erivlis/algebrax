@@ -211,11 +211,11 @@ def test_flat_to_nested_conflict():
     # Conflict: (0,) -> 1 vs (0, 1) -> 2
     # EP-0145 specifies raising ValueError on key depth collision.
     flat = {(0,): 1, (0, 1): 2}
-    with pytest.raises(ValueError, match="Key collision"):
+    with pytest.raises(ValueError, match='Key collision'):
         flat_to_nested(flat)
 
     flat2 = {(0, 1): 2, (0,): 1}
-    with pytest.raises(ValueError, match="Key collision"):
+    with pytest.raises(ValueError, match='Key collision'):
         flat_to_nested(flat2)
 
 
@@ -264,12 +264,12 @@ def test_converters_branch_coverage():
 
 def test_grid_converters():
     graph_mat = {
-        "node_B": {"node_A": 2.0},
-        "node_A": {"node_A": 1.0, "node_B": 3.0},
+        'node_B': {'node_A': 2.0},
+        'node_A': {'node_A': 1.0, 'node_B': 3.0},
     }
     rows, cols = get_matrix_keys(graph_mat)
-    assert rows == ["node_A", "node_B"]
-    assert cols == ["node_A", "node_B"]
+    assert rows == ['node_A', 'node_B']
+    assert cols == ['node_A', 'node_B']
 
     grid = sparse_to_grid(graph_mat, rows, cols)
     assert grid == [[1.0, 3.0], [2.0, 0.0]]
@@ -277,6 +277,5 @@ def test_grid_converters():
     reconstructed = grid_to_sparse(grid, rows, cols)
     assert reconstructed == graph_mat
 
-    pruned = prune_sparse({"a": {"b": 1e-15, "c": 4.0}})
-    assert pruned == {"a": {"c": 4.0}}
-
+    pruned = prune_sparse({'a': {'b': 1e-15, 'c': 4.0}})
+    assert pruned == {'a': {'c': 4.0}}

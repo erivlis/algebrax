@@ -202,7 +202,6 @@ def test_lorentz_cancellation_missing_key():
     assert 1 not in boosted
 
 
-
 def test_legendre_fenchel_transform():
     from algebrax.semiring import ArcticSemiring, StandardSemiring, TropicalSemiring
 
@@ -464,4 +463,3 @@ def test_deconvolve():
     for k in f:
         assert math.isclose(f_rec[k].real, f[k], abs_tol=1e-5)
         assert math.isclose(f_rec[k].imag, 0.0, abs_tol=1e-5)
-

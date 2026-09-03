@@ -163,5 +163,3 @@ def test_unpermute_tensor():
     unpermuted = unpermute_tensor(permuted, perm)
 
     assert unpermuted == tensor
-
-

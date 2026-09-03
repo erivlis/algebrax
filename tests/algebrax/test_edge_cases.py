@@ -76,11 +76,11 @@ def test_one_by_one_matrix_decompositions():
 def test_singular_and_non_pd_matrix_errors():
     """Verify appropriate exceptions for singular and non-positive-definite inputs."""
     singular_mat = {0: {0: 1.0, 1: 2.0}, 1: {0: 2.0, 1: 4.0}}
-    with pytest.raises(ValueError, match="singular"):
+    with pytest.raises(ValueError, match='singular'):
         inverse(singular_mat)
 
     non_pd_mat = {0: {0: -4.0}}
-    with pytest.raises(ValueError, match="positive-definite"):
+    with pytest.raises(ValueError, match='positive-definite'):
         cholesky(non_pd_mat)
 
 

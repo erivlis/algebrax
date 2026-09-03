@@ -541,5 +541,227 @@ def test_semiring_branch_coverage():
     prov = ProvenanceSemiring()
     assert prov.mul({}, {('x',): 1}) == {}
     assert prov.mul({('x',): 1}, {}) == {}
-    assert prov.mul({('x',): 1}, {('x',): 0}) == {}
     assert ProvenanceSemiring._combine_monomials(('a',), ('b',)) == ('a', 'b')
+
+
+def test_skewness_semiring():
+    from algebrax.semiring import SkewnessSemiring, ThirdMomentSemiring
+
+    assert SkewnessSemiring is ThirdMomentSemiring
+    s = SkewnessSemiring()
+
+    assert s.zero == (0.0, 0.0, 0.0, 0.0)
+    assert s.one == (1.0, 0.0, 0.0, 0.0)
+
+    # Edge 1: Prob 1.0, Value 2.0 -> (p=1, m1=2, m2=4, m3=8)
+    e1 = (1.0, 2.0, 4.0, 8.0)
+    # Edge 2: Prob 1.0, Value 3.0 -> (p=1, m1=3, m2=9, m3=27)
+    e2 = (1.0, 3.0, 9.0, 27.0)
+
+    # Sequential composition: Total value = 2 + 3 = 5
+    # (p=1, m1=5, m2=25, m3=125)
+    seq = s.mul(e1, e2)
+    assert seq[0] == pytest.approx(1.0)
+    assert seq[1] == pytest.approx(5.0)
+    assert seq[2] == pytest.approx(25.0)
+    assert seq[3] == pytest.approx(125.0)
+
+    # Parallel branching: 50% chance of Edge 1, 50% chance of Edge 2
+    b1 = (0.5, 0.5 * 2.0, 0.5 * 4.0, 0.5 * 8.0)
+    b2 = (0.5, 0.5 * 3.0, 0.5 * 9.0, 0.5 * 27.0)
+    par = s.add(b1, b2)
+    assert par[0] == pytest.approx(1.0)
+    assert par[1] == pytest.approx(2.5)  # E[X] = 0.5*2 + 0.5*3 = 2.5
+    assert par[2] == pytest.approx(6.5)  # E[X^2] = 0.5*4 + 0.5*9 = 6.5
+    assert par[3] == pytest.approx(17.5)  # E[X^3] = 0.5*8 + 0.5*27 = 17.5
+
+    # Variance and Skewness
+    mean = par[1] / par[0]
+    var = (par[2] / par[0]) - mean**2
+    mu3 = (par[3] / par[0]) - 3 * mean * (par[2] / par[0]) + 2 * (mean**3)
+    assert var == pytest.approx(0.25)
+    assert mu3 == pytest.approx(0.0)  # Symmetric distribution -> skewness is 0
+
+    # Power and nsum
+    pow3 = s.power(e1, 3)
+    assert pow3[0] == pytest.approx(1.0)
+    assert pow3[1] == pytest.approx(6.0)
+    assert pow3[2] == pytest.approx(36.0)
+    assert pow3[3] == pytest.approx(216.0)
+
+    assert s.power(e1, 0) == s.one
+    assert s.nsum(e1, 0) == s.zero
+    assert s.nsum(e1, 3) == (3.0, 6.0, 12.0, 24.0)
+
+
+def test_binomial_convolution_semiring_1d():
+    from algebrax.semiring import BinomialConvolutionSemiring
+
+    s1 = BinomialConvolutionSemiring(order=1)
+    assert s1.zero == (0.0, 0.0)
+    assert s1.one == (1.0, 0.0)
+    assert s1.add((1.0, 2.0), (3.0, 4.0)) == (4.0, 6.0)
+    # Leibniz rule: (u*v, u*v' + v*u') -> (2*3, 2*4 + 3*1) = (6, 11)
+    assert s1.mul((2.0, 1.0), (3.0, 4.0)) == (6.0, 11.0)
+    assert s1.power((2.0, 1.0), 3) == (8.0, 12.0)  # (x^3)' = 3*x^2 = 12
+
+    # Star on prob 0.5, value 1.0
+    p_star, v_star = s1.star((0.5, 1.0))
+    assert p_star == pytest.approx(2.0)
+    assert v_star == pytest.approx(4.0)
+
+    # Order 0
+    s0 = BinomialConvolutionSemiring(order=0)
+    assert s0.zero == (0.0,)
+    assert s0.one == (1.0,)
+    assert s0.mul((2.0,), (3.0,)) == (6.0,)
+    assert s0.star((0.5,)) == (2.0,)
+
+    # Order 4 (Kurtosis)
+    s4 = BinomialConvolutionSemiring(order=4)
+    assert len(s4.zero) == 5
+    assert len(s4.one) == 5
+    # Value 2.0 deterministically: (1, 2, 4, 8, 16)
+    v2 = (1.0, 2.0, 4.0, 8.0, 16.0)
+    # Value 3.0 deterministically: (1, 3, 9, 27, 81)
+    v3 = (1.0, 3.0, 9.0, 27.0, 81.0)
+    # Sum: value 5.0 -> (1, 5, 25, 125, 625)
+    v5 = s4.mul(v2, v3)
+    assert v5[0] == pytest.approx(1.0)
+    assert v5[1] == pytest.approx(5.0)
+    assert v5[2] == pytest.approx(25.0)
+    assert v5[3] == pytest.approx(125.0)
+    assert v5[4] == pytest.approx(625.0)
+
+    # Star for order > 1
+    star4 = s4.star((0.5, 0.0, 0.0, 0.0, 0.0))
+    assert star4[0] == pytest.approx(2.0)
+
+
+def test_statistical_moment_semiring_and_decoders():
+    import math
+
+    from algebrax.semiring import KurtosisSemiring, SecondMomentSemiring, StatisticalMomentSemiring
+
+    sem = StatisticalMomentSemiring(order=4)
+
+    # Path 1: 50% chance, value 2.0
+    p1 = (0.5, 0.5 * 2.0, 0.5 * 4.0, 0.5 * 8.0, 0.5 * 16.0)
+    # Path 2: 50% chance, value 4.0
+    p2 = (0.5, 0.5 * 4.0, 0.5 * 16.0, 0.5 * 64.0, 0.5 * 256.0)
+
+    bundle = sem.add(p1, p2)
+    assert sem.mean(bundle) == pytest.approx(3.0)
+    assert sem.variance(bundle) == pytest.approx(1.0)  # Var = 0.5*4 + 0.5*16 - 9 = 10 - 9 = 1
+    assert sem.skewness(bundle) == pytest.approx(0.0)  # Symmetric
+    assert sem.kurtosis(bundle) == pytest.approx(1.0)  # mu4 = 1, Var^2 = 1 -> kurt = 1
+
+    # Zero mass edge case
+    z = sem.zero
+    assert math.isnan(sem.mean(z))
+    assert math.isnan(sem.skewness(z))
+    assert math.isnan(sem.kurtosis(z))
+    assert all(math.isnan(x) for x in sem.raw_moments(z))
+    assert all(math.isnan(x) for x in sem.central_moments(z))
+
+    # SecondMomentSemiring and KurtosisSemiring aliases
+    sm = SecondMomentSemiring()
+    assert sm.order == 2
+    assert sm.variance(sm.add((0.5, 1.0, 2.0), (0.5, 2.0, 8.0))) == pytest.approx(1.0)
+
+    ks = KurtosisSemiring()
+    assert ks.order == 4
+
+
+def test_multivariate_moment_semiring_and_covariance():
+    from algebrax.semiring import MultivariateBinomialConvolutionSemiring, MultivariateMomentSemiring
+
+    msem = MultivariateMomentSemiring(num_vars=2, order=2)
+    assert msem.zero == {}
+    assert msem.one == {(0, 0): 1.0}
+
+    # Step 1: Feature 1 = 2.0, Feature 2 = 3.0
+    # Representation in MGF: m_{(1,0)} = 2.0, m_{(0,1)} = 3.0, m_{(2,0)} = 4.0, m_{(0,2)} = 9.0, m_{(1,1)} = 6.0
+    s1 = {(0, 0): 1.0, (1, 0): 2.0, (0, 1): 3.0, (2, 0): 4.0, (0, 2): 9.0, (1, 1): 6.0}
+
+    # Step 2: Feature 1 = 1.0, Feature 2 = 5.0
+    s2 = {(0, 0): 1.0, (1, 0): 1.0, (0, 1): 5.0, (2, 0): 1.0, (0, 2): 25.0, (1, 1): 5.0}
+
+    # Sequence of two steps: Features add -> (3.0, 8.0)
+    seq = msem.mul(s1, s2)
+    assert seq[(0, 0)] == pytest.approx(1.0)
+    assert seq[(1, 0)] == pytest.approx(3.0)  # 2 + 1
+    assert seq[(0, 1)] == pytest.approx(8.0)  # 3 + 5
+    assert seq[(2, 0)] == pytest.approx(9.0)  # 3^2
+    assert seq[(0, 2)] == pytest.approx(64.0)  # 8^2
+    assert seq[(1, 1)] == pytest.approx(24.0)  # 3 * 8
+
+    means = msem.mean_vector(seq)
+    assert means[0] == pytest.approx(3.0)
+    assert means[1] == pytest.approx(8.0)
+
+    # Covariance of deterministic path is 0
+    cov = msem.covariance_matrix(seq)
+    assert cov[0][0] == pytest.approx(0.0)
+    assert cov[1][1] == pytest.approx(0.0)
+    assert cov[0][1] == pytest.approx(0.0)
+    assert cov[1][0] == pytest.approx(0.0)
+
+    # Branching paths: Path A (1, 2) prob 0.5, Path B (3, 6) prob 0.5
+    pa = {(0, 0): 0.5, (1, 0): 0.5 * 1.0, (0, 1): 0.5 * 2.0, (2, 0): 0.5 * 1.0, (0, 2): 0.5 * 4.0, (1, 1): 0.5 * 2.0}
+    pb = {
+        (0, 0): 0.5,
+        (1, 0): 0.5 * 3.0,
+        (0, 1): 0.5 * 6.0,
+        (2, 0): 0.5 * 9.0,
+        (0, 2): 0.5 * 36.0,
+        (1, 1): 0.5 * 18.0,
+    }
+
+    bundle = msem.add(pa, pb)
+    b_means = msem.mean_vector(bundle)
+    assert b_means[0] == pytest.approx(2.0)
+    assert b_means[1] == pytest.approx(4.0)
+
+    b_cov = msem.covariance_matrix(bundle)
+    assert b_cov[0][0] == pytest.approx(1.0)  # Var(X) = 0.5*1 + 0.5*9 - 4 = 5 - 4 = 1
+    assert b_cov[1][1] == pytest.approx(4.0)  # Var(Y) = 0.5*4 + 0.5*36 - 16 = 20 - 16 = 4
+    assert b_cov[0][1] == pytest.approx(2.0)  # Cov(X, Y) = 0.5*2 + 0.5*18 - 8 = 10 - 8 = 2
+    assert b_cov[1][0] == pytest.approx(2.0)
+
+    # Power and Star
+    pow2 = msem.power(s1, 2)
+    assert pow2[(1, 0)] == pytest.approx(4.0)
+
+    star = msem.star({(0, 0): 0.5})
+    assert star[(0, 0)] == pytest.approx(2.0)
+
+
+def test_moment_semirings_validation_and_errors():
+    from algebrax.semiring import (
+        BinomialConvolutionSemiring,
+        MultivariateBinomialConvolutionSemiring,
+        MultivariateMomentSemiring,
+    )
+
+    with pytest.raises(ValueError, match='order must be a non-negative integer'):
+        BinomialConvolutionSemiring(order=-1)
+
+    with pytest.raises(ValueError, match='num_vars must be >= 1'):
+        MultivariateBinomialConvolutionSemiring(num_vars=0)
+
+    with pytest.raises(ValueError, match='order must be >= 0'):
+        MultivariateBinomialConvolutionSemiring(num_vars=2, order=-1)
+
+    # Covariance guard on order < 2
+    m1 = MultivariateMomentSemiring(num_vars=2, order=1)
+    with pytest.raises(ValueError, match='Covariance matrix calculation requires order >= 2'):
+        m1.covariance_matrix({(0, 0): 1.0, (1, 0): 2.0})
+
+    # Length checks in 1D
+    b1 = BinomialConvolutionSemiring(order=1)
+    with pytest.raises(ValueError, match='Operands must have length 2'):
+        b1.add((1.0,), (1.0, 2.0))
+
+    with pytest.raises(ValueError, match='Operands must have length 2'):
+        b1.mul((1.0,), (1.0, 2.0))

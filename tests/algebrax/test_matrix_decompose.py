@@ -37,8 +37,8 @@ def is_matrix_close(m1: dict, m2: dict, tol: float = 1e-6) -> bool:
 def test_cholesky_decomposition():
     """Test Cholesky decomposition L @ L^T == A for SPD matrix."""
     a_spd = {
-        "0": {"0": 4.0, "1": 12.0},
-        "1": {"0": 12.0, "1": 37.0},
+        '0': {'0': 4.0, '1': 12.0},
+        '1': {'0': 12.0, '1': 37.0},
     }
     l_mat = cholesky(a_spd)
     llt = dot(l_mat, transpose(l_mat))
@@ -46,19 +46,19 @@ def test_cholesky_decomposition():
 
     # Non-positive definite matrix should raise ValueError
     a_non_pd = {
-        "0": {"0": -1.0, "1": 0.0},
-        "1": {"0": 0.0, "1": 2.0},
+        '0': {'0': -1.0, '1': 0.0},
+        '1': {'0': 0.0, '1': 2.0},
     }
-    with pytest.raises(ValueError, match="not positive-definite"):
+    with pytest.raises(ValueError, match='not positive-definite'):
         cholesky(a_non_pd)
 
 
 def test_lu_decomposition():
     """Test LU decomposition with partial pivoting P @ A == L @ U."""
     a_mat = {
-        "0": {"0": 1.0, "1": 2.0, "2": 4.0},
-        "1": {"0": 3.0, "1": 8.0, "2": 14.0},
-        "2": {"0": 2.0, "1": 6.0, "2": 13.0},
+        '0': {'0': 1.0, '1': 2.0, '2': 4.0},
+        '1': {'0': 3.0, '1': 8.0, '2': 14.0},
+        '2': {'0': 2.0, '1': 6.0, '2': 13.0},
     }
     p_mat, l_mat, u_mat = lu(a_mat)
     pa = dot(p_mat, a_mat)
@@ -73,9 +73,9 @@ def test_lu_decomposition():
 def test_qr_decomposition():
     """Test QR decomposition A == Q @ R and Q^T @ Q == I."""
     a_mat = {
-        "0": {"0": 12.0, "1": -51.0, "2": 4.0},
-        "1": {"0": 6.0, "1": 167.0, "2": -68.0},
-        "2": {"0": -4.0, "1": 24.0, "2": -41.0},
+        '0': {'0': 12.0, '1': -51.0, '2': 4.0},
+        '1': {'0': 6.0, '1': 167.0, '2': -68.0},
+        '2': {'0': -4.0, '1': 24.0, '2': -41.0},
     }
     q_mat, r_mat = qr(a_mat)
     qr_prod = dot(q_mat, r_mat)
@@ -83,15 +83,15 @@ def test_qr_decomposition():
 
     assert is_matrix_close(a_mat, qr_prod)
     # Check Q^T @ Q is Identity
-    i_expected = {"0": {"0": 1.0}, "1": {"1": 1.0}, "2": {"2": 1.0}}
+    i_expected = {'0': {'0': 1.0}, '1': {'1': 1.0}, '2': {'2': 1.0}}
     assert is_matrix_close(qtq, i_expected)
 
 
 def test_svd_decomposition():
     """Test Truncated SVD decomposition A ≈ U @ diag(S) @ V^T."""
     a_mat = {
-        "0": {"0": 3.0, "1": 2.0, "2": 2.0},
-        "1": {"0": 2.0, "1": 3.0, "2": 1.0},
+        '0': {'0': 3.0, '1': 2.0, '2': 2.0},
+        '1': {'0': 2.0, '1': 3.0, '2': 1.0},
     }
     u_mat, s_vec, vt_mat = svd(a_mat)
 
@@ -138,4 +138,3 @@ def test_recompose_svd():
     u, s, v_t = svd(a)
     recomposed = recompose_svd(u, s, v_t)
     assert is_matrix_close(a, recomposed)
-

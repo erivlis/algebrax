@@ -92,5 +92,3 @@ def test_triangle_chain_complex_nilpotency_and_laplacian():
     # Compute Hodge-Laplacian Delta_1 (1D Laplacian on edges)
     delta_1 = complex_sys.hodge_laplacian(k=1)
     assert (0, 1) in delta_1
-
-

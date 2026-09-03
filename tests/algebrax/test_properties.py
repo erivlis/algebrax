@@ -11,6 +11,7 @@ from algebrax.typing import SparseMatrix, SparseVector
 
 # --- Custom Hypothesis Strategies ---
 
+
 @st.composite
 def sparse_vectors(
     draw, max_size=5, val_st=st.floats(min_value=-10.0, max_value=10.0, allow_nan=False, allow_infinity=False)
@@ -34,6 +35,7 @@ def sparse_matrices(
 
 
 # --- Property Tests ---
+
 
 @given(m1=sparse_matrices(), m2=sparse_matrices())
 @settings(max_examples=100)
