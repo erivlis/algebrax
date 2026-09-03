@@ -213,13 +213,29 @@ from typing import Any
 
 import dearpygui.dearpygui as dpg
 
-import algebrax as ax
-
-# Ensure repo root is accessible for recipe module imports
+# Ensure repo root and src dir are accessible
 REPO_ROOT = Path(__file__).resolve().parent.parent
+SRC_DIR = REPO_ROOT / 'src'
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+import algebrax as ax  # noqa: E402
+from recipes.algebraic_knot_theory import (  # noqa: E402
+    compute_connected_sum,
+    evaluate_braid_word,
+)
+from recipes.blackhole_spacetime_simulation import (  # noqa: E402
+    evaluate_schwarzschild_simulation,
+)
+from recipes.categorical_kleisli_monads import (  # noqa: E402
+    compose_kleisli_arrows,
+)
+from recipes.clifford_rotor_kinematics import (  # noqa: E402
+    apply_rotor_rotation,
+    compute_geometric_magnitude,
+)
 from recipes.distributed_vector_clocks import (  # noqa: E402
     compare_vector_clocks,
     compute_causal_dag_analysis,
@@ -228,9 +244,29 @@ from recipes.distributed_vector_clocks import (  # noqa: E402
     simulate_distributed_cluster,
     synchronize_crdt_replicas,
 )
+from recipes.extreme_risk_tail_moments import (  # noqa: E402
+    audit_tail_risk_comparison,
+    evaluate_multivariate_joint_risk,
+    propagate_cascading_moments,
+)
+from recipes.financial_risk_portfolio import (  # noqa: E402
+    compute_portfolio_centralities,
+    evaluate_portfolio_path_variance,
+    simulate_trading_strategy,
+)
 from recipes.forward_mode_autodiff import DualNumber, evaluate_dual, evaluate_dual_graph  # noqa: E402
 from recipes.functional_autograd_engine import Value, build_and_evaluate_dag  # noqa: E402
+from recipes.galois_field_cryptography import (  # noqa: E402
+    gf_mix_columns,
+    gf_multiply,
+)
 from recipes.nlp_provenance_parser import GrammarSemiring, parse_cyk  # noqa: E402
+from recipes.optical_holography_simulation import (  # noqa: E402
+    record_hologram,
+)
+from recipes.post_quantum_crypto_exchange import (  # noqa: E402
+    perform_digital_key_exchange,
+)
 from recipes.quantum_feynman_path_integral import (  # noqa: E402
     simulate_aharonov_bohm_effect,
     simulate_double_slit,
@@ -242,7 +278,17 @@ from recipes.relativistic_dirac_spinor import (  # noqa: E402
     create_dirac_spinor,
     rotate_spinor,
 )
+from recipes.sheaf_cohomology_consensus import (  # noqa: E402
+    simulate_sheaf_consensus,
+)
 from recipes.sparse_neural_backprop import SparseLinearLayer, SparseMLP, train_sparse_mlp  # noqa: E402
+from recipes.topological_homology_betti import (  # noqa: E402
+    evaluate_simplicial_complex,
+    get_homology_preset,
+)
+from recipes.trajectoid_rolling_kinematics import (  # noqa: E402
+    simulate_trajectoid_kinematics,
+)
 
 try:
     from PIL import Image
@@ -517,34 +563,21 @@ def run_curvature() -> None:
 
 def run_crypto_exchange() -> None:
     try:
-        s_semiring = ax.semiring.DigitalSemiring()
         a1: int = int(dpg.get_value('crypto_a1'))
         a2: int = int(dpg.get_value('crypto_a2'))
         b1: int = int(dpg.get_value('crypto_b1'))
         b2: int = int(dpg.get_value('crypto_b2'))
 
-        m_mat: dict[int, dict[int, int]] = {0: {0: 123, 1: 456}, 1: {0: 789, 1: 12}}
         a_mat: dict[int, dict[int, int]] = {0: {0: a1, 1: a2}, 1: {0: a2, 1: a1}}
         b_mat: dict[int, dict[int, int]] = {0: {0: b1, 1: b2}, 1: {0: b2, 1: b1}}
 
-        am_mat = ax.matrix.dot(a_mat, m_mat, s_semiring)
-        u_mat = ax.matrix.dot(am_mat, a_mat, s_semiring)
-
-        bm_mat = ax.matrix.dot(b_mat, m_mat, s_semiring)
-        v_mat = ax.matrix.dot(bm_mat, b_mat, s_semiring)
-
-        av_mat = ax.matrix.dot(a_mat, v_mat, s_semiring)
-        ka_mat = ax.matrix.dot(av_mat, a_mat, s_semiring)
-
-        bu_mat = ax.matrix.dot(b_mat, u_mat, s_semiring)
-        kb_mat = ax.matrix.dot(bu_mat, b_mat, s_semiring)
+        u_mat, v_mat, ka_mat, kb_mat, match = perform_digital_key_exchange(a_mat, b_mat)
 
         display_matrix_in_table(u_mat, 'table_crypto_u')
         display_matrix_in_table(v_mat, 'table_crypto_v')
         display_matrix_in_table(ka_mat, 'table_crypto_ka')
         display_matrix_in_table(kb_mat, 'table_crypto_kb')
 
-        match: bool = ka_mat == kb_mat
         dpg.set_value('crypto_match_text', f'Keys Match: {match}')
         dpg.set_value('crypto_status', 'Successfully performed key exchange simulation.')
     except Exception as e:
@@ -960,24 +993,17 @@ def run_blackhole_sim() -> None:
         r: float = float(dpg.get_value('bh_r'))
         b: float = float(dpg.get_value('bh_b'))
 
-        g_tt = -(1.0 - r_s / r) if r != 0 else 0.0
-        g_rr = (1.0 / (1.0 - r_s / r)) if (r != r_s and r != 0) else float('inf')
-
-        deflect_rad = (2.0 * r_s) / b if b != 0 else 0.0
-        deflect_deg = math.degrees(deflect_rad)
-
-        horizon_area = 4.0 * math.pi * (r_s**2)
-        hawking_entropy = horizon_area / 4.0
+        sim = evaluate_schwarzschild_simulation(r_s, r, b)
 
         clear_table_rows('table_bh_res')
         rows = [
-            ('Schwarzschild Radius (r_s)', f'{r_s:.2f} km'),
-            ('Observation Radius (r)', f'{r:.2f} km'),
-            ('Time Metric Component g_tt(r)', f'{g_tt:.6f}'),
-            ('Radial Metric Component g_rr(r)', f'{g_rr:.6f}'),
-            ('Photon Deflection Angle (Delta phi)', f'{deflect_rad:.4f} rad ({deflect_deg:.2f} deg)'),
-            ('Event Horizon Area (A)', f'{horizon_area:.2f} km^2'),
-            ('Bekenstein-Hawking Entropy (S_BH)', f'{hawking_entropy:.2f} nats'),
+            ('Schwarzschild Radius (r_s)', f"{sim['r_s']:.2f} km"),
+            ('Observation Radius (r)', f"{sim['r']:.2f} km"),
+            ('Time Metric Component g_tt(r)', f"{sim['g_tt']:.6f}"),
+            ('Radial Metric Component g_rr(r)', f"{sim['g_rr']:.6f}"),
+            ('Photon Deflection Angle (Delta phi)', f"{sim['deflect_rad']:.4f} rad ({sim['deflect_deg']:.2f} deg)"),
+            ('Event Horizon Area (A)', f"{sim['horizon_area']:.2f} km^2"),
+            ('Bekenstein-Hawking Entropy (S_BH)', f"{sim['hawking_entropy']:.2f} nats"),
         ]
 
         for prop, val in rows:
@@ -1034,33 +1060,8 @@ def run_trajectoid_sim() -> None:
     freq: float = dpg.get_value('trajectoid_freq')
 
     try:
-        t_vals = [i * (2.0 * math.pi / steps) for i in range(steps)]
-        x_path = {i: math.cos(t_vals[i]) for i in range(steps)}
-        y_path = {i: math.sin(freq * t_vals[i]) for i in range(steps)}
-
-        time_graph = {i: [(i + 1) % steps] for i in range(steps)}
-        grad_x = ax.analysis.gradient(x_path, time_graph)
-        grad_y = ax.analysis.gradient(y_path, time_graph)
-
-        vx = {i: grad_x[i][(i + 1) % steps] for i in range(steps)}
-        vy = {i: grad_y[i][(i + 1) % steps] for i in range(steps)}
-
-        state_mat: dict[int, dict[int, float]] = {
-            0: {0: 1.0, 1: 0.0, 2: 0.0},
-            1: {0: 0.0, 1: 1.0, 2: 0.0},
-            2: {0: 0.0, 1: 0.0, 2: 1.0},
-        }
-        for i in range(min(steps, 10)):
-            w_x = vx.get(i, 0.0) * 0.1
-            w_y = vy.get(i, 0.0) * 0.1
-            dr = {
-                0: {0: 1.0, 1: 0.0, 2: w_y},
-                1: {0: 0.0, 1: 1.0, 2: -w_x},
-                2: {0: -w_y, 1: w_x, 2: 1.0},
-            }
-            state_mat = ax.matrix.dot(state_mat, dr)
-
-        display_matrix_in_table(state_mat, 'table_trajectoid_so3')
+        res = simulate_trajectoid_kinematics(steps=steps, freq=freq)
+        display_matrix_in_table(res['final_rotation'], 'table_trajectoid_so3')
         dpg.set_value('trajectoid_status', 'Successfully integrated non-holonomic SO(3) rolling trajectory.')
     except Exception as e:
         dpg.set_value('trajectoid_status', f'Error: {e}')
@@ -1072,22 +1073,13 @@ def run_knot_theory() -> None:
     crossings_str: str = dpg.get_value('knot_crossings')
 
     try:
-        knot_algebra = ax.semiring.KnotSemiring(ax.semiring.StandardSemiring[float]())
         knot_a = {knot_a_name: 1.0}
         knot_b = {knot_b_name: 1.0}
-
-        composite_knot = knot_algebra.mul(knot_a, knot_b)
+        composite_knot = compute_connected_sum(knot_a, knot_b)
 
         crossings: list[int] = json.loads(crossings_str)
         n_strands = max(max(crossings, default=1) + 1, 2)
-        perm: dict[int, int] = {i: i for i in range(n_strands)}
-        for c in crossings:
-            if 1 <= c < n_strands:
-                swap_gen = {i: i for i in range(n_strands)}
-                swap_gen[c - 1], swap_gen[c] = c, c - 1
-                perm = ax.group.compose(perm, swap_gen)
-
-        sig = ax.group.signature(perm)
+        perm, sig = evaluate_braid_word(crossings, n_strands=n_strands)
 
         clear_table_rows('table_knot_res')
         rows = [
@@ -1120,18 +1112,7 @@ def run_optical_holography() -> None:
             int(k): complex(v) if isinstance(v, str) else complex(float(v), 0.0) for k, v in raw_obj.items()
         }
 
-        ref_wave: dict[int, complex] = {k: cmath.exp(1j * ref_phase * k) for k in obj_wave}
-
-        interf_intensity: dict[int, float] = {}
-        for k in obj_wave:
-            total_field = obj_wave[k] + ref_wave[k]
-            interf_intensity[k] = float(abs(total_field) ** 2)
-
-        spectrum = ax.transforms.dft({k: complex(v, 0.0) for k, v in interf_intensity.items()})
-
-        total_int = sum(interf_intensity.values())
-        prob_dist = {k: interf_intensity[k] / total_int for k in interf_intensity} if total_int > 0 else {}
-        fringe_entropy = ax.probability.entropy(prob_dist)
+        interf_intensity, spectrum, fringe_entropy = record_hologram(obj_wave, ref_phase=ref_phase)
 
         clear_table_rows('table_hologram_res')
         for k in sorted(interf_intensity.keys()):
@@ -1157,28 +1138,72 @@ def run_financial_risk() -> None:
 
     try:
         signals = [s.strip() for s in signal_input.split(',') if s.strip()]
-
-        dfa = {
-            'Cash': {'buy_signal': 'Invested', 'hold': 'Cash', 'risk_alert': 'Risk_Hedge'},
-            'Invested': {'sell_signal': 'Cash', 'risk_alert': 'Risk_Hedge', 'hold': 'Invested'},
-            'Risk_Hedge': {'clear_alert': 'Cash', 'hold': 'Risk_Hedge'},
-        }
-
-        final_state = ax.automata.simulate_dfa('Cash', signals, dfa)
+        final_state = simulate_trading_strategy(signals)
 
         raw_corr: dict[str, dict[str, float]] = json.loads(corr_str)
-        centrality = ax.matrix.academic.eigen_centrality(raw_corr)
+        centrality = compute_portfolio_centralities(raw_corr)
 
         clear_table_rows('table_fin_centrality')
         for asset, val in sorted(centrality.items(), key=lambda x: x[1], reverse=True):
             with dpg.table_row(parent='table_fin_centrality'):
-                dpg.add_input_text(default_value=asset, readonly=True, width=-1)
+                dpg.add_input_text(default_value=str(asset), readonly=True, width=-1)
                 dpg.add_input_text(default_value=f'{val:.4f}', readonly=True, width=-1)
 
         dpg.set_value('fin_result_text', f'Final Trade Strategy State: {final_state}')
         dpg.set_value('fin_status', 'Successfully computed portfolio centrality & trade DFA execution.')
     except Exception as e:
         dpg.set_value('fin_status', f'Error: {e}')
+
+
+def run_extreme_tail_risk() -> None:
+    try:
+        # Step 1: Comparative Tail Risk Audit (from recipes.extreme_risk_tail_moments)
+        tail_comparison = audit_tail_risk_comparison()
+        clear_table_rows('table_tail_risk_comparison')
+        for route_name, stats in tail_comparison.items():
+            risk_desc = 'Low Risk (Symmetric)' if 'Gaussian' in route_name else 'HIGH CRASH RISK (Left Tail)'
+            with dpg.table_row(parent='table_tail_risk_comparison'):
+                dpg.add_input_text(default_value=route_name, readonly=True, width=-1)
+                dpg.add_input_text(default_value=f"{stats['mean']:.2f}", readonly=True, width=-1)
+                dpg.add_input_text(default_value=f"{stats['variance']:.2f}", readonly=True, width=-1)
+                dpg.add_input_text(default_value=f"{stats['skewness']:+.2f}", readonly=True, width=-1)
+                dpg.add_input_text(default_value=f"{stats['kurtosis']:.2f}", readonly=True, width=-1)
+                dpg.add_input_text(default_value=risk_desc, readonly=True, width=-1)
+
+        # Step 2: 5th-Order Cascading Moment Propagation (from recipes.extreme_risk_tail_moments)
+        step2_res = propagate_cascading_moments(order=5, steps=3)
+        dpg.set_value(
+            'tail_moment5_summary',
+            f"3-Hop Cascade (Order 5) -> Mean: {step2_res['mean']:.2f}, Var: {step2_res['variance']:.2f}, "
+            f"Skewness: {step2_res['skewness']:+.4f}, Kurtosis: {step2_res['kurtosis']:.4f}, "
+            f"Hyperskewness: {step2_res['hyperskewness']:+.4f}",
+        )
+
+        # Step 3: Multivariate Moment Covariance Matrix (from recipes.extreme_risk_tail_moments)
+        step3_res = evaluate_multivariate_joint_risk(num_vars=2, order=2, steps=2)
+        cov_matrix = step3_res['covariance_matrix']
+        mean_vec = step3_res['mean_vector']
+        corr_12 = step3_res['correlation']
+
+        clear_table_rows('table_joint_cov_res')
+        with dpg.table_row(parent='table_joint_cov_res'):
+            dpg.add_input_text(default_value='Feature 1: Cost ($)', readonly=True, width=-1)
+            dpg.add_input_text(default_value=f'{cov_matrix[0][0]:+.4f} (Var Cost)', readonly=True, width=-1)
+            dpg.add_input_text(default_value=f'{cov_matrix[0][1]:+.4f} (Cov Cost,Lat)', readonly=True, width=-1)
+
+        with dpg.table_row(parent='table_joint_cov_res'):
+            dpg.add_input_text(default_value='Feature 2: Latency (ms)', readonly=True, width=-1)
+            dpg.add_input_text(default_value=f'{cov_matrix[1][0]:+.4f} (Cov Lat,Cost)', readonly=True, width=-1)
+            dpg.add_input_text(default_value=f'{cov_matrix[1][1]:+.4f} (Var Lat)', readonly=True, width=-1)
+
+        dpg.set_value(
+            'joint_cov_summary',
+            f'Mean Vector [E[Cost], E[Latency]]: [{mean_vec[0]:.2f} $, {mean_vec[1]:.2f} ms] | '
+            f'Cross-Correlation ρ(Cost, Lat): {corr_12:+.4f}',
+        )
+        dpg.set_value('tail_risk_status', 'Successfully evaluated higher-order moments & multivariate covariance!')
+    except Exception as e:
+        dpg.set_value('tail_risk_status', f'Error: {e}')
 
 
 def run_sheaf_cohomology() -> None:
@@ -1196,12 +1221,7 @@ def run_sheaf_cohomology() -> None:
             3: {1: 1.0, 2: 1.0},
         }
 
-        curr_states = dict(agent_states)
-        dt = 0.1
-        for _ in range(steps):
-            l_val = ax.analysis.laplacian(curr_states, comm_graph)
-            for u in curr_states:
-                curr_states[u] -= dt * l_val.get(u, 0.0)
+        curr_states = simulate_sheaf_consensus(agent_states, comm_graph=comm_graph, steps=steps, dt=0.1)
 
         clear_table_rows('table_sheaf_res')
         for u in sorted(agent_states.keys()):
@@ -1296,29 +1316,10 @@ def run_topological_homology() -> None:
         preset: str = dpg.get_value('homology_preset')
         dpg.delete_item('homology_canvas', children_only=True)
 
-        if preset == '1D Circle (S^1)':
-            simplices = [(0, 1), (1, 2), (2, 3), (0, 3)]
-            coords = {0: (200, 70), 1: (330, 200), 2: (200, 330), 3: (70, 200)}
-            max_k = 1
-        elif preset == 'Solid Triangle (2-Simplex)':
-            simplices = [(0, 1, 2)]
-            coords = {0: (200, 60), 1: (340, 320), 2: (60, 320)}
-            max_k = 2
-        elif preset == 'Double Loop (Figure 8)':
-            simplices = [(0, 1), (1, 2), (0, 2), (0, 3), (3, 4), (0, 4)]
-            coords = {0: (200, 200), 1: (100, 100), 2: (100, 300), 3: (300, 100), 4: (300, 300)}
-            max_k = 1
-        elif preset == '3D Solid Tetrahedron':
-            simplices = [(0, 1, 2, 3)]
-            coords = {0: (200, 50), 1: (350, 300), 2: (50, 300), 3: (200, 210)}
-            max_k = 2
-        else:
-            simplices = [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
-            coords = {0: (200, 50), 1: (350, 300), 2: (50, 300), 3: (200, 210)}
-            max_k = 2
-
-        sc = ax.homology.SimplicialComplex(simplices)
-        betti = sc.betti_numbers(max_k=max_k)
+        simplices, coords, max_k = get_homology_preset(preset)
+        res = evaluate_simplicial_complex(simplices, max_k=max_k)
+        sc = res['complex']
+        betti = res['betti']
 
         for s in sc._simplices.get(2, set()):
             p1, p2, p3 = coords[s[0]], coords[s[1]], coords[s[2]]
@@ -1345,10 +1346,9 @@ def run_topological_homology() -> None:
         }
         display_matrix_in_table(betti_data, 'table_homology_res')
 
-        d0_d1_zero = sc.verify_nilpotency(1)
-        nilpotency_str = 'VERIFIED: D_0 o D_1 = 0' if d0_d1_zero else 'FAILED'
-        v_cnt = len(sc._simplices.get(0, set()))
-        e_cnt = len(sc._simplices.get(1, set()))
+        nilpotency_str = 'VERIFIED: D_0 o D_1 = 0' if res['nilpotency'] else 'FAILED'
+        v_cnt = res['num_vertices']
+        e_cnt = res['num_edges']
         dpg.set_value('homology_status', f'Complex: {v_cnt} vertices, {e_cnt} edges. {nilpotency_str}')
     except Exception as e:
         dpg.set_value('homology_status', f'Error: {e}')
@@ -1363,12 +1363,12 @@ def run_clifford_geometric_algebra() -> None:
         angle_deg: float = float(dpg.get_value('clifford_angle'))
         plane: str = dpg.get_value('clifford_plane')
 
-        cs = ax.clifford.CliffordSemiring(p=3, q=0, r=0)
         v = {(1,): e1, (2,): e2}
-        v_sq = cs.mul(v, v)
+        mag = compute_geometric_magnitude(v, p=3, q=0, r=0)
+        v_sq_val = mag ** 2
 
         bivector = (1, 2) if plane == 'e12 Plane (XY)' else ((2, 3) if plane == 'e23 Plane (YZ)' else (3, 1))
-        v_rot = ax.clifford.rotor_rotation(v, bivector=bivector, angle_rad=math.radians(angle_deg), p=3, q=0, r=0)
+        v_rot = apply_rotor_rotation(v, angle_rad=math.radians(angle_deg), plane=bivector, p=3, q=0, r=0)
 
         dpg.delete_item('clifford_canvas', children_only=True)
         cx, cy = 200, 200
@@ -1392,7 +1392,7 @@ def run_clifford_geometric_algebra() -> None:
 
         dpg.draw_circle((cx, cy), int(scale * 2), color=(255, 200, 50, 120), parent='clifford_canvas')
 
-        dpg.set_value('clifford_v_sq_text', f'Multivector Magnitude Squared v^2 = {v_sq.get((), 0.0):.3f}')
+        dpg.set_value('clifford_v_sq_text', f'Multivector Magnitude Squared v^2 = {v_sq_val:.3f}')
 
         rot_data = {
             0: {
@@ -1436,8 +1436,7 @@ def run_galois_finite_fields() -> None:
         def poly_to_byte(p: dict[int, float]) -> int:
             return sum((1 << exp) for exp, val in p.items() if int(val) % 2 == 1)
 
-        gf = ax.galois.GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
-        res_poly = gf.mul(byte_to_poly(byte1), byte_to_poly(byte2))
+        res_poly = gf_multiply(byte_to_poly(byte1), byte_to_poly(byte2))
         res_byte = poly_to_byte(res_poly)
 
         dpg.set_value(
@@ -1460,7 +1459,7 @@ def run_galois_finite_fields() -> None:
         ]
 
         state = {r: {c: byte_to_poly(input_state_bytes[r][c]) for c in range(4)} for r in range(4)}
-        out_state = ax.galois.gf_matrix_mul(mix_col, state, p=2)
+        out_state = gf_mix_columns(state, mix_col_matrix=mix_col)
 
         dpg.delete_item('galois_canvas', children_only=True)
 
@@ -1559,12 +1558,12 @@ def run_categorical_kleisli() -> None:
             dpg.draw_circle(pos, 16, color=(255, 100, 255), fill=(80, 40, 100), parent='kleisli_canvas')
             dpg.draw_text((pos[0] - 5, pos[1] - 7), n, color=(255, 255, 255), size=15, parent='kleisli_canvas')
 
-        vit = ax.category.kleisli_compose(f, g, semiring=ax.semiring.ViterbiSemiring())
-        trop = ax.category.kleisli_compose(f, g, semiring=ax.semiring.TropicalSemiring())
+        vit = compose_kleisli_arrows(f, g, semiring=ax.semiring.ViterbiSemiring())
+        trop = compose_kleisli_arrows(f, g, semiring=ax.semiring.TropicalSemiring())
         boo_a = {'A': {'B': True}}
         boo_b = {'B': {'C': True}}
-        boo = ax.category.kleisli_compose(boo_a, boo_b, semiring=ax.semiring.BooleanSemiring())
-        std = ax.category.kleisli_compose(f, g, semiring=ax.semiring.StandardSemiring())
+        boo = compose_kleisli_arrows(boo_a, boo_b, semiring=ax.semiring.BooleanSemiring())
+        std = compose_kleisli_arrows(f, g, semiring=ax.semiring.StandardSemiring())
 
         src_node, dst_node = target
         cat_data = {
@@ -3446,6 +3445,52 @@ def build_view_financial_risk() -> None:
         )
 
 
+def build_view_extreme_risk_tail_moments() -> None:
+    with dpg.group(tag='view_extreme_risk_tail_moments_group', show=False):
+        dpg.add_text(
+            'Extreme Tail Risk, Higher-Order Moments (Kurtosis, Hyperskewness) & Covariance Tensors',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        dpg.add_text('1. Comparative Tail Risk Audit (Gaussian vs Black-Swan Jump Risk):')
+        create_bordered_table(
+            tag='table_tail_risk_comparison',
+            columns=[
+                'Execution Route',
+                'Mean (μ)',
+                'Variance (σ²)',
+                'Skewness (γ1)',
+                'Kurtosis (β2)',
+                'Risk Profile',
+            ],
+            width=850,
+        )
+        dpg.add_spacer(height=5)
+        dpg.add_text('2. Multi-Hop Cascading Shock Propagation (Order 5 Hyperskewness):')
+        dpg.add_input_text(
+            default_value='Press "Evaluate Extreme Moments & Covariance" to compute 3-hop cascade...',
+            readonly=True,
+            tag='tail_moment5_summary',
+            width=850,
+        )
+        dpg.add_spacer(height=5)
+        dpg.add_text('3. Multi-Objective Joint Risk Covariance Matrix Σ (Cost vs Latency):')
+        create_bordered_table(
+            tag='table_joint_cov_res',
+            columns=['Feature', 'Feature 1: Cost ($)', 'Feature 2: Latency (ms)'],
+            width=700,
+        )
+        dpg.add_input_text(
+            default_value='Cross-feature correlation metrics will appear here...',
+            readonly=True,
+            tag='joint_cov_summary',
+            width=850,
+        )
+        dpg.add_spacer(height=10)
+        dpg.add_button(label='Evaluate Extreme Moments & Covariance', callback=run_extreme_tail_risk)
+        dpg.add_text('', tag='tail_risk_status', color=(255, 200, 100))
+
+
 def build_view_sheaf_cohomology() -> None:
     with dpg.group(tag='view_sheaf_cohomology_group', show=False):
         dpg.add_text(
@@ -4184,6 +4229,7 @@ VIEWS: list[str] = [
     'algebraic_knot_theory',
     'optical_holography',
     'financial_risk',
+    'extreme_risk_tail_moments',
     'sheaf_cohomology',
     'gaussian_splatting',
     'topological_homology',
@@ -4264,6 +4310,12 @@ def build_navigation_sidebar() -> None:
                 tag='sel_financial_risk',
                 callback=change_view,
                 user_data='financial_risk',
+            )
+            dpg.add_selectable(
+                label='Extreme Tail Risk & Moments',
+                tag='sel_extreme_risk_tail_moments',
+                callback=change_view,
+                user_data='extreme_risk_tail_moments',
             )
 
         with dpg.tree_node(label='Transforms, Signals & Waves', default_open=True):
@@ -4503,6 +4555,7 @@ def main() -> None:
                 build_view_knot_theory()
                 build_view_optical_holography()
                 build_view_financial_risk()
+                build_view_extreme_risk_tail_moments()
                 build_view_sheaf_cohomology()
                 build_view_gaussian_splatting()
                 build_view_topological_homology()

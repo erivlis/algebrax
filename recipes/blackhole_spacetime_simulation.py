@@ -14,135 +14,110 @@
 # ## Theory & Mathematical Foundation
 #
 # 1. **Schwarzschild Spacetime Metric Tensor (`algebrax.tensor.einsum`)**:
-#    The Schwarzschild metric $g_{\mu\nu}$ describes spacetime geometry around a black hole
+#    The Schwarzschild metric $g_{\\mu\\nu}$ describes spacetime geometry around a black hole
 #    of mass $M$ and Schwarzschild radius $r_s = 2GM/c^2$:
-#    $$ds^2 = -\left(1 - \frac{r_s}{r}\right) c^2 dt^2 + \left(1 - \frac{r_s}{r}\right)^{-1} dr^2$$
-#    $$+ r^2 d\theta^2 + r^2 \sin^2\theta d\phi^2$$
-#    `tensor.einsum` contracts metric $g^{\mu\nu} g_{\nu\alpha} = \delta^\mu_\alpha$.
+#    $$ds^2 = -\\left(1 - \\frac{r_s}{r}\\right) c^2 dt^2 + \\left(1 - \\frac{r_s}{r}\\right)^{-1} dr^2$$
+#    $$+ r^2 d\\theta^2 + r^2 \\sin^2\\theta d\\phi^2$$
+#    `tensor.einsum` contracts metric $g^{\\mu\\nu} g_{\\nu\\alpha} = \\delta^\\mu_\\alpha$.
 #
 # 2. **Gravitational Redshift & Time Dilation (`algebrax.transforms.z_transform`)**:
 #    Photons escaping from radius $r$ experience gravitational redshift
-#    $\nu_{\text{obs}} = \nu_{\text{emit}} \sqrt{1 - r_s/r}$.
-#    `transforms.z_transform` evaluates complex frequency spectral shifts $X(z)$ near the event horizon.
+#    $\\nu_{\\text{obs}} = \\nu_{\\text{emit}} \\sqrt{1 - r_s/r}$.
 #
-# 3. **Photon Deflection & Spacetime Curvature (`algebrax.analysis.forman_ricci_curvature` & `ax.analysis.gradient`)**:
-#    Light rays grazing impact parameter $b$ undergo gravitational deflection $\Delta\phi = \frac{4GM}{c^2 b}$.
-#    `forman_ricci_curvature` models localized negative spatial curvature surrounding the photon sphere.
+# 3. **Photon Deflection & Spacetime Curvature (`algebrax.analysis.forman_ricci_curvature`)**:
+#    Light rays grazing impact parameter $b$ undergo gravitational deflection $\\Delta\\phi = \\frac{2 r_s}{b}$.
 #
-# 4. **Bekenstein-Hawking Black Hole Entropy (`algebrax.probability.entropy` & `ax.probability.kl_divergence`)**:
-#    Black hole entropy $S_{\text{BH}} = \frac{A}{4 l_P^2}$ scales with event horizon surface area $A = 4\pi r_s^2$.
-#    `probability.entropy` and `probability.kl_divergence` audit quantum information scrambling.
+# 4. **Bekenstein-Hawking Black Hole Entropy (`algebrax.probability.entropy`)**:
+#    Black hole entropy $S_{\\text{BH}} = \\frac{A}{4}$ scales with event horizon surface area $A = 4\\pi r_s^2$.
 
 # %%
 import math
+from typing import Any
 
 import algebrax as ax
 
+
+def evaluate_schwarzschild_metric(r_s: float, r: float) -> tuple[float, float]:
+    """Compute Schwarzschild time component g_tt and radial component g_rr."""
+    g_tt = -(1.0 - r_s / r) if r != 0 else 0.0
+    g_rr = (1.0 / (1.0 - r_s / r)) if (r != r_s and r != 0) else float('inf')
+    return g_tt, g_rr
+
+
+def compute_gravitational_deflection(r_s: float, b: float) -> tuple[float, float]:
+    """Calculate photon gravitational deflection angle in radians and degrees."""
+    deflect_rad = (2.0 * r_s) / b if b != 0 else 0.0
+    deflect_deg = math.degrees(deflect_rad)
+    return deflect_rad, deflect_deg
+
+
+def compute_blackhole_thermodynamics(r_s: float) -> tuple[float, float]:
+    """Compute event horizon area A and Bekenstein-Hawking entropy S_BH."""
+    horizon_area = 4.0 * math.pi * (r_s**2)
+    hawking_entropy = horizon_area / 4.0
+    return horizon_area, hawking_entropy
+
+
+def evaluate_schwarzschild_simulation(r_s: float, r: float, b: float) -> dict[str, Any]:
+    """Comprehensive evaluation of Schwarzschild geometry, lensing, and thermodynamics."""
+    g_tt, g_rr = evaluate_schwarzschild_metric(r_s, r)
+    deflect_rad, deflect_deg = compute_gravitational_deflection(r_s, b)
+    horizon_area, hawking_entropy = compute_blackhole_thermodynamics(r_s)
+    return {
+        'r_s': r_s,
+        'r': r,
+        'b': b,
+        'g_tt': g_tt,
+        'g_rr': g_rr,
+        'deflect_rad': deflect_rad,
+        'deflect_deg': deflect_deg,
+        'horizon_area': horizon_area,
+        'hawking_entropy': hawking_entropy,
+    }
+
 # %% [markdown]
 # ## Step 1: Schwarzschild Spacetime Metric Tensor (`tensor.einsum`)
-# $g_{\mu\nu}$ defines interval $ds^2$ around Schwarzschild radius $r_s$.
-
-# %%
-r_s = 29.5  # km (Schwarzschild event horizon radius)
-
-r_eval = 2.0 * r_s
-f_r = 1.0 - (r_s / r_eval)
-
-g_metric = ax.trie.AlgebraicTrie()
-g_metric[(0, 0)] = -f_r
-g_metric[(1, 1)] = 1.0 / f_r
-g_metric[(2, 2)] = r_eval**2
-g_metric[(3, 3)] = (r_eval * math.sin(math.pi / 2)) ** 2
-
-g_inv = ax.trie.AlgebraicTrie()
-g_inv[(0, 0)] = -1.0 / f_r
-g_inv[(1, 1)] = f_r
-g_inv[(2, 2)] = 1.0 / (r_eval**2)
-g_inv[(3, 3)] = 1.0 / (r_eval**2)
-
-identity_check = ax.tensor.einsum('ma,an->mn', g_inv, g_metric)
-
-print(f'Schwarzschild Event Horizon Radius r_s: {r_s:.1f} km')
-print(f'Evaluated Radial Distance r:             {r_eval:.1f} km (r = 2.0 r_s)')
-print(f'Time Dilation Metric Factor g_tt:       {g_metric[(0, 0)]:.4f}')
-print(f'Radial Spatial Metric Factor g_rr:       {g_metric[(1, 1)]:.4f}')
-print('\nMetric Tensor Contraction Identity Check (g^{mu a} * g_{a n}):')
-for mu in range(4):
-    print(f'  Diagonal Element ({mu}, {mu}): {identity_check[(mu, mu)]:.4f}')
-
-# %% [markdown]
+#
 # ## Step 2: Gravitational Redshift & Signal Dilation (`transforms.z_transform`)
-# Photons escaping from $r_{\text{eval}}$ experience redshift factor $z_{\text{red}} = \frac{1}{\sqrt{f_r}} - 1$.
-
-# %%
-redshift_factor = (1.0 / math.sqrt(f_r)) - 1.0
-print(f'\nGravitational Redshift Factor z_red: {redshift_factor * 100:.2f}%')
-
-emitted_signal = {0: 1.0, 1: 0.8, 2: 0.6, 3: 0.4, 4: 0.2}
-
-z_complex = (1.0 + redshift_factor) * (math.cos(math.pi / 4) + 1j * math.sin(math.pi / 4))
-redshifted_hz = ax.transforms.z_transform(emitted_signal, z=z_complex)
-
-print('Emitted Photon Pulse Signal h[n]:', emitted_signal)
-print(f'Redshifted Z-Transform H(z = {z_complex:.2f}): {redshifted_hz:.4f} (Magnitude = {abs(redshifted_hz):.4f})')
-
-# %% [markdown]
+#
 # ## Step 3: Gravitational Lensing Ray Deflection & Spatial Curvature
-# Deflection $\Delta\phi = \frac{4GM}{c^2 b} = \frac{2 r_s}{b}$ for impact parameter $b$.
+#
+# ## Step 4: Bekenstein-Hawking Entropy & Quantum Thermodynamics
 
-# %%
-r_grid = {1: 1.5 * r_s, 2: 2.0 * r_s, 3: 3.0 * r_s, 4: 5.0 * r_s}
-potential_field = {node: -0.5 * r_s / r_val for node, r_val in r_grid.items()}
 
-grid_graph = {1: [2], 2: [1, 3], 3: [2, 4], 4: [3]}
-field_gradient = ax.analysis.gradient(potential_field, grid_graph)
+def run_demo() -> None:
+    """Run Schwarzschild spacetime, deflection, and thermodynamics simulations."""
+    r_s = 29.5
+    r_eval = 2.0 * r_s
+    f_r = 1.0 - (r_s / r_eval)
 
-spacetime_graph = {
-    1: {2: 1.5},
-    2: {1: 1.5, 3: 2.0},
-    3: {2: 2.0, 4: 3.0},
-    4: {3: 3.0},
-}
-ricci_k = ax.analysis.forman_ricci_curvature(spacetime_graph)
+    g_tt, g_rr = evaluate_schwarzschild_metric(r_s, r_eval)
+    print(f'Schwarzschild Event Horizon Radius r_s: {r_s:.1f} km')
+    print(f'Evaluated Radial Distance r:             {r_eval:.1f} km (r = 2.0 r_s)')
+    print(f'Time Dilation Metric Factor g_tt:       {g_tt:.4f}')
+    print(f'Radial Spatial Metric Factor g_rr:       {g_rr:.4f}')
 
-b_impact = 3.0 * r_s
-deflection_angle_rad = 2.0 * r_s / b_impact
-deflection_deg = math.degrees(deflection_angle_rad)
+    redshift_factor = (1.0 / math.sqrt(f_r)) - 1.0
+    print(f'\nGravitational Redshift Factor z_red: {redshift_factor * 100:.2f}%')
 
-print(f'\nPhoton Impact Parameter b:          {b_impact:.1f} km (b = 3.0 r_s)')
-print(f'Einstein Gravitational Deflection:   {deflection_angle_rad:.4f} rad ({deflection_deg:.2f} deg)')
+    emitted_signal = {0: 1.0, 1: 0.8, 2: 0.6, 3: 0.4, 4: 0.2}
+    z_complex = (1.0 + redshift_factor) * (math.cos(math.pi / 4) + 1j * math.sin(math.pi / 4))
+    redshifted_hz = ax.transforms.z_transform(emitted_signal, z=z_complex)
+    print(f'Redshifted Z-Transform H(z = {z_complex:.2f}): {redshifted_hz:.4f}')
 
-print('\nGravitational Field Radial Gradient d(phi)/dr:')
-for u in sorted(field_gradient.keys()):
-    for v, g_val in field_gradient[u].items():
-        print(f'  Gradient Edge ({u} -> {v}): Delta_phi = {g_val:+8.4f}')
+    b_impact = 3.0 * r_s
+    deflect_rad, deflect_deg = compute_gravitational_deflection(r_s, b_impact)
+    print(f'\nPhoton Impact Parameter b:          {b_impact:.1f} km (b = 3.0 r_s)')
+    print(f'Einstein Gravitational Deflection:   {deflect_rad:.4f} rad ({deflect_deg:.2f} deg)')
 
-print('\nForman-Ricci Spatial Curvature near Photon Sphere:')
-for edge, k_val in sorted(ricci_k.items()):
-    print(f'  Edge {edge}: Curvature K = {k_val:+5.2f}')
-
-# %% [markdown]
-# ## Step 4: Bekenstein-Hawking Entropy & Quantum Information Audit (`entropy` & `kl_divergence`)
-# $S_{\text{BH}} = \frac{A}{4 l_P^2}$ measures black hole microstate information density.
-
-# %%
-area_km2 = 4.0 * math.pi * (r_s**2)
-
-infalling_state = {0: 0.70, 1: 0.20, 2: 0.10}
-hawking_scrambled = {0: 0.34, 1: 0.33, 2: 0.33}
-
-s_infalling = ax.probability.entropy(infalling_state)
-s_hawking = ax.probability.entropy(hawking_scrambled)
-info_scrambling_kl = ax.probability.kl_divergence(infalling_state, hawking_scrambled)
-
-print(f'\nEvent Horizon Surface Area A:       {area_km2:.2f} km^2')
-print(f'Infalling Matter Entropy S_in:       {s_infalling:.4f} bits')
-print(f'Hawking Radiation Thermal Entropy:   {s_hawking:.4f} bits (Near Maximal Thermalization)')
-print(f'Information Scrambling KL-Divergence: {info_scrambling_kl:.4f} bits')
+    area_km2, s_bh = compute_blackhole_thermodynamics(r_s)
+    print(f'\nEvent Horizon Surface Area A:       {area_km2:.2f} km^2')
+    print(f'Bekenstein-Hawking Entropy S_BH:     {s_bh:.2f} nats')
 
 
 def main() -> None:
     """Entry point for CLI execution."""
+    run_demo()
     print('==========================================================================')
     print('Recipe: Schwarzschild Black Hole Simulation Finished Successfully!')
     print('==========================================================================')
