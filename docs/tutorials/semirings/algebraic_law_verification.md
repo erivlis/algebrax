@@ -5,23 +5,24 @@ description: Property-based testing and automated verification of semiring axiom
 
 # Algebraic Law Verification Engine
 
-The **`algebrax.verification`** module provides property-based verification of formal algebraic axioms across all built-in semiring types.
+The **`algebrax.verification`** module provides property-based verification of formal algebraic axioms across all
+built-in semiring types.
 
 ---
 
 ## Checked Semiring Axioms
 
-| Axiom | Equation |
-|:---|:---|
-| **`add_associativity`** | $(a + b) + c = a + (b + c)$ |
-| **`add_commutativity`** | $a + b = b + a$ |
-| **`add_identity`** | $a + \mathbf{0} = a$ |
-| **`mul_associativity`** | $(a \cdot b) \cdot c = a \cdot (b \cdot c)$ |
-| **`mul_identity`** | $a \cdot \mathbf{1} = a$ |
-| **`left_distributivity`** | $a \cdot (b + c) = (a \cdot b) + (a \cdot c)$ |
+| Axiom                      | Equation                                      |
+|:---------------------------|:----------------------------------------------|
+| **`add_associativity`**    | $(a + b) + c = a + (b + c)$                   |
+| **`add_commutativity`**    | $a + b = b + a$                               |
+| **`add_identity`**         | $a + \mathbf{0} = a$                          |
+| **`mul_associativity`**    | $(a \cdot b) \cdot c = a \cdot (b \cdot c)$   |
+| **`mul_identity`**         | $a \cdot \mathbf{1} = a$                      |
+| **`left_distributivity`**  | $a \cdot (b + c) = (a \cdot b) + (a \cdot c)$ |
 | **`right_distributivity`** | $(a + b) \cdot c = (a \cdot c) + (b \cdot c)$ |
-| **`left_annihilation`** | $\mathbf{0} \cdot a = \mathbf{0}$ |
-| **`right_annihilation`** | $a \cdot \mathbf{0} = \mathbf{0}$ |
+| **`left_annihilation`**    | $\mathbf{0} \cdot a = \mathbf{0}$             |
+| **`right_annihilation`**   | $a \cdot \mathbf{0} = \mathbf{0}$             |
 
 ---
 
