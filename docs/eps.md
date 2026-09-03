@@ -75,4 +75,5 @@ a comprehensive architectural audit by the 8 Pillars of the Council Framework.
 | [EP-0145](proposals/EP-0145-type-safety-hardening.md)     | Type Safety & Contract Hardening         | 🛡️ Golem        |    :material-check-all: Final     |
 | [EP-0146](proposals/EP-0146-developer-ergonomics.md)      | Developer Ergonomics & Ecosystem Bridges | 🤝 Steward      |    :material-check-all: Final     |
 | [EP-0147](proposals/EP-0147-optional-loop-pragmas.md)     | Optional Loop Pragmas & Concurrency      | ⚡ Shannon      | :material-clock-outline: Deferred |
-| [EP-0148](proposals/EP-0148-formalized-benchmarking.md)   | Formalized Micro-Benchmarking & CodSpeed | 🔬 Popper       |    :material-check-all: Final     |
+| [EP-0148](proposals/EP-0148-formalized-benchmarking.md)              | Formalized Micro-Benchmarking & CodSpeed              | 🔬 Popper  | :material-check-all: Final |
+| [EP-0149](proposals/EP-0149-binomial-convolution-moment-semiring.md) | Universal & Multivariate Binomial Convolution Moments | ⚖️ Noether | :material-check-all: Final |
