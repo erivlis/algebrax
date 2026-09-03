@@ -21,8 +21,10 @@ nav = [
     ] },
     { Tutorials = [
         { "Fundamentals & Verification" = [
+            "tutorials/semirings/index.md",
             "tutorials/semirings/algebraic_law_verification.md",
             "tutorials/semirings/semiring_standard.md",
+            "tutorials/semirings/semiring_statistical.md",
         ] },
         { "Sparse Matrix & Linear Algebra" = [
             "tutorials/matrix/matrix_core.md",
@@ -33,11 +35,13 @@ nav = [
         { "Optimization & Paths" = [
             "tutorials/semirings/semiring_tropical.md",
             "tutorials/semirings/semiring_viterbi.md",
+            "tutorials/semirings/semiring_bottleneck.md",
             "tutorials/semirings/semiring_convex_hull.md",
         ] },
         { "Logic & Digital" = [
             "tutorials/semirings/semiring_boolean.md",
             "tutorials/semirings/semiring_digital.md",
+            "tutorials/semirings/semiring_logic_fuzzy.md",
         ] },
         { "Monoid & Extension Algebras" = [
             "tutorials/semirings/semiring_monoid_algebra.md",
