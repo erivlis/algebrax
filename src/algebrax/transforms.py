@@ -58,10 +58,10 @@ __all__ = [
 
 
 def convolve(
-        f: SparseVector[K, N],
-        g: SparseVector[K, N],
-        key_op: Callable[[K, K], K] = operator.add,
-        semiring: Semiring[N] | None = None,
+    f: SparseVector[K, N],
+    g: SparseVector[K, N],
+    key_op: Callable[[K, K], K] = operator.add,
+    semiring: Semiring[N] | None = None,
 ) -> SparseVector[K, N]:
     """
     Compute the discrete convolution of two sparse signals/mappings using MonoidAlgebraSemiring.
@@ -121,7 +121,6 @@ def deconvolve(
     return idft(f_spec, n)
 
 
-
 # endregion
 
 
@@ -129,8 +128,8 @@ def deconvolve(
 
 
 def dft(
-        signal: SparseVector[int, N],
-        n: int | None = None,
+    signal: SparseVector[int, N],
+    n: int | None = None,
 ) -> dict[int, complex]:
     """
     Compute the Discrete Fourier Transform (DFT) of a sparse signal.
@@ -169,8 +168,8 @@ def dft(
 
 
 def idft(
-        spectrum: Mapping[int, complex],
-        n: int | None = None,
+    spectrum: Mapping[int, complex],
+    n: int | None = None,
 ) -> dict[int, complex]:
     """
     Compute the Inverse Discrete Fourier Transform (IDFT).
@@ -205,8 +204,8 @@ def idft(
 
 
 def hilbert(
-        signal: SparseVector[int, float],
-        n: int | None = None,
+    signal: SparseVector[int, float],
+    n: int | None = None,
 ) -> dict[int, complex]:
     """
     Compute the analytic signal using the Hilbert transform.
@@ -265,9 +264,9 @@ def hilbert(
 
 
 def legendre_fenchel(
-        signal: SparseVector[K, N],
-        slope: N,
-        semiring: Semiring[N] | None = None,
+    signal: SparseVector[K, N],
+    slope: N,
+    semiring: Semiring[N] | None = None,
 ) -> N:
     """
     Compute the discrete Fenchel-Legendre transform (Slope Transform) of a signal at a specific slope.
@@ -340,8 +339,8 @@ def legendre_fenchel(
 
 
 def walsh_hadamard(
-        signal: SparseVector[int, N],
-        n: int | None = None,
+    signal: SparseVector[int, N],
+    n: int | None = None,
 ) -> dict[int, float]:
     """
     Compute the Discrete Walsh-Hadamard Transform (WHT) of a sparse signal.
@@ -423,11 +422,10 @@ def iwalsh_hadamard(
     return result
 
 
-
 def gelfand_transform(
-        signal: Mapping[K, N],
-        characters: Mapping[C, Callable[[K], N]],
-        semiring: Semiring[N] | None = None,
+    signal: Mapping[K, N],
+    characters: Mapping[C, Callable[[K], N]],
+    semiring: Semiring[N] | None = None,
 ) -> dict[C, N]:
     """
     Compute the generalized Gelfand transform of a sparse signal over a set of characters.
@@ -473,9 +471,9 @@ def gelfand_transform(
 
 
 def z_transform(
-        signal: SparseVector[int, N],
-        z: N,
-        semiring: Semiring[N] | None = None,
+    signal: SparseVector[int, N],
+    z: N,
+    semiring: Semiring[N] | None = None,
 ) -> N:
     """
     Compute the unilateral Z-transform at a specific point z.
@@ -504,7 +502,7 @@ def z_transform(
         result = 0j
         for n, val in signal.items():
             if n >= 0:
-                result += val * (z ** -n)
+                result += val * (z**-n)
         return result
 
     if isinstance(semiring, (TropicalSemiring, ArcticSemiring, LogSemiring)):
@@ -523,7 +521,7 @@ def z_transform(
                 z_pow = semiring.power(z_inv, n)
                 term = semiring.mul(val, z_pow)
             except Exception:
-                z_pow = z_inv ** n
+                z_pow = z_inv**n
                 term = val * z_pow
 
             total = semiring.add(total, term)
@@ -565,7 +563,7 @@ def iz_transform(
         val = 0j
         for k, X_k in samples.items():  # noqa: N806
             zk = radius * cmath.exp(coef * k)
-            val += X_k * (zk ** m)
+            val += X_k * (zk**m)
         val /= n
         if not math.isclose(abs(val), 0, abs_tol=1e-9):
             result[m] = val
@@ -580,9 +578,9 @@ def iz_transform(
 
 
 def lorentz_boost(
-        vector: SparseVector[int, float],
-        beta: float,
-        axis: int = 1,
+    vector: SparseVector[int, float],
+    beta: float,
+    axis: int = 1,
 ) -> SparseVector[int, float]:
     """
     Apply a Lorentz boost to a 4-vector (or D-vector).
@@ -599,7 +597,7 @@ def lorentz_boost(
     if abs(beta) >= 1:
         raise ValueError('Beta must be less than 1 (speed of light).')
 
-    gamma = 1.0 / (1.0 - beta ** 2) ** 0.5
+    gamma = 1.0 / (1.0 - beta**2) ** 0.5
 
     t = vector.get(0, 0.0)
     x = vector.get(axis, 0.0)
@@ -621,7 +619,5 @@ def lorentz_boost(
 
     return result
 
+
 # endregion
-
-
-
