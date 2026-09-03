@@ -127,14 +127,13 @@ A subset $I$ of a Ring $R$ that absorbs multiplication.
 * If $x \in I$ and $r \in R$, then $r \cdot x \in I$.
 * Used to define Quotient Rings (e.g., Modular Arithmetic).
 
-### 10. Clifford Algebra (Geometric Algebra)
+### 10. Clifford Algebra (Geometric & Quantum Generalizations)
 
-An associative algebra equipped with a quadratic form, unifying scalars, vectors, and higher-order blades (bivectors,
-trivectors).
+An associative algebra equipped with a quadratic form or root-of-unity commutation rule, unifying scalars, vectors, and higher-order blades (bivectors, trivectors).
 
-* **Geometric Product**: $ab = a \cdot b + a \wedge b$.
-* Generalizes Complex Numbers and Quaternions.
-* Used for rotations and physics in any dimension.
+* **Standard Clifford / Geometric Algebra $Cl(p, q, r)$**: $\mathbf{e}_i \mathbf{e}_j = -\mathbf{e}_j \mathbf{e}_i$ ($i \ne j$), $\mathbf{e}_i^2 \in \{+1, -1, 0\}$, with geometric product $ab = a \cdot b + a \wedge b$. Generalizes complex numbers, quaternions, and Dirac spinors.
+* **Generalized Clifford Algebra (GCA) $C_n^{(m)}$**: Clock-and-shift commutation $\mathbf{e}_j \mathbf{e}_k = \omega \mathbf{e}_k \mathbf{e}_j$ ($j < k$) where $\omega = \exp(2\pi i / n)$ is a primitive $n$-th root of unity and $\mathbf{e}_j^n = \alpha_j \mathbf{1}$.
+* **$q$-Deformed Quantum Clifford Algebra $Cl_q(m)$**: Braided quantum deformation $\mathbf{e}_j \mathbf{e}_k = -q \mathbf{e}_k \mathbf{e}_j$ ($j < k$).
 
 ---
 
