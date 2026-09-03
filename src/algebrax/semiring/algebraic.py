@@ -2,6 +2,9 @@
 Algebraic, monoid algebra, quotient, Clifford, and Galois semirings.
 """
 
+import cmath
+import functools
+import math
 import operator
 from collections.abc import Callable, Iterable
 from typing import Generic, TypeVar
@@ -277,6 +280,166 @@ class CliffordSemiring(QuotientMonoidAlgebraSemiring[tuple[int, ...], float]):
         )
 
 
+def _gca_blade_mul(
+    k1: tuple[int, ...],
+    k2: tuple[int, ...],
+    n_order: int = 3,
+    num_generators: int = 2,
+    signatures: tuple[complex, ...] | None = None,
+) -> list[tuple[tuple[int, ...], complex]]:
+    """
+    Canonical basis reduction for Generalized Clifford Algebra C_n^(m).
+    Generators satisfy:
+        e_j * e_k = omega * e_k * e_j  (for j < k, omega = exp(2*pi*i / n))
+        e_j^n = alpha_j * 1  (default alpha_j = 1.0)
+    Keys are non-negative integer exponent tuples (k_1, ..., k_m) with 0 <= k_j < n.
+    """
+    m = num_generators
+    sigs = tuple([1.0 + 0j] * m) if signatures is None else signatures
+    k1_pad = tuple(k1) + (0,) * max(0, m - len(k1))
+    k2_pad = tuple(k2) + (0,) * max(0, m - len(k2))
+
+    phase_exp = 0
+    scalar_mult = 1.0 + 0j
+    res_k: list[int] = []
+
+    for j in range(m):
+        for k in range(j + 1, m):
+            phase_exp = (phase_exp - k1_pad[k] * k2_pad[j]) % n_order
+
+    for j in range(m):
+        tot = k1_pad[j] + k2_pad[j]
+        res_k.append(tot % n_order)
+        if tot >= n_order:
+            scalar_mult *= sigs[j] ** (tot // n_order)
+
+    omega = cmath.exp(2j * cmath.pi / n_order)
+    phase_factor = (omega**phase_exp) * scalar_mult
+    return [(tuple(res_k), phase_factor)]
+
+
+class GeneralizedCliffordSemiring(QuotientMonoidAlgebraSemiring[tuple[int, ...], complex]):
+    """
+    Generalized Clifford Algebra C_n^(m) Semiring (Clock-and-Shift Algebra / Generalized Dirac Algebra).
+
+    Generators e_1, ..., e_m satisfy the commutation relation:
+        e_j * e_k = omega * e_k * e_j  (for 1 <= j < k <= m)
+    where omega = exp(2*pi*i / n) is a primitive n-th root of unity, and:
+        e_j^n = alpha_j * 1
+
+    Elements are sparse multivectors mapping exponent multi-indices (k_1, ..., k_m) in Z_n^m to complex coefficients.
+    """
+
+    def __init__(
+        self,
+        n_order: int = 3,
+        num_generators: int = 2,
+        signatures: tuple[complex, ...] | None = None,
+    ):
+        self.n_order = n_order
+        self.num_generators = num_generators
+        self.signatures = signatures
+
+        def key_op(k1: tuple[int, ...], k2: tuple[int, ...]) -> tuple[int, ...]:
+            k1_p = tuple(k1) + (0,) * max(0, self.num_generators - len(k1))
+            k2_p = tuple(k2) + (0,) * max(0, self.num_generators - len(k2))
+            return k1_p + k2_p
+
+        def quotient_fn(key: tuple[int, ...], coeff: complex) -> Iterable[tuple[tuple[int, ...], complex]]:
+            k1 = key[: self.num_generators]
+            k2 = key[self.num_generators :]
+            reds = _gca_blade_mul(
+                k1, k2, n_order=self.n_order, num_generators=self.num_generators, signatures=self.signatures
+            )
+            return [(k, c * coeff) for k, c in reds]
+
+        super().__init__(
+            coeff_semiring=StandardSemiring[complex](),
+            key_op=key_op,
+            zero_key=tuple([0] * num_generators),
+            quotient_fn=quotient_fn,
+        )
+
+
+def _quantum_clifford_blade_mul(
+    k1: tuple[int, ...],
+    k2: tuple[int, ...],
+    q: complex = 1.0 + 0j,
+    num_generators: int = 2,
+    signatures: tuple[complex, ...] | None = None,
+) -> list[tuple[tuple[int, ...], complex]]:
+    """
+    Canonical basis reduction for q-Deformed Quantum Clifford Algebra Cl_q(m).
+    Generators satisfy:
+        e_j * e_k = -q * e_k * e_j  (for j < k)
+        e_j^2 = alpha_j * 1  (default alpha_j = 1.0)
+    Keys are binary index tuples (k_1, ..., k_m) with k_j in {0, 1}.
+    """
+    m = num_generators
+    sigs = tuple([1.0 + 0j] * m) if signatures is None else signatures
+    k1_pad = tuple(k1) + (0,) * max(0, m - len(k1))
+    k2_pad = tuple(k2) + (0,) * max(0, m - len(k2))
+
+    inversions = 0
+    scalar_mult = 1.0 + 0j
+    res_k: list[int] = []
+
+    for j in range(m):
+        for k in range(j + 1, m):
+            inversions += k1_pad[k] * k2_pad[j]
+
+    for j in range(m):
+        tot = k1_pad[j] + k2_pad[j]
+        res_k.append(tot % 2)
+        if tot >= 2:
+            scalar_mult *= sigs[j] ** (tot // 2)
+
+    phase_factor = ((-q) ** inversions) * scalar_mult
+    return [(tuple(res_k), phase_factor)]
+
+
+class QuantumCliffordSemiring(QuotientMonoidAlgebraSemiring[tuple[int, ...], complex]):
+    """
+    q-Deformed Quantum Clifford Algebra Cl_q(m) Semiring.
+
+    Generators e_1, ..., e_m satisfy the braided commutation relation:
+        e_j * e_k = -q * e_k * e_j  (for 1 <= j < k <= m)
+        e_j^2 = alpha_j * 1
+
+    When q = 1.0, this recovers standard orthogonal Clifford anticommutation.
+    """
+
+    def __init__(
+        self,
+        q: complex = 1.0 + 0j,
+        num_generators: int = 2,
+        signatures: tuple[complex, ...] | None = None,
+    ):
+        self.q = q
+        self.num_generators = num_generators
+        self.signatures = signatures
+
+        def key_op(k1: tuple[int, ...], k2: tuple[int, ...]) -> tuple[int, ...]:
+            k1_p = tuple(k1) + (0,) * max(0, self.num_generators - len(k1))
+            k2_p = tuple(k2) + (0,) * max(0, self.num_generators - len(k2))
+            return k1_p + k2_p
+
+        def quotient_fn(key: tuple[int, ...], coeff: complex) -> Iterable[tuple[tuple[int, ...], complex]]:
+            k1 = key[: self.num_generators]
+            k2 = key[self.num_generators :]
+            reds = _quantum_clifford_blade_mul(
+                k1, k2, q=self.q, num_generators=self.num_generators, signatures=self.signatures
+            )
+            return [(k, c * coeff) for k, c in reds]
+
+        super().__init__(
+            coeff_semiring=StandardSemiring[complex](),
+            key_op=key_op,
+            zero_key=tuple([0] * num_generators),
+            quotient_fn=quotient_fn,
+        )
+
+
 def _gf_poly_mod(
     exp: int, coeff: int, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)
 ) -> list[tuple[int, int]]:
@@ -350,3 +513,229 @@ class GaloisFieldSemiring(QuotientMonoidAlgebraSemiring[int, int]):
             else:
                 result[exp] = sum_val
         return result
+
+
+class DualNumberSemiring(Semiring[tuple[float, float]]):
+    """
+    The Dual Number Semiring (Quotient Ring R[ε]/(ε^2)).
+    Values are pairs (val, der) representing dual numbers a + b*ε where ε^2 = 0.
+
+    Algebraic Operations:
+    - Addition: (a1, b1) + (a2, b2) = (a1 + a2, b1 + b2)
+    - Multiplication: (a1, b1) * (a2, b2) = (a1 * a2, a1 * b2 + a2 * b1)  [Leibniz Product Rule]
+    - Zero: (0.0, 0.0)
+    - One: (1.0, 0.0)
+
+    Used for: Forward-Mode Automatic Differentiation, tangent bundle propagation,
+    and first-order gradient accumulation over graphs.
+    """
+
+    @property
+    def zero(self) -> tuple[float, float]:
+        return 0.0, 0.0
+
+    @property
+    def one(self) -> tuple[float, float]:
+        return 1.0, 0.0
+
+    def add(self, a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+        return a[0] + b[0], a[1] + b[1]
+
+    def mul(self, a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+        # Leibniz Product Rule: (u*v, u*v' + v*u')
+        return a[0] * b[0], a[0] * b[1] + b[0] * a[1]
+
+    def nsum(self, a: tuple[float, float], n: int) -> tuple[float, float]:
+        if n == 0:
+            return 0.0, 0.0
+        return a[0] * n, a[1] * n
+
+    def power(self, a: tuple[float, float], n: int) -> tuple[float, float]:
+        p, v = a
+        if n == 0:
+            return 1.0, 0.0
+        return p**n, n * (p ** (n - 1)) * v
+
+    def star(self, a: tuple[float, float]) -> tuple[float, float]:
+        p, v = a
+        if p >= 1.0:
+            return float('inf'), float('inf')
+        p_star = 1.0 / (1.0 - p)
+        v_star = v * (p_star**2)
+        return p_star, v_star
+
+
+@functools.lru_cache(maxsize=32)
+def _get_pascal_table(order: int) -> tuple[tuple[int, ...], ...]:
+    return tuple(tuple(math.comb(n, k) for k in range(n + 1)) for n in range(order + 1))
+
+
+class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
+    """
+    Universal 1D Binomial Convolution Semiring over the Divided Power Quotient Ring R[ε] / (ε^{K+1}).
+    Values are (K+1)-tuples (m_0, m_1, ..., m_K) where m_k represents the k-th raw derivative/moment.
+
+    - Addition: Component-wise addition.
+    - Multiplication: Binomial convolution (u ⊗ v)_k = sum_{j=0}^k binom(k, j) u_j v_{k-j}.
+    - Zero: (0.0, ..., 0.0) of length K+1.
+    - One: (1.0, 0.0, ..., 0.0) of length K+1.
+    """
+
+    def __init__(self, order: int = 1) -> None:
+        if order < 0:
+            raise ValueError(f'order must be a non-negative integer, got {order}')
+        self.order = order
+        self._pascal = _get_pascal_table(order)
+
+    @property
+    def zero(self) -> tuple[float, ...]:
+        return (0.0,) * (self.order + 1)
+
+    @property
+    def one(self) -> tuple[float, ...]:
+        return (1.0,) + (0.0,) * self.order
+
+    def add(self, a: tuple[float, ...], b: tuple[float, ...]) -> tuple[float, ...]:
+        if len(a) != self.order + 1 or len(b) != self.order + 1:
+            raise ValueError(f'Operands must have length {self.order + 1}')
+        return tuple(u + v for u, v in zip(a, b))
+
+    def mul(self, a: tuple[float, ...], b: tuple[float, ...]) -> tuple[float, ...]:
+        if len(a) != self.order + 1 or len(b) != self.order + 1:
+            raise ValueError(f'Operands must have length {self.order + 1}')
+        order = self.order
+        pascal = self._pascal
+        res = [0.0] * (order + 1)
+        for k in range(order + 1):
+            coeffs = pascal[k]
+            acc = 0.0
+            for j in range(k + 1):
+                acc += coeffs[j] * a[j] * b[k - j]
+            res[k] = acc
+        return tuple(res)
+
+    def nsum(self, a: tuple[float, ...], n: int) -> tuple[float, ...]:
+        if len(a) != self.order + 1:
+            raise ValueError(f'Operand must have length {self.order + 1}')
+        if n == 0:
+            return self.zero
+        return tuple(val * n for val in a)
+
+    def power(self, a: tuple[float, ...], n: int) -> tuple[float, ...]:
+        if len(a) != self.order + 1:
+            raise ValueError(f'Operand must have length {self.order + 1}')
+        if n == 0:
+            return self.one
+        res = self.one
+        base = a
+        while n > 0:
+            if n % 2 == 1:
+                res = self.mul(res, base)
+            base = self.mul(base, base)
+            n //= 2
+        return res
+
+    def star(self, a: tuple[float, ...]) -> tuple[float, ...]:
+        if len(a) != self.order + 1:
+            raise ValueError(f'Operand must have length {self.order + 1}')
+        p = a[0]
+        if p >= 1.0:
+            return (float('inf'),) * (self.order + 1)
+        if self.order == 0:
+            return (1.0 / (1.0 - p),)
+        if self.order == 1:
+            p_star = 1.0 / (1.0 - p)
+            v_star = a[1] * (p_star**2)
+            return p_star, v_star
+
+        scale = 1.0 / (1.0 - p)
+        scaled_nil = (0.0, *(val * scale for val in a[1:]))
+        cur_nil = self.one
+        nil_sum = [0.0] * (self.order + 1)
+        for _ in range(self.order + 1):
+            for k in range(self.order + 1):
+                nil_sum[k] += cur_nil[k]
+            cur_nil = self.mul(cur_nil, scaled_nil)
+        return tuple(val * scale for val in nil_sum)
+
+
+class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], float]]):
+    """
+    Universal Multivariate Binomial Convolution Semiring over the Total Degree Quotient Ring
+    R[ε1, ..., εd] / <ε^β : |β| = K+1>.
+
+    Carrier is a sparse dict mapping multi-index tuple alpha in N_0^d (with sum(alpha) <= K)
+    to real coefficient m_alpha.
+    """
+
+    def __init__(self, num_vars: int = 2, order: int = 1) -> None:
+        if num_vars < 1:
+            raise ValueError(f'num_vars must be >= 1, got {num_vars}')
+        if order < 0:
+            raise ValueError(f'order must be >= 0, got {order}')
+        self.num_vars = num_vars
+        self.order = order
+
+    @property
+    def zero(self) -> dict[tuple[int, ...], float]:
+        return {}
+
+    @property
+    def one(self) -> dict[tuple[int, ...], float]:
+        return {(0,) * self.num_vars: 1.0}
+
+    def add(self, a: dict[tuple[int, ...], float], b: dict[tuple[int, ...], float]) -> dict[tuple[int, ...], float]:
+        res = dict(a)
+        for k, v in b.items():
+            if len(k) != self.num_vars:
+                raise ValueError(f'Multi-index {k} dimension does not match num_vars={self.num_vars}')
+            if sum(k) <= self.order:
+                res[k] = res.get(k, 0.0) + v
+        return {k: v for k, v in res.items() if not math.isclose(v, 0.0, abs_tol=1e-15)}
+
+    def mul(self, a: dict[tuple[int, ...], float], b: dict[tuple[int, ...], float]) -> dict[tuple[int, ...], float]:
+        res: dict[tuple[int, ...], float] = {}
+        order = self.order
+        for alpha, v1 in a.items():
+            if len(alpha) != self.num_vars:
+                raise ValueError(f'Multi-index {alpha} dimension does not match num_vars={self.num_vars}')
+            for beta, v2 in b.items():
+                if len(beta) != self.num_vars:
+                    raise ValueError(f'Multi-index {beta} dimension does not match num_vars={self.num_vars}')
+                gamma = tuple(x + y for x, y in zip(alpha, beta))
+                if sum(gamma) <= order:
+                    coeff = math.prod(math.comb(g, a_i) for g, a_i in zip(gamma, alpha))
+                    res[gamma] = res.get(gamma, 0.0) + coeff * v1 * v2
+        return {k: v for k, v in res.items() if not math.isclose(v, 0.0, abs_tol=1e-15)}
+
+    def nsum(self, a: dict[tuple[int, ...], float], n: int) -> dict[tuple[int, ...], float]:
+        if n == 0:
+            return {}
+        return {k: v * n for k, v in a.items() if not math.isclose(v * n, 0.0, abs_tol=1e-15)}
+
+    def power(self, a: dict[tuple[int, ...], float], n: int) -> dict[tuple[int, ...], float]:
+        if n == 0:
+            return self.one
+        res = self.one
+        base = a
+        while n > 0:
+            if n % 2 == 1:
+                res = self.mul(res, base)
+            base = self.mul(base, base)
+            n //= 2
+        return res
+
+    def star(self, a: dict[tuple[int, ...], float]) -> dict[tuple[int, ...], float]:
+        zero_key = (0,) * self.num_vars
+        p = a.get(zero_key, 0.0)
+        if p >= 1.0:
+            return {k: float('inf') for k in a}
+        scale = 1.0 / (1.0 - p)
+        scaled_nil = {k: v * scale for k, v in a.items() if k != zero_key and sum(k) <= self.order}
+        cur_nil = self.one
+        res: dict[tuple[int, ...], float] = {}
+        for _ in range(self.order + 1):
+            for k, v in cur_nil.items():
+                res[k] = res.get(k, 0.0) + v
+            cur_nil = self.mul(cur_nil, scaled_nil)
+        return {k: v * scale for k, v in res.items() if not math.isclose(v * scale, 0.0, abs_tol=1e-15)}

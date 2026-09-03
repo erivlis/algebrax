@@ -86,12 +86,17 @@ class Semiring(Protocol[V]):
             A dictionary mapping human-readable semiring names to their class types.
         """
         from algebrax.semiring.algebraic import (
+            BinomialConvolutionSemiring,
             CliffordSemiring,
+            DualNumberSemiring,
             GaloisFieldSemiring,
+            GeneralizedCliffordSemiring,
             KnotSemiring,
             MonoidAlgebraSemiring,
+            MultivariateBinomialConvolutionSemiring,
             PolynomialSemiring,
             ProvenanceSemiring,
+            QuantumCliffordSemiring,
             QuotientMonoidAlgebraSemiring,
         )
         from algebrax.semiring.arithmetic import ModularSemiring, StandardSemiring
@@ -105,9 +110,13 @@ class Semiring(Protocol[V]):
             ViterbiSemiring,
         )
         from algebrax.semiring.statistical import (
-            DualNumberSemiring,
             ExpectationSemiring,
+            KurtosisSemiring,
             LogSemiring,
+            MultivariateMomentSemiring,
+            SecondMomentSemiring,
+            SkewnessSemiring,
+            StatisticalMomentSemiring,
             VarianceSemiring,
         )
         from algebrax.semiring.structures import KCollapsedSemiring, StringSemiring
@@ -126,6 +135,13 @@ class Semiring(Protocol[V]):
             'Log': LogSemiring,
             'Expectation': ExpectationSemiring,
             'Variance': VarianceSemiring,
+            'Skewness': SkewnessSemiring,
+            'SecondMoment': SecondMomentSemiring,
+            'Kurtosis': KurtosisSemiring,
+            'StatisticalMoment': StatisticalMomentSemiring,
+            'BinomialConvolution': BinomialConvolutionSemiring,
+            'MultivariateBinomialConvolution': MultivariateBinomialConvolutionSemiring,
+            'MultivariateMoment': MultivariateMomentSemiring,
             'DualNumber': DualNumberSemiring,
             'String': StringSemiring,
             'KCollapsed': KCollapsedSemiring,
@@ -137,6 +153,8 @@ class Semiring(Protocol[V]):
             'QuotientMonoidAlgebra': QuotientMonoidAlgebraSemiring,
             'Clifford': CliffordSemiring,
             'GaloisField': GaloisFieldSemiring,
+            'GeneralizedClifford': GeneralizedCliffordSemiring,
+            'QuantumClifford': QuantumCliffordSemiring,
         }
 
 
