@@ -61,6 +61,14 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Extreme Tail Risk & Multivariate Moments
+* **Files**: [`extreme_risk_tail_moments.py`](https://github.com/erivlis/algebrax/blob/main/recipes/extreme_risk_tail_moments.py) | [`extreme_risk_tail_moments.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/extreme_risk_tail_moments.ipynb)
+* **Run**: `uv run recipes/extreme_risk_tail_moments.py`
+* **Components**: `semiring.KurtosisSemiring`, `semiring.StatisticalMomentSemiring`, `semiring.MultivariateMomentSemiring`, `matrix.core.power`
+* **Summary**: Evaluates 4th-order Kurtosis ($\beta_2$) and Skewness ($\gamma_1$) to identify black-swan jump risks under identical Mean/Variance conditions, evaluates 5th-order Hyperskewness ($\tilde{\mu}_5$) across 3-hop network cascades, and extracts full $2 \times 2$ Covariance Matrices $\boldsymbol{\Sigma}$ and correlation coefficients $\rho(X_1, X_2)$ via `MultivariateMomentSemiring`.
+
+---
+
 ### Vibration & Structural Analysis
 * **Files**: [`vibration_structural_analysis.py`](https://github.com/erivlis/algebrax/blob/main/recipes/vibration_structural_analysis.py) | [`vibration_structural_analysis.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/vibration_structural_analysis.ipynb)
 * **Run**: `uv run recipes/vibration_structural_analysis.py`
