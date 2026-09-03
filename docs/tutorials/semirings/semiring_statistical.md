@@ -1,19 +1,25 @@
 ---
 title: Statistical & Moment Semirings
-description: Theoretical foundations, moment-generating algebras, and computational pipelines for Log-Sum-Exp, Dual Numbers, Expectations, Variances, and Skewness in AlgebraX.
+description: Theoretical foundations, moment-generating algebras, and computational pipelines for Log-Sum-Exp, Dual Numbers, Expectations, Universal Binomial Moments, and Multivariate Covariance Tensors in AlgebraX.
 ---
 
 # Statistical & Moment Semirings
 
 Statistical and probabilistic modeling on graphs, sequence models (HMMs, WFSTs), and computational graphs frequently requires tracking not just optimal paths, but entire probability distributions and their polynomial moments.
 
-**AlgebraX** provides five foundational statistical semirings in `algebrax.semiring`:
+**AlgebraX** provides a unified family of statistical and moment semirings in `algebrax.semiring`:
 
-1. **`LogSemiring`**: $(\mathbb{R} \cup \{-\infty\}, \text{LogSumExp}, +, -\infty, 0)$ for underflow-free partition function summation and belief propagation.
-2. **`DualNumberSemiring`**: $\mathbb{R}[\epsilon]/(\epsilon^2)$ for exact forward-mode automatic differentiation.
-3. **`ExpectationSemiring`**: First-order expectations $(p, v)$ over stochastic paths (Eisner, 2002).
-4. **`VarianceSemiring`**: Second-order expectations and covariances $(p, r, s, t)$ in $\mathbb{R}[\epsilon_1, \epsilon_2] / (\epsilon_1^2, \epsilon_2^2)$ (Li & Eisner, 2009).
-5. **`SkewnessSemiring`** *(or `ThirdMomentSemiring`)*: Third-order raw moments and distribution asymmetry $(p, m_1, m_2, m_3)$ in $\mathbb{R}[\epsilon]/(\epsilon^4)$.
+1. **`LogSemiring`**: $(\mathbb{R} \cup \{-\infty\}, \text{LogSumExp}, +, -\infty, 0)$ for underflow-free partition function summation.
+2. **`DualNumberSemiring`**: $\mathbb{R}[\epsilon]/(\epsilon^2)$ for 1st-order forward-mode automatic differentiation and expectations.
+3. **`BinomialConvolutionSemiring(order=K)`**: Universal 1D divided power quotient algebra $\mathbb{R}[\epsilon]/(\epsilon^{K+1})$ for Taylor jets and polynomial moments up to arbitrary order $K$.
+4. **`StatisticalMomentSemiring(order=K)`**: 1D moment semiring equipped with statistical decoders (`.mean()`, `.variance()`, `.skewness()`, `.kurtosis()`, `.central_moments()`).
+5. **Standard 1D Specializations**:
+   - `ExpectationSemiring` ($K=1$, carrier 2-tuple $(p, v)$)
+   - `VarianceSemiring` ($K=2$, carrier 3-tuple $(p, m_1, m_2)$)
+   - `SkewnessSemiring` ($K=3$, carrier 4-tuple $(p, m_1, m_2, m_3)$)
+   - `KurtosisSemiring` ($K=4$, carrier 5-tuple $(p, m_1, m_2, m_3, m_4)$)
+6. **`BivariateVarianceSemiring`** *(or `BivariateCovarianceSemiring`)*: Bivariate expectation semiring $\mathbb{R}[\epsilon_1, \epsilon_2]/(\epsilon_1^2, \epsilon_2^2)$ (carrier 4-tuple $(p, r, s, t)$) for 2-feature cross-covariance (Li & Eisner, 2009).
+7. **`MultivariateMomentSemiring(num_vars=d, order=K)`**: Universal multi-index joint distribution engine for full $d \times d$ **Covariance Matrix $\boldsymbol{\Sigma}$** and **Hessian Matrix $\mathbf{H}$** path propagation.
 
 ---
 
@@ -56,134 +62,114 @@ print("Geometric Series Mass:", math.exp(star_val))  # 1.25
 
 ---
 
-## 2. DualNumberSemiring: Quotient Ring $\mathbb{R}[\epsilon]/(\epsilon^2)$
+## 2. Universal 1D Moment Engine: `StatisticalMomentSemiring`
 
-The dual numbers form a commutative ring extending the real field by an infinitesimal nilpotent indeterminate $\epsilon$ satisfying $\epsilon^2 = 0$:
+In statistics, the **Moment Generating Function (MGF)** $M_X(\epsilon) = \mathbb{E}[e^{\epsilon X}] = \sum_{k=0}^K m_k \frac{\epsilon^k}{k!}$ is an exponential generating function. When independent random variables add ($X + Y$), their MGFs multiply under **Binomial Convolution**:
 
-$$\mathbb{D} = \mathbb{R}[\epsilon] / (\epsilon^2) = \{u + u'\epsilon \mid u, u' \in \mathbb{R}\}$$
+$$(\mathbf{u} \otimes \mathbf{v})_k = \sum_{j=0}^k \binom{k}{j} u_j \cdot v_{k-j}$$
 
-* **Addition**: $(u_1 + u_1'\epsilon) + (u_2 + u_2'\epsilon) = (u_1 + u_2) + (u_1' + u_2')\epsilon$
-* **Multiplication (Leibniz Product Rule)**:
-  $$(u_1 + u_1'\epsilon)(u_2 + u_2'\epsilon) = u_1 u_2 + (u_1 u_2' + u_2 u_1')\epsilon + u_1' u_2' \mathbf{\epsilon^2} = (u_1 u_2) + (u_1 u_2' + u_2 u_1')\epsilon$$
-
-Because dual numbers form a unital ring, computing sparse matrix powers and determinants over `DualNumberSemiring` evaluates the output values and exact gradients simultaneously in a single pass.
+[`StatisticalMomentSemiring(order=K)`](file:///C:/dev/erivlis/algebrax/src/algebrax/semiring/statistical.py) computes all raw moments up to order $K$ with precomputed, cached Pascal triangle binomial coefficients.
 
 ```python
 import algebrax as ax
 
-dual_sem = ax.semiring.DualNumberSemiring()
+# Initialize 4th-order moment tracking (capturing Mean, Variance, Skewness, Kurtosis)
+sem = ax.semiring.StatisticalMomentSemiring(order=4)
 
-# Function: f(x) = x^3 at x = 2.0 (seed x' = 1.0)
-x = (2.0, 1.0)
-x3 = dual_sem.power(x, 3)
+# Transition 1: 50% probability, step cost 2.0 -> (p, p*w, p*w^2, p*w^3, p*w^4)
+path1 = (0.5, 0.5 * 2.0, 0.5 * 4.0, 0.5 * 8.0, 0.5 * 16.0)
 
-val, deriv = x3
-print(f"f(2) = {val:.1f}, f'(2) = {deriv:.1f}")  # f(2) = 8.0, f'(2) = 12.0
+# Transition 2: 50% probability, step cost 6.0
+path2 = (0.5, 0.5 * 6.0, 0.5 * 36.0, 0.5 * 216.0, 0.5 * 1296.0)
+
+# Parallel Union of Paths
+bundle = sem.add(path1, path2)
+
+print(f"Mean (μ): {sem.mean(bundle):.2f}")          # 4.00
+print(f"Variance (σ²): {sem.variance(bundle):.2f}")  # 4.00
+print(f"Skewness (γ1): {sem.skewness(bundle):.2f}")  # 0.00 (Symmetric distribution)
+print(f"Kurtosis (β2): {sem.kurtosis(bundle):.2f}")  # 1.00
 ```
 
 ---
 
-## 3. ExpectationSemiring: First-Order Path Expectations
+## 3. Standard Fixed-Order Moment Classes
 
-Introduced by **Jason Eisner (2002)** for natural language processing, speech recognition, and weighted finite-state automata, the **ExpectationSemiring** is a domain specialization of the Dual Number Ring.
+AlgebraX provides convenient named subclasses for standard literature compatibility:
 
-Values are pairs $(p, v) \in \mathbb{R}_{\ge 0} \times \mathbb{R}$ where:
-* $p = \sum_{\pi} P(\pi)$: Total probability mass of paths.
-* $v = \sum_{\pi} P(\pi) W(\pi)$: Total probability-weighted reward/feature value ($E[W] \cdot p$).
-
-### Operations
-$$\begin{aligned}
-(p_1, v_1) \oplus (p_2, v_2) &= (p_1 + p_2, \; v_1 + v_2) \\
-(p_1, v_1) \otimes (p_2, v_2) &= (p_1 p_2, \; p_1 v_2 + p_2 v_1) \\
-\mathbf{0} &= (0.0, 0.0) \\
-\mathbf{1} &= (1.0, 0.0)
-\end{aligned}$$
-
-Expected value over the path bundle is extracted as $\mu = \frac{v}{p}$.
+* **`ExpectationSemiring()`** ($K=1$): Carrier 2-tuple $(p, v)$ where $v = E[X] \cdot Z$.
+* **`VarianceSemiring()`** ($K=2$): Carrier 3-tuple $(p, m_1, m_2)$ where $m_2 = E[X^2] \cdot Z$.
+* **`SkewnessSemiring()`** ($K=3$): Carrier 4-tuple $(p, m_1, m_2, m_3)$.
+* **`KurtosisSemiring()`** ($K=4$): Carrier 5-tuple $(p, m_1, m_2, m_3, m_4)$.
 
 ---
 
-## 4. VarianceSemiring: Second Central Moments & Covariances
+## 4. Bivariate Covariance Tracking: `BivariateVarianceSemiring`
 
-To compute risk, variance, and second-order Taylor terms, **Li & Eisner (2009)** extended the expectation semiring to second-order dual numbers:
+To track cross-covariances between **two distinct features** $X$ and $Y$ (e.g. path latency and monetary cost), **Li & Eisner (2009)** defined the second-order dual semiring over $\mathbb{R}[\epsilon_1, \epsilon_2]/(\epsilon_1^2, \epsilon_2^2)$:
 
-$$\mathbb{D}^{(2)} = \mathbb{R}[\epsilon_1, \epsilon_2] / (\epsilon_1^2, \epsilon_2^2)$$
+$$\mathbf{u} = (p, r, s, t) = \langle Z, \; \mathbb{E}[X]Z, \; \mathbb{E}[Y]Z, \; \mathbb{E}[XY]Z \rangle$$
 
-Values are 4-tuples $(p, r, s, t) \in \mathbb{R}^4$:
-* $p$: Total probability mass $Z$.
-* $r, s$: First moments along features $X_1$ and $X_2$ ($E[X] \cdot Z$).
-* $t$: Second raw cross-moment ($E[X_1 X_2] \cdot Z$).
-
-### Multiplication
-$$\begin{aligned}
-p &= p_1 p_2 \\
-r &= p_1 r_2 + p_2 r_1 \\
-s &= p_1 s_2 + p_2 s_1 \\
-t &= p_1 t_2 + p_2 t_1 + r_1 s_2 + r_2 s_1
-\end{aligned}$$
-
-### Variance Recovery
-When $r = s$ (tracking a single random variable $X$):
-$$\text{Var}(X) = \frac{t}{p} - \left(\frac{r}{p}\right)^2$$
-
----
-
-## 5. SkewnessSemiring: Third Moments & Distribution Asymmetry
-
-The **SkewnessSemiring** (or `ThirdMomentSemiring`) generalizes moment propagation to the 3rd-order divided power quotient ring:
-
-$$\mathbb{D}^{(3)} = \mathbb{R}[\epsilon] / (\epsilon^4)$$
-
-Values are 4-tuples $(p, m_1, m_2, m_3) \in \mathbb{R}^4$:
-* $p = \sum p_i$: Total probability mass $Z$.
-* $m_1 = \sum p_i x_i$: 1st raw moment ($E[X] \cdot Z$).
-* $m_2 = \sum p_i x_i^2$: 2nd raw moment ($E[X^2] \cdot Z$).
-* $m_3 = \sum p_i x_i^3$: 3rd raw moment ($E[X^3] \cdot Z$).
-
-### Binomial Moment Convolution
-Under serial composition ($x = x_A + x_B$), independent moments convolve via binomial coefficients:
-$$\begin{aligned}
-p &= p_1 p_2 \\
-m_1 &= p_1 m_{1,2} + p_2 m_{1,1} \\
-m_2 &= p_1 m_{2,2} + 2 m_{1,1} m_{1,2} + p_2 m_{2,1} \\
-m_3 &= p_1 m_{3,2} + 3 m_{2,1} m_{1,2} + 3 m_{1,1} m_{2,2} + p_2 m_{3,1}
-\end{aligned}$$
-
-### Statistical Metrics
-$$\begin{aligned}
-\text{Mean } \mu &= \frac{m_1}{p} \\
-\text{Variance } \sigma^2 &= \frac{m_2}{p} - \mu^2 \\
-\text{3rd Central Moment } \mu_3 &= \frac{m_3}{p} - 3\mu \frac{m_2}{p} + 2\mu^3 \\
-\text{Skewness } \gamma_1 &= \frac{\mu_3}{\sigma^3}
-\end{aligned}$$
-
----
-
-## 6. End-to-End Example: Graph Path Risk & Skewness Analysis
+$$\text{Cov}(X, Y) = \frac{t}{p} - \left(\frac{r}{p}\right)\left(\frac{s}{p}\right)$$
 
 ```python
 import algebrax as ax
 
-sem = ax.semiring.SkewnessSemiring()
+bivar_sem = ax.semiring.BivariateVarianceSemiring()
 
-# Define transitions: (prob, m1, m2, m3) where m_k = p * w^k
-# Path 1: 50% prob, weight 2.0 -> (0.5, 0.5*2, 0.5*4, 0.5*8)
-path1 = (0.5, 1.0, 2.0, 4.0)
+# Edge (p=1, X=2, Y=3, XY=6)
+e1 = (1.0, 2.0, 3.0, 6.0)
+# Edge (p=1, X=1, Y=4, XY=4)
+e2 = (1.0, 1.0, 4.0, 4.0)
 
-# Path 2: 50% prob, weight 6.0 -> (0.5, 0.5*6, 0.5*36, 0.5*216)
-path2 = (0.5, 3.0, 18.0, 108.0)
+# Sequential Composition
+seq = bivar_sem.mul(e1, e2)
+p, r, s, t = seq
+print(f"Total Mass: {p}, E[X]: {r/p}, E[Y]: {s/p}, E[XY]: {t/p}")
+```
 
-# Parallel sum (Union of paths)
-bundle = sem.add(path1, path2)
-p, m1, m2, m3 = bundle
+---
 
-mean = m1 / p
-var = (m2 / p) - mean**2
-mu3 = (m3 / p) - 3 * mean * (m2 / p) + 2 * (mean**3)
-skewness = mu3 / (var ** 1.5)
+## 5. Universal Multivariate Joint Moments & Covariance Matrices
 
-print(f"Total Mass (Z): {p:.2f}")
-print(f"Expected Cost (μ): {mean:.2f}")
-print(f"Variance (σ²): {var:.2f}")
-print(f"Skewness (γ1): {skewness:.4f}")
+For $d \ge 2$ features and total polynomial degree $K$, [`MultivariateMomentSemiring(num_vars=d, order=K)`](file:///C:/dev/erivlis/algebrax/src/algebrax/semiring/statistical.py) computes the entire joint distribution, returning the **$d$-dimensional Mean Vector** and **$d \times d$ Covariance Matrix $\boldsymbol{\Sigma}$**:
+
+$$(\mathbf{u} \otimes \mathbf{v})_{\boldsymbol{\alpha}} = \sum_{\mathbf{0} \le \boldsymbol{\beta} \le \boldsymbol{\alpha}} \left( \prod_{i=1}^d \binom{\alpha_i}{\beta_i} \right) u_{\boldsymbol{\beta}} \cdot v_{\boldsymbol{\alpha} - \boldsymbol{\beta}}$$
+
+```python
+import algebrax as ax
+
+# 2 variables (Latency, Cost), 2nd-order total degree
+msem = ax.semiring.MultivariateMomentSemiring(num_vars=2, order=2)
+
+# Path A: 50% prob, Latency=1.0, Cost=2.0
+pa = {
+    (0, 0): 0.5,
+    (1, 0): 0.5 * 1.0,  # E[X]
+    (0, 1): 0.5 * 2.0,  # E[Y]
+    (2, 0): 0.5 * 1.0,  # E[X^2]
+    (0, 2): 0.5 * 4.0,  # E[Y^2]
+    (1, 1): 0.5 * 2.0,  # E[XY]
+}
+
+# Path B: 50% prob, Latency=3.0, Cost=6.0
+pb = {
+    (0, 0): 0.5,
+    (1, 0): 0.5 * 3.0,
+    (0, 1): 0.5 * 6.0,
+    (2, 0): 0.5 * 9.0,
+    (0, 2): 0.5 * 36.0,
+    (1, 1): 0.5 * 18.0,
+}
+
+# Parallel branching over graph paths
+bundle = msem.add(pa, pb)
+
+means = msem.mean_vector(bundle)
+cov = msem.covariance_matrix(bundle)
+
+print(f"Mean Vector [Latency, Cost]: {means}")  # [2.0, 4.0]
+print(f"Covariance Matrix Σ:")
+print(f"  [{cov[0][0]:.2f}, {cov[0][1]:.2f}]")  # [1.00, 2.00]
+print(f"  [{cov[1][0]:.2f}, {cov[1][1]:.2f}]")  # [2.00, 4.00]
 ```

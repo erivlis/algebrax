@@ -66,14 +66,21 @@ flowchart LR
 
 %% Module: statistical.py
     subgraph ModStat["algebrax.semiring.statistical"]
-        Log["<b>LogSemiring</b>"]:::stat
-        Expectation["<b>ExpectationSemiring</b><br/>Subclass of DualNumberSemiring"]:::stat
-        Variance["<b>VarianceSemiring</b>"]:::stat
+        Log["<b>LogSemiring</b><br/>LogSumExp algebra"]:::stat
+        Expectation["<b>ExpectationSemiring</b><br/>1st Moment (p, v)"]:::stat
+        Variance["<b>VarianceSemiring</b><br/>2nd Moment (p, m1, m2)"]:::stat
+        Skewness["<b>SkewnessSemiring</b><br/>3rd Moment (p, m1, m2, m3)"]:::stat
+        Kurtosis["<b>KurtosisSemiring</b><br/>4th Moment (p, m1,..., m4)"]:::stat
+        StatisticalMoment["<b>StatisticalMomentSemiring[K]</b><br/>Universal 1D Decoders"]:::stat
+        BivarVariance["<b>BivariateVarianceSemiring</b><br/>Bivariate 4-tuple (p, r, s, t)"]:::stat
+        MultiMoment["<b>MultivariateMomentSemiring[d, K]</b><br/>Covariance Matrix & Hessian"]:::stat
     end
 
 %% Module: algebraic.py
     subgraph ModAlg["algebrax.semiring.algebraic"]
         DualNum["<b>DualNumberSemiring</b><br/>tuple[float, float]"]:::alg
+        BinomialConv["<b>BinomialConvolutionSemiring[K]</b><br/>Divided Power Ring R[ε]/(ε^{K+1})"]:::alg
+        MultiBinomialConv["<b>MultivariateBinomialConvolutionSemiring[d, K]</b><br/>Multi-Index Total Degree Quotient Ring"]:::alg
         MonoidAlg["<b>MonoidAlgebraSemiring[K, T]</b><br/>Sparse dict[K, T] convolution"]:::alg
         Polynomial["<b>PolynomialSemiring[T]</b><br/>Subclass of MonoidAlgebra"]:::alg
         Provenance["<b>ProvenanceSemiring</b><br/>Subclass of MonoidAlgebra"]:::alg
@@ -108,12 +115,20 @@ flowchart LR
     Root -->|Implements| String
     Root -->|Implements| KCollapsed
     Root -->|Implements| Log
-    Root -->|Implements| Variance
+    Root -->|Implements| BivarVariance
     Root -->|Implements| DualNum
+    Root -->|Implements| BinomialConv
+    Root -->|Implements| MultiBinomialConv
     Root -->|Implements| MonoidAlg
 
 %% Class Specializations & Subclassing
     DualNum -->|Subclasses| Expectation
+    BinomialConv -->|Subclasses| StatisticalMoment
+    StatisticalMoment -->|Specializes| Variance
+    StatisticalMoment -->|Specializes| Skewness
+    StatisticalMoment -->|Specializes| Kurtosis
+    MultiBinomialConv -->|Subclasses| MultiMoment
+
     MonoidAlg -->|Subclasses| Polynomial
     MonoidAlg -->|Subclasses| Provenance
     MonoidAlg -->|Subclasses| Knot
@@ -148,7 +163,13 @@ flowchart LR
     click DualNum "semiring_statistical.md" "DualNumberSemiring Tutorial"
     click Expectation "semiring_statistical.md" "ExpectationSemiring Tutorial"
     click Variance "semiring_statistical.md" "VarianceSemiring Tutorial"
+    click BivarVariance "semiring_statistical.md" "BivariateVarianceSemiring Tutorial"
     click Skewness "semiring_statistical.md" "SkewnessSemiring Tutorial"
+    click Kurtosis "semiring_statistical.md" "KurtosisSemiring Tutorial"
+    click StatisticalMoment "semiring_statistical.md" "StatisticalMomentSemiring Tutorial"
+    click BinomialConv "semiring_statistical.md" "BinomialConvolutionSemiring Tutorial"
+    click MultiBinomialConv "semiring_statistical.md" "MultivariateBinomialConvolutionSemiring Tutorial"
+    click MultiMoment "semiring_statistical.md" "MultivariateMomentSemiring Tutorial"
     click MonoidAlg "semiring_monoid_algebra.md" "MonoidAlgebraSemiring Tutorial"
     click Polynomial "semiring_polynomial.md" "PolynomialSemiring Tutorial"
     click Provenance "semiring_provenance.md" "ProvenanceSemiring Tutorial"
@@ -218,8 +239,10 @@ flowchart LR
 
 %% Statistical Moment Extensions
     subgraph StatisticalMoments["Statistical Moment Expansions"]
-        FirstMoment["<b>First Moments (Expectation)</b><br/>(p, v) = (p, p*w)"]:::mathnode
-        SecondMoment["<b>Second Moments (Variance)</b><br/>(p, r, s, t) in R[ε1, ε2] / (ε1^2, ε2^2)"]:::mathnode
+        FirstMoment["<b>First Moments (Expectation)</b><br/>(p, v) in R[ε] / (ε^2)"]:::mathnode
+        SecondMoment["<b>Second Moments (Variance)</b><br/>(p, m1, m2) in R[ε] / (ε^3)"]:::mathnode
+        BivarCovariance["<b>Bivariate Covariance</b><br/>(p, r, s, t) in R[ε1, ε2] / (ε1^2, ε2^2)"]:::mathnode
+        MultiMoments["<b>Universal Tensor Moments</b><br/>R[ε1..εd] / <|β|=K+1>"]:::mathnode
     end
 
 %% Morphisms & Mathematical Transitions
@@ -246,58 +269,66 @@ flowchart LR
     BoolLattice -->|Saturation Threshold k| BoundedCount
 
     DualRing -->|Probabilistic Interpretation| FirstMoment
-    FirstMoment -->|2nd-Order Taylor Lift| SecondMoment
+    FirstMoment -->|2nd-Order Taylor Jet Lift| SecondMoment
+    FirstMoment -->|Bivariate Cross Extension| BivarCovariance
+    SecondMoment -->|Multivariate Multi-Index Lift| MultiMoments
 ```
 
 ---
 
 ## 3. Mathematical Semantics & Morphism Legend
 
-| Transformation Category              | Mathematical Formulation                                                                                    | Description                                                                                                                         | Examples                                                                                            |
-|:-------------------------------------|:------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------|
-| **Quotient Ring Projections**        | $R[M] \twoheadrightarrow R[M] / \mathcal{I}$                                                                | Imposing defining polynomial or commutation relations on a free algebra.                                                            | $e_i e_j = -e_j e_i$ (Clifford), $e_j e_k = \omega e_k e_j$ (GCA), $\epsilon^2 = 0$ (Dual Numbers). |
-| **Maslov Tropical Dequantization**   | $\lim_{\hbar \to 0} \hbar \ln\left(e^{a/\hbar} + e^{b/\hbar}\right) = \max(a, b)$                           | The semi-classical limit translating statistical mechanics (partition functions) into idempotent tropical geometry (optimal paths). | `LogSemiring` $\to$ `ArcticSemiring` (Max-Plus).                                                    |
-| **Logarithmic Isomorphisms**         | $\phi(x) = e^{-x}: (\mathbb{R} \cup \{\infty\}, \min, +) \xrightarrow{\cong} ([0, 1], \max, \cdot)$         | Exact bijective homomorphic maps between additive shortest paths and multiplicative probabilities.                                  | `TropicalSemiring` $\leftrightarrow$ `ViterbiSemiring`.                                             |
-| **Continuous & Language Embeddings** | $\{0, 1\} \hookrightarrow [0, 1]$<br/>$\{0, 1\} \hookrightarrow \mathcal{P}(\Sigma^*)$                      | Embedding two-valued discrete logic into continuous fuzzy intervals or non-commutative formal language powersets.                   | `BooleanSemiring` $\to$ `LukasiewiczSemiring`, `StringSemiring`.                                    |
-| **Higher-Order Jet Lifts**           | $T\mathbb{R} \to T^{(2)}\mathbb{R} \cong \mathbb{R}[\epsilon_1, \epsilon_2] / (\epsilon_1^2, \epsilon_2^2)$ | Expanding 1st-order tangent bundle derivatives/expectations to 2nd-order variance, covariances, and Hessians.                       | `DualNumberSemiring` $\to$ `VarianceSemiring`.                                                      |
+| Transformation Category              | Mathematical Formulation                                                                            | Description                                                                                                                         | Examples                                                                                            |
+|:-------------------------------------|:----------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------|
+| **Quotient Ring Projections**        | $R[M] \twoheadrightarrow R[M] / \mathcal{I}$                                                        | Imposing defining polynomial or commutation relations on a free algebra.                                                            | $e_i e_j = -e_j e_i$ (Clifford), $e_j e_k = \omega e_k e_j$ (GCA), $\epsilon^2 = 0$ (Dual Numbers). |
+| **Maslov Tropical Dequantization**   | $\lim_{\hbar \to 0} \hbar \ln\left(e^{a/\hbar} + e^{b/\hbar}\right) = \max(a, b)$                   | The semi-classical limit translating statistical mechanics (partition functions) into idempotent tropical geometry (optimal paths). | `LogSemiring` $\to$ `ArcticSemiring` (Max-Plus).                                                    |
+| **Logarithmic Isomorphisms**         | $\phi(x) = e^{-x}: (\mathbb{R} \cup \{\infty\}, \min, +) \xrightarrow{\cong} ([0, 1], \max, \cdot)$ | Exact bijective homomorphic maps between additive shortest paths and multiplicative probabilities.                                  | `TropicalSemiring` $\leftrightarrow$ `ViterbiSemiring`.                                             |
+| **Continuous & Language Embeddings** | $\{0, 1\} \hookrightarrow [0, 1]$<br/>$\{0, 1\} \hookrightarrow \mathcal{P}(\Sigma^*)$              | Embedding two-valued discrete logic into continuous fuzzy intervals or non-commutative formal language powersets.                   | `BooleanSemiring` $\to$ `LukasiewiczSemiring`, `StringSemiring`.                                    |
+| **Higher-Order Jet Lifts**           | $T\mathbb{R} \to T^{(K)}\mathbb{R} \cong \mathbb{R}[\epsilon] / (\epsilon^{K+1})$                   | Expanding 1st-order tangent bundle expectations to variance, skewness, kurtosis, and multivariate covariance tensors.               | `DualNumberSemiring` $\to$ `VarianceSemiring` $\to$ `MultivariateMomentSemiring`.                   |
 
 ---
 
 ## 4. Domain Taxonomy & Categorization
 
-| Category                          | Semiring Class                                                                                           | Carrier Set                                        |                       $\oplus$ (Add)                       |        $\otimes$ (Mul)         | Neutral Elements ($\mathbf{0}, \mathbf{1}$) | Primary Applications                                  |
-|:----------------------------------|:---------------------------------------------------------------------------------------------------------|:---------------------------------------------------|:----------------------------------------------------------:|:------------------------------:|:-------------------------------------------:|:------------------------------------------------------|
-| **Arithmetic**                    | [`StandardSemiring[T]`](semiring_standard.md)                                                            | $\mathbb{R}$ or $\mathbb{C}$                       |                            $+$                             |            $\cdot$             |                   $0, 1$                    | Classical Linear Algebra, Physics, PDEs               |
-|                                   | [`ModularSemiring`](semiring_modular.md)                                                                 | $\mathbb{Z}_n$                                     |                        $+ \bmod n$                         |        $\cdot \bmod n$         |                   $0, 1$                    | Cryptography, Hash Functions, Number Theory           |
-| **Optimization** | [`TropicalSemiring`](semiring_tropical.md) | $\mathbb{R} \cup \{\infty\}$ | $\min$ | $+$ | $\infty, 0$ | Shortest Paths (Dijkstra, Floyd-Warshall) |
-| | [`ArcticSemiring`](semiring_tropical.md) | $\mathbb{R} \cup \{-\infty\}$ | $\max$ | $+$ | $-\infty, 0$ | Critical Path Latency, Maximum Scheduling |
-| | [`ViterbiSemiring`](semiring_viterbi.md) | $[0, 1]$ | $\max$ | $\cdot$ | $0, 1$ | Hidden Markov Models, Speech & Gene Parsing |
-| | [`ReliabilitySemiring`](semiring_viterbi.md) | $[0, 1]$ | $\max$ | $\cdot$ | $0, 1$ | Network Reliability & Survivability |
-| | [`BottleneckSemiring`](semiring_bottleneck.md) | $\mathbb{R} \cup \{\pm\infty\}$ | $\max$ | $\min$ | $-\infty, \infty$ | Widest Path, Capacity Bottlenecks |
-| | [`MinTimesSemiring`](semiring_bottleneck.md) | $\mathbb{R}_{\ge 0} \cup \{\infty\}$ | $\min$ | $\cdot$ | $\infty, 1$ | Optimal Cost Multipliers |
-| | [`LogSemiring`](semiring_statistical.md) | $\mathbb{R} \cup \{-\infty\}$ | $\text{LogSumExp}$ | $+$ | $-\infty, 0$ | Statistical Physics, Free Energy, Belief Propagation |
-| **Logic** | [`BooleanSemiring`](semiring_boolean.md) | $\{0, 1\}$ | $\lor$ | $\land$ | $0, 1$ | Transitive Closure, Reachability, CYK Parsing |
-| | [`DigitalSemiring`](semiring_digital.md) | $\mathbb{N}_0 \cup \{\infty\}$ | $\min$ | $+$ | $\infty, 0$ | Post-Quantum Cryptography (Ring-LWE), Digital Filters |
-| | [`LukasiewiczSemiring`](semiring_logic_fuzzy.md) | $[0, 1]$ | $\max$ | $\max(0, x+y-1)$ | $0, 1$ | Multi-Valued Logic, Fuzzy Reasoning |
-| | [`StringSemiring`](semiring_logic_fuzzy.md) | $\mathcal{P}(\Sigma^*)$ | $\cup$ | Concat | $\emptyset, \{\epsilon\}$ | Formal Languages, Finite Automata Contraction |
-| | [`KCollapsedSemiring`](semiring_logic_fuzzy.md) | $\{0, \dots, k\}$ | $\min(k, x+y)$ | $\min(k, xy)$ | $0, 1$ | Resource Counting, Bounded Semaphores |
-| **Statistical** | [`ExpectationSemiring`](semiring_statistical.md) | $\mathbb{R}_{\ge 0} \times \mathbb{R}$ | Elementwise | $(p_1 p_2, p_1 v_2 + p_2 v_1)$ | $(0, 0), (1, 0)$ | Expected Values, Loss Accumulation |
-| | [`VarianceSemiring`](semiring_statistical.md) | $\mathbb{R}^4$ | Moments | Composition | Zero / Unit | Portfolio Risk, Second Central Moments |
-| | [`SkewnessSemiring`](semiring_statistical.md) | $\mathbb{R}^4$ | Moments | Binomial Convol. | Zero / Unit | Third Central Moments, Asymmetry / Skewness Risk |
-| **Algebraic** | [`DualNumberSemiring`](semiring_statistical.md) | $\mathbb{R}[\epsilon]/\epsilon^2$ | $(u+v, u\x27+v\x27)$ | $(uv, uv\x27+u\x27v)$ | $(0, 0), (1, 0)$ | Forward-Mode Automatic Differentiation |
-|                                   | [`MonoidAlgebraSemiring`](semiring_monoid_algebra.md)                                                    | $R[M]$                                             |                         Linear Sum                         |          Convolution           |       $\emptyset, \{e: \mathbf{1}\}$        | Group Rings, Signal Transforms                        |
-|                                   | [`PolynomialSemiring`](semiring_polynomial.md)                                                           | $R[x]$                                             |                       Polynomial $+$                       |         Cauchy Product         |       $\emptyset, \{0: \mathbf{1}\}$        | Generating Functions, Control Theory                  |
-|                                   | [`ProvenanceSemiring`](semiring_provenance.md)                                                           | $\mathbb{N}[X]$                                    |                          Poly $+$                          |          Poly $\cdot$          |           $\emptyset, \{(): 1\}$            | Database Provenance, Parsing Derivation Trees         |
-|                                   | [`KnotSemiring`](semiring_knot.md)                                                                       | $\mathbb{Z}[A, A^{-1}]$                            |                          Poly $+$                          |          Poly $\cdot$          |    $\emptyset, \{\text{\x27U\x27}: 1\}$     | Topological Knot Invariants (Kauffman Bracket)        |
-|                                   | [`QuotientMonoidAlgebraSemiring`](semiring_quotient_monoid_algebra.md)                                   | $R[M] / \mathcal{I}$                               |                         Linear Sum                         |        Quotient Convol.        |       $\emptyset, \{e: \mathbf{1}\}$        | Universal Quotient Ring Framework                     |
-|                                   | [`CliffordSemiring`](semiring_clifford.md)                                                               | $Cl(p, q, r)$                                      |                         Blade $+$                          |        Geometric Prod.         |          $\emptyset, \{(): 1.0\}$           | 3D/4D Rotors, Spacetime Physics, Dirac Spinors        |
-|                                   | [`GeneralizedCliffordSemiring`](semiring_clifford.md#generalized-clifford-algebras-gcas-clock-and-shift) | $C_n^{(m)}$                                        |                         Blade $+$                          |        Clock-and-Shift         |       $\emptyset, \{(0,\dots): 1.0\}$       | Discrete Weyl Quantization, Root-of-Unity Algebras    |
-|                                   | [`QuantumCliffordSemiring`](semiring_clifford.md#q-deformed-quantum-clifford-algebras)                   | $Cl_q(m)$                                          |                         Blade $+$                          |       $q$-Braided Prod.        |       $\emptyset, \{(0,\dots): 1.0\}$       | Quantum Groups, Braided Tensor Geometry               |
-|                                   | [`GaloisFieldSemiring`](semiring_galois.md)                                                              | $GF(p^m)$                                          |                      Poly $+ \bmod p$                      |    Poly $\cdot \bmod P(x)$     |            $\emptyset, \{0: 1\}$            | Finite Field Cryptography, AES S-Box                  |
-| **Recipe Extensions** *(Applied)* | `IntervalSemiring`                                                                                       | $[\underline{x}, \overline{x}] \subset \mathbb{R}$ | $[\underline{a}+\underline{b}, \overline{a}+\overline{b}]$ |       Interval $\times$        |              $[0, 0], [1, 1]$               | Bounded Uncertainty Analysis, Robust Control          |
-|                                   | `GrammarSemiring`                                                                                        | $\mathcal{P}(\text{NonTerminals})$                 |                           $\cup$                           |       $A \Rightarrow BC$       |      $\emptyset, \{\text{\x27S\x27}\}$      | CYK Grammar Parsing, NLP Derivations                  |
-|                                   | `VectorClockSemilattice`                                                                                 | $\mathbb{N}_0^K$                                   |                     $\max$ (LUB Join)                      |         Component $+$          |          $\mathbf{0}, \mathbf{0}$           | Distributed Systems Causality & CRDT Synchronization  |
-|                                   | `GradientDualNumber`                                                                                     | $\mathbb{R} \times \mathbb{R}^K$                   |                      Elementwise $+$                       |      Leibniz $\nabla(uv)$      |                   $0, 1$                    | Multivariate Forward-Mode Jacobian Tracking           |
+| Category                          | Semiring Class                                                                                           | Carrier Set                                        |                       $\oplus$ (Add)                       |        $\otimes$ (Mul)         | Neutral Elements ($\mathbf{0}, \mathbf{1}$) | Primary Applications                                                            |
+|:----------------------------------|:---------------------------------------------------------------------------------------------------------|:---------------------------------------------------|:----------------------------------------------------------:|:------------------------------:|:-------------------------------------------:|:--------------------------------------------------------------------------------|
+| **Arithmetic**                    | [`StandardSemiring[T]`](semiring_standard.md)                                                            | $\mathbb{R}$ or $\mathbb{C}$                       |                            $+$                             |            $\cdot$             |                   $0, 1$                    | Classical Linear Algebra, Physics, PDEs                                         |
+|                                   | [`ModularSemiring`](semiring_modular.md)                                                                 | $\mathbb{Z}_n$                                     |                        $+ \bmod n$                         |        $\cdot \bmod n$         |                   $0, 1$                    | Cryptography, Hash Functions, Number Theory                                     |
+| **Optimization**                  | [`TropicalSemiring`](semiring_tropical.md)                                                               | $\mathbb{R} \cup \{\infty\}$                       |                           $\min$                           |              $+$               |                 $\infty, 0$                 | Shortest Paths (Dijkstra, Floyd-Warshall)                                       |
+|                                   | [`ArcticSemiring`](semiring_tropical.md)                                                                 | $\mathbb{R} \cup \{-\infty\}$                      |                           $\max$                           |              $+$               |                $-\infty, 0$                 | Critical Path Latency, Maximum Scheduling                                       |
+|                                   | [`ViterbiSemiring`](semiring_viterbi.md)                                                                 | $[0, 1]$                                           |                           $\max$                           |            $\cdot$             |                   $0, 1$                    | Hidden Markov Models, Speech & Gene Parsing                                     |
+|                                   | [`ReliabilitySemiring`](semiring_viterbi.md)                                                             | $[0, 1]$                                           |                           $\max$                           |            $\cdot$             |                   $0, 1$                    | Network Reliability & Survivability                                             |
+|                                   | [`BottleneckSemiring`](semiring_bottleneck.md)                                                           | $\mathbb{R} \cup \{\pm\infty\}$                    |                           $\max$                           |             $\min$             |              $-\infty, \infty$              | Widest Path, Capacity Bottlenecks                                               |
+|                                   | [`MinTimesSemiring`](semiring_bottleneck.md)                                                             | $\mathbb{R}_{\ge 0} \cup \{\infty\}$               |                           $\min$                           |            $\cdot$             |                 $\infty, 1$                 | Optimal Cost Multipliers                                                        |
+|                                   | [`LogSemiring`](semiring_statistical.md)                                                                 | $\mathbb{R} \cup \{-\infty\}$                      |                     $\text{LogSumExp}$                     |              $+$               |                $-\infty, 0$                 | Statistical Physics, Free Energy, Belief Propagation                            |
+| **Logic**                         | [`BooleanSemiring`](semiring_boolean.md)                                                                 | $\{0, 1\}$                                         |                           $\lor$                           |            $\land$             |                   $0, 1$                    | Transitive Closure, Reachability, CYK Parsing                                   |
+|                                   | [`DigitalSemiring`](semiring_digital.md)                                                                 | $\mathbb{N}_0 \cup \{\infty\}$                     |                           $\min$                           |              $+$               |                 $\infty, 0$                 | Post-Quantum Cryptography (Ring-LWE), Digital Filters                           |
+|                                   | [`LukasiewiczSemiring`](semiring_logic_fuzzy.md)                                                         | $[0, 1]$                                           |                           $\max$                           |        $\max(0, x+y-1)$        |                   $0, 1$                    | Multi-Valued Logic, Fuzzy Reasoning                                             |
+|                                   | [`StringSemiring`](semiring_logic_fuzzy.md)                                                              | $\mathcal{P}(\Sigma^*)$                            |                           $\cup$                           |             Concat             |          $\emptyset, \{\epsilon\}$          | Formal Languages, Finite Automata Contraction                                   |
+|                                   | [`KCollapsedSemiring`](semiring_logic_fuzzy.md)                                                          | $\{0, \dots, k\}$                                  |                       $\min(k, x+y)$                       |         $\min(k, xy)$          |                   $0, 1$                    | Resource Counting, Bounded Semaphores                                           |
+| **Statistical**                   | [`ExpectationSemiring`](semiring_statistical.md)                                                         | $\mathbb{R}_{\ge 0} \times \mathbb{R}$             |                        Elementwise                         | $(p_1 p_2, p_1 v_2 + p_2 v_1)$ |              $(0, 0), (1, 0)$               | Expected Values, Loss Accumulation                                              |
+|                                   | [`VarianceSemiring`](semiring_statistical.md)                                                            | $\mathbb{R}^3$                                     |                          Moments                           |        Binomial Convol.        |                 Zero / Unit                 | 2nd Raw & Central Moments, Univariate Variance                                  |
+|                                   | [`SkewnessSemiring`](semiring_statistical.md)                                                            | $\mathbb{R}^4$                                     |                          Moments                           |        Binomial Convol.        |                 Zero / Unit                 | Third Central Moments, Asymmetry / Skewness Risk                                |
+|                                   | [`KurtosisSemiring`](semiring_statistical.md)                                                            | $\mathbb{R}^5$                                     |                          Moments                           |        Binomial Convol.        |                 Zero / Unit                 | Fourth Central Moments, Fat-Tail Kurtosis Risk                                  |
+|                                   | [`StatisticalMomentSemiring`](semiring_statistical.md)                                                   | $\mathbb{R}^{K+1}$                                 |                       Componentwise                        |        Binomial Convol.        |                 Zero / Unit                 | Universal 1D Moments, Full Statistical Metric Decoders                          |
+|                                   | [`BivariateVarianceSemiring`](semiring_statistical.md)                                                   | $\mathbb{R}^4$                                     |                          Moments                           |          Composition           |                 Zero / Unit                 | Bivariate Cross-Covariance (Li & Eisner)                                        |
+|                                   | [`MultivariateMomentSemiring`](semiring_statistical.md)                                                  | $\text{Sparse } \mathbb{R}^{\binom{d+K}{K}}$       |                      Sparse Poly $+$                       |     Multi-Binomial Convol.     |                 Zero / Unit                 | Multivariate Mean Vectors, $d \times d$ Covariance Matrix $\boldsymbol{\Sigma}$ |
+| **Algebraic**                     | [`BinomialConvolutionSemiring`](semiring_statistical.md)                                                 | $\mathbb{R}[\epsilon]/(\epsilon^{K+1})$            |                       Componentwise                        |        Binomial Convol.        |          $(0,\dots), (1,0,\dots)$           | Universal Divided Power Quotient Algebra                                        |
+|                                   | [`MultivariateBinomialConvolutionSemiring`](semiring_statistical.md)                                     | $\mathbb{R}[\boldsymbol{\epsilon}]/\langle         |                     \boldsymbol{\beta}                     |          =K+1\rangle$          |               Sparse Poly $+$               | Multi-Binomial Convol.                                                          | $\emptyset, \{(0,\dots): 1.0\}$ | Multi-Index Total Degree Quotient Ring |
+|                                   | [`DualNumberSemiring`](semiring_statistical.md)                                                          | $\mathbb{R}[\epsilon]/\epsilon^2$                  |                    $(u+v, u\x27+v\x27)$                    |     $(uv, uv\x27+u\x27v)$      |              $(0, 0), (1, 0)$               | Forward-Mode Automatic Differentiation                                          |
+|                                   | [`MonoidAlgebraSemiring`](semiring_monoid_algebra.md)                                                    | $R[M]$                                             |                         Linear Sum                         |          Convolution           |       $\emptyset, \{e: \mathbf{1}\}$        | Group Rings, Signal Transforms                                                  |
+|                                   | [`PolynomialSemiring`](semiring_polynomial.md)                                                           | $R[x]$                                             |                       Polynomial $+$                       |         Cauchy Product         |       $\emptyset, \{0: \mathbf{1}\}$        | Generating Functions, Control Theory                                            |
+|                                   | [`ProvenanceSemiring`](semiring_provenance.md)                                                           | $\mathbb{N}[X]$                                    |                          Poly $+$                          |          Poly $\cdot$          |           $\emptyset, \{(): 1\}$            | Database Provenance, Parsing Derivation Trees                                   |
+|                                   | [`KnotSemiring`](semiring_knot.md)                                                                       | $\mathbb{Z}[A, A^{-1}]$                            |                          Poly $+$                          |          Poly $\cdot$          |    $\emptyset, \{\text{\x27U\x27}: 1\}$     | Topological Knot Invariants (Kauffman Bracket)                                  |
+|                                   | [`QuotientMonoidAlgebraSemiring`](semiring_quotient_monoid_algebra.md)                                   | $R[M] / \mathcal{I}$                               |                         Linear Sum                         |        Quotient Convol.        |       $\emptyset, \{e: \mathbf{1}\}$        | Universal Quotient Ring Framework                                               |
+|                                   | [`CliffordSemiring`](semiring_clifford.md)                                                               | $Cl(p, q, r)$                                      |                         Blade $+$                          |        Geometric Prod.         |          $\emptyset, \{(): 1.0\}$           | 3D/4D Rotors, Spacetime Physics, Dirac Spinors                                  |
+|                                   | [`GeneralizedCliffordSemiring`](semiring_clifford.md#generalized-clifford-algebras-gcas-clock-and-shift) | $C_n^{(m)}$                                        |                         Blade $+$                          |        Clock-and-Shift         |       $\emptyset, \{(0,\dots): 1.0\}$       | Discrete Weyl Quantization, Root-of-Unity Algebras                              |
+|                                   | [`QuantumCliffordSemiring`](semiring_clifford.md#q-deformed-quantum-clifford-algebras)                   | $Cl_q(m)$                                          |                         Blade $+$                          |       $q$-Braided Prod.        |       $\emptyset, \{(0,\dots): 1.0\}$       | Quantum Groups, Braided Tensor Geometry                                         |
+|                                   | [`GaloisFieldSemiring`](semiring_galois.md)                                                              | $GF(p^m)$                                          |                      Poly $+ \bmod p$                      |    Poly $\cdot \bmod P(x)$     |            $\emptyset, \{0: 1\}$            | Finite Field Cryptography, AES S-Box                                            |
+| **Recipe Extensions** *(Applied)* | `IntervalSemiring`                                                                                       | $[\underline{x}, \overline{x}] \subset \mathbb{R}$ | $[\underline{a}+\underline{b}, \overline{a}+\overline{b}]$ |       Interval $\times$        |              $[0, 0], [1, 1]$               | Bounded Uncertainty Analysis, Robust Control                                    |
+|                                   | `GrammarSemiring`                                                                                        | $\mathcal{P}(\text{NonTerminals})$                 |                           $\cup$                           |       $A \Rightarrow BC$       |      $\emptyset, \{\text{\x27S\x27}\}$      | CYK Grammar Parsing, NLP Derivations                                            |
+|                                   | `VectorClockSemilattice`                                                                                 | $\mathbb{N}_0^K$                                   |                     $\max$ (LUB Join)                      |         Component $+$          |          $\mathbf{0}, \mathbf{0}$           | Distributed Systems Causality & CRDT Synchronization                            |
+|                                   | `GradientDualNumber`                                                                                     | $\mathbb{R} \times \mathbb{R}^K$                   |                      Elementwise $+$                       |      Leibniz $\nabla(uv)$      |                   $0, 1$                    | Multivariate Forward-Mode Jacobian Tracking                                     |
 
 ---
 
@@ -310,8 +341,8 @@ import algebrax as ax
 
 # Test all 9 axioms with numerical/sparse equality checks
 results = ax.verification.verify_semiring_laws(
-    semiring=ax.semiring.TropicalSemiring(),
-    samples=[float("inf"), 0.0, 1.5, 4.0, 10.0]
+   semiring=ax.semiring.TropicalSemiring(),
+   samples=[float("inf"), 0.0, 1.5, 4.0, 10.0]
 )
 
 print("Axiom Audit Results:", results)
