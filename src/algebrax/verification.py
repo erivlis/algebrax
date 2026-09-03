@@ -6,6 +6,7 @@ adhere to formal algebraic axioms (associativity, commutativity, distributivity,
 identity, and annihilation).
 """
 
+import cmath
 import math
 from collections.abc import Iterable
 from typing import Any, TypeVar
@@ -18,7 +19,7 @@ V = TypeVar('V')
 def semiring_elements_equal(a: Any, b: Any, tol: float = 1e-7) -> bool:
     """
     Compare two semiring values for algebraic equality, supporting exact,
-    floating-point tolerance, tuple, set, and sparse mapping comparisons.
+    floating-point tolerance, complex tolerance, tuple, set, and sparse mapping comparisons.
     """
     if a == b:
         return True
@@ -28,6 +29,8 @@ def semiring_elements_equal(a: Any, b: Any, tol: float = 1e-7) -> bool:
         if math.isnan(a) and math.isnan(b):
             return True
         return math.isclose(a, b, rel_tol=tol, abs_tol=tol)
+    if isinstance(a, complex) and isinstance(b, complex):
+        return cmath.isclose(a, b, rel_tol=tol, abs_tol=tol)
     if isinstance(a, tuple) and isinstance(b, tuple):
         if len(a) != len(b):
             return False
@@ -155,6 +158,7 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
     """
     from algebrax.semiring import (
         ArcticSemiring,
+        BinomialConvolutionSemiring,
         BooleanSemiring,
         BottleneckSemiring,
         CliffordSemiring,
@@ -162,18 +166,26 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
         DualNumberSemiring,
         ExpectationSemiring,
         GaloisFieldSemiring,
+        GeneralizedCliffordSemiring,
         KCollapsedSemiring,
         KnotSemiring,
+        KurtosisSemiring,
         LogSemiring,
         LukasiewiczSemiring,
         MinTimesSemiring,
         ModularSemiring,
         MonoidAlgebraSemiring,
+        MultivariateBinomialConvolutionSemiring,
+        MultivariateMomentSemiring,
         PolynomialSemiring,
         ProvenanceSemiring,
+        QuantumCliffordSemiring,
         QuotientMonoidAlgebraSemiring,
         ReliabilitySemiring,
+        SecondMomentSemiring,
+        SkewnessSemiring,
         StandardSemiring,
+        StatisticalMomentSemiring,
         StringSemiring,
         TropicalSemiring,
         VarianceSemiring,
@@ -194,6 +206,34 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
         'Log': (LogSemiring(), [float('-inf'), 0.0, -1.2, -0.5, -3.0]),
         'Expectation': (ExpectationSemiring(), [(0.0, 0.0), (1.0, 0.0), (0.5, 1.5), (0.8, 2.0)]),
         'Variance': (VarianceSemiring(), [(0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0), (0.5, 1.0, 1.0, 2.0)]),
+        'Skewness': (
+            SkewnessSemiring(),
+            [(0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0), (0.5, 1.0, 2.0, 3.0), (0.8, 0.5, 1.5, 2.5)],
+        ),
+        'SecondMoment': (
+            SecondMomentSemiring(),
+            [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.5, 1.0, 2.0), (0.8, 0.5, 1.5)],
+        ),
+        'Kurtosis': (
+            KurtosisSemiring(),
+            [(0.0, 0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0, 0.0), (0.5, 1.0, 2.0, 3.0, 4.0)],
+        ),
+        'StatisticalMoment': (
+            StatisticalMomentSemiring(order=2),
+            [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.5, 1.0, 2.0), (0.8, 0.5, 1.5)],
+        ),
+        'BinomialConvolution': (
+            BinomialConvolutionSemiring(order=2),
+            [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.5, 1.0, 2.0), (0.8, 0.5, 1.5)],
+        ),
+        'MultivariateBinomialConvolution': (
+            MultivariateBinomialConvolutionSemiring(num_vars=2, order=2),
+            [{}, {(0, 0): 1.0}, {(1, 0): 0.5, (0, 1): 1.0}, {(0, 0): 0.5, (1, 1): 0.2}],
+        ),
+        'MultivariateMoment': (
+            MultivariateMomentSemiring(num_vars=2, order=2),
+            [{}, {(0, 0): 1.0}, {(1, 0): 0.5, (0, 1): 1.0}, {(0, 0): 0.5, (1, 1): 0.2}],
+        ),
         'DualNumber': (DualNumberSemiring(), [(0.0, 0.0), (1.0, 0.0), (2.0, 1.0), (3.5, 0.5)]),
         'String': (StringSemiring(), [set(), {''}, {'a'}, {'b'}, {'a', 'b'}]),
         'KCollapsed': (KCollapsedSemiring(k=5), [0, 1, 2, 5]),
@@ -208,6 +248,14 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
         ),
         'Clifford': (CliffordSemiring(3, 0, 0), [{}, {(): 1.0}, {(1,): 2.0}, {(1, 2): 3.0}]),
         'GaloisField': (GaloisFieldSemiring(2), [{}, {0: 1}, {0: 1, 1: 1}]),
+        'GeneralizedClifford': (
+            GeneralizedCliffordSemiring(n_order=3, num_generators=2),
+            [{}, {(0, 0): 1.0 + 0j}, {(1, 0): 1.0 + 0j}, {(0, 1): 2.0 + 0j}, {(1, 1): 1.0 + 0.5j}],
+        ),
+        'QuantumClifford': (
+            QuantumCliffordSemiring(q=0.5, num_generators=2, signatures=(0.0, 0.0)),
+            [{}, {(0, 0): 1.0 + 0j}, {(1, 0): 1.0 + 0j}, {(0, 1): 2.0 + 0j}, {(1, 1): 1.0 + 0.5j}],
+        ),
     }
 
     if semiring_name not in catalog_map:
