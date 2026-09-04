@@ -1,3 +1,13 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.5
+# ---
+
 # %%
 # /// script
 # requires-python = ">=3.10"
@@ -25,8 +35,8 @@
 # 3. **Joint Expectation & Uncertainty Variance Paths (`VarianceSemiring`)**:
 #    Tracks second-order moments to compute expected return $E[X] = m_1 / p$
 #    and path return variance $\\text{Var}(X) = (m_2 / p) - (E[X])^2$.
-
 # %%
+
 from typing import Any
 
 import algebrax as ax
@@ -87,7 +97,7 @@ def evaluate_portfolio_path_variance(
 # ## Step 2: Systemic Risk Asset Centrality (`eigen_centrality`)
 #
 # ## Step 3: Multi-Step Return Expectation & Variance (`VarianceSemiring`)
-
+# %%
 
 def run_demo() -> None:
     """Run interactive portfolio risk and trade state machine demonstrations."""
@@ -132,6 +142,17 @@ def run_demo() -> None:
     print(f'Expected Return E[X]: {risk_res["mean"]:.2f}%')
     print(f'Return Variance Var(X): {risk_res["variance"]:.2f} (%^2)')
     print(f'Volatility StdDev sigma: {risk_res["volatility"]:.2f}%')
+
+    # Rich Semiring Card Inspection (AMDS LaTeX signature & properties)
+    var_semiring = ax.semiring.VarianceSemiring()
+    card_html = ax.display.semiring_card(var_semiring)
+    print(f'\n[Semiring Card Preview for Jupyter/HTML]:\n{card_html[:150]}...')
+    try:
+        from IPython.display import HTML, display  # type: ignore[import-untyped]
+
+        display(HTML(card_html))
+    except ImportError:
+        pass
 
 
 def main() -> None:

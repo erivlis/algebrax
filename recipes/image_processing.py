@@ -159,6 +159,16 @@ dilated_result = ax.transforms.convolve(
 print_sparse_image_2d(dilated_result, 'Morphological Dilation Output (Max-Plus)')
 print(f'Expanded active pixel count: {len(dilated_result)} (vs original {len(synthetic_image)})')
 
+# Inspect ArcticSemiring algebraic signature & operational properties via semiring_card
+arctic_semiring = ax.semiring.ArcticSemiring()
+card_html = ax.display.semiring_card(arctic_semiring)
+try:
+    from IPython.display import HTML, display  # type: ignore[import-untyped]
+
+    display(HTML(card_html))
+except ImportError:
+    pass
+
 # %% [markdown]
 # ## Step 4: Real Image File Ingestion & Sharpening (Pillow Integration)
 
