@@ -26,9 +26,18 @@ def kleisli_compose(
     g: SparseMatrix[V, T_Coeff],
     semiring: Semiring[T_Coeff] | type[Semiring[T_Coeff]] | None = None,
 ) -> SparseMatrix[K, T_Coeff]:
-    """
-    Compose effectful monadic morphisms f: K -> T(V) and g: V -> T(W)
-    using Kleisli matrix composition (g o_T f) over the monad's semiring.
+    r"""Compose effectful monadic morphisms $f: K \to T(V)$ and $g: V \to T(W)$.
+
+    Algebraic Signature:
+        $f: A \to T(B), \quad g: B \to T(C) \implies g \circ_T f: A \to T(C) \quad \text{in} \quad \mathbf{Kl}(T)$
+
+    Composition Law (Kleisli Fish Operator):
+        $(g \circ_T f)(x) = \mu_C(T(g)(f(x)))$
+
+    Monad Laws:
+        - Left Identity: $\eta_B \circ_T f = f$
+        - Right Identity: $f \circ_T \eta_A = f$
+        - Associativity: $(h \circ_T g) \circ_T f = h \circ_T (g \circ_T f)$
 
     Args:
         f: First monadic matrix morphism.
@@ -54,8 +63,10 @@ def kan_extension_left(
     functor_f: SparseMatrix[V, W],
     semiring: Semiring | type[Semiring] | None = None,
 ) -> SparseMatrix[K, W]:
-    """
-    Compute Left Kan Extension Lan_P F over sparse categories.
+    r"""Compute Left Kan Extension $\mathrm{Lan}_P F$ over sparse categories.
+
+    Algebraic Signature:
+        $\mathrm{Lan}_P F(c) \cong \mathrm{colim}_{(P(d) \to c)} F(d)$
 
     Args:
         functor_p: Sparse matrix functor P.

@@ -6,10 +6,26 @@ from algebrax.semiring._base import Semiring
 
 
 class BooleanSemiring(Semiring[bool]):
-    """
-    The Boolean algebra.
-    ({T, F}, OR, AND, F, T)
-    Used for: Reachability, Transitive Closure.
+    r"""The Boolean algebra semiring for reachability and connectivity.
+
+    Algebraic Signature:
+        $\langle \{0, 1\}, \lor, \land, 0, 1 \rangle$
+
+    Carrier:
+        `bool` (`True` or `False`).
+
+    Operations:
+        - Addition ($\oplus$): Logical Disjunction $a \lor b$
+        - Multiplication ($\otimes$): Logical Conjunction $a \land b$
+        - Zero Element ($\mathbb{0}$): `False`
+        - One Element ($\mathbb{1}$): `True`
+
+    Properties:
+        Fully Idempotent, Distributive Lattice, Boolean Algebra, Dioid.
+
+    Applications:
+        Graph reachability, transitive closure (Warshall's algorithm), cycle detection,
+        unweighted path connectivity.
     """
 
     @property
@@ -44,10 +60,25 @@ class BooleanSemiring(Semiring[bool]):
 
 
 class LukasiewiczSemiring(Semiring[float]):
-    """
-    The Lukasiewicz algebra (Multi-valued Logic).
-    ([0, 1], max, max(0, a+b-1), 0, 1)
-    Used for: Fuzzy Logic.
+    r"""The Łukasiewicz multi-valued logic semiring (t-norm algebra).
+
+    Algebraic Signature:
+        $\langle [0, 1], \max, \otimes_{\mathrm{Luk}}, 0, 1 \rangle$
+
+    Carrier:
+        `float` in unit interval $[0, 1]$.
+
+    Operations:
+        - Addition ($\oplus$): $\max(a, b)$
+        - Multiplication ($\otimes$): Łukasiewicz t-norm $a \otimes_{\mathrm{Luk}} b = \max(0.0, a + b - 1.0)$.
+        - Zero Element ($\mathbb{0}$): $0.0$
+        - One Element ($\mathbb{1}$): $1.0$
+
+    Properties:
+        MV-Algebra, Commutative, Idempotent addition, Nilpotent t-norm.
+
+    Applications:
+        Fuzzy reasoning, continuous logic, soft constraint satisfaction, degree-of-truth networks.
     """
 
     @property
@@ -82,24 +113,26 @@ class LukasiewiczSemiring(Semiring[float]):
 
 
 class DigitalSemiring(Semiring[float | int]):
-    """
-    The Digital Semiring (W, (+), (*)).
-    W = N U {inf}.
-    (a) = sum of digits of a.
+    r"""The Digital Semiring based on digit-sum dominance.
 
-    Addition (+):
-        If (a) > (b), return a.
-        If (a) < (b), return b.
-        If (a) == (b), return max(a, b).
-        Identity: 0.
+    Algebraic Signature:
+        $\langle \mathbb{N}_0 \cup \{\infty\}, \oplus_{\mathrm{dig}}, \otimes_{\mathrm{dig}}, 0, \infty \rangle$
 
-    Multiplication (*):
-        If (a) < (b), return a.
-        If (a) > (b), return b.
-        If (a) == (b), return min(a, b).
-        Identity: inf.
+    Carrier:
+        `float | int` (non-negative integers extended with `float('inf')`).
 
-    Used for: Post-Quantum Cryptography (Huang et al., 2024).
+    Operations:
+        - Addition ($\oplus$): Dominant digit sum, ties broken by $\max(a, b)$
+        - Multiplication ($\otimes$): Recessive digit sum, ties broken by $\min(a, b)$
+        - Zero Element ($\mathbb{0}$): $0$
+        - One Element ($\mathbb{1}$): $\infty$
+
+    Properties:
+        Idempotent addition and multiplication, Dioid, Selective.
+
+    Applications:
+        Digit-sum complexity analysis, non-standard digital signal networks, arithmetic encoding,
+        post-quantum cryptography (Huang et al., 2024).
     """
 
     @property

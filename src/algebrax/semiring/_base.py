@@ -1,5 +1,5 @@
 from functools import cache
-from typing import Protocol, TypeVar
+from typing import Any, Protocol, TypeVar
 
 V = TypeVar('V')
 
@@ -75,6 +75,30 @@ class Semiring(Protocol[V]):
         star(a) = 1 + a + a^2 + ...
         """
         ...
+
+    def _repr_latex_(self) -> str:
+        """Return LaTeX representation for rich display in Jupyter Notebooks."""
+        from algebrax.display import extract_algebraic_signature
+
+        sig = extract_algebraic_signature(self)
+        return f'$${sig}$$' if sig else ''
+
+    def _repr_html_(self) -> str:
+        """Return HTML representation for rich display in Jupyter Notebooks."""
+        from algebrax.display import semiring_card
+
+        return semiring_card(self)
+
+    @staticmethod
+    @cache
+    def registry() -> dict[str, Any]:
+        """
+        Return a registry of all built-in semirings with parsed AMDS metadata.
+        """
+        from algebrax.display import get_algebraic_metadata
+
+        cat = Semiring.catalog()
+        return {name: get_algebraic_metadata(cls) for name, cls in cat.items()}
 
     @staticmethod
     @cache

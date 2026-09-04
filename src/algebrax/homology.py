@@ -24,8 +24,27 @@ __all__ = [
 
 
 class SparseChainComplex:
-    """
-    A sequence space C_k and sparse boundary matrices D_k satisfying D_{k-1} o D_k = 0.
+    r"""A sequence space $C_k$ and sparse boundary matrices $D_k$ satisfying $D_{k-1} \circ D_k = 0$.
+
+    Algebraic Signature:
+        $\cdots \xrightarrow{\partial_{k+1}} C_k \xrightarrow{\partial_k} C_{k-1} \xrightarrow{\partial_{k-1}} \cdots$
+
+    Nilpotency:
+        $\partial_{k-1} \circ \partial_k = 0$
+
+    Carrier:
+        `dict[int, SparseMatrix]` (Mapping dimension $k$ to sparse matrix $D_k$).
+
+    Operations:
+        - Boundary Operator ($\partial_k$): Maps $k$-chains to $(k-1)$-chains.
+        - Hodge Laplacian ($\Delta_k$): $\Delta_k = D_{k+1} D_{k+1}^T + D_k^T D_k$.
+        - Nilpotency Verification: $D_{k-1} \circ D_k = 0$.
+
+    Properties:
+        Nilpotent boundary differential $\partial^2 = 0$, graded chain complex over vector spaces or modules.
+
+    Applications:
+        Topological data analysis, Hodge theory, discrete exterior calculus, cycle detection.
 
     Attributes:
         boundary_matrices: Dictionary mapping dimension k to sparse boundary matrix D_k.
@@ -153,9 +172,24 @@ def _matrix_rank(matrix: SparseMatrix) -> int:
 
 
 class SimplicialComplex(SparseChainComplex):
-    """
-    A Simplicial Complex built on SparseChainComplex.
-    Stores k-simplices as sorted tuples of node indices.
+    r"""Abstract simplicial complex with sparse boundary operators and homology.
+
+    Algebraic Signature:
+        $\cdots \xrightarrow{\partial_{k+1}} C_k \xrightarrow{\partial_k} C_{k-1} \xrightarrow{\partial_{k-1}} \cdots$
+
+    Carrier:
+        `dict[int, set[tuple[int, ...]]]` (Mapping dimension $k$ to ordered simplex vertex tuples).
+
+    Operations:
+        - Face Addition: Adds a simplex and closes downwards under sub-faces.
+        - Boundary Maps: Generates oriented boundary matrices $D_k$.
+        - Betti Numbers ($\beta_k$): $\beta_k = \dim(\ker \partial_k) - \mathrm{rank}(\partial_{k+1})$.
+
+    Properties:
+        Abstract simplicial closure: $\sigma \in K, \tau \subseteq \sigma \implies \tau \in K$.
+
+    Applications:
+        Topological Data Analysis (TDA), persistent homology, sensor coverage, shape analysis.
     """
 
     def __init__(self, simplices: Iterable[tuple[int, ...]] | None = None):

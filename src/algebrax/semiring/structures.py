@@ -6,11 +6,25 @@ from algebrax.semiring._base import Semiring
 
 
 class StringSemiring(Semiring[set[str]]):
-    """
-    The Formal Language algebra.
-    (P(Sigma*), Union, Concatenation, {}, {""})
-    Used for: Regular Expressions, Path Languages.
-    Values are Sets of Strings.
+    r"""The Formal Language semiring over sets of strings.
+
+    Algebraic Signature:
+        $\langle \mathcal{P}(\Sigma^*), \cup, \cdot, \emptyset, \{\epsilon\} \rangle$
+
+    Carrier:
+        `set[str]` (Subsets of strings over an alphabet $\Sigma^*$).
+
+    Operations:
+        - Addition ($\cup$): Set union $A \cup B$.
+        - Multiplication ($\cdot$): Language concatenation $\{u v \mid u \in A, v \in B\}$.
+        - Zero Element ($\mathbb{0}$): $\emptyset$ (`set()`).
+        - One Element ($\mathbb{1}$): $\{\epsilon\}$ (`{""}`).
+
+    Properties:
+        Idempotent addition, non-commutative multiplication in general, distributive.
+
+    Applications:
+        Formal language theory, regular expression equivalence, path language enumeration in state machines.
     """
 
     @property
@@ -57,10 +71,25 @@ class StringSemiring(Semiring[set[str]]):
 
 
 class KCollapsedSemiring(Semiring[int]):
-    """
-    The K-Collapsed Natural Numbers.
-    Values are integers in [0, K].
-    Used for: Bounded counting, cycle detection.
+    r"""The $K$-Collapsed Bounded Counting Semiring.
+
+    Algebraic Signature:
+        $\langle \{0, 1, \dots, K\}, \min(K, a+b), \min(K, a \cdot b), 0, 1 \rangle$
+
+    Carrier:
+        `int` (Bounded non-negative integers in range $[0, K]$).
+
+    Operations:
+        - Addition ($\oplus$): Saturated sum $\min(K, a + b)$.
+        - Multiplication ($\otimes$): Saturated product $\min(K, a \cdot b)$.
+        - Zero Element ($\mathbb{0}$): $0$.
+        - One Element ($\mathbb{1}$): $1$.
+
+    Properties:
+        Commutative, associative, saturated arithmetic with absorption at $K$.
+
+    Applications:
+        Bounded path counting, cycle threshold detection, finite-capacity resource tracking.
     """
 
     def __init__(self, k: int = 1):

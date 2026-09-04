@@ -2,14 +2,19 @@
 Jupyter Notebook Rich Display utilities for algebrax structures.
 """
 
-from typing import Any
+import inspect
+import re
+from typing import Any, NamedTuple
 
 from algebrax.typing import SparseMatrix, SparseVector
 
 __all__ = [
+    'AlgebraicMeta',
     'display_matrix',
     'display_trie',
     'display_vector',
+    'extract_algebraic_signature',
+    'get_algebraic_metadata',
     'semiring_card',
 ]
 
@@ -113,6 +118,57 @@ def display_trie(trie: Any, max_depth: int = 4) -> str:
     return ''.join(html_parts)
 
 
+_SIG_RE = re.compile(r'Algebraic Signature:\s*\n\s*\$(.*?)\$', re.MULTILINE | re.DOTALL)
+
+
+class AlgebraicMeta(NamedTuple):
+    """Structured algebraic metadata extracted from a mathematical class docstring."""
+
+    name: str
+    target_class: type
+    signature: str
+    summary: str
+    docstring: str
+
+
+def extract_algebraic_signature(cls_or_inst: Any) -> str | None:
+    """
+    Extract raw LaTeX algebraic signature from an object's docstring.
+
+    Args:
+        cls_or_inst: A class or instance following the AMDS docstring standard.
+
+    Returns:
+        The raw LaTeX formula string (without enclosing $), or None if not found.
+    """
+    doc = inspect.getdoc(cls_or_inst) or ''
+    match = _SIG_RE.search(doc)
+    return match.group(1).strip() if match else None
+
+
+def get_algebraic_metadata(cls_or_inst: Any) -> AlgebraicMeta:
+    """
+    Return structured metadata extracted directly from class docstring.
+
+    Args:
+        cls_or_inst: A class or instance following the AMDS docstring standard.
+
+    Returns:
+        An AlgebraicMeta namedtuple.
+    """
+    cls = cls_or_inst if isinstance(cls_or_inst, type) else type(cls_or_inst)
+    doc = inspect.getdoc(cls) or ''
+    sig = extract_algebraic_signature(cls) or r'\text{N/A}'
+    summary = doc.split('\n')[0].strip() if doc else cls.__name__
+    return AlgebraicMeta(
+        name=cls.__name__,
+        target_class=cls,
+        signature=sig,
+        summary=summary,
+        docstring=doc,
+    )
+
+
 def semiring_card(semiring: Any) -> str:
     """
     Return HTML card summarizing a semiring's properties for Jupyter Notebooks.
@@ -123,22 +179,31 @@ def semiring_card(semiring: Any) -> str:
     Returns:
         HTML string representation of the semiring card.
     """
-    name = getattr(semiring, '__class__', type(semiring)).__name__
-    doc = getattr(semiring, '__doc__', '') or ''
-    first_doc = doc.strip().split('\n')[0] if doc else 'Algebraic Semiring structure.'
+    meta = get_algebraic_metadata(semiring)
     zero_val = getattr(semiring, 'zero', 'N/A')
     one_val = getattr(semiring, 'one', 'N/A')
 
+    math_block = ''
+    if meta.signature != r'\text{N/A}':
+        math_block = (
+            f"<div style='margin: 8px 0 12px 0; padding: 6px 12px; background: #e2e8f0; "
+            f'border-radius: 6px; font-size: 15px; text-align: center; color: #0f172a; '
+            f"box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);'>"
+            f'$${meta.signature}$$'
+            f'</div>'
+        )
+
     card = (
-        f"<div style='border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; "
-        f'font-family: system-ui, -apple-system, sans-serif; max-width: 480px; '
+        f"<div style='border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; "
+        f'font-family: system-ui, -apple-system, sans-serif; max-width: 520px; '
         f"background-color: #f8fafc; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>"
-        f"<div style='font-size: 16px; font-weight: bold; color: #0f172a; margin-bottom: 4px;'>{name}</div>"
-        f"<div style='font-size: 13px; color: #475569; margin-bottom: 12px;'>{first_doc}</div>"
+        f"<div style='font-size: 16px; font-weight: bold; color: #0f172a;'>{meta.name}</div>"
+        f"<div style='font-size: 13px; color: #475569; margin-top: 2px;'>{meta.summary}</div>"
+        f'{math_block}'
         f"<table style='width: 100%; border-collapse: collapse; font-family: monospace; font-size: 13px;'>"
-        f"<tr><td style='color: #64748b; padding: 2px 0;'>Identity &oplus; (zero):</td>"
+        f"<tr><td style='color: #64748b; padding: 3px 0;'>Identity &oplus; (zero):</td>"
         f"<td style='font-weight: bold; color: #0369a1;'><code>{zero_val}</code></td></tr>"
-        f"<tr><td style='color: #64748b; padding: 2px 0;'>Identity &otimes; (one):</td>"
+        f"<tr><td style='color: #64748b; padding: 3px 0;'>Identity &otimes; (one):</td>"
         f"<td style='font-weight: bold; color: #15803d;'><code>{one_val}</code></td></tr>"
         f'</table>'
         f'</div>'

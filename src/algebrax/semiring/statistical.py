@@ -13,11 +13,25 @@ from algebrax.semiring.algebraic import (
 
 
 class LogSemiring(Semiring[float]):
-    """
-    The Log-Sum-Exp algebra.
-    (R U {-inf}, logaddexp, +, -inf, 0)
-    Used for: Probabilistic inference in log-domain (avoids underflow).
-    Values represent log-probabilities.
+    r"""The Log-Sum-Exp semiring over the extended real numbers.
+
+    Algebraic Signature:
+        $\langle \mathbb{R} \cup \{-\infty\}, \oplus_{\log}, +, -\infty, 0.0 \rangle$
+
+    Carrier:
+        `float` (Real numbers extended with $-\infty$, representing log-probabilities $\ln(p)$).
+
+    Operations:
+        - Addition ($\oplus_{\log}$): Log-sum-exp, $\ln(e^a + e^b) = \max(a, b) + \ln(1 + e^{-|a - b|})$.
+        - Multiplication ($\otimes$): Standard addition, $a + b$ (representing $e^a \cdot e^b = e^{a+b}$).
+        - Zero Element ($\mathbb{0}$): $-\infty$ (`float('-inf')`).
+        - One Element ($\mathbb{1}$): $0.0$.
+
+    Properties:
+        Commutative, associative, distributed, idempotent under zero.
+
+    Applications:
+        Numerically stable probabilistic inference, Hidden Markov Models, Forward-Backward algorithm.
     """
 
     @property
@@ -63,29 +77,48 @@ class LogSemiring(Semiring[float]):
 
 
 class ExpectationSemiring(DualNumberSemiring):
-    """
-    The First-Order Expectation Semiring (Eisner, 2002).
-    Domain alias for DualNumberSemiring used in probabilistic modeling,
-    weighted finite-state transducers, and Hidden Markov Models.
+    r"""The First-Order Expectation Semiring (Eisner, 2002).
 
-    Values are pairs (p, v) where:
-    - p: Path probability (total probability mass Z)
-    - v: Feature reward / expectation contribution (v = p * w)
+    Algebraic Signature:
+        $\langle \mathbb{R}_{\ge 0} \times \mathbb{R}, \oplus, \otimes, (0.0, 0.0), (1.0, 0.0) \rangle$
+
+    Carrier:
+        `tuple[float, float]` (Pair $(p, v)$ where $p$ is probability mass and $v = p \cdot w$).
+
+    Operations:
+        - Addition ($\oplus$): Componentwise addition $(p_1 + p_2, v_1 + v_2)$.
+        - Multiplication ($\otimes$): Semiring convolution $(p_1 p_2, p_1 v_2 + p_2 v_1)$ isomorphic to dual numbers.
+        - Zero Element ($\mathbb{0}$): $(0.0, 0.0)$.
+        - One Element ($\mathbb{1}$): $(1.0, 0.0)$.
+
+    Properties:
+        Commutative, associative, isomorphic to $\mathbb{R}[\varepsilon]/(\varepsilon^2)$.
+
+    Applications:
+        Expectation tracking in weighted automata, speech recognition, NLP parsers.
     """
 
 
 class BivariateVarianceSemiring(Semiring[tuple[float, float, float, float]]):
-    """
-    The Bivariate Second-Order Expectation / Covariance Semiring (Li & Eisner, 2009).
-    Values are 4-tuples (p, r, s, t) corresponding to R[ε1, ε2] / (ε1^2, ε2^2).
-    Used for: Computing Bivariate Covariances, Hessians, and joint second central moments of 2 variables.
+    r"""The Bivariate Second-Order Expectation and Covariance Semiring (Li & Eisner, 2009).
 
-    - p: Total probability (Z)
-    - r: First moment along feature X (E[X] * Z)
-    - s: First moment along feature Y (E[Y] * Z)
-    - t: Second raw cross-moment (E[XY] * Z)
+    Algebraic Signature:
+        $\langle \mathbb{R}^4_{\mathrm{cov}}, \oplus, \otimes, \mathbf{0}, \mathbf{1} \rangle$
 
-    Cov(X, Y) = (t/p) - (r/p)*(s/p).
+    Carrier:
+        `tuple[float, float, float, float]` (4-tuple $(p, r, s, t)$ representing $p$, moments $r, s$, and $t$).
+
+    Operations:
+        - Addition ($\oplus$): Componentwise addition $(p_1+p_2, r_1+r_2, s_1+s_2, t_1+t_2)$.
+        - Multiplication ($\otimes$): Cross-product convolution in $\mathbb{R}[\varepsilon_1, \varepsilon_2]/I$.
+        - Zero Element ($\mathbb{0}$): $(0.0, 0.0, 0.0, 0.0)$.
+        - One Element ($\mathbb{1}$): $(1.0, 0.0, 0.0, 0.0)$.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to $\mathbb{R}[\varepsilon_1, \varepsilon_2]/I$.
+
+    Applications:
+        Bivariate covariances, Hessians, joint second central moments of two random variables.
     """
 
     @property
@@ -146,9 +179,25 @@ BivariateCovarianceSemiring = BivariateVarianceSemiring
 
 
 class StatisticalMomentSemiring(BinomialConvolutionSemiring):
-    """
-    1D Statistical moment semiring with central moments, mean, variance, skewness, kurtosis.
-    Subclasses BinomialConvolutionSemiring to provide statistical metric decoders.
+    r"""Univariate arbitrary-order statistical moment semiring.
+
+    Algebraic Signature:
+        $\langle \mathbb{R}^{K+1}, \oplus, \otimes_{\mathrm{binom}}, \mathbf{0}, \mathbf{e}_0 \rangle$
+
+    Carrier:
+        `tuple[float, ...]` ($(K+1)$-tuple of raw unnormalized moments $(m_0, m_1, \dots, m_K)$).
+
+    Operations:
+        - Addition ($\oplus$): Elementwise vector addition $(m + m')_k = m_k + m'_k$.
+        - Multiplication ($\otimes$): Binomial convolution $(m \otimes m')_k = \sum_{j=0}^k \binom{k}{j} m_j m'_{k-j}$.
+        - Zero Element ($\mathbb{0}$): $(0.0, \dots, 0.0)$.
+        - One Element ($\mathbb{1}$): $(1.0, 0.0, \dots, 0.0)$.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to $\mathbb{R}[\varepsilon]/(\varepsilon^{K+1})$.
+
+    Applications:
+        Statistical moments, mean, variance, skewness, kurtosis, and forward-mode autodiff.
     """
 
     def raw_moments(self, m: tuple[float, ...]) -> list[float]:
@@ -195,16 +244,25 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
 
 
 class VarianceSemiring(StatisticalMomentSemiring):
-    """
-    Univariate 2nd-order moment and variance semiring over R[ε]/(ε^3).
-    Values are 3-tuples (p, m1, m2) representing:
-    - p: Total probability mass (Z = sum p_i)
-    - m1: First raw moment (sum p_i x_i = E[X] * Z)
-    - m2: Second raw moment (sum p_i x_i^2 = E[X^2] * Z)
+    r"""Univariate second-order moment and variance semiring.
 
-    Statistical metrics:
-    - Mean: mu = m1 / p
-    - Variance: var = (m2 / p) - mu^2
+    Algebraic Signature:
+        $\langle \mathbb{R}^3_{\mathrm{var}}, \oplus, \otimes_{\mathrm{binom}}, \mathbf{0}, \mathbf{e}_0 \rangle$
+
+    Carrier:
+        `tuple[float, float, float]` (3-tuple $(p, m_1, m_2)$ of total probability, first, and second raw moments).
+
+    Operations:
+        - Addition ($\oplus$): Elementwise addition $(p_1+p_2, m_{1,1}+m_{1,2}, m_{2,1}+m_{2,2})$.
+        - Multiplication ($\otimes$): Binomial convolution over order 2.
+        - Zero Element ($\mathbb{0}$): $(0.0, 0.0, 0.0)$.
+        - One Element ($\mathbb{1}$): $(1.0, 0.0, 0.0)$.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to $\mathbb{R}[\varepsilon]/(\varepsilon^3)$.
+
+    Applications:
+        Path variance tracking, risk-sensitive routing, portfolio variance in DAGs.
     """
 
     def __init__(self) -> None:
@@ -212,19 +270,25 @@ class VarianceSemiring(StatisticalMomentSemiring):
 
 
 class SkewnessSemiring(StatisticalMomentSemiring):
-    """
-    Univariate 3rd-order moment and skewness semiring over R[ε]/(ε^4).
-    Values are 4-tuples (p, m1, m2, m3) representing:
-    - p: Total probability mass (Z = sum p_i)
-    - m1: First raw moment (sum p_i x_i = E[X] * Z)
-    - m2: Second raw moment (sum p_i x_i^2 = E[X^2] * Z)
-    - m3: Third raw moment (sum p_i x_i^3 = E[X^3] * Z)
+    r"""Univariate third-order moment and skewness semiring.
 
-    Statistical metrics:
-    - Mean: mu = m1 / p
-    - Variance: var = (m2 / p) - mu^2
-    - Third Central Moment: mu3 = (m3 / p) - 3*mu*(m2 / p) + 2*mu^3
-    - Skewness: gamma1 = mu3 / (var^1.5)
+    Algebraic Signature:
+        $\langle \mathbb{R}^4_{\mathrm{skew}}, \oplus, \otimes_{\mathrm{binom}}, \mathbf{0}, \mathbf{e}_0 \rangle$
+
+    Carrier:
+        `tuple[float, float, float, float]` (4-tuple $(p, m_1, m_2, m_3)$ of probability and moments up to order 3).
+
+    Operations:
+        - Addition ($\oplus$): Elementwise addition.
+        - Multiplication ($\otimes$): Binomial convolution over order 3.
+        - Zero Element ($\mathbb{0}$): $(0.0, 0.0, 0.0, 0.0)$.
+        - One Element ($\mathbb{1}$): $(1.0, 0.0, 0.0, 0.0)$.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to $\mathbb{R}[\varepsilon]/(\varepsilon^4)$.
+
+    Applications:
+        Asymmetry analysis, third central moment tracking, tail-risk assessment in networks.
     """
 
     def __init__(self) -> None:
@@ -232,14 +296,52 @@ class SkewnessSemiring(StatisticalMomentSemiring):
 
 
 class KurtosisSemiring(StatisticalMomentSemiring):
-    """Univariate 4th-order moment semiring (order=4). Carrier is 5-tuple (p, m1, m2, m3, m4)."""
+    r"""Univariate fourth-order moment and kurtosis semiring.
+
+    Algebraic Signature:
+        $\langle \mathbb{R}^5_{\mathrm{kurt}}, \oplus, \otimes_{\mathrm{binom}}, \mathbf{0}, \mathbf{e}_0 \rangle$
+
+    Carrier:
+        `tuple[float, float, float, float, float]` (5-tuple $(p, m_1, m_2, m_3, m_4)$ of moments up to order 4).
+
+    Operations:
+        - Addition ($\oplus$): Elementwise addition.
+        - Multiplication ($\otimes$): Binomial convolution over order 4.
+        - Zero Element ($\mathbb{0}$): $(0.0, 0.0, 0.0, 0.0, 0.0)$.
+        - One Element ($\mathbb{1}$): $(1.0, 0.0, 0.0, 0.0, 0.0)$.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to $\mathbb{R}[\varepsilon]/(\varepsilon^5)$.
+
+    Applications:
+        Heavy-tail risk, fourth central moment tracking, kurtosis profiling in stochastic models.
+    """
 
     def __init__(self) -> None:
         super().__init__(order=4)
 
 
 class MultivariateMomentSemiring(MultivariateBinomialConvolutionSemiring):
-    """Multivariate moment semiring with mean vectors, covariance matrices, and Hessians."""
+    r"""Multivariate moment semiring for mean vectors, covariance matrices, and Hessians.
+
+    Algebraic Signature:
+        $\langle \mathbb{R}^M, \oplus, \otimes_{\mathrm{multinom}}, \mathbf{0}, \mathbf{e}_0 \rangle$
+
+    Carrier:
+        `dict[tuple[int, ...], float]` (Sparse map from multi-index $\boldsymbol{\alpha}$ to $m_{\boldsymbol{\alpha}}$).
+
+    Operations:
+        - Addition ($\oplus$): Elementwise dictionary coefficient addition.
+        - Multiplication ($\otimes$): Multinomial convolution over bounded total degree.
+        - Zero Element ($\mathbb{0}$): `{}` (empty mapping).
+        - One Element ($\mathbb{1}$): `{(0, ..., 0): 1.0}`.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to $\mathbb{R}[\boldsymbol{\varepsilon}]/I$.
+
+    Applications:
+        Multivariate mean vectors, joint covariance matrices, multidimensional risk routing.
+    """
 
     def mean_vector(self, m: dict[tuple[int, ...], float]) -> list[float]:
         p = m.get((0,) * self.num_vars, 0.0)

@@ -23,15 +23,24 @@ K = TypeVar('K')
 
 
 class AlgebraicTrie(MutableMapping[tuple[K, ...], V], Generic[K, V]):
-    """
-    A Trie (Prefix Tree) that behaves as a Sparse Tensor over a Semiring.
+    r"""Prefix tree accumulator indexed over monoid sequences with semiring node values.
 
-    Unlike a standard Trie which just stores values, an AlgebraicTrie uses the
-    Semiring's `plus` operation to merge values at the same path, and can
-    perform algebraic contractions (sums) over subtrees.
+    Algebraic Signature:
+        $\mathcal{T}: \Sigma^* \to (S, \oplus, \otimes)$
 
-    This structure can be viewed as an infinite-dimensional sparse tensor where
-    indices are sequences of keys.
+    Carrier:
+        `MutableMapping[tuple[K, ...], V]` (Prefix tree acting as an infinite-dimensional sparse tensor).
+
+    Operations:
+        - Insert / Merge: Value aggregation via semiring addition $\oplus$.
+        - Contraction / Dot: Path convolution via semiring multiplication $\otimes$.
+        - Pruning: Annihilation of zero-identity nodes ($\mathbb{0}$).
+
+    Properties:
+        Associative node value aggregation, prefix tree compression, sparse storage.
+
+    Applications:
+        Compressed n-gram language models, sparse provenance tracking, routing tables.
 
     Args:
         semiring: The Semiring class to use for operations (default: StandardSemiring).

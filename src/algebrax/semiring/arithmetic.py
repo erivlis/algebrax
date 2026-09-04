@@ -12,10 +12,25 @@ T_num = TypeVar('T_num', bound=float | int | complex | Number)
 
 
 class StandardSemiring(Semiring[T_num], Generic[T_num]):
-    """
-    The standard algebra over real numbers, integers, or complex numbers.
-    (R, +, *, 0, 1)
-    Used for: Standard Linear Algebra, Physics.
+    r"""The standard arithmetic semiring (unital ring) over numbers.
+
+    Algebraic Signature:
+        $\langle \mathbb{K}, +, \times, 0, 1 \rangle$
+
+    Carrier:
+        `float`, `int`, `complex`, or numeric types ($\mathbb{K} \in \{\mathbb{R}, \mathbb{Z}, \mathbb{C}\}$).
+
+    Operations:
+        - Addition ($\oplus$): Standard addition $a + b$
+        - Multiplication ($\otimes$): Standard multiplication $a \times b$
+        - Zero Element ($\mathbb{0}$): $0$
+        - One Element ($\mathbb{1}$): $1$
+
+    Properties:
+        Commutative, Associative, Distributive, Ring (supports additive inverses).
+
+    Applications:
+        Classical linear algebra, quantum state amplitudes, numerical simulations.
     """
 
     def __init__(self, dtype: type[T_num] = float) -> None:
@@ -60,10 +75,25 @@ class StandardSemiring(Semiring[T_num], Generic[T_num]):
 
 
 class ModularSemiring(Semiring[int]):
-    """
-    The Modular Integer Ring Z_p.
-    (Z_p, + mod p, * mod p, 0, 1)
-    Used for: Finite Fields, Modular Arithmetic, Cryptography.
+    r"""The modular integer ring $\mathbb{Z}/p\mathbb{Z}$.
+
+    Algebraic Signature:
+        $\langle \mathbb{Z}_p, + \pmod p, \times \pmod p, 0, 1 \rangle$
+
+    Carrier:
+        `int` in residue class $\{0, 1, \dots, p-1\}$.
+
+    Operations:
+        - Addition ($\oplus$): $(a + b) \pmod p$
+        - Multiplication ($\otimes$): $(a \times b) \pmod p$
+        - Zero Element ($\mathbb{0}$): $0$
+        - One Element ($\mathbb{1}$): $1 \pmod p$
+
+    Properties:
+        Commutative, Associative, Finite Ring (Field if $p$ is prime).
+
+    Applications:
+        Modular arithmetic, cyclic groups, finite fields, cryptography.
     """
 
     def __init__(self, p: int = 2):

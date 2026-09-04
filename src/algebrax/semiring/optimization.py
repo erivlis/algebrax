@@ -6,10 +6,26 @@ from algebrax.semiring._base import Semiring
 
 
 class TropicalSemiring(Semiring[float]):
-    """
-    The Min-Plus algebra.
-    (R U {inf}, min, +, inf, 0)
-    Used for: Shortest Path problems (Graph Theory).
+    r"""The Min-Plus semiring for shortest path problems.
+
+    Algebraic Signature:
+        $\langle \mathbb{R} \cup \{+\infty\}, \min, +, +\infty, 0 \rangle$
+
+    Carrier:
+        `float` (real numbers with `float('inf')` as additive identity).
+
+    Operations:
+        - Addition ($\oplus$): $\min(a, b)$
+        - Multiplication ($\otimes$): $a + b$
+        - Zero Element ($\mathbb{0}$): $+\infty$
+        - One Element ($\mathbb{1}$): $0.0$
+
+    Properties:
+        Idempotent, Commutative, Dioid, Path Semiring.
+
+    Applications:
+        Shortest path routing (Dijkstra, Bellman-Ford, Floyd-Warshall),
+        tropical geometry, dynamic programming.
     """
 
     @property
@@ -44,10 +60,25 @@ class TropicalSemiring(Semiring[float]):
 
 
 class ArcticSemiring(Semiring[float]):
-    """
-    The Max-Plus algebra.
-    (R U {-inf}, max, +, -inf, 0)
-    Used for: Longest Path problems, Viterbi decoding in log-domain.
+    r"""The Max-Plus semiring for longest path and scheduling problems.
+
+    Algebraic Signature:
+        $\langle \mathbb{R} \cup \{-\infty\}, \max, +, -\infty, 0 \rangle$
+
+    Carrier:
+        `float` (real numbers with `float('-inf')` as additive identity).
+
+    Operations:
+        - Addition ($\oplus$): $\max(a, b)$
+        - Multiplication ($\otimes$): $a + b$
+        - Zero Element ($\mathbb{0}$): $-\infty$
+        - One Element ($\mathbb{1}$): $0.0$
+
+    Properties:
+        Idempotent, Commutative, Dioid.
+
+    Applications:
+        Longest path routing, critical path method (CPM), Viterbi decoding in log domain.
     """
 
     @property
@@ -82,10 +113,26 @@ class ArcticSemiring(Semiring[float]):
 
 
 class ViterbiSemiring(Semiring[float]):
-    """
-    The Max-Product algebra.
-    ([0, 1], max, *, 0, 1)
-    Used for: Most Likely Path (HMMs).
+    r"""The Max-Product semiring for probabilistic path decoding.
+
+    Algebraic Signature:
+        $\langle [0, 1], \max, \times, 0, 1 \rangle$
+
+    Carrier:
+        `float` in unit interval $[0, 1]$.
+
+    Operations:
+        - Addition ($\oplus$): $\max(a, b)$
+        - Multiplication ($\otimes$): $a \times b$
+        - Zero Element ($\mathbb{0}$): $0.0$
+        - One Element ($\mathbb{1}$): $1.0$
+
+    Properties:
+        Idempotent addition, Commutative, Selective.
+
+    Applications:
+        Most likely state path decoding in Hidden Markov Models (Viterbi algorithm),
+        probabilistic parsing, maximum a posteriori (MAP) estimation.
     """
 
     @property
@@ -118,17 +165,49 @@ class ViterbiSemiring(Semiring[float]):
 
 
 class ReliabilitySemiring(ViterbiSemiring):
-    """
-    Alias for ViterbiSemiring.
-    Used for: Reliability analysis (max probability path).
+    r"""The Reliability semiring for maximum-probability path analysis.
+
+    Algebraic Signature:
+        $\langle [0, 1], \max, \times, 0, 1 \rangle$
+
+    Carrier:
+        `float` in unit interval $[0, 1]$ representing component survival probabilities.
+
+    Operations:
+        - Addition ($\oplus$): $\max(a, b)$
+        - Multiplication ($\otimes$): $a \times b$
+        - Zero Element ($\mathbb{0}$): $0.0$
+        - One Element ($\mathbb{1}$): $1.0$
+
+    Properties:
+        Idempotent addition, Commutative, Isomorphic to ViterbiSemiring.
+
+    Applications:
+        Network link reliability, redundant system survival probability, fault tolerance.
     """
 
 
 class BottleneckSemiring(Semiring[float]):
-    """
-    The Max-Min algebra.
-    (R, max, min, -inf, +inf)
-    Used for: Maximum Capacity Path (Widest Path).
+    r"""The Max-Min (capacity / widest-path) semiring.
+
+    Algebraic Signature:
+        $\langle \mathbb{R} \cup \{\pm\infty\}, \max, \min, -\infty, +\infty \rangle$
+
+    Carrier:
+        `float` (real numbers extended with $\pm\infty$ as bounds).
+
+    Operations:
+        - Addition ($\oplus$): $\max(a, b)$
+        - Multiplication ($\otimes$): $\min(a, b)$
+        - Zero Element ($\mathbb{0}$): $-\infty$
+        - One Element ($\mathbb{1}$): $+\infty$
+
+    Properties:
+        Fully Idempotent (Distributive Lattice), Dioid, Commutative.
+
+    Applications:
+        Maximum capacity path (widest path problem), network bandwidth allocation,
+        minimax routing.
     """
 
     @property
@@ -163,10 +242,25 @@ class BottleneckSemiring(Semiring[float]):
 
 
 class MinTimesSemiring(Semiring[float]):
-    """
-    The Min-Times algebra.
-    (R U {inf}, min, *, inf, 1)
-    Used for: Finding the least probable path.
+    r"""The Min-Times semiring for least-probable and multiplicative cost paths.
+
+    Algebraic Signature:
+        $\langle \mathbb{R} \cup \{+\infty\}, \min, \times, +\infty, 1 \rangle$
+
+    Carrier:
+        `float` (non-negative real numbers with $+\infty$ as additive identity).
+
+    Operations:
+        - Addition ($\oplus$): $\min(a, b)$
+        - Multiplication ($\otimes$): $a \times b$
+        - Zero Element ($\mathbb{0}$): $+\infty$
+        - One Element ($\mathbb{1}$): $1.0$
+
+    Properties:
+        Idempotent addition, Commutative multiplication.
+
+    Applications:
+        Least-probable path search, vulnerability analysis, multiplicative failure risk.
     """
 
     @property

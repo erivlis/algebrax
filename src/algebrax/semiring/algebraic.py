@@ -17,15 +17,25 @@ T = TypeVar('T', bound=float | int | complex)
 
 
 class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Generic[K, T]):
-    """
-    The Monoid Algebra Semiring R[M] over a generic coefficient semiring R and monoid M.
-    Values are formal linear combinations sum_{m in M} a_m m, represented as sparse mappings
-    from key (monoid element m) to coefficient (a_m in R).
+    r"""The Monoid Algebra Semiring $R[M]$ over coefficient semiring $R$ and monoid $M$.
 
-    - Addition: Elementwise coefficient addition in R.
-    - Multiplication: Convolution using monoid multiplication (key_op) and coefficient multiplication in R.
-    - Additive Identity (zero): The empty mapping {}.
-    - Multiplicative Identity (one): {zero_key: coeff_semiring.one}.
+    Algebraic Signature:
+        $\langle R[M], +, \ast, \emptyset, \{e_M: 1_R\} \rangle$
+
+    Carrier:
+        `dict[K, T]` (Sparse mapping from monoid elements $m \in M$ to non-zero coefficients $a_m \in R$).
+
+    Operations:
+        - Addition ($+$): Elementwise coefficient addition in $R$.
+        - Multiplication ($\ast$): Algebraic convolution $(a \ast b)_m = \sum_{u \cdot v = m} a_u b_v$.
+        - Zero Element ($\mathbb{0}$): `{}` (empty mapping).
+        - One Element ($\mathbb{1}$): `{e_M: 1_R}` (monoid identity mapped to coefficient one).
+
+    Properties:
+        Associative, distributive; commutative if both $R$ and $M$ are commutative.
+
+    Applications:
+        Polynomial rings, formal power series, group algebras, path algebras, knot invariants.
     """
 
     def __init__(
@@ -99,9 +109,25 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Generic[K, T]):
 
 
 class KnotSemiring(MonoidAlgebraSemiring[str, T], Generic[T]):
-    """
-    The Knot Semiring (Skein Module) over a generic coefficient semiring.
-    Subclass of MonoidAlgebraSemiring where keys are knot strings and multiplication is the connected sum (#).
+    r"""The Knot Semiring (Skein Module algebra) under connected sum.
+
+    Algebraic Signature:
+        $\langle R[\mathcal{K}], +, \#, \emptyset, \{\text{'U'}: 1_R\} \rangle$
+
+    Carrier:
+        `dict[str, T]` (Sparse mapping from prime knot factorization strings to coefficients in $R$).
+
+    Operations:
+        - Addition ($+$): Formal linear combination addition.
+        - Multiplication ($\#$): Knot connected sum (#) combining sorted prime knot components.
+        - Zero Element ($\mathbb{0}$): `{}` (empty mapping).
+        - One Element ($\mathbb{1}$): `{'U': 1_R}` (the unknot 'U').
+
+    Properties:
+        Commutative, associative, monoid algebra over the abelian monoid of knots $(\mathcal{K}, \#, U)$.
+
+    Applications:
+        Topological quantum field theory, knot polynomials, Vassiliev invariants.
     """
 
     @staticmethod
@@ -125,9 +151,25 @@ class KnotSemiring(MonoidAlgebraSemiring[str, T], Generic[T]):
 
 
 class PolynomialSemiring(MonoidAlgebraSemiring[int, T], Generic[T]):
-    """
-    Univariate Polynomial Semiring R[x] over a coefficient semiring R.
-    Specialized subclass of MonoidAlgebraSemiring where keys are non-negative integer exponents (N_0, +).
+    r"""The Univariate Polynomial Semiring $R[x]$ over coefficient semiring $R$.
+
+    Algebraic Signature:
+        $\langle R[x], +, \cdot, \emptyset, \{0: 1_R\} \rangle$
+
+    Carrier:
+        `dict[int, T]` (Sparse mapping from degree $k \in \mathbb{N}_0$ to coefficient $c_k \in R$).
+
+    Operations:
+        - Addition ($+$): Elementwise polynomial addition.
+        - Multiplication ($\cdot$): Cauchy polynomial product $(a \cdot b)_k = \sum_{j=0}^k a_j b_{k-j}$.
+        - Zero Element ($\mathbb{0}$): `{}` (empty mapping).
+        - One Element ($\mathbb{1}$): `{0: 1_R}` ($x^0 = 1$).
+
+    Properties:
+        Associative, distributive; commutative if $R$ is commutative.
+
+    Applications:
+        Generating functions, algebraic combinatorics, spectral graph polynomials.
     """
 
     def __init__(self, coeff_semiring: Semiring[T]):
@@ -135,10 +177,25 @@ class PolynomialSemiring(MonoidAlgebraSemiring[int, T], Generic[T]):
 
 
 class ProvenanceSemiring(MonoidAlgebraSemiring[tuple[str, ...], int]):
-    """
-    The Polynomial Provenance Semiring N[X].
-    Subclass of MonoidAlgebraSemiring where keys are sorted tuples of variable names (monomials)
-    and coefficients are occurrence counts in N.
+    r"""The Polynomial Provenance Semiring $\mathbb{N}[X]$ for data lineage.
+
+    Algebraic Signature:
+        $\langle \mathbb{N}[X], +, \cdot, \emptyset, \{(): 1\} \rangle$
+
+    Carrier:
+        `dict[tuple[str, ...], int]` (Sparse map from lineage variable tuples to counts in $\mathbb{N}$).
+
+    Operations:
+        - Addition ($+$): Alternative provenance pathways (OR / union).
+        - Multiplication ($\cdot$): Joint provenance dependencies (AND / join).
+        - Zero Element ($\mathbb{0}$): `{}` (no provenance).
+        - One Element ($\mathbb{1}$): `{(): 1}` (empty lineage monomial with count 1).
+
+    Properties:
+        Commutative semiring over the free commutative monoid of annotation variables.
+
+    Applications:
+        Database provenance, security tracking, why-provenance, certainty annotations.
     """
 
     @staticmethod
@@ -171,9 +228,25 @@ class ProvenanceSemiring(MonoidAlgebraSemiring[tuple[str, ...], int]):
 
 
 class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T], Generic[K, T]):
-    """
-    The Quotient Monoid Algebra Semiring R[M] / I over a generic coefficient semiring R, monoid M,
-    and a quotient canonical reduction rule `quotient_fn`.
+    r"""The Quotient Monoid Algebra Semiring $R[M] / I$.
+
+    Algebraic Signature:
+        $\langle R[M]/I, +, \ast_{\mathrm{quot}}, \emptyset, \{e_M: 1_R\} \rangle$
+
+    Carrier:
+        `dict[K, T]` (Sparse mapping reduced to canonical basis representatives modulo ideal $I$).
+
+    Operations:
+        - Addition ($+$): Elementwise coefficient addition modulo $I$.
+        - Multiplication ($\ast_{\mathrm{quot}}$): Monoid convolution followed by canonical reduction `quotient_fn`.
+        - Zero Element ($\mathbb{0}$): `{}` (empty mapping).
+        - One Element ($\mathbb{1}$): `{e_M: 1_R}`.
+
+    Properties:
+        Associative quotient algebra; algebraic structure determined by reduction rule.
+
+    Applications:
+        Clifford algebras, truncated polynomials, finite fields, quantum groups.
     """
 
     def __init__(
@@ -255,9 +328,25 @@ def _clifford_blade_mul(
 
 
 class CliffordSemiring(QuotientMonoidAlgebraSemiring[tuple[int, ...], float]):
-    """
-    Clifford Geometric Algebra Cl(p, q, r) Semiring.
-    Values are multivectors represented as dict[tuple[int, ...], float].
+    r"""The Clifford Geometric Algebra $\mathcal{C}\ell(p, q, r)$ Semiring.
+
+    Algebraic Signature:
+        $\langle \mathcal{C}\ell(p, q, r), +, \wedge_{\mathcal{C}\ell}, \emptyset, \{(): 1.0\} \rangle$
+
+    Carrier:
+        `dict[tuple[int, ...], float]` (Sparse multivectors mapping sorted basis blades to real coefficients).
+
+    Operations:
+        - Addition ($+$): Elementwise multivector addition.
+        - Multiplication ($\wedge_{\mathcal{C}\ell}$): Geometric product with basis blade reduction $e_i^2 = +1, -1, 0$.
+        - Zero Element ($\mathbb{0}$): `{}` (empty multivector).
+        - One Element ($\mathbb{1}$): `{(): 1.0}` (scalar unit blade).
+
+    Properties:
+        Associative, non-commutative graded geometric algebra, distributive.
+
+    Applications:
+        Rotations and reflections, computer vision, robotics, relativistic physics.
     """
 
     def __init__(self, p: int = 3, q: int = 0, r: int = 0):
@@ -319,15 +408,26 @@ def _gca_blade_mul(
 
 
 class GeneralizedCliffordSemiring(QuotientMonoidAlgebraSemiring[tuple[int, ...], complex]):
-    """
-    Generalized Clifford Algebra C_n^(m) Semiring (Clock-and-Shift Algebra / Generalized Dirac Algebra).
+    r"""The Generalized Clifford Algebra $C_n^{(m)}$ Semiring (Clock-and-Shift Algebra).
 
-    Generators e_1, ..., e_m satisfy the commutation relation:
-        e_j * e_k = omega * e_k * e_j  (for 1 <= j < k <= m)
-    where omega = exp(2*pi*i / n) is a primitive n-th root of unity, and:
-        e_j^n = alpha_j * 1
+    Algebraic Signature:
+        $\langle C_n^{(m)}, +, \ast_{\mathrm{GCA}}, \emptyset, \{(0, \dots, 0): 1+0j\} \rangle$
 
-    Elements are sparse multivectors mapping exponent multi-indices (k_1, ..., k_m) in Z_n^m to complex coefficients.
+    Carrier:
+        `dict[tuple[int, ...], complex]` (Sparse map from exponent $m$-tuples in $\mathbb{Z}_n^m$ to complex values).
+
+    Operations:
+        - Addition ($+$): Elementwise complex multivector addition.
+        - Multiplication ($\ast_{\mathrm{GCA}}$): Braiding $e_j e_k = \omega e_k e_j$ ($\omega = e^{2\pi i/n}$),
+          $e_j^n = \alpha_j \mathbf{1}$.
+        - Zero Element ($\mathbb{0}$): `{}` (empty mapping).
+        - One Element ($\mathbb{1}$): `{(0, ..., 0): 1+0j}`.
+
+    Properties:
+        Associative, non-commutative, $\mathbb{Z}_n$-graded quotient algebra.
+
+    Applications:
+        Higher-order Weyl-Heisenberg groups, parafermion zero modes, quantum error correction over qudits.
     """
 
     def __init__(
@@ -399,14 +499,26 @@ def _quantum_clifford_blade_mul(
 
 
 class QuantumCliffordSemiring(QuotientMonoidAlgebraSemiring[tuple[int, ...], complex]):
-    """
-    q-Deformed Quantum Clifford Algebra Cl_q(m) Semiring.
+    r"""The $q$-Deformed Quantum Clifford Algebra $\mathcal{C}\ell_q(m)$ Semiring.
 
-    Generators e_1, ..., e_m satisfy the braided commutation relation:
-        e_j * e_k = -q * e_k * e_j  (for 1 <= j < k <= m)
-        e_j^2 = alpha_j * 1
+    Algebraic Signature:
+        $\langle \mathcal{C}\ell_q(m), +, \ast_q, \emptyset, \{(0, \dots, 0): 1+0j\} \rangle$
 
-    When q = 1.0, this recovers standard orthogonal Clifford anticommutation.
+    Carrier:
+        `dict[tuple[int, ...], complex]` (Sparse map from binary multi-indices $\{0, 1\}^m$ to complex amplitudes).
+
+    Operations:
+        - Addition ($+$): Elementwise complex multivector addition.
+        - Multiplication ($\ast_q$): Braided product with $e_j e_k = -q e_k e_j$ ($j < k$)
+          and $e_j^2 = \alpha_j \mathbf{1}$.
+        - Zero Element ($\mathbb{0}$): `{}` (empty multivector).
+        - One Element ($\mathbb{1}$): `{(0, ..., 0): 1+0j}`.
+
+    Properties:
+        Braided, associative, recovers standard Clifford algebra when $q = 1$.
+
+    Applications:
+        Quantum groups, anyonic statistics, topological quantum computing.
     """
 
     def __init__(
@@ -476,9 +588,25 @@ def _gf_poly_mod(
 
 
 class GaloisFieldSemiring(QuotientMonoidAlgebraSemiring[int, int]):
-    """
-    Galois Finite Field GF(p^m) Semiring.
-    Values are field elements represented as sparse polynomial vectors dict[int, int].
+    r"""The Galois Finite Field $\mathrm{GF}(p^m)$ Semiring.
+
+    Algebraic Signature:
+        $\langle \mathrm{GF}(p^m), +, \cdot, \emptyset, \{0: 1\} \rangle$
+
+    Carrier:
+        `dict[int, int]` (Sparse polynomial remainder vectors modulo irreducible polynomial $P(x)$ over $\mathbb{Z}_p$).
+
+    Operations:
+        - Addition ($+$): Elementwise polynomial addition in $\mathbb{Z}_p$.
+        - Multiplication ($\cdot$): Polynomial multiplication reduced modulo irreducible polynomial $P(x)$.
+        - Zero Element ($\mathbb{0}$): `{}` (empty polynomial).
+        - One Element ($\mathbb{1}$): `{0: 1}` ($x^0 = 1$).
+
+    Properties:
+        Commutative finite division ring (field), associative, distributive.
+
+    Applications:
+        Error-correcting codes (Reed-Solomon), cryptography (AES Galois Field), cryptographic hashing.
     """
 
     def __init__(self, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)):
@@ -516,18 +644,25 @@ class GaloisFieldSemiring(QuotientMonoidAlgebraSemiring[int, int]):
 
 
 class DualNumberSemiring(Semiring[tuple[float, float]]):
-    """
-    The Dual Number Semiring (Quotient Ring R[ε]/(ε^2)).
-    Values are pairs (val, der) representing dual numbers a + b*ε where ε^2 = 0.
+    r"""The Dual Number Semiring over the quotient ring $\mathbb{R}[\varepsilon]/(\varepsilon^2)$.
 
-    Algebraic Operations:
-    - Addition: (a1, b1) + (a2, b2) = (a1 + a2, b1 + b2)
-    - Multiplication: (a1, b1) * (a2, b2) = (a1 * a2, a1 * b2 + a2 * b1)  [Leibniz Product Rule]
-    - Zero: (0.0, 0.0)
-    - One: (1.0, 0.0)
+    Algebraic Signature:
+        $\langle \mathbb{R}[\varepsilon]/(\varepsilon^2), +, \cdot, (0.0, 0.0), (1.0, 0.0) \rangle$
 
-    Used for: Forward-Mode Automatic Differentiation, tangent bundle propagation,
-    and first-order gradient accumulation over graphs.
+    Carrier:
+        `tuple[float, float]` (Pair $(a, b)$ representing dual number $a + b\varepsilon$ where $\varepsilon^2 = 0$).
+
+    Operations:
+        - Addition ($+$): Elementwise addition $(a_1 + a_2, b_1 + b_2)$.
+        - Multiplication ($\cdot$): Leibniz product rule $(a_1 a_2, a_1 b_2 + a_2 b_1)$.
+        - Zero Element ($\mathbb{0}$): $(0.0, 0.0)$.
+        - One Element ($\mathbb{1}$): $(1.0, 0.0)$.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to $\mathbb{R}[\varepsilon]/(\varepsilon^2)$.
+
+    Applications:
+        Forward-mode automatic differentiation, tangent bundle accumulation, first-order sensitivity analysis.
     """
 
     @property
@@ -571,14 +706,26 @@ def _get_pascal_table(order: int) -> tuple[tuple[int, ...], ...]:
 
 
 class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
-    """
-    Universal 1D Binomial Convolution Semiring over the Divided Power Quotient Ring R[ε] / (ε^{K+1}).
-    Values are (K+1)-tuples (m_0, m_1, ..., m_K) where m_k represents the k-th raw derivative/moment.
+    r"""Universal 1D Binomial Convolution Semiring over $\mathbb{R}[\varepsilon]/(\varepsilon^{K+1})$.
 
-    - Addition: Component-wise addition.
-    - Multiplication: Binomial convolution (u ⊗ v)_k = sum_{j=0}^k binom(k, j) u_j v_{k-j}.
-    - Zero: (0.0, ..., 0.0) of length K+1.
-    - One: (1.0, 0.0, ..., 0.0) of length K+1.
+    Algebraic Signature:
+        $\langle \mathbb{R}^{K+1}, \oplus, \otimes_{\mathrm{binom}}, \mathbf{0}, \mathbf{e}_0 \rangle$
+
+    Carrier:
+        `tuple[float, ...]` ($(K+1)$-tuple $(m_0, m_1, \dots, m_K)$ of derivatives or unnormalized moments).
+
+    Operations:
+        - Addition ($\oplus$): Elementwise vector addition $(u + v)_k = u_k + v_k$.
+        - Multiplication ($\otimes_{\mathrm{binom}}$): Convolution
+          $(u \otimes v)_k = \sum_{j=0}^k \binom{k}{j} u_j v_{k-j}$.
+        - Zero Element ($\mathbb{0}$): $(0.0, \dots, 0.0)$ of length $K+1$.
+        - One Element ($\mathbb{1}$): $(1.0, 0.0, \dots, 0.0)$ of length $K+1$.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to Divided Power Algebra $\mathbb{R}[\varepsilon]/I$.
+
+    Applications:
+        Arbitrary-order forward-mode automatic differentiation, statistical moment tracking, path variance.
     """
 
     def __init__(self, order: int = 1) -> None:
@@ -676,12 +823,25 @@ def _multivariate_transition(
 
 
 class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], float]]):
-    """
-    Universal Multivariate Binomial Convolution Semiring over the Total Degree Quotient Ring
-    R[ε1, ..., εd] / <ε^β : |β| = K+1>.
+    r"""Multivariate Binomial Convolution Semiring over truncated polynomials.
 
-    Carrier is a sparse dict mapping multi-index tuple alpha in N_0^d (with sum(alpha) <= K)
-    to real coefficient m_alpha.
+    Algebraic Signature:
+        $\langle \mathbb{R}^M, \oplus, \otimes_{\mathrm{multinom}}, \emptyset, \mathbf{1} \rangle$
+
+    Carrier:
+        `dict[tuple[int, ...], float]` (Sparse map from multi-index $\boldsymbol{\alpha}$ to coefficient).
+
+    Operations:
+        - Addition ($\oplus$): Sparse coefficient addition.
+        - Multiplication ($\otimes_{\mathrm{multinom}}$): Multivariate binomial convolution over bounded degree.
+        - Zero Element ($\mathbb{0}$): `{}` (empty mapping).
+        - One Element ($\mathbb{1}$): `{(0, ..., 0): 1.0}`.
+
+    Properties:
+        Commutative, associative, ring quotient isomorphic to truncated polynomial ring in $D$ variables.
+
+    Applications:
+        Multivariate Taylor series, joint moment tensors, gradient and Hessian path tracking.
     """
 
     def __init__(self, num_vars: int = 2, order: int = 1) -> None:
