@@ -83,8 +83,8 @@ Explore the documentation sections:
 * 💡 [**Core Concepts**](concepts.md): Learn the mathematical foundations of Monoids, Groups, Semirings, and Lattices.
 * ⚖️ [**Library Comparison**](comparison.md): Feature matrix and trade-off analysis comparing AlgebraX vs SciPy, NumPy,
   Pandas, NetworkX, and SymPy.
-* 📖 [**Tutorials**](tutorials/semirings/semiring_standard.md): Step-by-step guides for 24 semirings, matrix operations,
-  decompositions, tries, signal transforms, and graph algorithms.
+* 📖 [**User Guide**](guide/semirings/index.md): Comprehensive reference for all built-in semirings, sparse matrices,
+  tensors, simplicial complexes, discrete calculus, and spectral transforms.
 * 🍳 [**Use Cases & Recipes**](recipes.md): Executable real-world scripts, Jupyter notebooks, and the interactive
   DearPyGui laboratory.
 * 📜 [**Enhancement Proposals (EPs)**](eps.md): Architectural designs, roadmap, and technical specs.
