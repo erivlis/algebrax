@@ -24,7 +24,33 @@ To maintain a consistent codebase, we use the following tools for linting and fo
 * **Docstrings**: All public modules, functions, classes, and methods should have a docstring. We follow
   the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) for
   docstring format.
-* **Logging**: Use the `loguru` library for all logging.
+  * **Mathematical Classes (AMDS)**: All algebraic, topological, and categorical classes (semirings, algebras, finite fields,
+    simplicial complexes, and categorical morphisms) must follow the **AlgebraX Mathematical Docstring Standard (AMDS)**.
+    Every mathematical structure class must include:
+    1. A raw docstring (`r"""..."""`) to safely support LaTeX math escape sequences.
+    2. An `Algebraic Signature:` section containing the formal LaTeX signature enclosed in `$ ... $`.
+    3. Canonical sections for `Carrier:` (or `Parameters:`), `Operations:`, `Properties:` (or `Axioms:`), and `Applications:`.
+    Example:
+    ```python
+    class TropicalSemiring(Semiring[float]):
+        r"""The Min-Plus semiring for shortest path problems.
+
+        Algebraic Signature:
+            $\langle \mathbb{R} \cup \{+\infty\}, \min, +, +\infty, 0 \rangle$
+
+        Carrier:
+            `float` (real numbers with `float('inf')` as additive identity).
+
+        Operations:
+            - Addition ($\oplus$): $\min(a, b)$
+            - Multiplication ($\otimes$): $a + b$
+            - Zero Element ($\mathbb{0}$): $+\infty$
+            - One Element ($\mathbb{1}$): $0.0$
+
+        Properties:
+            Idempotent, Commutative, Dioid, Path Semiring.
+        """
+    ```
 * **Complexity**: Aim to keep the cyclomatic complexity of functions as configured for `ruff` in `pyproject.toml` or
   `ruff.toml`.
 * **Float Equality**: When comparing computed floating-point values for equivalence or convergence, use `math.isclose`.
