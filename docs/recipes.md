@@ -261,6 +261,30 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Matrix Fiber Bundles & Parallel Transport
+* **Files**: [`matrix_bundle_parallel_transport.py`](https://github.com/erivlis/algebrax/blob/main/recipes/matrix_bundle_parallel_transport.py) | [`matrix_bundle_parallel_transport.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/matrix_bundle_parallel_transport.ipynb)
+* **Run**: `uv run recipes/matrix_bundle_parallel_transport.py`
+* **Components**: `semiring.Semiring[np.ndarray]`, `matrix.core.dot`, `matrix.core.power`
+* **Summary**: Models non-commutative matrix-valued semirings where elements are linear maps / rotation matrices ($\mathbb{R}^{d \times d}$). Evaluates sequential parallel transport across robot arm kinematic linkages, calculates closed-loop gauge field Wilson loop holonomy curvature $W = \operatorname{Tr}(U_{\partial \Sigma})$, and audits multi-currency foreign exchange arbitrage cycles using tropical matrix Kleene star closure.
+
+---
+
+### Convex Hull Semiring & Pareto Uncertainty
+* **Files**: [`convex_hull_pareto_intervals.py`](https://github.com/erivlis/algebrax/blob/main/recipes/convex_hull_pareto_intervals.py) | [`convex_hull_pareto_intervals.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/convex_hull_pareto_intervals.ipynb)
+* **Run**: `uv run recipes/convex_hull_pareto_intervals.py`
+* **Components**: `semiring.Semiring[tuple[float, float]]`, `matrix.core.power`
+* **Summary**: Implements Dyer's Convex Hull Semiring over bounding intervals $[\underline{x}, \overline{x}]$ under convex hull union ($\oplus$) and Minkowski addition ($\otimes$). Solves multi-objective Pareto routing, propagating guaranteed worst-case and best-case delay envelopes across uncertain communication networks.
+
+---
+
+### Combinatorial Dyck Paths & Catalan Numbers
+* **Files**: [`combinatorial_dyck_paths.py`](https://github.com/erivlis/algebrax/blob/main/recipes/combinatorial_dyck_paths.py) | [`combinatorial_dyck_paths.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/combinatorial_dyck_paths.ipynb)
+* **Run**: `uv run recipes/combinatorial_dyck_paths.py`
+* **Components**: `semiring.StandardSemiring`, `matrix.core.power`
+* **Summary**: Formulates enumerative combinatorics and lattice Dyck paths as walks on 1D height graphs. Evaluates exact Catalan numbers $C_n = \frac{1}{n+1}\binom{2n}{n}$ via binary matrix exponentiation $(A^{2n})_{0,0}$ in $\mathcal{O}(n^3 \log n)$ time, and calculates height-constrained path invariants.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
