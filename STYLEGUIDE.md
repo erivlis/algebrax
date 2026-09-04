@@ -25,8 +25,11 @@ To maintain a consistent codebase, we use the following tools for linting and fo
   the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) for
   docstring format.
 * **Logging**: Use the `loguru` library for all logging.
-* **Complexity**: Aim to keep the cyclomatic complexity of functions at or below 15, as configured in `ruff`.
-* **Float Equality**: When comparing values to float values use `math.isclose`.
+* **Complexity**: Aim to keep the cyclomatic complexity of functions as configured for `ruff` in `pyproject.toml` or
+  `ruff.toml`.
+* **Float Equality**: When comparing computed floating-point values for equivalence or convergence, use `math.isclose`.
+  For exact denominator singularity checks that guard against `ZeroDivisionError`, use `x == 0.0  # NOSONAR` to avoid
+  truncating legitimate tiny probabilities or introducing arbitrary epsilon thresholds.
 
 ## Test Style
 
@@ -56,40 +59,48 @@ with MathJax 3 support for mathematical notation and `mkdocstrings` for docstrin
 
 ### Information Architecture & Guiding Principles
 
-To ensure our documentation remains organized, scalable, and easy to navigate, we strictly enforce a clear **Separation of
-Concerns** between library fundamentals and applied use cases:
+To ensure our documentation remains organized, scalable, and easy to navigate, we strictly enforce a clear **Separation
+of Concerns** between library fundamentals and applied use cases:
 
 1. **Start & Core Concepts (`docs/`)**:
-   * Covers the library introduction (`index.md`), high-level conceptual foundations (`concepts.md`), and benchmarks/comparisons (`comparison.md`).
+    * Covers the library introduction (`index.md`), high-level conceptual foundations (`concepts.md`), and
+      benchmarks/comparisons (`comparison.md`).
 
 2. **The User Guide (`docs/guide/`) — Built-in Library Reference**:
-   * **Scope**: Focuses exclusively on the **built-in capabilities** and core modules of `algebrax` (`semiring`, `matrix`,
-     `tensor`, `trie`, `homology`, `transforms`, `probability`, `analysis`, `automata`, `category`, `lattice`, `group`, `verification`).
-   * **Rule**: Do **not** invent or inline ad-hoc custom carrier types or one-off application scenarios inside the guide.
-   * **Cross-Linking**: Guide overviews (such as the *Semiring Taxonomy*) and individual domain guides should explain the
-     formal mathematics and built-in APIs, and then link directly to the relevant applied **Recipes** that demonstrate them in action.
+    * **Scope**: Focuses exclusively on the **built-in capabilities** and core modules of `algebrax` (`semiring`,
+      `matrix`,
+      `tensor`, `trie`, `homology`, `transforms`, `probability`, `analysis`, `automata`, `category`, `lattice`, `group`,
+      `verification`).
+    * **Rule**: Do **not** invent or inline ad-hoc custom carrier types or one-off application scenarios inside the
+      guide.
+    * **Cross-Linking**: Guide overviews (such as the *Semiring Taxonomy*) and individual domain guides should explain
+      the formal mathematics and built-in APIs, and then link directly to the relevant applied **Recipes** that
+      demonstrate them in action.
 
 3. **Recipes & Applied Applications (`recipes/` & `docs/recipes.md`) — Applied Problem Solving**:
-   * **Scope**: All applied, multi-disciplinary use cases (e.g. quantum physics, cosmology, algorithmic finance, robotics,
-     network resilience, cryptography, and custom carrier classes like `np.ndarray` or intervals) live in `recipes/`.
-   * **Standard**: Every recipe must provide:
-     * A standalone runnable script (`recipes/<name>.py`) with inline PEP 723 metadata (`# /// script ... ///`) runnable via `uv run`.
-     * A synchronized Jupyter Notebook (`recipes/<name>.ipynb`).
-     * Pure, exportable computational functions with **zero import-time side-effects** (demo runs must be encapsulated in `run_demo()` under `if __name__ == '__main__':`).
-     * Graphical visualization integration in [`recipes/lab.py`](./recipes/lab.py).
-     * A documented entry in [`docs/recipes.md`](./docs/recipes.md).
+    * **Scope**: All applied, multi-disciplinary use cases (e.g. quantum physics, cosmology, algorithmic finance,
+      robotics, network resilience, cryptography, and custom carrier classes like `np.ndarray` or intervals) live in
+      `recipes/`.
+    * **Standard**: Every recipe must provide:
+        * A standalone runnable script (`recipes/<name>.py`) with inline PEP 723 metadata (`# /// script ... ///`)
+          runnable via `uv run`.
+        * A synchronized Jupyter Notebook (`recipes/<name>.ipynb`).
+        * Pure, exportable computational functions with **zero import-time side-effects** (demo runs must be
+          encapsulated in `run_demo()` under `if __name__ == '__main__':`).
+        * Graphical visualization integration in [`recipes/lab.py`](./recipes/lab.py).
+        * A documented entry in [`docs/recipes.md`](./docs/recipes.md).
 
 4. **Enhancement Proposals (`docs/proposals/` & `docs/eps.md`)**:
-   * Formal design proposals (EP-xxxx) documenting mathematical rationale, API design, and Council reviews.
+    * Formal design proposals (EP-xxxx) documenting mathematical rationale, API design, and Council reviews.
 
 ### Formatting & Syntax Standards
 
 * **Mathematical Expressions**: Use LaTeX syntax rendered with MathJax:
-  * Inline math: `$x \in S$`
-  * Display equations:
-    ```markdown
-    $$a \oplus (b \otimes c) = (a \oplus b) \otimes (a \oplus c)$$
-    ```
+    * Inline math: `$x \in S$`
+    * Display equations:
+      ```markdown
+      $$a \oplus (b \otimes c) = (a \oplus b) \otimes (a \oplus c)$$
+      ```
 * **Admonitions**: Use standard admonition blocks to highlight critical details, notes, or tips:
   ```markdown
   !!! note "Background Context"
@@ -101,9 +112,11 @@ Concerns** between library fundamentals and applied use cases:
   !!! warning "Boundary Condition"
       Edge cases or numerical stability considerations.
   ```
-* **Code Blocks**: Fenced code blocks must always include language identifiers (`python`, `bash`, `mermaid`, `toml`, `text`).
+* **Code Blocks**: Fenced code blocks must always include language identifiers (`python`, `bash`, `mermaid`, `toml`,
+  `text`).
 * **Tables**: Use standard Markdown tables for tabular comparison and mathematical signatures.
-* **Internal Linking**: Always use relative paths (e.g. `[Semiring Taxonomy](../guide/semirings/index.md)`) when referencing internal pages.
+* **Internal Linking**: Always use relative paths (e.g. `[Semiring Taxonomy](../guide/semirings/index.md)`) when
+  referencing internal pages.
 
 ## Git and Commit Style
 
@@ -119,8 +132,8 @@ To maintain a clean and understandable version history, we follow these Git prac
   feat: add user authentication service
   ```
 
-  This is enacted by the `commitzen` tool, which will follow this format when making commits.
-  See [cz.toml](./cz.toml) for the configuration.
+  This is enacted by the `commitizen` tool, which will follow this format when making commits. See [cz.toml](./cz.toml)
+  for the configuration.
 
 * **Branching**: Create new branches for each feature or bug fix. Name branches descriptively, like `feat/add-auth` or
   `fix/login-bug`.
