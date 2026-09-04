@@ -16,7 +16,7 @@ To maintain a consistent codebase, we use the following tools for linting and fo
 ## Code Style
 
 * **Line Length**: Maximum 120 characters.
-* **Quotes** - use the following rulea unless there's a good reason not to:
+* **Quotes** - use the following rules unless there's a good reason not to:
     * Use single quotes for strings.
     * Use double quotes for docstrings.
     * Use double quotes for f-strings.
@@ -39,23 +39,71 @@ Tests are written using the `pytest` framework.
 * **Mocks**: Use the `pytest-mock` library for mocking dependencies.
 * **Floating Tests**: For tests that involve floating-point comparisons, use `pytest.approx` to handle precision issues.
 
-## Documentation Style
+## Documentation Style & Architecture
 
-Project documentation is generated using `properdocs` with the `mkdocs-materialx` theme.
+### Tooling and Build Engine
 
-* **Format**: All documentation is written in Markdown and formatted with `mdformat`.
-* **Admonitions**: Use admonitions to highlight specific information. For example:
+Project documentation is statically generated using **`zensical`** (configured in [`zensical.toml`](./zensical.toml)),
+with MathJax 3 support for mathematical notation and `mkdocstrings` for docstring inspection.
+
+* **Build Command**: Documentation builds are executed via:
+  ```bash
+  zensical build
+  # Or via uvx:
+  uvx --with mkdocstrings --with mkdocstrings-python zensical build
+  ```
+* **Format & Linter**: All documentation is written in standard Markdown and must build with zero errors.
+
+### Information Architecture & Guiding Principles
+
+To ensure our documentation remains organized, scalable, and easy to navigate, we strictly enforce a clear **Separation of
+Concerns** between library fundamentals and applied use cases:
+
+1. **Start & Core Concepts (`docs/`)**:
+   * Covers the library introduction (`index.md`), high-level conceptual foundations (`concepts.md`), and benchmarks/comparisons (`comparison.md`).
+
+2. **The User Guide (`docs/guide/`) — Built-in Library Reference**:
+   * **Scope**: Focuses exclusively on the **built-in capabilities** and core modules of `algebrax` (`semiring`, `matrix`,
+     `tensor`, `trie`, `homology`, `transforms`, `probability`, `analysis`, `automata`, `category`, `lattice`, `group`, `verification`).
+   * **Rule**: Do **not** invent or inline ad-hoc custom carrier types or one-off application scenarios inside the guide.
+   * **Cross-Linking**: Guide overviews (such as the *Semiring Taxonomy*) and individual domain guides should explain the
+     formal mathematics and built-in APIs, and then link directly to the relevant applied **Recipes** that demonstrate them in action.
+
+3. **Recipes & Applied Applications (`recipes/` & `docs/recipes.md`) — Applied Problem Solving**:
+   * **Scope**: All applied, multi-disciplinary use cases (e.g. quantum physics, cosmology, algorithmic finance, robotics,
+     network resilience, cryptography, and custom carrier classes like `np.ndarray` or intervals) live in `recipes/`.
+   * **Standard**: Every recipe must provide:
+     * A standalone runnable script (`recipes/<name>.py`) with inline PEP 723 metadata (`# /// script ... ///`) runnable via `uv run`.
+     * A synchronized Jupyter Notebook (`recipes/<name>.ipynb`).
+     * Pure, exportable computational functions with **zero import-time side-effects** (demo runs must be encapsulated in `run_demo()` under `if __name__ == '__main__':`).
+     * Graphical visualization integration in [`recipes/lab.py`](./recipes/lab.py).
+     * A documented entry in [`docs/recipes.md`](./docs/recipes.md).
+
+4. **Enhancement Proposals (`docs/proposals/` & `docs/eps.md`)**:
+   * Formal design proposals (EP-xxxx) documenting mathematical rationale, API design, and Council reviews.
+
+### Formatting & Syntax Standards
+
+* **Mathematical Expressions**: Use LaTeX syntax rendered with MathJax:
+  * Inline math: `$x \in S$`
+  * Display equations:
+    ```markdown
+    $$a \oplus (b \otimes c) = (a \oplus b) \otimes (a \oplus c)$$
+    ```
+* **Admonitions**: Use standard admonition blocks to highlight critical details, notes, or tips:
   ```markdown
-  !!! note
-      This is a note.
+  !!! note "Background Context"
+      Explanatory notes or historical context.
+
+  !!! tip "Performance"
+      Optimization guidelines and algorithmic trade-offs.
+
+  !!! warning "Boundary Condition"
+      Edge cases or numerical stability considerations.
   ```
-* **Code Blocks**: Use fenced code blocks with language identifiers for all code examples.
-  ```python
-  def my_function():
-      print("Hello, world!")
-  ```
-* **Tables**: Use standard Markdown tables for presenting tabular data.
-* **Internal Linking**: Use relative paths when linking to other internal documentation pages.
+* **Code Blocks**: Fenced code blocks must always include language identifiers (`python`, `bash`, `mermaid`, `toml`, `text`).
+* **Tables**: Use standard Markdown tables for tabular comparison and mathematical signatures.
+* **Internal Linking**: Always use relative paths (e.g. `[Semiring Taxonomy](../guide/semirings/index.md)`) when referencing internal pages.
 
 ## Git and Commit Style
 
@@ -63,8 +111,8 @@ To maintain a clean and understandable version history, we follow these Git prac
 
 * **Commit Messages**: We adhere to the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
   specification. This helps in automating changelog generation and makes the commit history more readable. Each commit
-  message should have a type (e.g., `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`) and a concise
-  description.
+  message should have a type (e.g., `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`) and a
+  concise description.
 
   Example:
   ```
