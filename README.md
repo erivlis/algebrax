@@ -206,11 +206,11 @@ uv run recipes/lab.py
 
 ## Documentation
 
-Comprehensive documentation is hosted online and structured into 3 Diátaxis pillars:
+Comprehensive documentation is hosted online and structured into distinct pillars:
 
 * 🚀 [**Start**](docs/index.md): Installation, quickstart, and core philosophy.
-* 📖 [**Tutorials**](docs/tutorials/semirings/semiring_standard.md): In-depth guides for Semirings, Tries, Transforms, Graphs, and Benchmarks.
-* 🍳 [**Recipes & GUI Lab**](docs/recipes.md): Real-world use cases and laboratory documentation.
+* 📖 [**User Guide**](docs/guide/semirings/index.md): In-depth reference for built-in Semirings, Matrices, Tries, Homology, Transforms, and Discrete Analysis.
+* 🍳 [**Recipes & GUI Lab**](docs/recipes.md): Real-world use cases, Jupyter notebooks, and laboratory documentation.
 
 ---
 
