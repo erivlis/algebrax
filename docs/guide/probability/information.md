@@ -1,3 +1,20 @@
+---
+title: Probability & Information Theory
+description: Markov chains, entropy, Kullback-Leibler divergence, mutual information, and PageRank.
+---
+
+# Probability & Information Theory (`algebrax.probability`)
+
+`algebrax.probability` provides statistical physics and information-theoretic metrics:
+
+1. **Stationary Distributions (`markov_steady_state`)**: Solves principal eigenvector equilibrium $\pi P = \pi$.
+2. **Shannon Entropy (`entropy`)**: Measures state information content $H(P) = -\sum p_i \ln p_i$.
+3. **Kullback-Leibler Divergence (`kl_divergence`)**: Relative entropy between distributions.
+4. **Jensen-Shannon Divergence (`js_divergence`)**: Symmetric information distance.
+5. **Mutual Information (`mutual_information`)**: Information leakage audit.
+
+---
+
 # PageRank (Algebraic)
 
 **PageRank** is the stationary distribution of a random walk on a graph.
@@ -81,3 +98,11 @@ print("PageRank:")
 for node, rank in sorted_ranks:
     print(f"{node}: {rank:.4f}")
 ```
+
+---
+
+## Related Recipes & Applications
+
+* [Post-Quantum Cryptography](../../recipes.md) — Zero leakage verification via `mutual_information`.
+* [Supply Chain Logistics](../../recipes.md) — Demand distribution divergence via `kl_divergence`.
+* [Natural Language Parsing](../../recipes.md) — Parse tree structural ambiguity via `entropy`.

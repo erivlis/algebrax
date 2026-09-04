@@ -1,3 +1,17 @@
+---
+title: Automata & Formal Languages
+description: Deterministic and Non-Deterministic Finite Automata simulation and matrix parsing.
+---
+
+# Automata & Formal Languages (`algebrax.automata`)
+
+`algebrax.automata` provides transition simulation over state machines and formal grammars:
+
+* **`simulate_dfa`**: Evaluates Deterministic Finite Automaton paths over symbol sequences.
+* **`simulate_nfa`**: Evaluates Non-Deterministic Finite Automaton superposition sets.
+
+---
+
 # CYK Parsing (Context-Free Grammars)
 
 The **CYK Algorithm** parses a string using a Context-Free Grammar (CFG).
@@ -97,3 +111,10 @@ final_tags = chart.get(0, {}).get(n, set())
 print(f"Parses as: {final_tags}")
 # output: {'S'}
 ```
+
+---
+
+## Related Recipes & Applications
+
+* [Financial Risk Trade State Machines](../../recipes.md) — Automated trade state transitions via `simulate_dfa`.
+* [Quantum Superposition Decay](../../recipes.md) — Probabilistic state tracking via `simulate_nfa`.

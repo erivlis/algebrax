@@ -1,6 +1,93 @@
 ---
-title: Discrete Logic, Fuzzy & Formal Language Semirings
-description: Mathematical structures and applications of Lukasiewicz Fuzzy Logic, String Language Monoids, and K-Collapsed Threshold Semirings in AlgebraX.
+title: Logic & Language Semirings
+description: Boolean, Digital, Łukasiewicz Fuzzy, String, and K-Collapsed semirings in AlgebraX.
+---
+
+# Logic & Language Semirings (`algebrax.semiring.logic` & `structures`)
+
+Logic semirings model reachability, non-commutative formal languages, digital filters, and multi-valued fuzzy logic:
+
+---
+
+# Boolean Semiring (Reachability)
+
+The **Boolean Semiring** uses $(\lor, \land)$. It answers "Is there a path?" without counting them.
+Matrix multiplication yields the **Transitive Closure** (Reachability).
+
+* **Add**: $\lor$ (OR)
+* **Mul**: $\land$ (AND)
+
+<!-- name: test_boolean_semiring -->
+
+```python linenums="1"
+import algebrax as ax
+
+# Graph Connectivity
+# 0 -> 1
+# 1 -> 2
+# 3 -> 4 (Disconnected component)
+graph = {
+    0: {1: True},
+    1: {2: True},
+    3: {4: True}
+}
+
+semiring = ax.semiring.BooleanSemiring()
+
+# Reachability in exactly 2 steps
+step2 = ax.matrix.dot(graph, graph, semiring=semiring)
+print(f"0 -> 2 reachable in 2 steps? {step2.get(0, {}).get(2, False)}")
+# output: True
+
+# Full Transitive Closure (Reachability)
+# For a graph with N nodes, closure is (I + A)^N
+# Or just sum of powers.
+# Let's check if 0 can reach 2 eventually.
+# We use ax.matrix.power() which does binary exponentiation.
+# For N=5, ax.matrix.power 5 covers all paths <= 5 length.
+
+# Add self-loops (Identity) to allow "staying" at a node
+# This makes A^k include all paths of length <= k
+n_nodes = 5
+for i in range(n_nodes):
+    if i not in graph: graph[i] = {}
+    graph[i][i] = True
+
+closure = ax.matrix.power(graph, n_nodes, semiring=semiring)
+
+print(f"0 -> 2 reachable? {closure.get(0, {}).get(2, False)}")
+print(f"0 -> 4 reachable? {closure.get(0, {}).get(4, False)}")
+# output: True
+# output: False
+```
+
+---
+
+# Digital Semiring (Post-Quantum Cryptography)
+
+The **Digital Semiring** uses the sum of decimal digits to determine order.
+It is used in cryptographic protocols (Huang et al., 2024).
+
+* **Add:** Larger digit sum wins.
+* **Mul:** Smaller digit sum wins.
+
+<!-- name: test_digital_semiring -->
+
+```python linenums="1"
+import algebrax as ax
+
+S = ax.semiring.DigitalSemiring()
+
+# (123) = 6, (45) = 9
+# Add: 9 > 6 -> 45
+print(S.add(123, 45))
+# output: 45
+
+# Mul: 6 < 9 -> 123
+print(S.mul(123, 45))
+# output: 123
+```
+
 ---
 
 # Discrete Logic, Fuzzy & Formal Language Semirings
@@ -96,3 +183,11 @@ print("5 + 7 mod k=10:", k_sem.add(5, 7))  # 10
 # Saturated Multiplication
 print("3 * 4 mod k=10:", k_sem.mul(3, 4))  # 10
 ```
+
+---
+
+## Related Recipes & Applications
+
+* [Post-Quantum Cryptography](../../recipes.md) — Non-commutative matrix key exchange over `DigitalSemiring`.
+* [Natural Language Parsing](../../recipes.md) — CYK parse trees and transitive closure over `BooleanSemiring`.
+* [Distributed Vector Clocks](../../recipes.md) — Causal message reachability over `BooleanSemiring`.

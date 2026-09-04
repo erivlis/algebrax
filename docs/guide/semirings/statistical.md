@@ -1,6 +1,6 @@
 ---
 title: Statistical & Moment Semirings
-description: Theoretical foundations, moment-generating algebras, and computational pipelines for Log-Sum-Exp, Dual Numbers, Expectations, Universal Binomial Moments, and Multivariate Covariance Tensors in AlgebraX.
+description: Universal binomial moment semirings, variance, skewness, kurtosis, and multivariate covariance tensors.
 ---
 
 # Statistical & Moment Semirings
@@ -173,3 +173,10 @@ print(f"Covariance Matrix Σ:")
 print(f"  [{cov[0][0]:.2f}, {cov[0][1]:.2f}]")  # [1.00, 2.00]
 print(f"  [{cov[1][0]:.2f}, {cov[1][1]:.2f}]")  # [2.00, 4.00]
 ```
+
+---
+
+## Related Recipes & Applications
+
+* [Financial Risk & Portfolio Variance](../../recipes.md) — Path variance and volatility via `VarianceSemiring`.
+* [Extreme Tail Risk & Multivariate Moments](../../recipes.md) — 4th-order kurtosis and multivariate covariance matrices via `KurtosisSemiring` and `MultivariateMomentSemiring`.
