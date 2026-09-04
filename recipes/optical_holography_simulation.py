@@ -60,6 +60,7 @@ def reconstruct_wavefront(
         reconstructed[k] = illuminated * r_conj / (abs(ref_wave[k]) ** 2)
     return reconstructed
 
+
 # %% [markdown]
 # ## Step 1: Recording Optical Hologram Interference Pattern
 #

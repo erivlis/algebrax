@@ -200,10 +200,7 @@ def sparse_to_grid(
     Returns:
         A 2D list grid[row_idx][col_idx].
     """
-    return [
-        [matrix.get(r, {}).get(c, fill_value) for c in cols]
-        for r in rows
-    ]
+    return [[matrix.get(r, {}).get(c, fill_value) for c in cols] for r in rows]
 
 
 def grid_to_sparse(
@@ -473,15 +470,11 @@ def flat_to_nested(
             if key not in current:
                 current[key] = {}
             elif not isinstance(current[key], dict):
-                raise ValueError(
-                    f"Key collision: cannot nest dict under existing non-dict leaf at {keys[: i + 1]}"
-                )
+                raise ValueError(f'Key collision: cannot nest dict under existing non-dict leaf at {keys[: i + 1]}')
             current = current[key]
 
         if keys[-1] in current and isinstance(current[keys[-1]], dict):
-            raise ValueError(
-                f"Key collision: cannot assign non-dict value to dict node at {keys}"
-            )
+            raise ValueError(f'Key collision: cannot assign non-dict value to dict node at {keys}')
         current[keys[-1]] = value
 
     return result

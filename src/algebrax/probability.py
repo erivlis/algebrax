@@ -180,7 +180,7 @@ def kurtosis(distribution: SparseVector[N, float], mu: float | None = None, sigm
         var = sum(((k - mu) ** 2) * v for k, v in distribution.items())
         sigma = var**0.5
 
-    if sigma == 0:
+    if sigma == 0:  # NOSONAR - exact zero denominator singularity check
         return 0.0
 
     return m4 / (sigma**4)
@@ -340,7 +340,7 @@ def normalize(mapping: SparseVector[K, N]) -> SparseVector[K, float]:
         ValueError: If the sum of values is zero.
     """
     total = sum(mapping.values())
-    if total == 0:
+    if total == 0:  # NOSONAR - exact zero denominator singularity check
         raise ValueError('Cannot normalize a mapping with zero sum.')
     return {k: v / total for k, v in mapping.items()}
 
@@ -368,7 +368,7 @@ def skewness(distribution: SparseVector[N, float], mu: float | None = None, sigm
         var = sum(((k - mu) ** 2) * v for k, v in distribution.items())
         sigma = var**0.5
 
-    if sigma == 0:
+    if sigma == 0:  # NOSONAR - exact zero denominator singularity check
         return 0.0
 
     return m3 / (sigma**3)

@@ -138,7 +138,7 @@ def _weighted_forman_ricci(
                 continue
 
             w_e = w_uv
-            if w_e == 0:
+            if w_e == 0:  # NOSONAR - exact zero denominator singularity check
                 curvature[(u, v)] = 0.0
                 continue
 

@@ -46,7 +46,7 @@ def cholesky(matrix: SparseMatrix) -> SparseMatrix:
                 l_dict[i][j] = math.sqrt(s)
             else:
                 pivot = l_dict[j].get(j, 0.0)
-                if pivot != 0:
+                if pivot != 0:  # NOSONAR - exact zero denominator singularity check
                     val = s / pivot
                     if abs(val) > 1e-12:
                         l_dict[i][j] = val

@@ -26,8 +26,8 @@ def display_matrix(matrix: SparseMatrix[Any, Any], title: str = '') -> str:
         HTML string containing standard table elements.
     """
     if not matrix:
-        caption = f"<caption><b>{title}</b> (empty)</caption>" if title else ''
-        return f"<table>{caption}<tbody><tr><td><i>empty matrix</i></td></tr></tbody></table>"
+        caption = f'<caption><b>{title}</b> (empty)</caption>' if title else ''
+        return f'<table>{caption}<tbody><tr><td><i>empty matrix</i></td></tr></tbody></table>'
 
     col_keys = sorted({c for row in matrix.values() for c in row}, key=str)
     row_keys = sorted(matrix.keys(), key=str)

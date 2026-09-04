@@ -408,7 +408,9 @@ def ratio(
     Returns:
         A new dictionary with the ratio for each key.
     """
-    return combine(m1, m2, lambda a, b: a / b if b != 0 else 0, default=default)
+    return combine(
+        m1, m2, lambda a, b: a / b if b != 0 else 0, default=default
+    )  # NOSONAR - exact zero denominator singularity check
 
 
 def symmetric_difference(

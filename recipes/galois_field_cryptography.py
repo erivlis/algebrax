@@ -44,6 +44,7 @@ def gf_mix_columns(
         }
     return ax.galois.gf_matrix_mul(mix_col_matrix, state, p=p)
 
+
 # %% [markdown]
 # ## Step 1: Field Element Multiplication in $\\text{GF}(2^8)$
 #

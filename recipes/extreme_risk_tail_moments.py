@@ -81,6 +81,7 @@ def propagate_cascading_moments(
     sem = ax.semiring.StatisticalMomentSemiring(order=order)
 
     if network is None:
+
         def make_moments(p: float, w: float) -> tuple[float, ...]:
             return tuple(p * (w**k) for k in range(order + 1))
 
@@ -151,6 +152,7 @@ def evaluate_multivariate_joint_risk(
         'covariance_matrix': cov_mat,
         'correlation': corr_12,
     }
+
 
 # %% [markdown]
 # ## Step 1: Identifying Fat-Tail Jump Risks via 4th-Order Moments

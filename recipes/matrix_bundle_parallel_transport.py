@@ -189,11 +189,13 @@ def run_demo() -> None:
     print('\n==========================================================================')
     print('Step 3: Multi-Currency Foreign Exchange Arbitrage Audit')
     print('==========================================================================')
-    rates = np.array([
-        [1.0, 0.85, 130.0],
-        [1.18, 1.0, 153.0],
-        [0.0077, 0.0065, 1.0],
-    ])
+    rates = np.array(
+        [
+            [1.0, 0.85, 130.0],
+            [1.18, 1.0, 153.0],
+            [0.0077, 0.0065, 1.0],
+        ]
+    )
     arb_res = solve_currency_arbitrage(rates)
     print('Spot Currency Exchange Rate Matrix (USD, EUR, JPY):\n', rates)
     print(f'Arbitrage Cycle Detected: {arb_res["arbitrage_detected"]}')

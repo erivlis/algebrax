@@ -64,6 +64,7 @@ def multiply_jones_polynomials(
     poly_algebra = ax.semiring.MonoidAlgebraSemiring(ax.semiring.StandardSemiring[float](), zero_key=0)
     return poly_algebra.mul(p1, p2)
 
+
 # %% [markdown]
 # ## Step 1: Skein Module Formal Sums & Connected Sums (`KnotSemiring`)
 #

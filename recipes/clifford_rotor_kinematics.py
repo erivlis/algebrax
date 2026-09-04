@@ -48,6 +48,7 @@ def compute_geometric_magnitude(
     norm_sq = v_sq.get((), 0.0)
     return math.sqrt(max(0.0, norm_sq))
 
+
 # %% [markdown]
 # ## Step 1: Initial 3D Spatial Vector & Geometric Magnitude ($v^2 = |v|^2$)
 #

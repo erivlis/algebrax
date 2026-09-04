@@ -233,7 +233,7 @@ def eigen_centrality(
         # (L2 norm or Sum norm? Centrality usually uses L2, but simple power iteration often just normalizes max or sum)
         # Let's use Euclidean norm (L2) to keep it standard for eigenvectors
         norm = sum(x * x for x in new_vector.values()) ** 0.5
-        if norm == 0:
+        if norm == 0:  # NOSONAR - exact zero denominator singularity check
             return vector  # Matrix is likely zero
 
         new_vector = {k: v / norm for k, v in new_vector.items()}
@@ -273,7 +273,7 @@ def inverse(matrix: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', PerformanceWarning)
         det = determinant(matrix)
-        if det == 0:
+        if det == 0:  # NOSONAR - exact zero denominator singularity check
             raise ValueError('Matrix is singular (determinant is 0)')
 
         adj = adjoint(matrix)

@@ -30,6 +30,7 @@ def compose_kleisli_arrows(
     """Compose monadic morphisms (g o_T f) via enriched Kleisli convolution."""
     return ax.category.kleisli_compose(f, g, semiring=semiring)
 
+
 # %% [markdown]
 # ## Step 1: Probabilistic Monad Composition (`ViterbiSemiring`)
 #

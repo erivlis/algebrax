@@ -997,13 +997,13 @@ def run_blackhole_sim() -> None:
 
         clear_table_rows('table_bh_res')
         rows = [
-            ('Schwarzschild Radius (r_s)', f"{sim['r_s']:.2f} km"),
-            ('Observation Radius (r)', f"{sim['r']:.2f} km"),
-            ('Time Metric Component g_tt(r)', f"{sim['g_tt']:.6f}"),
-            ('Radial Metric Component g_rr(r)', f"{sim['g_rr']:.6f}"),
-            ('Photon Deflection Angle (Delta phi)', f"{sim['deflect_rad']:.4f} rad ({sim['deflect_deg']:.2f} deg)"),
-            ('Event Horizon Area (A)', f"{sim['horizon_area']:.2f} km^2"),
-            ('Bekenstein-Hawking Entropy (S_BH)', f"{sim['hawking_entropy']:.2f} nats"),
+            ('Schwarzschild Radius (r_s)', f'{sim["r_s"]:.2f} km'),
+            ('Observation Radius (r)', f'{sim["r"]:.2f} km'),
+            ('Time Metric Component g_tt(r)', f'{sim["g_tt"]:.6f}'),
+            ('Radial Metric Component g_rr(r)', f'{sim["g_rr"]:.6f}'),
+            ('Photon Deflection Angle (Delta phi)', f'{sim["deflect_rad"]:.4f} rad ({sim["deflect_deg"]:.2f} deg)'),
+            ('Event Horizon Area (A)', f'{sim["horizon_area"]:.2f} km^2'),
+            ('Bekenstein-Hawking Entropy (S_BH)', f'{sim["hawking_entropy"]:.2f} nats'),
         ]
 
         for prop, val in rows:
@@ -1164,19 +1164,19 @@ def run_extreme_tail_risk() -> None:
             risk_desc = 'Low Risk (Symmetric)' if 'Gaussian' in route_name else 'HIGH CRASH RISK (Left Tail)'
             with dpg.table_row(parent='table_tail_risk_comparison'):
                 dpg.add_input_text(default_value=route_name, readonly=True, width=-1)
-                dpg.add_input_text(default_value=f"{stats['mean']:.2f}", readonly=True, width=-1)
-                dpg.add_input_text(default_value=f"{stats['variance']:.2f}", readonly=True, width=-1)
-                dpg.add_input_text(default_value=f"{stats['skewness']:+.2f}", readonly=True, width=-1)
-                dpg.add_input_text(default_value=f"{stats['kurtosis']:.2f}", readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{stats["mean"]:.2f}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{stats["variance"]:.2f}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{stats["skewness"]:+.2f}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{stats["kurtosis"]:.2f}', readonly=True, width=-1)
                 dpg.add_input_text(default_value=risk_desc, readonly=True, width=-1)
 
         # Step 2: 5th-Order Cascading Moment Propagation (from recipes.extreme_risk_tail_moments)
         step2_res = propagate_cascading_moments(order=5, steps=3)
         dpg.set_value(
             'tail_moment5_summary',
-            f"3-Hop Cascade (Order 5) -> Mean: {step2_res['mean']:.2f}, Var: {step2_res['variance']:.2f}, "
-            f"Skewness: {step2_res['skewness']:+.4f}, Kurtosis: {step2_res['kurtosis']:.4f}, "
-            f"Hyperskewness: {step2_res['hyperskewness']:+.4f}",
+            f'3-Hop Cascade (Order 5) -> Mean: {step2_res["mean"]:.2f}, Var: {step2_res["variance"]:.2f}, '
+            f'Skewness: {step2_res["skewness"]:+.4f}, Kurtosis: {step2_res["kurtosis"]:.4f}, '
+            f'Hyperskewness: {step2_res["hyperskewness"]:+.4f}',
         )
 
         # Step 3: Multivariate Moment Covariance Matrix (from recipes.extreme_risk_tail_moments)
@@ -1365,7 +1365,7 @@ def run_clifford_geometric_algebra() -> None:
 
         v = {(1,): e1, (2,): e2}
         mag = compute_geometric_magnitude(v, p=3, q=0, r=0)
-        v_sq_val = mag ** 2
+        v_sq_val = mag**2
 
         bivector = (1, 2) if plane == 'e12 Plane (XY)' else ((2, 3) if plane == 'e23 Plane (YZ)' else (3, 1))
         v_rot = apply_rotor_rotation(v, angle_rad=math.radians(angle_deg), plane=bivector, p=3, q=0, r=0)

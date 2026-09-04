@@ -39,14 +39,14 @@ import algebrax as ax
 
 def evaluate_schwarzschild_metric(r_s: float, r: float) -> tuple[float, float]:
     """Compute Schwarzschild time component g_tt and radial component g_rr."""
-    g_tt = -(1.0 - r_s / r) if r != 0 else 0.0
-    g_rr = (1.0 / (1.0 - r_s / r)) if (r != r_s and r != 0) else float('inf')
+    g_tt = -(1.0 - r_s / r) if r != 0 else 0.0  # NOSONAR - exact zero coordinate singularity check
+    g_rr = (1.0 / (1.0 - r_s / r)) if (r != r_s and r != 0) else float('inf')  # NOSONAR - exact singularity check
     return g_tt, g_rr
 
 
 def compute_gravitational_deflection(r_s: float, b: float) -> tuple[float, float]:
     """Calculate photon gravitational deflection angle in radians and degrees."""
-    deflect_rad = (2.0 * r_s) / b if b != 0 else 0.0
+    deflect_rad = (2.0 * r_s) / b if b != 0 else 0.0  # NOSONAR - exact zero denominator check
     deflect_deg = math.degrees(deflect_rad)
     return deflect_rad, deflect_deg
 
@@ -74,6 +74,7 @@ def evaluate_schwarzschild_simulation(r_s: float, r: float, b: float) -> dict[st
         'horizon_area': horizon_area,
         'hawking_entropy': hawking_entropy,
     }
+
 
 # %% [markdown]
 # ## Step 1: Schwarzschild Spacetime Metric Tensor (`tensor.einsum`)

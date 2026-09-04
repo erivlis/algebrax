@@ -153,14 +153,14 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
 
     def raw_moments(self, m: tuple[float, ...]) -> list[float]:
         p = m[0]
-        if p == 0.0:
+        if p == 0.0:  # NOSONAR - exact zero denominator singularity check
             return [float('nan')] * len(m)
         return [val / p for val in m]
 
     def central_moments(self, m: tuple[float, ...]) -> list[float]:
         """Compute all central moments μ_k = E[(X - μ)^k] from raw moments."""
         p = m[0]
-        if p == 0.0:
+        if p == 0.0:  # NOSONAR - exact zero denominator singularity check
             return [float('nan')] * len(m)
         raw = [val / p for val in m]
         mu = raw[1] if len(raw) > 1 else 0.0
@@ -173,7 +173,7 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
         return central
 
     def mean(self, m: tuple[float, ...]) -> float:
-        if m[0] == 0.0:
+        if m[0] == 0.0:  # NOSONAR - exact zero denominator singularity check
             return float('nan')
         return m[1] / m[0]
 
@@ -243,7 +243,7 @@ class MultivariateMomentSemiring(MultivariateBinomialConvolutionSemiring):
 
     def mean_vector(self, m: dict[tuple[int, ...], float]) -> list[float]:
         p = m.get((0,) * self.num_vars, 0.0)
-        if p == 0.0:
+        if p == 0.0:  # NOSONAR - exact zero denominator singularity check
             return [float('nan')] * self.num_vars
         means = []
         for i in range(self.num_vars):
@@ -255,7 +255,7 @@ class MultivariateMomentSemiring(MultivariateBinomialConvolutionSemiring):
         if self.order < 2:
             raise ValueError(f'Covariance matrix calculation requires order >= 2, but instance has order={self.order}')
         p = m.get((0,) * self.num_vars, 0.0)
-        if p == 0.0:
+        if p == 0.0:  # NOSONAR - exact zero denominator singularity check
             return [[float('nan')] * self.num_vars for _ in range(self.num_vars)]
         means = self.mean_vector(m)
         d = self.num_vars

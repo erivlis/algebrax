@@ -63,6 +63,7 @@ def evaluate_simplicial_complex(
         'num_edges': len(sc._simplices.get(1, set())),
     }
 
+
 # %% [markdown]
 # ## Step 1: 1D Hollow Ring Topological Complex ($S^1$)
 #

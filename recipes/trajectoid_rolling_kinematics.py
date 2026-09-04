@@ -75,6 +75,7 @@ def simulate_trajectoid_kinematics(
         'sparsity': sparsity_val,
     }
 
+
 # %% [markdown]
 # ## Step 1: Target 2D Trajectory & Velocity Field (`analysis.gradient`)
 
@@ -89,8 +90,8 @@ def run_demo() -> None:
 
     print('Target 2D Trajectory Path Samples:')
     for t in range(0, 16, 4):
-        pos_str = f"({path_x[t]:+6.2f}, {path_y[t]:+6.2f})"
-        vel_str = f"({vx[t]:+6.2f}, {vy[t]:+6.2f})"
+        pos_str = f'({path_x[t]:+6.2f}, {path_y[t]:+6.2f})'
+        vel_str = f'({vx[t]:+6.2f}, {vy[t]:+6.2f})'
         print(f'  Time t={t:2d}: Position = {pos_str}, Velocity = {vel_str}')
 
     print(f'\nFinal Orientation Matrix Sparsity: {res["sparsity"]:.4f}')

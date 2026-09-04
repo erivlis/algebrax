@@ -57,6 +57,7 @@ def perform_digital_key_exchange(
     match = ka_mat == kb_mat
     return u_mat, v_mat, ka_mat, kb_mat, match
 
+
 # %% [markdown]
 # ## Step 1: Digital Semiring Post-Quantum Matrix Key Exchange
 

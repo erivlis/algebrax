@@ -69,6 +69,7 @@ def combine_sheaf_observations(
     sheaf_algebra = ax.semiring.MonoidAlgebraSemiring(ax.semiring.StandardSemiring[float](), zero_key='None')
     return sheaf_algebra.add(obs_agent1, obs_agent2)
 
+
 # %% [markdown]
 # ## Step 1: Sheaf Coboundary Gradient $\\delta_0$ (`analysis.gradient`)
 #

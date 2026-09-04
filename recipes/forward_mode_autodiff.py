@@ -124,7 +124,7 @@ class DualNumber(Number):
 
     def __truediv__(self, other: Self | float | int) -> Self:
         o = other if isinstance(other, DualNumber) else DualNumber(other)
-        if o.val == 0.0:
+        if o.val == 0.0:  # NOSONAR - exact zero denominator singularity check
             raise ZeroDivisionError('Division by dual number with zero primal part.')
         # Quotient rule: (f/g)' = (f'g - fg') / g^2
         return DualNumber(self.val / o.val, (self.der * o.val - self.val * o.der) / (o.val**2))
@@ -137,7 +137,7 @@ class DualNumber(Number):
         return DualNumber(-self.val, -self.der)
 
     def __abs__(self) -> 'DualNumber':
-        if self.val == 0.0:
+        if self.val == 0.0:  # NOSONAR - derivative of absolute value undefined at zero
             raise ValueError('Derivative of absolute value is undefined at 0.')
         sign = 1.0 if self.val > 0.0 else -1.0
         return DualNumber(abs(self.val), sign * self.der)
@@ -155,7 +155,7 @@ class DualNumber(Number):
             raise ValueError('Logarithm undefined for non-positive primal values.')
         if base is None:
             return DualNumber(math.log(self.val), self.der / self.val)
-        if base <= 0.0 or base == 1.0:
+        if base <= 0.0 or base == 1.0:  # NOSONAR - exact logarithm base singularity check
             raise ValueError('Logarithm base must be positive and not equal to 1.')
         return DualNumber(math.log(self.val, base), self.der / (self.val * math.log(base)))
 
@@ -163,7 +163,7 @@ class DualNumber(Number):
         r"""Square root: \sqrt{x + x'\epsilon} = \sqrt{x} + (x' / (2\sqrt{x}))\epsilon."""
         if self.val < 0.0:
             raise ValueError('Square root undefined for negative primal values.')
-        if self.val == 0.0:
+        if self.val == 0.0:  # NOSONAR - derivative of square root singular at zero
             raise ZeroDivisionError('Derivative of square root is singular at 0.')
         s = math.sqrt(self.val)
         return DualNumber(s, self.der / (2.0 * s))
@@ -352,7 +352,7 @@ class GradientDualNumber(Number):
 
     def __truediv__(self, other: Self | float | int) -> 'GradientDualNumber':
         o = other if isinstance(other, GradientDualNumber) else GradientDualNumber(other)
-        if o.val == 0.0:
+        if o.val == 0.0:  # NOSONAR - exact zero denominator singularity check
             raise ZeroDivisionError('Division by zero in GradientDualNumber.')
         # Multivariate quotient rule: \nabla(u/v) = (v \nabla u - u \nabla v) / v^2
         all_keys = set(self.grad) | set(o.grad)
@@ -449,18 +449,18 @@ def run_demo() -> None:
     path_val = evaluate_dual_graph(2.0, 3.0)
     print('\n2-Step Network Path Transmission with Exact Sensitivities (d/dx):')
     print(f'  Path (0 -> 2): Value = {path_val.val:.2f}, Sensitivity d/dx = {path_val.der:.2f}')
-    assert path_val.val == 6.0
-    assert path_val.der == 3.0
+    assert math.isclose(path_val.val, 6.0)
+    assert math.isclose(path_val.der, 3.0)
 
     # Step 5 demo
     total_flow_ad = evaluate_diamond_gradient(1.5, 2.0, 3.0)
     print(f'\nMulti-Variable Flow from A to D: {total_flow_ad}')
     print(f'  Primal Value F(w1, w2, w3) = {total_flow_ad.val:.4f}')
     print(f'  ∇F = {total_flow_ad.grad}')
-    assert total_flow_ad.val == 12.5
-    assert total_flow_ad.grad['w1'] == 3.0
-    assert total_flow_ad.grad['w2'] == 4.0
-    assert total_flow_ad.grad['w3'] == 1.5
+    assert math.isclose(total_flow_ad.val, 12.5)
+    assert math.isclose(total_flow_ad.grad['w1'], 3.0)
+    assert math.isclose(total_flow_ad.grad['w2'], 4.0)
+    assert math.isclose(total_flow_ad.grad['w3'], 1.5)
 
 
 def main() -> None:
