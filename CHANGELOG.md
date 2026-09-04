@@ -1,3 +1,22 @@
+## v0.7.0 (2026-09-04)
+
+### Feat
+
+- **semiring**: Add new algebraic and statistical semirings with expanded catalog support
+- **verification**: Add support for complex number comparison and expand semiring catalog
+
+### Fix
+
+- Exposes core type aliases directly from the `algebrax` package.
+- Exposes core type aliases directly from the `algebrax` package.
+
+### Refactor
+
+- **recipes**: Modularize and enhance examples for cryptography, homology, and topology
+- **recipes/lab.py**: Add `BivariateVarianceSemiring` and refine variance handling
+- **financial_risk_portfolio**: Simplify variance computation using `VarianceSemiring` methods
+- **semiring**: Implements EP-0149 Optimize performance with dimension caching and replace `SecondMoment`
+
 ## v0.6.1 (2026-08-07)
 
 ### Refactor
