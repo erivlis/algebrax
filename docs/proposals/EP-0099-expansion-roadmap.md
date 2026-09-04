@@ -150,38 +150,40 @@ Phase 0: Architecture Roadmap (EP-0099)
         ├── EP-0146: Developer Ergonomics & Ecosystem Bridges (Steward)    [Final]
         ├── EP-0147: Optional Loop Pragmas & Concurrency (Shannon)         [Deferred]
         ├── EP-0148: Formalized Micro-Benchmarking & CodSpeed (Popper)     [Final]
-        └── EP-0149: Universal Binomial Moment Semirings (Noether/Russell) [Final]
+        ├── EP-0149: Universal Binomial Moment Semirings (Noether/Russell) [Final]
+        └── EP-0150: Standardized Mathematical Docstrings (Feynman/Russell) [Draft]
 ```
 
 ---
 
 ## Detailed Proposal Matrix
 
-| Proposal    | Title                       | Pillar            | Target Module                       | Status   | Deliverables                                                        |
-|:------------|:----------------------------|:------------------|:------------------------------------|:---------|:--------------------------------------------------------------------|
-| **EP-0099** | Master Expansion Roadmap    | —                 | Docs                                | Active   | `EP-0099-expansion-roadmap.md`                                      |
-| **EP-0100** | Quotient Monoid Algebras    | Shannon           | `algebrax.semiring`                 | Final    | `QuotientMonoidAlgebraSemiring`, tests                              |
-| **EP-0101** | Sparse Chain Complexes      | Shannon           | `algebrax.analysis`                 | Final    | `SparseChainComplex`, `hodge_laplacian`, tests                      |
-| **EP-0110** | Simplicial Homology         | Explorer          | `algebrax.homology`                 | Final    | `SimplicialComplex`, `betti_numbers`, Lab View 21                   |
-| **EP-0111** | Clifford Geometric Algebra  | Explorer          | `algebrax.clifford`                 | Final    | `CliffordSemiring`, `rotor_rotation`, Lab View 22                   |
-| **EP-0112** | Galois Finite Fields        | Explorer          | `algebrax.galois`                   | Final    | `GaloisFieldSemiring`, `gf_matrix_mul`, Lab View 23                 |
-| **EP-0113** | Categorical Morphisms       | Explorer          | `algebrax.category`                 | Final    | `kleisli_compose`, `kan_extension`, Lab View 24                     |
-| **EP-0120** | Algebraic Web Explorer      | Feynman           | Web / Visual                        | Draft    | `site/explorer/index.html`, HTML5/Canvas studio                     |
-| **EP-0130** | API Consistency Audit       | Russell           | `algebrax.__init__`                 | Final    | Public re-exports, Semiring catalog                                 |
-| **EP-0131** | Algebraic Law Verification  | Popper            | `algebrax.verification`             | Final    | Property-based axiom tests, CLI auditor `python -m algebrax.verify` |
-| **EP-0132** | Matrix Decompositions       | Noether           | `algebrax.decompose`                | Final    | Sparse LU, QR, SVD, Cholesky on dict-matrices                       |
-| **EP-0133** | Jupyter & CLI Integration   | Steward           | `algebrax.display`                  | Final    | `_repr_html_()`, `python -m algebrax inspect`                       |
-| **EP-0134** | Semiring Namespace Refactor | Russell           | `algebrax.semiring/`                | Final    | Categorical sub-modules, consolidated Clifford/Galois               |
-| **EP-0140** | API Symmetry Restoration    | Noether           | `matrix`, `transforms`, `homology`  | Final    | Recomposition helpers, inverse transforms, coboundary operator      |
-| **EP-0141** | Taxonomy Cleanup            | Russell           | `analysis`, `tensor`, `__init__`    | Final    | Relocate `SparseChainComplex`, `permute_tensor`, clean imports      |
-| **EP-0142** | Performance Optimizations   | Shannon           | `matrix`, `transforms`, `tensor`    | Final    | Local binding, catalog cache, twiddle precompute, backtracking      |
-| **EP-0143** | Documentation Clarity       | Feynman           | `docs/`, docstrings                 | Final    | Freshman summaries, typo fixes, concepts.md rewrite                 |
-| **EP-0144** | Testing Hardening           | Popper            | `tests/`                            | Final    | Property-based tests, edge cases, numerical stability               |
-| **EP-0145** | Type Safety Hardening       | Golem             | `typing`, `analysis`, `converters`  | Final    | Future annotations, semiring normalization, collision fix           |
-| **EP-0146** | Developer Ergonomics        | Steward           | `__init__`, `converters`, `display` | Final    | Namespace org, NumPy/SciPy bridges, Jupyter display                 |
-| **EP-0147** | Optional Loop Pragmas       | Shannon           | `benchmarks/`, core loops           | Deferred | Non-invasive `lucen` pragmas, free-threaded GIL-less scaling        |
-| **EP-0148** | Formalized Benchmarking     | Popper            | `benchmarks/`, `.github/`           | Final    | Standardized `pytest-benchmark` suite & CodSpeed CI tracking        |
-| **EP-0149** | Universal Binomial Moments  | Noether & Russell | `algebrax.semiring`                 | Final    | Divided power quotient ring, MultivariateMomentSemiring, decoders   |
+| Proposal    | Title                        | Pillar            | Target Module                       | Status   | Deliverables                                                        |
+|:------------|:-----------------------------|:------------------|:------------------------------------|:---------|:--------------------------------------------------------------------|
+| **EP-0099** | Master Expansion Roadmap     | —                 | Docs                                | Active   | `EP-0099-expansion-roadmap.md`                                      |
+| **EP-0100** | Quotient Monoid Algebras     | Shannon           | `algebrax.semiring`                 | Final    | `QuotientMonoidAlgebraSemiring`, tests                              |
+| **EP-0101** | Sparse Chain Complexes       | Shannon           | `algebrax.analysis`                 | Final    | `SparseChainComplex`, `hodge_laplacian`, tests                      |
+| **EP-0110** | Simplicial Homology          | Explorer          | `algebrax.homology`                 | Final    | `SimplicialComplex`, `betti_numbers`, Lab View 21                   |
+| **EP-0111** | Clifford Geometric Algebra   | Explorer          | `algebrax.clifford`                 | Final    | `CliffordSemiring`, `rotor_rotation`, Lab View 22                   |
+| **EP-0112** | Galois Finite Fields         | Explorer          | `algebrax.galois`                   | Final    | `GaloisFieldSemiring`, `gf_matrix_mul`, Lab View 23                 |
+| **EP-0113** | Categorical Morphisms        | Explorer          | `algebrax.category`                 | Final    | `kleisli_compose`, `kan_extension`, Lab View 24                     |
+| **EP-0120** | Algebraic Web Explorer       | Feynman           | Web / Visual                        | Draft    | `site/explorer/index.html`, HTML5/Canvas studio                     |
+| **EP-0130** | API Consistency Audit        | Russell           | `algebrax.__init__`                 | Final    | Public re-exports, Semiring catalog                                 |
+| **EP-0131** | Algebraic Law Verification   | Popper            | `algebrax.verification`             | Final    | Property-based axiom tests, CLI auditor `python -m algebrax.verify` |
+| **EP-0132** | Matrix Decompositions        | Noether           | `algebrax.decompose`                | Final    | Sparse LU, QR, SVD, Cholesky on dict-matrices                       |
+| **EP-0133** | Jupyter & CLI Integration    | Steward           | `algebrax.display`                  | Final    | `_repr_html_()`, `python -m algebrax inspect`                       |
+| **EP-0134** | Semiring Namespace Refactor  | Russell           | `algebrax.semiring/`                | Final    | Categorical sub-modules, consolidated Clifford/Galois               |
+| **EP-0140** | API Symmetry Restoration     | Noether           | `matrix`, `transforms`, `homology`  | Final    | Recomposition helpers, inverse transforms, coboundary operator      |
+| **EP-0141** | Taxonomy Cleanup             | Russell           | `analysis`, `tensor`, `__init__`    | Final    | Relocate `SparseChainComplex`, `permute_tensor`, clean imports      |
+| **EP-0142** | Performance Optimizations    | Shannon           | `matrix`, `transforms`, `tensor`    | Final    | Local binding, catalog cache, twiddle precompute, backtracking      |
+| **EP-0143** | Documentation Clarity        | Feynman           | `docs/`, docstrings                 | Final    | Freshman summaries, typo fixes, concepts.md rewrite                 |
+| **EP-0144** | Testing Hardening            | Popper            | `tests/`                            | Final    | Property-based tests, edge cases, numerical stability               |
+| **EP-0145** | Type Safety Hardening        | Golem             | `typing`, `analysis`, `converters`  | Final    | Future annotations, semiring normalization, collision fix           |
+| **EP-0146** | Developer Ergonomics         | Steward           | `__init__`, `converters`, `display` | Final    | Namespace org, NumPy/SciPy bridges, Jupyter display                 |
+| **EP-0147** | Optional Loop Pragmas        | Shannon           | `benchmarks/`, core loops           | Deferred | Non-invasive `lucen` pragmas, free-threaded GIL-less scaling        |
+| **EP-0148** | Formalized Benchmarking      | Popper            | `benchmarks/`, `.github/`           | Final    | Standardized `pytest-benchmark` suite & CodSpeed CI tracking        |
+| **EP-0149** | Universal Binomial Moments   | Noether & Russell | `algebrax.semiring`                 | Final    | Divided power quotient ring, MultivariateMomentSemiring, decoders   |
+| **EP-0150** | Standardized Math Docstrings | Feynman & Russell | `algebrax.semiring`, `display`      | Draft    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests     |
 
 ---
 
@@ -195,4 +197,5 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-08-02 | Eran Rivlis & Antigravity | EP-0134 (Semiring Namespace Refactoring) added to Phase 3.                                                                    |
 | 2026-08-02 | Eran Rivlis & Antigravity | Phase 3.5 Council Refinement Track: EP-0140 through EP-0146.                                                                  |
 | 2026-09-04 | Eran Rivlis & Antigravity | Phase 3.5 completed; added EP-0148 (CodSpeed CI), EP-0149 (Binomial Moment Semirings), and User Guide architectural overhaul. |
+| 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry.                                           |
 
