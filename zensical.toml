@@ -19,58 +19,42 @@ nav = [
         "concepts.md",
         "comparison.md"
     ] },
-    { Tutorials = [
-        { "Fundamentals & Verification" = [
-            "tutorials/semirings/index.md",
-            "tutorials/semirings/algebraic_law_verification.md",
-            "tutorials/semirings/semiring_standard.md",
-            "tutorials/semirings/semiring_statistical.md",
+    { Guide = [
+        { "Semiring Polymorphism" = [
+            "guide/semirings/index.md",
+            "guide/semirings/arithmetic.md",
+            "guide/semirings/optimization.md",
+            "guide/semirings/logic.md",
+            "guide/semirings/statistical.md",
+            "guide/semirings/algebraic.md",
+            "guide/semirings/verification.md",
         ] },
-        { "Sparse Matrix & Linear Algebra" = [
-            "tutorials/matrix/matrix_core.md",
-            "tutorials/matrix/matrix_academic.md",
-            "tutorials/matrix/matrix_decompositions.md",
-            "tutorials/semirings/semiring_matrix.md",
+        { "Sparse Linear Algebra" = [
+            "guide/matrix/core.md",
+            "guide/matrix/academic.md",
+            "guide/matrix/decompositions.md",
+            "guide/matrix/benchmarks.md",
         ] },
-        { "Optimization & Paths" = [
-            "tutorials/semirings/semiring_tropical.md",
-            "tutorials/semirings/semiring_viterbi.md",
-            "tutorials/semirings/semiring_bottleneck.md",
-            "tutorials/semirings/semiring_convex_hull.md",
+        { "Tensors & Multi-Indices" = [
+            "guide/tensor/trie.md",
+            "guide/tensor/einsum.md",
         ] },
-        { "Logic & Digital" = [
-            "tutorials/semirings/semiring_boolean.md",
-            "tutorials/semirings/semiring_digital.md",
-            "tutorials/semirings/semiring_logic_fuzzy.md",
+        { "Topology & Homology" = [
+            "guide/homology/simplicial.md",
+            "guide/homology/chain_complex.md",
         ] },
-        { "Monoid & Extension Algebras" = [
-            "tutorials/semirings/semiring_monoid_algebra.md",
-            "tutorials/semirings/semiring_quotient_monoid_algebra.md",
-            "tutorials/semirings/semiring_polynomial.md",
-            "tutorials/semirings/semiring_provenance.md",
-            "tutorials/semirings/semiring_knot.md",
-            "tutorials/semirings/semiring_modular.md",
-            "tutorials/semirings/semiring_clifford.md",
-            "tutorials/semirings/semiring_galois.md",
+        { "Transforms & Analysis" = [
+            "guide/transforms/spectral.md",
+            "guide/analysis/discrete_calculus.md",
         ] },
-        { "Structures & Complexes" = [
-            "tutorials/structures/algebraic_trie.md",
-            "tutorials/structures/sparse_chain_complex.md",
-            "tutorials/structures/categorical_kleisli.md",
+        { "Probability & Information" = [
+            "guide/probability/information.md",
         ] },
-        { "Transforms & Signals" = [
-            "tutorials/transforms/image_convolution.md",
-            "tutorials/transforms/fenchel_legendre.md",
-            "tutorials/transforms/walsh_hadamard.md",
+        { "Discrete, Automata & Category" = [
+            "guide/discrete/automata.md",
+            "guide/discrete/category.md",
+            "guide/discrete/algebra.md",
         ] },
-        { "Graphs & Parsing" = [
-            "tutorials/graphs/pagerank.md",
-            "tutorials/graphs/cyk_parsing.md",
-            "tutorials/graphs/catalan.md",
-        ] },
-        { "Performance & Benchmarks" = [
-            "tutorials/performance/benchmark_matrix_mult.md",
-        ] }
     ] },
     { Recipes = [
         "recipes.md"
