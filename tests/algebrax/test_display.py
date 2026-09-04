@@ -2,7 +2,8 @@
 Tests for algebrax.display HTML rendering utilities.
 """
 
-from algebrax.display import display_matrix, display_trie, display_vector
+from algebrax.display import display_matrix, display_trie, display_vector, semiring_card
+from algebrax.semiring import TropicalSemiring
 from algebrax.trie import AlgebraicTrie
 
 
@@ -40,3 +41,13 @@ def test_display_trie_html_output():
     empty_trie = AlgebraicTrie()
     empty_html = display_trie(empty_trie)
     assert 'empty AlgebraicTrie' in empty_html
+
+
+def test_semiring_card_html_output():
+    """Verify semiring_card produces HTML summary card with zero and one identities."""
+    sem = TropicalSemiring()
+    html = semiring_card(sem)
+    assert 'TropicalSemiring' in html
+    assert 'inf' in html
+    assert '0.0' in html
+    assert 'Identity' in html
