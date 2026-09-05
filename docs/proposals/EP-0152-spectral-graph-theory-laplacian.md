@@ -2,7 +2,7 @@
 title: "EP-0152: Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians"
 description: "Formulates Spectral Graph Theory natively in AlgebraX, encompassing Graph Laplacians, the Fiedler eigenvalue and vector, and spectral bipartitioning."
 icon: lucide/git-branch
-status: draft
+status: final
 ---
 
 # EP-0152: Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians
@@ -14,10 +14,10 @@ status: draft
 | **Author**   | Eran Rivlis                                                                                  |
 | **Sponsor**  | The Council                                                                                  |
 | **Delegate** | ⚖️ Emmy Noether (Symmetry), ⚡ Claude Shannon (Efficiency) & 🔬 Karl Popper (Falsifiability) |
-| **Status**   | Draft                                                                                        |
+| **Status**   | Final                                                                                        |
 | **Type**     | Standards Track                                                                              |
 | **Created**  | 2026-09-05                                                                                   |
-| **Updated**  | 2026-09-05                                                                                   |
+| **Updated**  | 2026-09-06                                                                                   |
 
 ---
 
@@ -444,3 +444,4 @@ def laplacian_smoothing(
 ## Change Log
 
 * **2026-09-05:** Initial Draft authored.
+* **2026-09-06:** Implemented `laplacian_matrix` in `algebrax.matrix`, and `fiedler_vector`, `algebraic_connectivity`, `spectral_bipartition`, `laplacian_smoothing`, and `laplacian_spectrum` in `algebrax.analysis` with 25 unit tests; status updated to Final.

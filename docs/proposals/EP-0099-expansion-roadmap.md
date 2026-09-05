@@ -192,7 +192,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0149** | Universal Binomial Moments   | Noether & Russell | `algebrax.semiring`                 | Final    | Divided power quotient ring, MultivariateMomentSemiring, decoders   |
 | **EP-0150** | Standardized Math Docstrings | Feynman & Russell | `algebrax.semiring`, `display`      | Draft    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests     |
 | **EP-0151** | Algebraic PageRank           | Shannon & Noether | `algebrax.analysis`                 | Final    | Sparse semiring contraction solver, random walk with restart, PPR   |
-| **EP-0152** | Spectral Graph Theory        | Noether & Shannon | `algebrax.analysis`                 | Draft    | Graph Laplacians (unnormalized, sym, rw), Fiedler vector, cuts, smoothing |
+| **EP-0152** | Spectral Graph Theory        | Noether & Shannon | `algebrax.analysis`                 | Final    | Graph Laplacians (unnormalized, sym, rw), Fiedler vector, cuts, smoothing |
 
 ---
 
