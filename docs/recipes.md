@@ -56,7 +56,7 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 ### Financial Risk & Portfolio
 * **Files**: [`financial_risk_portfolio.py`](https://github.com/erivlis/algebrax/blob/main/recipes/financial_risk_portfolio.py) | [`financial_risk_portfolio.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/financial_risk_portfolio.ipynb)
 * **Run**: `uv run recipes/financial_risk_portfolio.py`
-* **Components**: `automata.simulate_dfa`, `matrix.academic.eigen_centrality`, `semiring.VarianceSemiring`, `matrix.core.power`
+* **Components**: `automata.simulate_dfa`, `analysis.eigen_centrality`, `semiring.VarianceSemiring`, `matrix.core.power`
 * **Summary**: Simulates automated trade execution state machines (`simulate_dfa`), computes dominant eigenvector asset centrality (`eigen_centrality`) on cross-asset correlation matrices, and calculates expected return $E[X]$ and variance $\text{Var}(X)$ over multi-step market transition paths.
 
 ---

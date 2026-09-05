@@ -26,6 +26,8 @@ description: Forman-Ricci curvature, gradient, divergence, graph Laplacian diffu
 9. **Field Laplacian Operator (`laplacian`)**: Direct evaluation of the 0-form field
    action $\Delta f = \text{div} (\text{grad } f)$.
 10. **Algebraic PageRank (`pagerank`)**: Solves for stationary random walk distributions with teleportation restart.
+11. **Eigenvector Centrality (`eigen_centrality`)**: Computes the principal eigenvector $\lambda_1 \mathbf{x} = A \mathbf{x}$
+    of the adjacency matrix via power iteration for hub ranking without restart damping.
 
 ---
 
@@ -85,6 +87,21 @@ noisy_signal = {0: 10.0, 1: 0.0, 2: 0.0, 3: 10.0, 4: 0.0, 5: 0.0}
 # 10 Euler diffusion steps with rate tau=0.1
 smoothed_signal = ax.analysis.laplacian_smoothing(noisy_signal, graph, steps=10, tau=0.1)
 print("Smoothed Field:", smoothed_signal)
+```
+
+### 4. Principal Eigenvector Centrality
+
+Computes the dominant eigenvector $\lambda_1 \mathbf{x} = \mathbf{A} \mathbf{x}$ of the adjacency matrix via power iteration without damping, ideal for ranking nodes in symmetric graphs and cross-asset correlation matrices:
+
+```python
+network = {
+    "Alice": {"Bob": 1.0, "Charlie": 1.0},
+    "Bob": {"Alice": 1.0, "David": 1.0},
+    "Charlie": {"Alice": 1.0},
+    "David": {"Bob": 1.0},
+}
+centrality = ax.analysis.eigen_centrality(network)
+print("Eigenvector Centrality:", centrality)
 ```
 
 ---
