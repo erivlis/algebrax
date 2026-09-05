@@ -31,18 +31,14 @@
 #    acting as a spectral low-pass filter that removes localized high-frequency spatial noise.
 
 # %%
-import math
+from collections.abc import Mapping
+from typing import Any
 
 import algebrax as ax
-from algebrax.semiring import Semiring
-
-# %% [markdown]
-# ## Step 1: Initializing Research Collaboration Network (8 Researchers)
-# Two distinct research clusters (AI Lab: 0, 1, 2, 3 and Quantum Lab: 4, 5, 6, 7) connected by
-# cross-disciplinary bridge edges between nodes 2 and 4, and 3 and 5.
 
 # %%
-collaboration_network = {
+# Benchmark collaboration network (8 researchers across AI and Quantum labs)
+collaboration_network: dict[int, dict[int, float]] = {
     0: {1: 3.0, 2: 2.0, 3: 1.0},
     1: {0: 3.0, 2: 2.0, 3: 2.0},
     2: {0: 2.0, 1: 2.0, 3: 3.0, 4: 1.0},  # Inter-cluster bridge to 4
@@ -53,7 +49,7 @@ collaboration_network = {
     7: {4: 2.0, 5: 3.0, 6: 4.0},
 }
 
-researchers = {
+researchers: dict[int, str] = {
     0: 'Alice (AI Theory)',
     1: 'Bob (Deep Learning)',
     2: 'Charlie (Optimization)',
@@ -64,87 +60,122 @@ researchers = {
     7: 'Hannah (Quantum Optics)',
 }
 
-print('Collaboration Network Topology:')
-for u in sorted(collaboration_network.keys()):
-    neighbors_str = ', '.join([f'{v} (w={w:.1f})' for v, w in collaboration_network[u].items()])
-    print(f'  Researcher {u} [{researchers[u]}]: -> {neighbors_str}')
-
-# %% [markdown]
-# ## Step 2: Constructing Combinatorial and Symmetric Graph Laplacians
-# Computes sparse operator matrices $L = D - W$ and $L_{\mathrm{sym}} = D^{-1/2} L D^{-1/2}$.
 
 # %%
-lap_comb = ax.matrix.laplacian_matrix(collaboration_network)
-lap_sym = ax.matrix.laplacian_matrix(collaboration_network, normalized='sym')
-
-print('\nCombinatorial Laplacian L (Diagonal Degrees):')
-for u in sorted(lap_comb.keys()):
-    d_u = lap_comb[u].get(u, 0.0)
-    print(f'  Node {u}: Degree d_{u} = {d_u:.1f}')
-
-# %% [markdown]
-# ## Step 3: Computing Algebraic Connectivity & Fiedler Vector
-# Solves for $\lambda_2$ and $\mathbf{v}_2$ using sparse Rayleigh Quotient Conjugate Gradient (RQ-CG).
-
-# %%
-lambda_2, fiedler = ax.analysis.fiedler_vector(collaboration_network)
-alg_conn = ax.analysis.algebraic_connectivity(collaboration_network)
-
-print(f'\nAlgebraic Connectivity (lambda_2): {lambda_2:.6f}')
-assert math.isclose(lambda_2, alg_conn)
-
-print('\nFiedler Vector v_2 (Cluster Embedding):')
-for u in sorted(fiedler.keys()):
-    cluster_hint = 'Cluster A' if fiedler[u] >= 0 else 'Cluster B'
-    print(f'  Node {u} [{researchers[u]}]: v_2 = {fiedler[u]:+.4f} [{cluster_hint}]')
-
-# %% [markdown]
-# ## Step 4: Spectral Bipartitioning & Cheeger Conductance Cut
-# Partitions the network along the zero-crossing of the Fiedler vector and measures cut quality.
-
-# %%
-cluster_a, cluster_b, metrics = ax.analysis.spectral_bipartition(collaboration_network, method='sign')
-
-print('\nSpectral Bipartition Results:')
-print('  Cluster A (AI Lab):', sorted(cluster_a))
-print('  Cluster B (Quantum Lab):', sorted(cluster_b))
-print('\nCheeger Cut Quality Metrics:')
-for metric_name, val in metrics.items():
-    print(f'  {metric_name:<16}: {val:.4f}')
-
-# %% [markdown]
-# ## Step 5: Iterative Laplacian Smoothing & Heat Diffusion
-# Simulates temperature/signal diffusion on the manifold $\mathbf{u}^{(t+1)} = (I - \tau L) \mathbf{u}^{(t)}$.
-# Demonstrates monotonic decrease of discrete Dirichlet energy.
-
-
-# %%
-def dirichlet_energy(lap, u_vec):
+def dirichlet_energy(
+    lap: Mapping[Any, Mapping[Any, float]],
+    u_vec: Mapping[Any, float],
+) -> float:
+    """Calculate discrete Dirichlet energy 0.5 * u^T L u on the graph manifold."""
     lu = ax.matrix.mat_vec(lap, u_vec)
     return 0.5 * sum(u_vec[k] * lu.get(k, 0.0) for k in u_vec)
 
 
-# Noisy initial signal (e.g. localized grant funding)
-initial_signal = {0: 100.0, 1: 0.0, 2: 10.0, 3: 0.0, 4: 0.0, 5: 50.0, 6: 0.0, 7: 0.0}
-e_init = dirichlet_energy(lap_comb, initial_signal)
-print(f'\nInitial Dirichlet Energy: {e_init:.4f}')
+def compute_spectral_clustering(
+    graph: Mapping[Any, Mapping[Any, float]],
+    method: str = 'sign',
+) -> dict[str, Any]:
+    """Execute spectral graph clustering: Laplacians, algebraic connectivity, Fiedler vector, Cheeger cut."""
+    lap_comb = ax.matrix.laplacian_matrix(graph)
+    lap_sym = ax.matrix.laplacian_matrix(graph, normalized='sym')
+    lambda_2, fiedler = ax.analysis.fiedler_vector(graph)
+    cluster_a, cluster_b, metrics = ax.analysis.spectral_bipartition(graph, method=method)
+    eigenvals, _ = ax.analysis.laplacian_spectrum(graph)
+    spectral_gap = eigenvals[1] - eigenvals[0] if len(eigenvals) >= 2 else 0.0
 
-print('\nLaplacian Smoothing Progress:')
-for steps in [1, 5, 10, 25]:
-    smoothed = ax.analysis.laplacian_smoothing(initial_signal, collaboration_network, steps=steps, tau=0.05)
+    return {
+        'lap_comb': lap_comb,
+        'lap_sym': lap_sym,
+        'lambda_2': lambda_2,
+        'fiedler': fiedler,
+        'cluster_a': cluster_a,
+        'cluster_b': cluster_b,
+        'metrics': metrics,
+        'eigenvalues': eigenvals,
+        'spectral_gap': spectral_gap,
+    }
+
+
+def simulate_manifold_diffusion(
+    graph: Mapping[Any, Mapping[Any, float]],
+    initial_signal: Mapping[Any, float],
+    steps: int = 10,
+    tau: float = 0.05,
+) -> dict[str, Any]:
+    """Simulate heat/signal diffusion u^(t+1) = (I - tau * L) u^t and evaluate Dirichlet energy."""
+    lap_comb = ax.matrix.laplacian_matrix(graph)
+    e_init = dirichlet_energy(lap_comb, initial_signal)
+    smoothed = ax.analysis.laplacian_smoothing(initial_signal, graph, steps=steps, tau=tau)
     e_smooth = dirichlet_energy(lap_comb, smoothed)
-    pct_red = (1 - e_smooth / e_init) * 100
-    print(f'  After {steps:>2} diffusion steps: Dirichlet Energy = {e_smooth:>8.4f} (Reduction: {pct_red:.1f}%)')
+    pct_red = (1 - e_smooth / e_init) * 100 if e_init > 1e-12 else 0.0
 
-# %% [markdown]
-# ## Step 6: Full Eigenspectrum Analysis
-# Evaluates the complete spectrum $0 = \lambda_1 \le \lambda_2 \le \dots \le \lambda_8$ via cyclic Jacobi sweeps.
+    return {
+        'initial_signal': dict(initial_signal),
+        'smoothed_signal': smoothed,
+        'initial_energy': e_init,
+        'final_energy': e_smooth,
+        'energy_reduction_pct': pct_red,
+    }
+
 
 # %%
-eigenvals, _ = ax.analysis.laplacian_spectrum(collaboration_network)
-print('\nFull Laplacian Spectrum:')
-for idx, val in enumerate(eigenvals):
-    print(f'  lambda_{idx + 1} = {val:.4f}')
+def run_demo() -> None:
+    """Run full demonstration of spectral graph clustering and manifold smoothing."""
+    print('Collaboration Network Topology:')
+    for u in sorted(collaboration_network.keys()):
+        neighbors_str = ', '.join([f'{v} (w={w:.1f})' for v, w in collaboration_network[u].items()])
+        print(f'  Researcher {u} [{researchers[u]}]: -> {neighbors_str}')
 
-spectral_gap = eigenvals[1] - eigenvals[0]
-print(f'\nSpectral Gap (lambda_2 - lambda_1): {spectral_gap:.4f}')
+    # Step 2 & 3: Spectral Clustering
+    results = compute_spectral_clustering(collaboration_network, method='sign')
+
+    print('\nCombinatorial Laplacian L (Diagonal Degrees):')
+    for u in sorted(results['lap_comb'].keys()):
+        d_u = results['lap_comb'][u].get(u, 0.0)
+        print(f'  Node {u}: Degree d_{u} = {d_u:.1f}')
+
+    print(f"\nAlgebraic Connectivity (lambda_2): {results['lambda_2']:.6f}")
+
+    print('\nFiedler Vector v_2 (Cluster Embedding):')
+    for u in sorted(results['fiedler'].keys()):
+        cluster_hint = 'Cluster A' if results['fiedler'][u] >= 0 else 'Cluster B'
+        print(f"  Node {u} [{researchers[u]}]: v_2 = {results['fiedler'][u]:+.4f} [{cluster_hint}]")
+
+    print('\nSpectral Bipartition Results:')
+    print('  Cluster A (AI Lab):', sorted(results['cluster_a']))
+    print('  Cluster B (Quantum Lab):', sorted(results['cluster_b']))
+
+    print('\nCheeger Cut Quality Metrics:')
+    for metric_name, val in results['metrics'].items():
+        print(f'  {metric_name:<16}: {val:.4f}')
+
+    # Step 5: Laplacian Smoothing & Heat Diffusion
+    initial_signal = {0: 100.0, 1: 0.0, 2: 10.0, 3: 0.0, 4: 0.0, 5: 50.0, 6: 0.0, 7: 0.0}
+    lap_comb = results['lap_comb']
+    e_init = dirichlet_energy(lap_comb, initial_signal)
+    print(f'\nInitial Dirichlet Energy: {e_init:.4f}')
+
+    print('\nLaplacian Smoothing Progress:')
+    for steps in [1, 5, 10, 25]:
+        diff_res = simulate_manifold_diffusion(collaboration_network, initial_signal, steps=steps, tau=0.05)
+        e_smooth = diff_res['final_energy']
+        pct_red = diff_res['energy_reduction_pct']
+        print(f'  After {steps:>2} diffusion steps: Dirichlet Energy = {e_smooth:>8.4f} (Reduction: {pct_red:.1f}%)')
+
+    # Step 6: Full Laplacian Spectrum
+    print('\nFull Laplacian Spectrum:')
+    for idx, val in enumerate(results['eigenvalues']):
+        print(f'  lambda_{idx + 1} = {val:.4f}')
+    print(f"\nSpectral Gap (lambda_2 - lambda_1): {results['spectral_gap']:.4f}")
+
+
+def main() -> None:
+    """Entry point for CLI execution."""
+    run_demo()
+    print('==========================================================================')
+    print('Recipe: Spectral Graph Clustering Finished Successfully!')
+    print('==========================================================================')
+
+
+if __name__ == '__main__':
+    main()
