@@ -5,7 +5,6 @@ from algebrax.matrix.academic import (
     adjoint,
     cofactor,
     determinant,
-    eigen_centrality,
     inverse,
 )
 
@@ -96,30 +95,6 @@ def test_adjoint():
     assert adj == {0: {0: 4, 1: -2}, 1: {0: -3, 1: 1}}
 
 
-def test_eigen_centrality():
-    # 0 <-> 1
-    adj = {0: {1: 1}, 1: {0: 1}}
-    # Should be equal
-    ec = eigen_centrality(adj)
-    assert ec[0] == pytest.approx(0.707, 0.01)
-    assert ec[1] == pytest.approx(0.707, 0.01)
-
-
-def test_eigen_centrality_empty():
-    assert eigen_centrality({}) == {}
-
-
-def test_eigen_centrality_zero_matrix():
-    # Disconnected nodes with no self-loops -> Matrix is all zeros?
-    # No, adjacency usually implies edges.
-    # If matrix is zero, vector should remain uniform (or become zero if not normalized?)
-    # Our implementation normalizes.
-    m = {0: {}, 1: {}}
-    ec = eigen_centrality(m)
-    assert ec[0] == pytest.approx(0.5)
-    assert ec[1] == pytest.approx(0.5)
-
-
 def test_determinant_pivot_swap():
     m = {0: {1: 1}, 1: {0: 1}}
     with pytest.warns(PerformanceWarning):
@@ -149,13 +124,6 @@ def test_inverse_scalar_loop():
     with pytest.warns(PerformanceWarning):
         inv = inverse(m)
     assert inv == {0: {0: 0.5}}
-
-
-def test_eigen_centrality_zero_iterations():
-    m = {0: {1: 1}, 1: {0: 1}}
-    ec = eigen_centrality(m, iterations=0)
-    assert ec[0] == pytest.approx(0.5)
-    assert ec[1] == pytest.approx(0.5)
 
 
 def test_cofactor_with_zero_minors():

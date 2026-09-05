@@ -1,7 +1,10 @@
+import math
+
 import pytest
 
 from algebrax.analysis import (
     divergence,
+    eigen_centrality,
     forman_ricci_curvature,
     gaussian_kernel,
     gradient,
@@ -186,3 +189,50 @@ def test_analysis_branch_coverage():
     }
     frc = forman_ricci_curvature(g, weighted=True, augmented=True)
     assert len(frc) == 3
+
+
+def test_eigen_centrality_pair():
+    # 0 <-> 1
+    adj = {0: {1: 1.0}, 1: {0: 1.0}}
+    ec = eigen_centrality(adj)
+    assert ec[0] == pytest.approx(0.707, 0.01)
+    assert ec[1] == pytest.approx(0.707, 0.01)
+
+
+def test_eigen_centrality_star_graph():
+    # Center node 'hub' connected to leaves 'leaf1', 'leaf2', 'leaf3'
+    star = {
+        'hub': {'leaf1': 1.0, 'leaf2': 1.0, 'leaf3': 1.0},
+        'leaf1': {'hub': 1.0},
+        'leaf2': {'hub': 1.0},
+        'leaf3': {'hub': 1.0},
+    }
+
+    ec = eigen_centrality(star)
+
+    # Hub must have strictly greater eigenvector centrality than any leaf
+    assert ec['hub'] > ec['leaf1']
+    assert ec['leaf1'] == pytest.approx(ec['leaf2'])
+    assert ec['leaf2'] == pytest.approx(ec['leaf3'])
+
+    # Total Euclidean norm should be ~ 1.0
+    norm = math.sqrt(sum(v * v for v in ec.values()))
+    assert norm == pytest.approx(1.0, rel=1e-5)
+
+
+def test_eigen_centrality_empty():
+    assert eigen_centrality({}) == {}
+
+
+def test_eigen_centrality_zero_matrix():
+    m = {0: {}, 1: {}}
+    ec = eigen_centrality(m)
+    assert ec[0] == pytest.approx(0.5)
+    assert ec[1] == pytest.approx(0.5)
+
+
+def test_eigen_centrality_zero_iterations():
+    m = {0: {1: 1.0}, 1: {0: 1.0}}
+    ec = eigen_centrality(m, iterations=0)
+    assert ec[0] == pytest.approx(0.5)
+    assert ec[1] == pytest.approx(0.5)
