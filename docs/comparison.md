@@ -21,9 +21,10 @@ This document provides a comparative analysis of `algebrax` against low-level li
 |:----------------------------------------------|:----------------:|:-----------------------------------:|:-----------------------:|:-----------------------------------:|:-----------------------------------:|:-----------------:|:-----------------:|
 | **Zero Required Dependencies**                |  🟢 Pure Python  |           🔴 C / Assembly           |     🔴 C Toolchain      |           🔴 C / Fortran            |                🔴 C                 |  🟡 Pure Python   |  🟡 Pure Python   |
 | **Arbitrary Hashable Keys (`str`, `tuple`)**  |  🟢 First-Class  |       🔴 Contiguous Integers        | 🔴 Contiguous Integers  |      🔴 Integer $0 \dots N-1$       |      🔴 Integer $0 \dots N-1$       |  🟢 First-Class   | 🔴 Symbolic Vars  |
-| **Polymorphic Semirings $(\oplus, \otimes)$** | 🟢 24+ Built-in  | 🔴 Field $(\mathbb{R}, \mathbb{C})$ |     🟢 C Semirings      | 🔴 Field $(\mathbb{R}, \mathbb{C})$ | 🔴 Field $(\mathbb{R}, \mathbb{C})$ |      🔴 N/A       | 🔴 Symbolic Rings |
+| **Polymorphic Semirings $(\oplus, \otimes)$** |  🟢 27 Built-in  | 🔴 Field $(\mathbb{R}, \mathbb{C})$ |     🟢 C Semirings      | 🔴 Field $(\mathbb{R}, \mathbb{C})$ | 🔴 Field $(\mathbb{R}, \mathbb{C})$ |      🔴 N/A       | 🔴 Symbolic Rings |
 | **Sparse Structure Representation**           | 🟢 Dict-of-Dicts |            🔴 Dense Grid            |      🟢 CSR / CSC       |            🟢 CSR / CSC             |            🔴 Dense Grid            | 🟢 Adjacency Dict | 🔴 Symbolic Expr  |
 | **Matrix Decompositions (LU, QR, SVD)**       |  🟢 Pure Python  |         🟢 LAPACK (`dgemm`)         |   🟡 Basic Matrix Ops   |         🟢 SuperLU / ARPACK         |              🟢 LAPACK              |      🔴 N/A       |    🟢 Symbolic    |
+| **Spectral Graph Theory & Laplacians**        |   🟢 Built-in    |               🔴 N/A                |         🔴 N/A          |        🟡 SciPy ARPACK eigs         |               🔴 N/A                | 🟡 Dense Eigvals  |      🔴 N/A       |
 | **Simplicial Homology & Betti Numbers**       |   🟢 Built-in    |               🔴 N/A                |         🔴 N/A          |               🔴 N/A                |               🔴 N/A                | 🟡 Graph Cliques  |      🔴 N/A       |
 | **Clifford & Galois Field Arithmetic**        |   🟢 Built-in    |               🔴 N/A                |         🔴 N/A          |               🔴 N/A                |               🔴 N/A                |      🔴 N/A       |  🟡 Basic Galois  |
 | **Jupyter HTML Table/Tree Rendering**         | 🟢 `ax.display`  |             🔴 C Output             |       🔴 C Output       |           🔴 String repr            |            🔴 Array repr            |   🔴 Matplotlib   |   🟢 LaTeX repr   |
@@ -119,12 +120,15 @@ This document provides a comparative analysis of `algebrax` against low-level li
     * **Algorithmic Paradigm**: `networkx` uses object-oriented graph traversal algorithms (`nx.shortest_path(G)`).
       `algebrax` unifies graph algorithms into matrix multiplication over semirings ($M^k$ under
       `ax.semiring.TropicalSemiring`).
+    * **Spectral Graph Theory**: `algebrax` natively computes sparse combinatorial and normalized Graph Laplacians
+      ($L = D - W$, $L_{\mathrm{sym}}$), Fiedler vectors ($\mathbf{v}_2$), Cheeger cut conductance, and Dirichlet energy
+      heat smoothing directly over sparse dictionary representations without converting to NumPy dense arrays.
     * **Multidimensional Structures**: `algebrax` extends naturally from matrices to high-dimensional sparse tensors
       (`ax.tensor.einsum`), tries (`AlgebraicTrie`), simplicial chain complexes (`SimplicialComplex`), and multivectors
       (`CliffordSemiring`).
 * **When to use `networkx`**: Traditional graph visualization and standard graph algorithm suites.
-* **When to use `algebrax`**: Unified matrix-semiring graph computing, topological data analysis (Betti numbers), and
-  algebraic state machine simulations.
+* **When to use `algebrax`**: Unified matrix-semiring graph computing, spectral manifold clustering, topological data
+  analysis (Betti numbers), and algebraic state machine simulations.
 
 ---
 
