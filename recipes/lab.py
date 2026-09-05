@@ -30,18 +30,20 @@ uv run recipes/lab.py
 
 ## 2. Navigation Sitemap & Module Overview
 
-The sidebar is organized into **6 domain categories** covering all 19 interactive views:
+The sidebar is organized into **7 domain categories** covering all 32 interactive views:
 
 ```text
 ├── Matrix & Graph Algorithms
-│   ├── ax.semiring.Semiring Matrix Power          (View 1: Tropical, Arctic, Viterbi, Expectation, Provenance, etc.)
+│   ├── Semiring Matrix Power          (View 1: Tropical, Arctic, Viterbi, Expectation, Provenance, etc.)
 │   ├── Forman-Ricci Curvature         (View 2: Discrete Ricci curvature & geometry classification)
 │   ├── PageRank Algorithm             (View 3: Stationary distribution of random walks over semirings)
-│   └── Network Curvature Vis          (View 12: Interactive force-directed layout & edge curvature chart)
+│   ├── Network Curvature Vis          (View 12: Interactive force-directed layout & edge curvature chart)
+│   └── Spectral Graph Clustering      (View 28: Fiedler vector, Cheeger cut & manifold Dirichlet smoothing)
 ├── Automata, Parsing & Risk
 │   ├── Automata Simulator             (View 8: Step-by-step DFA & NFA/probabilistic transition logging)
 │   ├── CYK Grammar Parser             (View 6: Parsing chart matrix closure over GrammarSemiring)
-│   └── Financial Portfolio Risk       (View 18: Market signal trade DFA & asset spectral centrality)
+│   ├── Financial Portfolio Risk       (View 18: Market signal trade DFA & asset spectral centrality)
+│   └── Extreme Tail Risk & Moments    (View 29: Higher-order moments, kurtosis & covariance tensors)
 ├── Transforms, Signals & Waves
 │   ├── Slope Transform                (View 7: Idempotent Fenchel-Legendre convex conjugate transform)
 │   ├── Signal Transforms              (View 10: Discrete Fourier, Hilbert, Convolution & Z-Transforms)
@@ -51,7 +53,7 @@ The sidebar is organized into **6 domain categories** covering all 19 interactiv
 │   ├── Algebraic Trie / Tensor        (View 4: Sparse tensor dimension contraction/marginalization)
 │   ├── Sparse Tensor Einsum           (View 14: Arbitrary-rank ax.tensor.einsum over Standard & Tropical semirings)
 │   ├── Trajectoid Kinematics          (View 15: Non-holonomic rolling velocity & SO(3) 3x3 rotation)
-│   ├── Schwarzschild Black Hole       (View 13: Metric components, light deflection & Hawking ax.probability.entropy)
+│   ├── Schwarzschild Black Hole       (View 13: Metric components, light deflection & Hawking entropy)
 │   └── 3D Gaussian Splatting          (View 20: 3D spatial covariance Sigma & 2D projective screen splatting)
 ├── Topology & Geometry
 │   ├── Knot Theory & Skein            (View 16: Knot connected sum (#) & Artin braid crossing signatures)
@@ -60,13 +62,17 @@ The sidebar is organized into **6 domain categories** covering all 19 interactiv
 │   ├── Clifford Geometric Algebra     (View 22: Cl(3,0) multivectors & 3D rotor rotation sandwiching)
 │   ├── Galois Finite Fields           (View 23: GF(2^8) polynomial modulo arithmetic & AES MixColumns)
 │   └── Categorical Kleisli Monads     (View 24: Monadic Kleisli composition g o_T f across semirings)
-└── Information & Crypto
-    ├── Markov & Info Theory           (View 9: Markov steps, steady state & Shannon/KL info metrics)
-    └── Post-Quantum Key Exchange      (View 3: Diffie-Hellman matrix key exchange over Digital ax.semiring.Semiring)
-├── Automatic Differentiation & Neural Networks
+├── Information, Distributed & Crypto
+│   ├── Markov & Info Theory           (View 9: Markov steps, steady state & Shannon/KL info metrics)
+│   ├── Post-Quantum Key Exchange      (View 5: Diffie-Hellman matrix key exchange over DigitalSemiring)
+│   └── Distributed Vector Clocks      (View 32: Causal happens-before partial orders & CRDT lattice join)
+├── Automatic Differentiation & Backprop
 │   ├── Forward-Mode Autodiff          (View 25: Quotient polynomial ring DualNumber & gradient bundles)
 │   ├── Sparse Neural Backprop         (View 26: Adjoint pullback W^T * z_bar & outer-product weight gradients)
 │   └── Functional Autograd Engine     (View 27: Dynamic computation DAG, reverse topological VJPs & optimization)
+└── Quantum & Spacetime Mechanics
+    ├── Quantum Path Integrals         (View 30: Feynman path amplitude superposition & Aharonov-Bohm phase)
+    └── Relativistic Dirac Spinors     (View 31: Spacetime algebra Cl(1,3) rotors & conserved probability currents)
 ```
 
 ---
@@ -282,6 +288,16 @@ from recipes.sheaf_cohomology_consensus import (  # noqa: E402
     simulate_sheaf_consensus,
 )
 from recipes.sparse_neural_backprop import SparseLinearLayer, SparseMLP, train_sparse_mlp  # noqa: E402
+from recipes.spectral_graph_clustering import (  # noqa: E402
+    collaboration_network as spectral_default_network,
+)
+from recipes.spectral_graph_clustering import (  # noqa: E402
+    compute_spectral_clustering,
+    simulate_manifold_diffusion,
+)
+from recipes.spectral_graph_clustering import (  # noqa: E402
+    researchers as spectral_default_researchers,
+)
 from recipes.topological_homology_betti import (  # noqa: E402
     evaluate_simplicial_complex,
     get_homology_preset,
@@ -2375,6 +2391,226 @@ def run_distributed_vector_clocks() -> None:
         dpg.set_value('vclock_status', f'Error: {e}')
 
 
+# --- Spectral Graph Clustering Presets & Callbacks ---
+SPECTRAL_PRESETS: dict[str, dict[str, Any]] = {
+    'Collaboration Network (8 nodes, 2 labs)': {
+        '0': {'1': 3.0, '2': 2.0, '3': 1.0},
+        '1': {'0': 3.0, '2': 2.0, '3': 2.0},
+        '2': {'0': 2.0, '1': 2.0, '3': 3.0, '4': 1.0},
+        '3': {'0': 1.0, '1': 2.0, '2': 3.0, '5': 1.0},
+        '4': {'2': 1.0, '5': 3.0, '6': 2.0, '7': 2.0},
+        '5': {'3': 1.0, '4': 3.0, '6': 2.0, '7': 3.0},
+        '6': {'4': 2.0, '5': 2.0, '7': 4.0},
+        '7': {'4': 2.0, '5': 3.0, '6': 4.0},
+    },
+    'Barbell Graph (2 cliques + bridge)': {
+        '0': {'1': 1.0, '2': 1.0},
+        '1': {'0': 1.0, '2': 1.0},
+        '2': {'0': 1.0, '1': 1.0, '3': 1.0},
+        '3': {'2': 1.0, '4': 1.0, '5': 1.0},
+        '4': {'3': 1.0, '5': 1.0},
+        '5': {'3': 1.0, '4': 1.0},
+    },
+    'Ring Lattice (6-cycle)': {
+        '0': {'1': 1.0, '5': 1.0},
+        '1': {'0': 1.0, '2': 1.0},
+        '2': {'1': 1.0, '3': 1.0},
+        '3': {'2': 1.0, '4': 1.0},
+        '4': {'3': 1.0, '5': 1.0},
+        '5': {'4': 1.0, '0': 1.0},
+    },
+}
+
+
+def spectral_preset_callback(sender: int | str, app_data: str) -> None:
+    preset_name = app_data
+    if preset_name in SPECTRAL_PRESETS:
+        dpg.set_value(
+            'spectral_graph_input',
+            json.dumps(SPECTRAL_PRESETS[preset_name], indent=2),
+        )
+
+
+def run_spectral_graph_clustering() -> None:
+    graph_str: str = dpg.get_value('spectral_graph_input')
+    method: str = dpg.get_value('spectral_bipartition_method')
+    steps: int = int(dpg.get_value('spectral_diff_steps'))
+    tau: float = float(dpg.get_value('spectral_diff_tau'))
+    view_tab: str = dpg.get_value('spectral_mode_select')
+
+    try:
+        raw_graph = json.loads(graph_str)
+        all_numeric = all((isinstance(k, int) or (isinstance(k, str) and k.isdigit())) for k in raw_graph)
+        graph: dict[Any, dict[Any, float]] = {}
+        for u_str, neighbors in raw_graph.items():
+            u = int(u_str) if all_numeric else str(u_str)
+            graph[u] = {}
+            for v_str, w in neighbors.items():
+                v = int(v_str) if all_numeric else str(v_str)
+                graph[u][v] = float(w)
+
+        res = compute_spectral_clustering(graph, method=method)
+        lambda_2 = res['lambda_2']
+        fiedler = res['fiedler']
+        cluster_a = set(res['cluster_a'])
+        cluster_b = set(res['cluster_b'])
+        metrics = res['metrics']
+        eigenvals = res['eigenvalues']
+        spectral_gap = res['spectral_gap']
+
+        nodes = sorted(graph.keys(), key=lambda x: str(x))
+        initial_signal: dict[Any, float] = {}
+        for i, n in enumerate(nodes):
+            initial_signal[n] = 100.0 if i == 0 else (50.0 if i == len(nodes) // 2 else 0.0)
+
+        diff_res = simulate_manifold_diffusion(graph, initial_signal, steps=steps, tau=tau)
+        smoothed = diff_res['smoothed_signal']
+        e_init = diff_res['initial_energy']
+        e_smooth = diff_res['final_energy']
+        pct_red = diff_res['energy_reduction_pct']
+
+        dpg.set_value('spectral_lambda2_val', f'{lambda_2:.6f}')
+        dpg.set_value('spectral_gap_val', f'{spectral_gap:.6f}')
+        dpg.set_value('spectral_conductance_val', f'{metrics.get("conductance", 0.0):.4f}')
+        dpg.set_value(
+            'spectral_cut_val',
+            f'Cut: {metrics.get("cut_size", 0.0):.1f} | Ratio: {metrics.get("ratio_cut", 0.0):.4f}',
+        )
+        dpg.set_value('spectral_energy_val', f'{e_init:.1f} -> {e_smooth:.2f} (-{pct_red:.1f}%)')
+        dpg.set_value(
+            'spectral_status',
+            'Spectral graph clustering & manifold diffusion executed successfully!',
+        )
+
+        clear_table_rows('table_spectral_nodes')
+        for node in nodes:
+            cluster_name = 'Cluster A' if node in cluster_a else 'Cluster B'
+            fiedler_val = fiedler.get(node, 0.0)
+            deg = sum(graph[node].values())
+            heat = smoothed.get(node, 0.0)
+            label = spectral_default_researchers.get(node, f'Node {node}')
+
+            with dpg.table_row(parent='table_spectral_nodes'):
+                dpg.add_input_text(default_value=str(node), readonly=True, width=-1)
+                dpg.add_input_text(default_value=label, readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{fiedler_val:+.4f}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=cluster_name, readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{deg:.1f}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{heat:.2f}', readonly=True, width=-1)
+
+        clear_table_rows('table_spectral_spectrum')
+        for idx, val in enumerate(eigenvals):
+            cheeger_low = val / 2.0
+            cheeger_up = math.sqrt(max(0.0, 2.0 * val))
+            with dpg.table_row(parent='table_spectral_spectrum'):
+                dpg.add_input_text(default_value=f'lambda_{idx + 1}', readonly=True, width=-1)
+                dpg.add_input_text(default_value=f'{val:.6f}', readonly=True, width=-1)
+                dpg.add_input_text(
+                    default_value=f'{cheeger_low:.4f} <= h <= {cheeger_up:.4f}',
+                    readonly=True,
+                    width=-1,
+                )
+
+        if dpg.does_item_exist('spectral_canvas'):
+            dpg.delete_item('spectral_canvas', children_only=True)
+            dpg.draw_rectangle(
+                (0, 0),
+                (700, 220),
+                fill=(18, 18, 24),
+                color=(60, 60, 80),
+                thickness=1,
+                parent='spectral_canvas',
+            )
+
+            min_f = min(fiedler.values()) if fiedler else -1.0
+            max_f = max(fiedler.values()) if fiedler else 1.0
+            span_f = max_f - min_f if abs(max_f - min_f) > 1e-6 else 1.0
+
+            zero_ratio = (0.0 - min_f) / span_f
+            zero_x = int(80 + zero_ratio * (620 - 80))
+            zero_x = max(90, min(610, zero_x))
+
+            dpg.draw_line(
+                (zero_x, 15),
+                (zero_x, 205),
+                color=(255, 200, 80, 180),
+                thickness=2,
+                parent='spectral_canvas',
+            )
+            dpg.draw_text(
+                (zero_x - 45, 18),
+                'Cheeger Cut (v=0)',
+                color=(255, 210, 90),
+                size=11,
+                parent='spectral_canvas',
+            )
+
+            node_positions: dict[Any, tuple[int, int]] = {}
+            for idx, n in enumerate(nodes):
+                f_val = fiedler.get(n, 0.0)
+                norm_x = (f_val - min_f) / span_f
+                cx = int(80 + norm_x * (620 - 80))
+                cy = 70 + (idx % 3) * 45
+                node_positions[n] = (cx, cy)
+
+            drawn_edges = set()
+            for u in nodes:
+                for v in graph[u]:
+                    if v not in node_positions:
+                        continue
+                    edge_key = tuple(sorted([str(u), str(v)]))
+                    if edge_key in drawn_edges:
+                        continue
+                    drawn_edges.add(edge_key)
+
+                    p1 = node_positions[u]
+                    p2 = node_positions[v]
+                    is_cut_edge = (u in cluster_a and v in cluster_b) or (u in cluster_b and v in cluster_a)
+                    if is_cut_edge:
+                        edge_color = (255, 90, 80, 220)
+                        thickness = 2.5
+                    else:
+                        edge_color = (80, 120, 170, 130)
+                        thickness = 1.2
+                    dpg.draw_line(p1, p2, color=edge_color, thickness=thickness, parent='spectral_canvas')
+
+            for n in nodes:
+                cx, cy = node_positions[n]
+                in_a = n in cluster_a
+                if 'Diffusion' in view_tab:
+                    heat_val = smoothed.get(n, 0.0)
+                    heat_ratio = min(1.0, max(0.0, heat_val / 100.0))
+                    r_c = int(50 + 205 * heat_ratio)
+                    g_c = int(120 + (80 if heat_ratio < 0.5 else -40) * heat_ratio)
+                    b_c = int(240 * (1.0 - heat_ratio))
+                    fill_color = (r_c, g_c, b_c)
+                else:
+                    fill_color = (60, 140, 240) if in_a else (230, 80, 140)
+
+                dpg.draw_circle(
+                    (cx, cy),
+                    13,
+                    color=(240, 240, 255),
+                    fill=fill_color,
+                    thickness=1.5,
+                    parent='spectral_canvas',
+                )
+                dpg.draw_text((cx - 4, cy - 6), str(n), color=(255, 255, 255), size=12, parent='spectral_canvas')
+                f_val = fiedler.get(n, 0.0)
+                dpg.draw_text(
+                    (cx - 15, cy + 15),
+                    f'{f_val:+.2f}',
+                    color=(190, 200, 220),
+                    size=10,
+                    parent='spectral_canvas',
+                )
+
+        display_matrix_in_table(res['lap_comb'], 'table_spectral_lap')
+
+    except Exception as e:
+        dpg.set_value('spectral_status', f'Error: {e}')
+
+
 # --- Image Convolution Helpers ---
 IMAGE_PRESETS: dict[str, str] = {
     'Cross Pattern (8x8)': (
@@ -4181,10 +4417,141 @@ def build_view_distributed_vector_clocks() -> None:
                     pass
 
 
+def build_view_spectral_graph_clustering() -> None:
+    with dpg.group(tag='view_spectral_graph_clustering_group', show=False):
+        dpg.add_text(
+            'Spectral Graph Clustering, Fiedler Vector & Manifold Dirichlet Smoothing',
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.child_window(width=320, height=540, border=True):
+                dpg.add_text('SPECTRAL CONFIG', color=(100, 255, 100))
+                dpg.add_separator()
+                dpg.add_text('Graph Topology Preset:')
+                dpg.add_combo(
+                    items=list(SPECTRAL_PRESETS.keys()),
+                    default_value='Collaboration Network (8 nodes, 2 labs)',
+                    tag='spectral_preset_select',
+                    width=290,
+                    callback=spectral_preset_callback,
+                )
+                dpg.add_spacer(height=5)
+                dpg.add_text('Adjacency Weights (JSON):')
+                dpg.add_input_text(
+                    default_value=json.dumps(SPECTRAL_PRESETS['Collaboration Network (8 nodes, 2 labs)'], indent=2),
+                    multiline=True,
+                    tag='spectral_graph_input',
+                    height=120,
+                    width=290,
+                )
+                dpg.add_spacer(height=5)
+                dpg.add_text('Analysis Mode & Display:')
+                dpg.add_combo(
+                    items=['Spectral Bipartition & Cut', 'Manifold Heat Diffusion'],
+                    default_value='Spectral Bipartition & Cut',
+                    tag='spectral_mode_select',
+                    width=290,
+                )
+                dpg.add_text('Bipartition Threshold:')
+                dpg.add_combo(
+                    items=['sign', 'median'],
+                    default_value='sign',
+                    tag='spectral_bipartition_method',
+                    width=290,
+                )
+                dpg.add_spacer(height=5)
+                dpg.add_text('Heat Diffusion Parameters:')
+                with dpg.group(horizontal=True):
+                    dpg.add_text('Steps:')
+                    dpg.add_slider_int(
+                        default_value=10,
+                        min_value=1,
+                        max_value=50,
+                        tag='spectral_diff_steps',
+                        width=80,
+                    )
+                    dpg.add_text('Tau:')
+                    dpg.add_slider_float(
+                        default_value=0.05,
+                        min_value=0.01,
+                        max_value=0.20,
+                        format='%.2f',
+                        tag='spectral_diff_tau',
+                        width=80,
+                    )
+                dpg.add_spacer(height=8)
+                dpg.add_button(
+                    label='Run Spectral Analysis',
+                    callback=run_spectral_graph_clustering,
+                    width=290,
+                )
+                dpg.add_spacer(height=5)
+                dpg.add_text('', tag='spectral_status', color=(255, 200, 100), wrap=290)
+
+            with dpg.group():
+                dpg.add_text('1D Fiedler Embedding & Cheeger Conductance Cut Canvas:', color=(180, 180, 180))
+                with dpg.drawlist(width=700, height=220, tag='spectral_canvas'):
+                    pass
+                with dpg.group(horizontal=True):
+                    dpg.add_text('Legend: ')
+                    dpg.add_text('Cluster A (AI)', color=(60, 140, 240))
+                    dpg.add_text(' | ')
+                    dpg.add_text('Cluster B (Quantum)', color=(230, 80, 140))
+                    dpg.add_text(' | ')
+                    dpg.add_text('Cut Bridge Edges', color=(255, 90, 80))
+                    dpg.add_text(' | ')
+                    dpg.add_text('Fiedler Cut v2=0', color=(255, 210, 90))
+
+                dpg.add_spacer(height=5)
+                dpg.add_text('Spectral Invariants & Cheeger Cut Bounds:')
+                with dpg.group(horizontal=True):
+                    dpg.add_input_text(label='λ2 Conn', readonly=True, tag='spectral_lambda2_val', width=110)
+                    dpg.add_input_text(label='Gap', readonly=True, tag='spectral_gap_val', width=100)
+                    dpg.add_input_text(
+                        label='Conductance',
+                        readonly=True,
+                        tag='spectral_conductance_val',
+                        width=120,
+                    )
+                    dpg.add_input_text(label='Cut Size', readonly=True, tag='spectral_cut_val', width=130)
+
+                dpg.add_input_text(label='Dirichlet Energy', readonly=True, tag='spectral_energy_val', width=450)
+
+                dpg.add_spacer(height=5)
+                dpg.add_text('Node Cluster Assignment & Fiedler Embeddings (Selectable cells):')
+                create_bordered_table(
+                    tag='table_spectral_nodes',
+                    columns=[
+                        'Node',
+                        'Researcher / Domain',
+                        'Fiedler v2',
+                        'Cluster',
+                        'Degree d',
+                        'Heat u(t)',
+                    ],
+                    width=700,
+                )
+
+                dpg.add_spacer(height=5)
+                dpg.add_text('Laplacian Eigenspectrum & Cheeger Bounds (λ / 2 <= h <= sqrt(2λ)):')
+                create_bordered_table(
+                    tag='table_spectral_spectrum',
+                    columns=['Index', 'Eigenvalue λ_k', "Cheeger's Inequality Bounds"],
+                    width=700,
+                )
+
+                dpg.add_spacer(height=5)
+                dpg.add_text('Combinatorial Graph Laplacian Operator Matrix L = D - W:')
+                with dpg.group(tag='table_spectral_lap_container'):
+                    pass
+
+
 # --- Navigation Sidebar Builder ---
 VIEWS: list[str] = [
     'semiring_matrix_power',
     'forman_ricci_curvature',
+    'spectral_graph_clustering',
     'pq_key_exchange',
     'algebraic_trie',
     'pagerank',
@@ -4262,6 +4629,12 @@ def build_navigation_sidebar() -> None:
                 tag='sel_network_curvature_vis',
                 callback=change_view,
                 user_data='network_curvature_vis',
+            )
+            dpg.add_selectable(
+                label='Spectral Graph Clustering',
+                tag='sel_spectral_graph_clustering',
+                callback=change_view,
+                user_data='spectral_graph_clustering',
             )
 
         with dpg.tree_node(label='Automata, Parsing & Risk', default_open=True):
@@ -4521,6 +4894,7 @@ def main() -> None:
                 build_view_signal_transforms()
                 build_view_image_conv()
                 build_view_network_vis()
+                build_view_spectral_graph_clustering()
                 build_view_blackhole()
                 build_view_sparse_tensor_einsum()
                 build_view_trajectoid()
