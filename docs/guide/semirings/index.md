@@ -333,7 +333,37 @@ flowchart LR
 
 ---
 
-## 5. Verifying Semiring Properties
+## 5. Factory Ergonomics & Semiring Normalization
+
+To ensure safe, uniform semiring lifecycle management across algorithms and recipes, the base `Semiring` class provides first-class factory methods:
+
+```python
+from algebrax.semiring import Semiring, TropicalSemiring
+
+# 1. Canonical default semiring (StandardSemiring over float or custom dtype)
+s_default = Semiring.default()                # StandardSemiring[float]
+s_complex = Semiring.default(dtype=complex)  # StandardSemiring[complex]
+
+# 2. Normalize optional semiring parameters in library functions and algorithms
+s1 = Semiring.normalize(None)                 # Resolves to StandardSemiring[float]
+s2 = Semiring.normalize(None, default=TropicalSemiring()) # Resolves to TropicalSemiring
+s3 = Semiring.normalize(TropicalSemiring())   # Returns TropicalSemiring as-is
+
+# 3. Convenience alias
+s4 = Semiring.create("tropical") if False else Semiring.create()
+```
+
+### Factory Methods Reference
+
+| Method | Signature | Description |
+|:-------|:----------|:------------|
+| `Semiring.default(dtype=float)` | `(dtype: type[T] = float) -> StandardSemiring[T]` | Instantiates the canonical standard addition/multiplication semiring for the requested carrier type. |
+| `Semiring.normalize(semiring, default)` | `(semiring: Semiring[V] \| None = None, default: Semiring[V] \| None = None) -> Semiring[V]` | Safely coerces an optional semiring parameter into an active `Semiring` instance, falling back to `default` or `Semiring.default()`. |
+| `Semiring.create(semiring, default)` | `(semiring=None, default=None)` | Direct alias to `Semiring.normalize` for uniform factory instantiation. |
+
+---
+
+## 6. Verifying Semiring Properties
 
 To formally verify that any custom or built-in semiring satisfies all 9 algebraic axioms:
 
@@ -342,8 +372,8 @@ import algebrax as ax
 
 # Test all 9 axioms with numerical/sparse equality checks
 results = ax.verification.verify_semiring_laws(
-   semiring=ax.semiring.TropicalSemiring(),
-   samples=[float("inf"), 0.0, 1.5, 4.0, 10.0]
+    semiring=ax.semiring.TropicalSemiring(),
+    samples=[float("inf"), 0.0, 1.5, 4.0, 10.0]
 )
 
 print("Axiom Audit Results:", results)
