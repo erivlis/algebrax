@@ -103,6 +103,14 @@ def test_benchmark_analysis_pagerank(benchmark):
     assert result is not None
 
 
+@pytest.mark.benchmark(group='analysis-eigen-centrality')
+def test_benchmark_analysis_eigen_centrality(benchmark):
+    g = graph(80, 0.15, seed=1, weighted=True)
+
+    result = benchmark(ax.analysis.eigen_centrality, g, iterations=25)
+    assert result is not None
+
+
 # endregion
 
 

@@ -4,8 +4,8 @@ import sys
 
 import pytest
 
-sys.path.insert(0, "src")
-sys.path.insert(0, ".")
+sys.path.insert(0, 'src')
+sys.path.insert(0, '.')
 
 from _generators import sparse_matrix, sparse_signal, symmetric_positive_definite
 
@@ -14,8 +14,8 @@ import algebrax as ax
 # region Core Operations
 
 
-@pytest.mark.benchmark(group="matrix-add")
-@pytest.mark.parametrize("density", [0.10, 0.50])
+@pytest.mark.benchmark(group='matrix-add')
+@pytest.mark.parametrize('density', [0.10, 0.50])
 def test_benchmark_matrix_add(benchmark, density: float):
     m_a = sparse_matrix(120, 120, density, seed=1)
     m_b = sparse_matrix(120, 120, density, seed=2)
@@ -24,8 +24,8 @@ def test_benchmark_matrix_add(benchmark, density: float):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="matrix-mat-vec")
-@pytest.mark.parametrize("density", [0.10, 0.50])
+@pytest.mark.benchmark(group='matrix-mat-vec')
+@pytest.mark.parametrize('density', [0.10, 0.50])
 def test_benchmark_matrix_mat_vec(benchmark, density: float):
     m_a = sparse_matrix(200, 200, density, seed=1)
     vec = sparse_signal(200, 0.5, seed=2)
@@ -34,8 +34,8 @@ def test_benchmark_matrix_mat_vec(benchmark, density: float):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="matrix-power")
-@pytest.mark.parametrize("exponent", [4, 16])
+@pytest.mark.benchmark(group='matrix-power')
+@pytest.mark.parametrize('exponent', [4, 16])
 def test_benchmark_matrix_power(benchmark, exponent: int):
     m_a = sparse_matrix(30, 30, 0.15, seed=1)
 
@@ -43,7 +43,7 @@ def test_benchmark_matrix_power(benchmark, exponent: int):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="matrix-power")
+@pytest.mark.benchmark(group='matrix-power')
 def test_benchmark_matrix_power_tropical(benchmark):
     """All-pairs shortest paths via repeated squaring over the tropical semiring."""
     m_a = sparse_matrix(30, 30, 0.15, seed=1)
@@ -53,7 +53,7 @@ def test_benchmark_matrix_power_tropical(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="matrix-inner")
+@pytest.mark.benchmark(group='matrix-inner')
 def test_benchmark_matrix_inner(benchmark):
     v_a = sparse_signal(5_000, 0.5, seed=1)
     v_b = sparse_signal(5_000, 0.5, seed=2)
@@ -68,8 +68,8 @@ def test_benchmark_matrix_inner(benchmark):
 # region Academic Invariants
 
 
-@pytest.mark.benchmark(group="matrix-determinant")
-@pytest.mark.parametrize("size", [6, 8])
+@pytest.mark.benchmark(group='matrix-determinant')
+@pytest.mark.parametrize('size', [6, 8])
 def test_benchmark_matrix_determinant(benchmark, size: int):
     m_a = symmetric_positive_definite(size, seed=1)
 
@@ -77,19 +77,11 @@ def test_benchmark_matrix_determinant(benchmark, size: int):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="matrix-inverse")
+@pytest.mark.benchmark(group='matrix-inverse')
 def test_benchmark_matrix_inverse(benchmark):
     m_a = symmetric_positive_definite(6, seed=1)
 
     result = benchmark(ax.matrix.inverse, m_a)
-    assert result is not None
-
-
-@pytest.mark.benchmark(group="matrix-eigen-centrality")
-def test_benchmark_matrix_eigen_centrality(benchmark):
-    m_a = sparse_matrix(80, 80, 0.15, seed=1)
-
-    result = benchmark(ax.matrix.eigen_centrality, m_a)
     assert result is not None
 
 
@@ -99,8 +91,8 @@ def test_benchmark_matrix_eigen_centrality(benchmark):
 # region Decompositions
 
 
-@pytest.mark.benchmark(group="matrix-decompose")
-@pytest.mark.parametrize("size", [12, 24])
+@pytest.mark.benchmark(group='matrix-decompose')
+@pytest.mark.parametrize('size', [12, 24])
 def test_benchmark_matrix_lu(benchmark, size: int):
     m_a = symmetric_positive_definite(size, seed=1)
 
@@ -108,8 +100,8 @@ def test_benchmark_matrix_lu(benchmark, size: int):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="matrix-decompose")
-@pytest.mark.parametrize("size", [12, 24])
+@pytest.mark.benchmark(group='matrix-decompose')
+@pytest.mark.parametrize('size', [12, 24])
 def test_benchmark_matrix_qr(benchmark, size: int):
     m_a = symmetric_positive_definite(size, seed=1)
 
@@ -117,7 +109,7 @@ def test_benchmark_matrix_qr(benchmark, size: int):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="matrix-decompose")
+@pytest.mark.benchmark(group='matrix-decompose')
 def test_benchmark_matrix_cholesky(benchmark):
     m_a = symmetric_positive_definite(24, seed=1)
 
@@ -125,8 +117,8 @@ def test_benchmark_matrix_cholesky(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="matrix-decompose")
-@pytest.mark.parametrize("rank", [2, 6])
+@pytest.mark.benchmark(group='matrix-decompose')
+@pytest.mark.parametrize('rank', [2, 6])
 def test_benchmark_matrix_svd(benchmark, rank: int):
     m_a = symmetric_positive_definite(16, seed=1)
 
@@ -140,7 +132,7 @@ def test_benchmark_matrix_svd(benchmark, rank: int):
 # region Tensors
 
 
-@pytest.mark.benchmark(group="tensor-outer")
+@pytest.mark.benchmark(group='tensor-outer')
 def test_benchmark_tensor_outer_product(benchmark):
     v_a = sparse_signal(60, 0.5, seed=1)
     v_b = sparse_signal(60, 0.5, seed=2)
@@ -149,7 +141,7 @@ def test_benchmark_tensor_outer_product(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="tensor-flatten")
+@pytest.mark.benchmark(group='tensor-flatten')
 def test_benchmark_tensor_flatten(benchmark):
     tensor = {i: sparse_matrix(20, 20, 0.3, seed=i) for i in range(5)}
 
@@ -157,7 +149,7 @@ def test_benchmark_tensor_flatten(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="tensor-permute")
+@pytest.mark.benchmark(group='tensor-permute')
 def test_benchmark_tensor_permute(benchmark):
     tensor = ax.tensor.flatten_tensor({i: sparse_matrix(20, 20, 0.3, seed=i) for i in range(5)})
 
