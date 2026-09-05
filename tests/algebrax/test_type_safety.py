@@ -8,14 +8,35 @@ import pytest
 
 import algebrax.typing
 from algebrax.converters import flat_to_nested
-from algebrax.semiring import StandardSemiring, TropicalSemiring, _normalize_semiring
+from algebrax.semiring import BooleanSemiring, Semiring, StandardSemiring, TropicalSemiring
 
 
 def test_semiring_normalization():
-    """Verify _normalize_semiring handles None, class types, and instances."""
-    assert isinstance(_normalize_semiring(None), StandardSemiring)
-    assert isinstance(_normalize_semiring(TropicalSemiring), TropicalSemiring)
-    assert isinstance(_normalize_semiring(TropicalSemiring()), TropicalSemiring)
+    """Verify Semiring.normalize, Semiring.default, and Semiring.create."""
+    # Default
+    assert isinstance(Semiring.default(), StandardSemiring)
+    assert isinstance(Semiring.normalize(), StandardSemiring)
+    assert isinstance(Semiring.normalize(None), StandardSemiring)
+    assert isinstance(Semiring.create(), StandardSemiring)
+
+    # Class types
+    assert isinstance(Semiring.normalize(TropicalSemiring), TropicalSemiring)
+    assert isinstance(Semiring.create(TropicalSemiring), TropicalSemiring)
+
+    # Instances
+    assert isinstance(Semiring.normalize(TropicalSemiring()), TropicalSemiring)
+    assert isinstance(Semiring.create(TropicalSemiring()), TropicalSemiring)
+
+    # String names (case-insensitive and suffix-tolerant)
+    assert isinstance(Semiring.normalize('Tropical'), TropicalSemiring)
+    assert isinstance(Semiring.normalize('tropical'), TropicalSemiring)
+    assert isinstance(Semiring.normalize('TropicalSemiring'), TropicalSemiring)
+    assert isinstance(Semiring.create('Boolean'), BooleanSemiring)
+    assert isinstance(Semiring.create('booleansemiring'), BooleanSemiring)
+
+    # Unknown string raises KeyError
+    with pytest.raises(KeyError, match="Unknown semiring 'nonexistent'"):
+        Semiring.normalize('nonexistent')
 
 
 def test_flat_to_nested_collision_error():
