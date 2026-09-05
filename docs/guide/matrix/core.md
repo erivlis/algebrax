@@ -12,18 +12,22 @@ The **`algebrax.matrix.core`** module provides fundamental primitives for manipu
 
 ## Overview of Core Primitives
 
-| Function                             | Signature / Operation                      | Mathematical Meaning                                                |
-|:-------------------------------------|:-------------------------------------------|:--------------------------------------------------------------------|
-| **`add(m1, m2)`**                    | $M_1 + M_2$                                | Element-wise matrix addition with zero-pruning.                     |
-| **`dot(m1, m2, semiring=...)`**      | $M_1 \cdot M_2$                            | Matrix multiplication over standard arithmetic or custom semirings. |
-| **`transpose(matrix)`**              | $M^T$                                      | Swaps rows and columns: $M^T[c, r] = M[r, c]$.                      |
-| **`inner(v1, v2, semiring=...)`**    | $\langle v_1, v_2 \rangle$                 | Vector inner product over a semiring.                               |
-| **`power(matrix, n, semiring=...)`** | $M^n$                                      | Fast binary exponentiation matrix power.                            |
-| **`mat_vec(matrix, vector)`**        | $M \cdot v$                                | Matrix-vector multiplication.                                       |
-| **`vec_mat(vector, matrix)`**        | $v^T \cdot M$                              | Vector-matrix multiplication.                                       |
-| **`hstack(matrices)`**               | $[M_1 \mid M_2]$                           | Horizontal concatenation along column dimensions.                   |
-| **`vstack(matrices)`**               | $\begin{bmatrix} M_1 \\ M_2 \end{bmatrix}$ | Vertical concatenation along row dimensions.                        |
-| **`block(matrix, rows, cols)`**      | $M[\text{rows}, \text{cols}]$              | Slice sub-matrix with index re-basing to 0.                         |
+| Function                                       | Signature / Operation                      | Mathematical Meaning                                                                                             |
+|:-----------------------------------------------|:-------------------------------------------|:-----------------------------------------------------------------------------------------------------------------|
+| **`add(m1, m2)`**                              | $M_1 + M_2$                                | Element-wise matrix addition with zero-pruning.                                                                  |
+| **`dot(m1, m2, semiring=...)`**                | $M_1 \cdot M_2$                            | Matrix multiplication over standard arithmetic or custom semirings.                                              |
+| **`transpose(matrix)`**                        | $M^T$                                      | Swaps rows and columns: $M^T[c, r] = M[r, c]$.                                                                   |
+| **`inner(v1, v2, semiring=...)`**              | $\langle v_1, v_2 \rangle$                 | Vector inner product over a semiring.                                                                            |
+| **`power(matrix, n, semiring=...)`**           | $M^n$                                      | Fast binary exponentiation matrix power.                                                                         |
+| **`mat_vec(matrix, vector)`**                  | $M \cdot v$                                | Matrix-vector multiplication.                                                                                    |
+| **`vec_mat(vector, matrix)`**                  | $v^T \cdot M$                              | Vector-matrix multiplication.                                                                                    |
+| **`laplacian_matrix(matrix, normalized=...)`** | $L = D - W$                                | Combinatorial, symmetric normalized ($L_{\mathrm{sym}}$), or random-walk ($L_{\mathrm{rw}}$) Laplacian operator. |
+| **`trace(matrix)`**                            | $\operatorname{Tr}(M) = \sum M_{i,i}$      | Sum of diagonal elements.                                                                                        |
+| **`block_diag(*matrices)`**                    | $\operatorname{diag}(M_1, M_2, \dots)$     | Direct sum block-diagonal matrix construction.                                                                   |
+| **`hstack(matrices)`**                         | $[M_1 \mid M_2]$                           | Horizontal concatenation along column dimensions.                                                                |
+| **`vstack(matrices)`**                         | $\begin{bmatrix} M_1 \\ M_2 \end{bmatrix}$ | Vertical concatenation along row dimensions.                                                                     |
+| **`block(matrix, rows, cols)`**                | $M[\text{rows}, \text{cols}]$              | Slice sub-matrix with index re-basing to 0.                                                                      |
+| **`kronecker_delta(i, j)`**                    | $\delta_{i, j}$                            | Returns 1 if $i = j$, else 0.                                                                                    |
 
 ---
 
@@ -53,4 +57,13 @@ A_cubed = ax.matrix.power(A, 3)
 v = {"node_A": 10.0, "node_B": 20.0}
 Av = ax.matrix.mat_vec(A, v)
 print("A * v:", Av)  # -> {'node_A': 50.0, 'node_B': 110.0}
+
+# 5. Graph Laplacian Operator (L = D - W)
+graph = {
+    "node_A": {"node_B": 2.0},
+    "node_B": {"node_A": 2.0},
+}
+L = ax.matrix.laplacian_matrix(graph)
+print("Laplacian Matrix:", L)
+# -> {'node_A': {'node_A': 2.0, 'node_B': -2.0}, 'node_B': {'node_A': -2.0, 'node_B': 2.0}}
 ```
