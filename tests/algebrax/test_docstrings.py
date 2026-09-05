@@ -8,6 +8,7 @@ Verifies:
 5. Registry immutability and metadata integrity.
 """
 
+from algebrax.analysis import pagerank
 from algebrax.category import kan_extension_left, kleisli_compose
 from algebrax.display import (
     AlgebraicMeta,
@@ -94,6 +95,7 @@ def test_non_semiring_algebraic_structures():
         (AlgebraicTrie, r'\mathcal{T}: \Sigma^* \to (S, \oplus, \otimes)'),
         (kleisli_compose, r'g \circ_T f: A \to T(C)'),
         (kan_extension_left, r'\mathrm{Lan}_P F'),
+        (pagerank, r'\mathbf{p}^{(t+1)} = (\alpha \otimes \mathbf{p}^{(t)} \mathbf{P})'),
     ]
 
     for target, expected_frag in targets:
