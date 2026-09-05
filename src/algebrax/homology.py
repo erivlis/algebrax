@@ -12,7 +12,7 @@ evaluating Betti numbers beta_k, and conducting topological data analysis.
 from collections.abc import Iterable
 from itertools import combinations
 
-from algebrax.semiring import Semiring, _normalize_semiring
+from algebrax.semiring import Semiring
 from algebrax.typing import K, SparseMatrix, V
 
 __all__ = [
@@ -77,7 +77,7 @@ class SparseChainComplex:
 
         if k - 1 not in self.boundary_matrices or k not in self.boundary_matrices:
             return True
-        s_inst = _normalize_semiring(semiring)
+        s_inst = Semiring.normalize(semiring)
         d_prev = self.boundary_matrices[k - 1]
         d_curr = self.boundary_matrices[k]
         comp = dot(d_prev, d_curr, semiring=s_inst)
@@ -99,7 +99,7 @@ class SparseChainComplex:
         """
         from algebrax.matrix.core import add, dot, transpose
 
-        s_inst = _normalize_semiring(semiring)
+        s_inst = Semiring.normalize(semiring)
         l_down: SparseMatrix = {}
         l_up: SparseMatrix = {}
 

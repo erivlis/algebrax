@@ -183,11 +183,34 @@ class Semiring(Protocol[V]):
             'QuantumClifford': QuantumCliffordSemiring,
         }
 
-
-def _normalize_semiring(s: Semiring[V] | type[Semiring[V]] | None) -> Semiring[V]:
-    """Normalize semiring argument to an instance, handling class factories and None."""
-    if s is None:
+    @classmethod
+    def default(cls) -> 'Semiring[Any]':
+        """Return the canonical default semiring instance (StandardSemiring)."""
         from algebrax.semiring.arithmetic import StandardSemiring
 
         return StandardSemiring()
-    return s() if isinstance(s, type) else s
+
+    @classmethod
+    def normalize(
+        cls,
+        s: 'Semiring[V] | type[Semiring[V]] | str | None' = None,
+    ) -> 'Semiring[V]':
+        """Normalize a semiring argument to a concrete instance.
+
+        Handles None (returns default), class types (instantiates),
+        string catalog keys (e.g. 'Tropical', 'boolean'), or existing instances.
+        """
+        if s is None:
+            return cls.default()  # type: ignore[return-value]
+
+        if isinstance(s, str):
+            cat = cls.catalog()
+            lookup = {k.lower(): v for k, v in cat.items()}
+            key = s.lower().removesuffix('semiring')
+            if key not in lookup:
+                raise KeyError(f"Unknown semiring '{s}'. Available: {list(cat.keys())}")
+            return lookup[key]()  # type: ignore[return-value]
+
+        return s() if isinstance(s, type) else s
+
+    create = normalize

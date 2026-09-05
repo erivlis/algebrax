@@ -434,7 +434,7 @@ def pagerank(
 
     d_vec = p_vec if dangling is None else _normalize_distribution_vector(dangling, nodes, 'Dangling')
     trans_matrix, dangling_nodes = _build_transition_matrix(graph, nodes)
-    sem = _normalize_semiring(semiring)
+    sem = Semiring.normalize(semiring)
 
     rank: dict[K, float] = dict(p_vec)
     one_minus_alpha = 1.0 - damping

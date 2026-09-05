@@ -12,7 +12,7 @@ string diagram wiring engines, and Kan extensions over sparse semiring matrices.
 from typing import TypeVar
 
 from algebrax.matrix.core import dot
-from algebrax.semiring import Semiring, _normalize_semiring
+from algebrax.semiring import Semiring
 from algebrax.typing import SparseMatrix
 
 K = TypeVar('K')
@@ -54,7 +54,7 @@ def kleisli_compose(
         >>> res == {'a': {'c': 6.0}}
         True
     """
-    s = _normalize_semiring(semiring)
+    s = Semiring.normalize(semiring)
     return dot(f, g, semiring=s)
 
 
@@ -83,5 +83,5 @@ def kan_extension_left(
         >>> lan == {0: {1: 2.0}}
         True
     """
-    s = _normalize_semiring(semiring)
+    s = Semiring.normalize(semiring)
     return dot(functor_f, functor_p, semiring=s)
