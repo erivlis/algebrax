@@ -285,6 +285,14 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Spectral Graph Clustering & Manifold Smoothing
+* **Files**: [`spectral_graph_clustering.py`](https://github.com/erivlis/algebrax/blob/main/recipes/spectral_graph_clustering.py) | [`spectral_graph_clustering.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/spectral_graph_clustering.ipynb)
+* **Run**: `uv run recipes/spectral_graph_clustering.py`
+* **Components**: `matrix.core.laplacian_matrix`, `analysis.fiedler_vector`, `analysis.spectral_bipartition`, `analysis.laplacian_smoothing`, `analysis.laplacian_spectrum`
+* **Summary**: Formulates graph manifold clustering and diffusion smoothing via Spectral Graph Theory (EP-0152). Computes discrete combinatorial Laplacians ($L = D - W$), solves algebraic connectivity $\lambda_2$ and the Fiedler eigenvector $\mathbf{v}_2$ via Rayleigh-Quotient CG, partitions communities bounding Cheeger conductance, low-pass filters spatial node noise via Dirichlet energy minimization, and audits semiring factory ergonomics (`Semiring.default()`, `Semiring.normalize()`, `Semiring.create()`).
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
