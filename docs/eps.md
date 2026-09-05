@@ -78,3 +78,6 @@ a comprehensive architectural audit by the 8 Pillars of the Council Framework.
 | [EP-0148](proposals/EP-0148-formalized-benchmarking.md)              | Formalized Micro-Benchmarking & CodSpeed                  | 🔬 Popper       |    :material-check-all: Final     |
 | [EP-0149](proposals/EP-0149-binomial-convolution-moment-semiring.md) | Universal & Multivariate Binomial Convolution Moments     | ⚖️ Noether      |    :material-check-all: Final     |
 | [EP-0150](proposals/EP-0150-standardized-mathematical-docstrings.md) | Standardized Mathematical Docstrings & Algebraic Registry | 💡 Feynman      |      :material-pencil: Draft      |
+| [EP-0151](proposals/EP-0151-algebraic-pagerank-semirings.md)        | Algebraic PageRank & Semiring Random Walks with Restart   | ⚡ Shannon      |    :material-check-all: Final     |
+
+

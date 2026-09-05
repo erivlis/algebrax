@@ -23,8 +23,9 @@ This proposal establishes the strategic roadmap and architectural blueprint for 
 mathematical domains. It connects core primitives (`SparseVector`, `SparseMatrix`, `Semiring`, `AlgebraicTrie`) through
 two foundational engine extensions (`EP-0100` and `EP-0101`) to four specialized domain modules (`EP-0110` through
 `EP-0113`), an interactive visual studio (`EP-0120`), a maturity & consistency track (`EP-0130` through `EP-0134`),
-the Phase 3.5 Council Refinement Track (`EP-0140` through `EP-0146`), formalized micro-benchmarking (`EP-0148`), and
-universal binomial convolution statistical moment semirings (`EP-0149`).
+the Phase 3.5 Council Refinement Track (`EP-0140` through `EP-0146`), formalized micro-benchmarking (`EP-0148`),
+universal binomial convolution statistical moment semirings (`EP-0149`), standardized mathematical docstrings (`EP-0150`),
+and algebraic PageRank contraction solvers over semirings (`EP-0151`).
 
 ---
 
@@ -73,6 +74,8 @@ flowchart TD
         EP0146["EP-0146 Ergonomics ✅\n🤝 Steward"]
         EP0148["EP-0148 Benchmarking ✅\n⏱️ CodSpeed"]
         EP0149_N["EP-0149 Binomial Moments ✅\n∑ Noether & Russell"]
+        EP0150_N["EP-0150 Math Docstrings 📝\n💡 Feynman"]
+        EP0151_N["EP-0151 Algebraic PageRank ✅\n⚡ Shannon & ⚖️ Noether"]
     end
 
     style CORE fill:#4a90d9,color:#fff
@@ -151,7 +154,8 @@ Phase 0: Architecture Roadmap (EP-0099)
         ├── EP-0147: Optional Loop Pragmas & Concurrency (Shannon)         [Deferred]
         ├── EP-0148: Formalized Micro-Benchmarking & CodSpeed (Popper)     [Final]
         ├── EP-0149: Universal Binomial Moment Semirings (Noether/Russell) [Final]
-        └── EP-0150: Standardized Mathematical Docstrings (Feynman/Russell) [Draft]
+        ├── EP-0150: Standardized Mathematical Docstrings (Feynman/Russell) [Draft]
+        └── EP-0151: Algebraic PageRank & Semiring Random Walks (Shannon/Noether) [Final]
 ```
 
 ---
@@ -184,6 +188,8 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0148** | Formalized Benchmarking      | Popper            | `benchmarks/`, `.github/`           | Final    | Standardized `pytest-benchmark` suite & CodSpeed CI tracking        |
 | **EP-0149** | Universal Binomial Moments   | Noether & Russell | `algebrax.semiring`                 | Final    | Divided power quotient ring, MultivariateMomentSemiring, decoders   |
 | **EP-0150** | Standardized Math Docstrings | Feynman & Russell | `algebrax.semiring`, `display`      | Draft    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests     |
+| **EP-0151** | Algebraic PageRank           | Shannon & Noether | `algebrax.analysis`                 | Final    | Sparse semiring contraction solver, random walk with restart, PPR   |
+
 
 ---
 
@@ -198,4 +204,6 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-08-02 | Eran Rivlis & Antigravity | Phase 3.5 Council Refinement Track: EP-0140 through EP-0146.                                                                  |
 | 2026-09-04 | Eran Rivlis & Antigravity | Phase 3.5 completed; added EP-0148 (CodSpeed CI), EP-0149 (Binomial Moment Semirings), and User Guide architectural overhaul. |
 | 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry.                                           |
+| 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0151: Algebraic PageRank & Semiring Random Walks with Restart.                                                       |
+
 
