@@ -37,6 +37,7 @@ from algebrax.typing import K, SparseMatrix, SparseVector
 __all__ = [
     'algebraic_connectivity',
     'divergence',
+    'eigen_centrality',
     'fiedler_vector',
     'forman_ricci_curvature',
     'gaussian_kernel',
@@ -459,6 +460,67 @@ def pagerank(
             break
 
     return rank
+
+
+def eigen_centrality(
+    matrix: SparseMatrix[K, float],
+    iterations: int = 100,
+    tolerance: float = 1e-6,
+) -> SparseVector[K, float]:
+    r"""Compute the eigenvector centrality (principal eigenvector) using the Power Iteration method.
+
+    Algebraic Signature:
+        $\lambda_1 \mathbf{x} = \mathbf{A} \mathbf{x} \implies$
+        $\mathbf{x}^{(t+1)} = \mathbf{A} \mathbf{x}^{(t)} / \|\mathbf{A} \mathbf{x}^{(t)}\|_2$
+
+    Carrier:
+        `SparseVector[K, float]` (Mapping from vertex identifier to normalized centrality score).
+
+    Operations:
+        - Power Iteration: Repeatedly applies matrix-vector product $\mathbf{x} \leftarrow \mathbf{A} \mathbf{x}$.
+        - Euclidean Normalization: Enforces $\|\mathbf{x}\|_2 = 1.0$ at each step for numerical stability.
+        - Convergence Check: Terminates when $\|\mathbf{x}^{(t+1)} - \mathbf{x}^{(t)}\|_1 < \text{tolerance}$.
+
+    Properties:
+        By the Perron-Frobenius theorem, for a connected graph with non-negative adjacency
+        matrix $\mathbf{A}$, the principal eigenvector is unique, positive, and corresponds
+        to the spectral radius $\lambda_{\max}(\mathbf{A})$.
+
+    Applications:
+        - Structural node ranking in undirected social, citation, and communication networks.
+        - Financial systemic risk: Asset interconnectedness and centrality on correlation matrices.
+        - Bipartite ranking: Dominant hub-and-authority scoring without restart damping.
+
+    Args:
+        matrix: Square non-negative adjacency or correlation matrix.
+        iterations: Maximum number of power iteration steps (default 100).
+        tolerance: L1 convergence threshold for stopping early (default 1e-6).
+
+    Returns:
+        Normalized `SparseVector[K, float]` representing the principal eigenvector centrality.
+    """
+    nodes = set(matrix.keys()) | {k for row in matrix.values() for k in row}
+    n = len(nodes)
+    if n == 0:
+        return {}
+
+    vector: SparseVector[K, float] = dict.fromkeys(nodes, 1.0 / n)
+
+    for _ in range(iterations):
+        new_vector = mat_vec(matrix, vector)
+
+        norm = math.sqrt(sum(x * x for x in new_vector.values()))
+        if norm == 0:  # NOSONAR - exact zero denominator singularity check
+            return vector  # Matrix is likely zero
+
+        new_vector = {k: v / norm for k, v in new_vector.items()}
+
+        diff = sum(abs(new_vector.get(k, 0.0) - vector.get(k, 0.0)) for k in nodes)
+        vector = new_vector
+        if diff < tolerance:
+            break
+
+    return vector
 
 
 def laplacian_smoothing(

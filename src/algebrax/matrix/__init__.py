@@ -2,7 +2,6 @@ from algebrax.matrix.academic import (
     adjoint,
     cofactor,
     determinant,
-    eigen_centrality,
     inverse,
 )
 from algebrax.matrix.core import (
@@ -36,7 +35,6 @@ __all__ = [
     'cofactor',
     'determinant',
     'dot',
-    'eigen_centrality',
     'inner',
     'inverse',
     'kronecker_delta',

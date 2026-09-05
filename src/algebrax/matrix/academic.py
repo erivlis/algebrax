@@ -1,15 +1,14 @@
 import warnings
 from collections import defaultdict
 
-from algebrax.matrix.core import mat_vec, transpose
-from algebrax.typing import K, N, SparseMatrix, SparseVector
+from algebrax.matrix.core import transpose
+from algebrax.typing import K, N, SparseMatrix
 
 __all__ = [
     'PerformanceWarning',
     'adjoint',
     'cofactor',
     'determinant',
-    'eigen_centrality',
     'inverse',
 ]
 
@@ -197,54 +196,6 @@ def determinant(matrix: SparseMatrix[K, N], n: int | None = None) -> N:
         result *= m[i].get(i, 0)
 
     return result
-
-
-def eigen_centrality(
-    matrix: SparseMatrix[K, N],
-    iterations: int = 100,
-    tolerance: float = 1e-6,
-) -> SparseVector[K, float]:
-    """
-    Compute the eigenvector centrality (principal eigenvector) using the Power Iteration method.
-    This is useful for ranking nodes in a graph (like PageRank).
-
-    Args:
-        matrix: The adjacency matrix (must be square and non-negative).
-        iterations: Maximum number of iterations.
-        tolerance: Convergence tolerance.
-
-    Returns:
-        A normalized dictionary representing the principal eigenvector.
-    """
-    # Initialize vector with uniform probability
-    nodes = set(matrix.keys()) | {k for row in matrix.values() for k in row}
-    n = len(nodes)
-    if n == 0:
-        return {}
-
-    vector = dict.fromkeys(nodes, 1.0 / n)
-
-    for _ in range(iterations):
-        # v_new = M * v_old (Note: usually defined as v M for row vectors, or M v for col vectors)
-        # Here we treat 'vector' as a column vector, so we do M * v
-        new_vector = mat_vec(matrix, vector)
-
-        # Normalize
-        # (L2 norm or Sum norm? Centrality usually uses L2, but simple power iteration often just normalizes max or sum)
-        # Let's use Euclidean norm (L2) to keep it standard for eigenvectors
-        norm = sum(x * x for x in new_vector.values()) ** 0.5
-        if norm == 0:  # NOSONAR - exact zero denominator singularity check
-            return vector  # Matrix is likely zero
-
-        new_vector = {k: v / norm for k, v in new_vector.items()}
-
-        # Check convergence (L1 diff)
-        diff = sum(abs(new_vector.get(k, 0) - vector.get(k, 0)) for k in nodes)
-        vector = new_vector
-        if diff < tolerance:
-            break
-
-    return vector
 
 
 def inverse(matrix: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
