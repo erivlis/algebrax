@@ -99,6 +99,7 @@ def evaluate_portfolio_path_variance(
 # ## Step 3: Multi-Step Return Expectation & Variance (`VarianceSemiring`)
 # %%
 
+
 def run_demo() -> None:
     """Run interactive portfolio risk and trade state machine demonstrations."""
     trading_dfa = {
