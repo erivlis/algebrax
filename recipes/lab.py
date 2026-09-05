@@ -617,38 +617,10 @@ def run_pagerank() -> None:
 
     try:
         graph: dict[str, dict[str, float]] = json.loads(graph_str)
-
-        m_matrix: dict[str, dict[str, float]] = {}
-        nodes: set[str] = set(graph.keys())
-        for u, neighbors in graph.items():
-            nodes.update(neighbors.keys())
-            degree = len(neighbors)
-            if degree > 0:
-                m_matrix[u] = dict.fromkeys(neighbors, 1.0 / degree)
-            else:
-                m_matrix[u] = {u: 1.0}
-
-        all_nodes: list[str] = sorted(nodes)
-        n_nodes: int = len(all_nodes)
-
-        v_vec: dict[str, float] = dict.fromkeys(all_nodes, 1.0 / n_nodes)
-
-        semiring = ax.semiring.StandardSemiring()
-
-        for _ in range(iterations):
-            v_matrix = {'0': v_vec}
-            res_matrix = ax.matrix.dot(v_matrix, m_matrix, semiring=semiring)
-            v_next_raw = res_matrix.get('0', {})
-
-            v_next: dict[str, float] = {}
-            teleport = (1.0 - alpha) / n_nodes
-            for node in all_nodes:
-                val = v_next_raw.get(node, 0.0)
-                v_next[node] = alpha * val + teleport
-            v_vec = v_next
+        rank_vec = ax.analysis.pagerank(graph, damping=alpha, max_iter=iterations)
 
         clear_table_rows('table_pagerank')
-        sorted_ranks = sorted(v_vec.items(), key=lambda x: x[1], reverse=True)
+        sorted_ranks = sorted(rank_vec.items(), key=lambda x: x[1], reverse=True)
         for node, rank in sorted_ranks:
             with dpg.table_row(parent='table_pagerank'):
                 dpg.add_input_text(default_value=str(node), readonly=True, width=-1)
