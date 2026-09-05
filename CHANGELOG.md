@@ -1,3 +1,18 @@
+## v0.8.0 (2026-09-06)
+
+### Feat
+
+- **analysis**: Add Laplacian matrix, spectral theory, and Fiedler vector utilities
+- **analysis**: Add algebraic PageRank implementation over semirings
+- **cli**: Introduce AlgebraX CLI for semiring inspection, verification, and matrix operations
+- **display**: Add `semiring_card` for Jupyter rich HTML rendering
+
+### Refactor
+
+- **semiring**: Replace `_normalize_semiring` with `Semiring.normalize` and add canonical `default` method
+- **recipes**: Replace custom PageRank logic with `ax.analysis.pagerank`
+- **recipes**: Add semiring card previews and Jupyter compatibility checks
+
 ## v0.7.0 (2026-09-04)
 
 ### Feat
