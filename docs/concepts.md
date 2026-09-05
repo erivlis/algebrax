@@ -103,6 +103,13 @@ A Semiring that **has additive inverses**.
 
 **Example**: Integers $\mathbb{Z}$, Square Matrices $M_n (\mathbb{R})$.
 
+> [!NOTE]
+> **Why the Graph Laplacian Requires a Ring/Field**
+> While reachability ($\lor, \land$) and shortest paths ($\min, +$) operate over **Semirings** without additive inverses,
+> the **Graph Laplacian** $L = D - W$ and discrete exterior calculus inherently require **subtraction** (additive inverse).
+> The Laplacian measures the difference between a node's self-degree and its incident neighbors. Consequently, spectral
+> graph theory and discrete Laplace-Beltrami diffusion operators are housed in linear rings and fields over $\mathbb{R}$.
+
 ### 7. Field $(F, +, \cdot)$
 
 A Ring where **multiplication has inverses** (for non-zero elements).
