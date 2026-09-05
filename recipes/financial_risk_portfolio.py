@@ -26,15 +26,15 @@
 # 1. **Algorithmic Trade Execution via State Machines (`algebrax.automata.simulate_dfa`)**:
 #    Automated trading strategies are modeled as Deterministic Finite Automata (DFA).
 #    Given market indicator sequences ("buy_signal", "hold", "risk_alert"),
-#    `simulate_dfa` evaluates state transitions (Cash $\\to$ Invested $\\to$ Risk_Hedge).
+#    `simulate_dfa` evaluates state transitions (Cash $\to$ Invested $\to$ Risk_Hedge).
 #
-# 2. **Spectral Asset Centrality (`algebrax.matrix.academic.eigen_centrality`)**:
-#    Computes dominant eigenvector centrality ($v = \\lambda_{\\max} M v$) of cross-asset
+# 2. **Spectral Asset Centrality (`algebrax.analysis.eigen_centrality`)**:
+#    Computes dominant eigenvector centrality ($v = \lambda_{\max} M v$) of cross-asset
 #    correlation matrices to pinpoint systemic risk hubs.
 #
 # 3. **Joint Expectation & Uncertainty Variance Paths (`VarianceSemiring`)**:
 #    Tracks second-order moments to compute expected return $E[X] = m_1 / p$
-#    and path return variance $\\text{Var}(X) = (m_2 / p) - (E[X])^2$.
+#    and path return variance $\text{Var}(X) = (m_2 / p) - (E[X])^2$.
 # %%
 
 from typing import Any
@@ -61,7 +61,7 @@ def compute_portfolio_centralities(
     correlation_matrix: dict[Any, dict[Any, float]],
 ) -> dict[Any, float]:
     """Calculate dominant eigenvector centrality across cross-asset correlations."""
-    return ax.matrix.academic.eigen_centrality(correlation_matrix)
+    return ax.analysis.eigen_centrality(correlation_matrix)
 
 
 def evaluate_portfolio_path_variance(
