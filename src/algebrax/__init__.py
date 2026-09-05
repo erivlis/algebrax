@@ -31,7 +31,7 @@ Submodules & Domain Taxonomy
 
 3. Signal Processing, Dynamics & Logic
    - `transforms`: Signal processing (`dft`, `idft`, `convolve`, `walsh_hadamard`, `z_transform`).
-   - `analysis`: Graph calculus & centrality (`gradient`, `divergence`, `laplacian`, `pagerank`).
+   - `analysis`: Graph calculus & spectral theory (`gradient`, `divergence`, `fiedler_vector`, `pagerank`).
    - `probability`: Information theory & Markov chains (`entropy`, `kl_divergence`, `bayes_update`).
    - `automata`: Finite state machines (`simulate_dfa`, `simulate_nfa`).
    - `lattice`: Set-theoretic & fuzzy logic key/value operations (`join`, `meet`, `combine`).

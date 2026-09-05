@@ -23,20 +23,30 @@ Returns:
 """
 
 import math
+import random
+import warnings
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
+from typing import Literal
 
-from algebrax.matrix.core import dot, vec_mat
-from algebrax.semiring import Semiring, StandardSemiring, _normalize_semiring
+from algebrax.matrix.academic import PerformanceWarning
+from algebrax.matrix.core import laplacian_matrix, mat_vec, vec_mat
+from algebrax.semiring import Semiring
 from algebrax.typing import K, SparseMatrix, SparseVector
 
 __all__ = [
+    'algebraic_connectivity',
     'divergence',
+    'fiedler_vector',
     'forman_ricci_curvature',
     'gaussian_kernel',
     'gradient',
     'laplacian',
+    'laplacian_matrix',
+    'laplacian_smoothing',
+    'laplacian_spectrum',
     'pagerank',
+    'spectral_bipartition',
 ]
 
 
@@ -449,3 +459,474 @@ def pagerank(
             break
 
     return rank
+
+
+def laplacian_smoothing(
+    field: SparseVector[K, float],
+    graph: SparseMatrix[K, float],
+    steps: int = 10,
+    tau: float = 0.1,
+    normalized: Literal['sym', 'rw'] | None = None,
+) -> SparseVector[K, float]:
+    r"""Smooth a scalar field on a graph via iterative Laplacian diffusion.
+
+    Algebraic Signature:
+        $\mathbf{u}^{(t+1)} = (I - \tau L) \mathbf{u}^{(t)} \approx e^{-t L} \mathbf{u}_0$
+
+    Carrier:
+        `SparseVector[K, float]` (Smoothed scalar field on vertices).
+
+    Operations:
+        - Operator Construction: Precomputes $L = \text{laplacian_matrix}(graph)$ once.
+        - Iterative Contraction: Executes $S$ sparse matrix-vector steps
+          $\mathbf{u} \leftarrow \mathbf{u} - \tau L \mathbf{u}$.
+
+    Properties:
+        Monotonically minimizes discrete Dirichlet energy $E(\mathbf{u}) = \frac{1}{2} \mathbf{u}^T L \mathbf{u}$;
+        converges toward harmonic equilibrium as $t \to \infty$.
+
+    Applications:
+        - Heat diffusion and spreading dynamics over physical/information networks.
+        - Graph signal processing: Spectral low-pass filtering and spatial noise reduction.
+        - Semi-supervised learning: Soft label propagation and belief spreading across manifolds.
+        - Spectral clustering: Thermal regularization of Fiedler vectors for Cheeger cuts.
+        - Computational geometry: 3D mesh surface fairing, smoothing, and denoising.
+
+    Args:
+        field: Input scalar signal $\mathbf{u}_0$ defined on vertices.
+        graph: Sparse adjacency matrix or precomputed Laplacian operator.
+        steps: Number of discrete Euler diffusion steps $S \ge 1$.
+        tau: Step size / diffusion rate parameter $\tau > 0$ (default 0.1).
+        normalized: Optional normalization mode ('sym' or 'rw').
+
+    Returns:
+        Smoothed sparse vector field.
+    """
+    if steps < 1:
+        raise ValueError(f'steps must be a positive integer, got {steps}')
+    if tau <= 0.0:
+        raise ValueError(f'tau must be positive, got {tau}')
+
+    is_already_lap = any(w < 0 for row in graph.values() for w in row.values())
+    lap = graph if is_already_lap else laplacian_matrix(graph, normalized=normalized)
+
+    u = dict(field)
+    for _ in range(steps):
+        diff = mat_vec(lap, u)
+        all_keys = u.keys() | diff.keys()
+        u = {k: u.get(k, 0.0) - tau * diff.get(k, 0.0) for k in all_keys}
+
+    return {k: v for k, v in u.items() if abs(v) > 1e-14}
+
+
+def fiedler_vector(
+    graph: SparseMatrix[K, float],
+    normalized: bool = False,
+    tol: float = 1e-8,
+    max_iter: int = 500,
+    seed: int | None = 42,
+) -> tuple[float, SparseVector[K, float]]:
+    r"""Compute the Fiedler eigenvalue (algebraic connectivity $\lambda_2$) and Fiedler vector $\mathbf{v}_2$.
+
+    Algebraic Signature:
+        $L \mathbf{v}_2 = \lambda_2 \mathbf{v}_2$ subject to
+        $\mathbf{v}_2 \perp \mathbf{1}, \; \|\mathbf{v}_2\|_2 = 1$
+
+    Carrier:
+        `tuple[float, SparseVector[K, float]]` (Algebraic connectivity and normalized eigenvector).
+
+    Operations:
+        - RQ-CG Minimization: Solves
+          $\min_{\mathbf{x} \perp \mathbf{1}, \|\mathbf{x}\|=1}
+          \frac{\mathbf{x}^T L \mathbf{x}}{\mathbf{x}^T \mathbf{x}}$
+          via Rayleigh Quotient Conjugate Gradient with closed-form 2D Givens angle optimization.
+
+    Properties:
+        $\lambda_2 > 0$ if and only if the graph is connected.
+        The zero-level crossings of $\mathbf{v}_2$ approximate the optimal Cheeger conductance cut.
+
+    Applications:
+        - Spectral graph partitioning and community detection.
+        - Algebraic connectivity and network robustness analysis.
+        - Graph embedding and layout visualization.
+
+    Args:
+        graph: Sparse adjacency matrix.
+        normalized: Whether to compute with respect to the symmetric normalized Laplacian.
+        tol: Convergence tolerance for the Rayleigh quotient gradient.
+        max_iter: Maximum number of sparse conjugate gradient iterations.
+        seed: Random seed for initial perturbation vector.
+
+    Returns:
+        Tuple of `(lambda_2, fiedler_vector)`.
+    """
+    nodes = sorted(set(graph.keys()) | {v for row in graph.values() for v in row}, key=str)
+    n = len(nodes)
+    if n == 0:
+        return 0.0, {}
+    if n == 1:
+        return 0.0, {nodes[0]: 0.0}
+
+    # Detect connected components via BFS to handle disconnected graphs safely
+    visited: set[K] = set()
+    components: list[list[K]] = []
+    for node in nodes:
+        if node not in visited:
+            comp: list[K] = []
+            queue = [node]
+            visited.add(node)
+            while queue:
+                curr = queue.pop(0)
+                comp.append(curr)
+                for neighbor, w in graph.get(curr, {}).items():
+                    if w != 0 and neighbor in nodes and neighbor not in visited:
+                        visited.add(neighbor)
+                        queue.append(neighbor)
+            components.append(comp)
+
+    if len(components) > 1:
+        c1 = set(components[0])
+        n1 = len(c1)
+        n2 = n - n1
+        val_c1 = math.sqrt(n2 / (n1 * n))
+        val_c2 = -math.sqrt(n1 / (n2 * n))
+        fiedler = {u: (val_c1 if u in c1 else val_c2) for u in nodes}
+        return 0.0, fiedler
+
+    lap = laplacian_matrix(graph, normalized='sym' if normalized else None)
+
+    degrees = {u: sum(w for v, w in graph.get(u, {}).items() if u != v and w > 0) for u in nodes}
+    z0 = {u: math.sqrt(max(degrees.get(u, 0.0), 1e-12)) for u in nodes} if normalized else dict.fromkeys(nodes, 1.0)
+
+    norm_z0 = math.sqrt(sum(v * v for v in z0.values()))
+    e0 = {u: z0[u] / norm_z0 for u in nodes}
+
+    if n == 2:
+        u, v = nodes
+        x = {u: 1.0 / math.sqrt(2.0), v: -1.0 / math.sqrt(2.0)}
+        lx = mat_vec(lap, x)
+        lam2 = sum(x[k] * lx.get(k, 0.0) for k in nodes)
+        return max(0.0, float(lam2)), x
+
+    rng = random.Random(seed)
+    x = {u: rng.gauss(0.0, 1.0) for u in nodes}
+
+    # Project x perp e0 and normalize
+    dot_e0 = sum(x[u] * e0[u] for u in nodes)
+    x = {u: x[u] - dot_e0 * e0[u] for u in nodes}
+    norm_x = math.sqrt(sum(v * v for v in x.values()))
+    x = {u: x[u] / norm_x for u in nodes}
+
+    lx = mat_vec(lap, x)
+    lam = sum(x[u] * lx.get(u, 0.0) for u in nodes)
+
+    g_prev: dict[K, float] | None = None
+    p_dir: dict[K, float] | None = None
+
+    for _ in range(max_iter):
+        g = {u: lx.get(u, 0.0) - lam * x[u] for u in nodes}
+        dot_g_e0 = sum(g[u] * e0[u] for u in nodes)
+        g = {u: g[u] - dot_g_e0 * e0[u] for u in nodes}
+        norm_g = math.sqrt(sum(v * v for v in g.values()))
+
+        if norm_g < tol:
+            break
+
+        if g_prev is None or p_dir is None:
+            p = {u: -g[u] for u in nodes}
+        else:
+            norm_g_prev_sq = sum(v * v for v in g_prev.values())
+            if norm_g_prev_sq > 1e-18:
+                beta = sum(g[u] * (g[u] - g_prev[u]) for u in nodes) / norm_g_prev_sq
+                beta = max(0.0, beta)
+            else:
+                beta = 0.0
+            p = {u: -g[u] + beta * p_dir[u] for u in nodes}
+
+        # Project p perp e0 and perp x
+        dot_p_e0 = sum(p[u] * e0[u] for u in nodes)
+        p = {u: p[u] - dot_p_e0 * e0[u] for u in nodes}
+        dot_p_x = sum(p[u] * x[u] for u in nodes)
+        p = {u: p[u] - dot_p_x * x[u] for u in nodes}
+
+        norm_p = math.sqrt(sum(v * v for v in p.values()))
+        if norm_p < 1e-14:
+            p = {u: -g[u] for u in nodes}
+            dot_p_e0 = sum(p[u] * e0[u] for u in nodes)
+            p = {u: p[u] - dot_p_e0 * e0[u] for u in nodes}
+            dot_p_x = sum(p[u] * x[u] for u in nodes)
+            p = {u: p[u] - dot_p_x * x[u] for u in nodes}
+            norm_p = math.sqrt(sum(v * v for v in p.values()))
+            if norm_p < 1e-14:
+                break
+
+        p = {u: p[u] / norm_p for u in nodes}
+        lp = mat_vec(lap, p)
+
+        a = lam
+        b = sum(x[u] * lp.get(u, 0.0) for u in nodes)
+        c = sum(p[u] * lp.get(u, 0.0) for u in nodes)
+
+        theta = 0.5 * math.atan2(-2.0 * b, -(a - c))
+        cos_t = math.cos(theta)
+        sin_t = math.sin(theta)
+
+        x_new = {u: cos_t * x[u] + sin_t * p[u] for u in nodes}
+        dot_x_e0 = sum(x_new[u] * e0[u] for u in nodes)
+        x_new = {u: x_new[u] - dot_x_e0 * e0[u] for u in nodes}
+        norm_x_new = math.sqrt(sum(v * v for v in x_new.values()))
+        x = {u: x_new[u] / norm_x_new for u in nodes}
+
+        lx = mat_vec(lap, x)
+        lam = sum(x[u] * lx.get(u, 0.0) for u in nodes)
+
+        g_prev = g
+        p_dir = p
+
+    # Deterministic sign orientation: component with largest magnitude is positive
+    max_k = max(x.keys(), key=lambda k: abs(x[k]))
+    if x[max_k] < 0:
+        x = {k: -v for k, v in x.items()}
+
+    return max(0.0, float(lam)), x
+
+
+def algebraic_connectivity(
+    graph: SparseMatrix[K, float],
+    normalized: bool = False,
+    tol: float = 1e-8,
+) -> float:
+    r"""Compute the algebraic connectivity (Fiedler eigenvalue $\lambda_2$) of a graph.
+
+    Algebraic Signature:
+        $\lambda_2 = \min_{\mathbf{x} \perp \mathbf{1}, \|\mathbf{x}\|_2=1} \mathbf{x}^T L \mathbf{x}$
+
+    Carrier:
+        `float` (Second smallest eigenvalue of the graph Laplacian).
+
+    Properties:
+        $\lambda_2 = 0$ if and only if the graph has $\ge 2$ connected components.
+        Bounds graph conductance via Cheeger's inequality: $\frac{\lambda_2}{2} \le h(G) \le \sqrt{2 \lambda_2}$.
+
+    Applications:
+        - Quantifying network synchronizability, bottleneck severity, and structural resilience.
+        - Lower bounding node and edge connectivity.
+
+    Args:
+        graph: Sparse adjacency matrix.
+        normalized: Whether to compute with respect to the symmetric normalized Laplacian.
+        tol: Convergence tolerance for the solver.
+
+    Returns:
+        Algebraic connectivity $\lambda_2 \ge 0$.
+    """
+    lam2, _ = fiedler_vector(graph, normalized=normalized, tol=tol)
+    return lam2
+
+
+def spectral_bipartition(
+    graph: SparseMatrix[K, float],
+    method: Literal['sign', 'median'] = 'sign',
+    normalized: bool = False,
+) -> tuple[set[K], set[K], dict[str, float]]:
+    r"""Bipartition graph vertices into two clusters $V_1$ and $V_2$ using the Fiedler vector.
+
+    Algebraic Signature:
+        $V_1 = \{u \in V \mid v_{2, u} \ge \theta\}, \quad V_2 = \{u \in V \mid v_{2, u} < \theta\}$
+
+    Carrier:
+        `tuple[set[K], set[K], dict[str, float]]` (Two vertex sets and cut quality metrics).
+
+    Operations:
+        - Eigensolving: Computes Fiedler vector $\mathbf{v}_2$.
+        - Thresholding: Splits vertices using sign ($\theta = 0$) or median ($\theta = \mathrm{median}(\mathbf{v}_2)$).
+        - Quality Assessment: Measures cut size, ratio cut, normalized cut, and conductance.
+
+    Properties:
+        Provides an approximation guarantee to the NP-hard Min-Cut / Sparsest Cut problem via Cheeger's inequality.
+
+    Applications:
+        - Unsupervised community detection and social network clustering.
+        - Distributed computing domain decomposition and load balancing.
+        - Image segmentation and computer vision graph cuts.
+
+    Args:
+        graph: Sparse adjacency matrix.
+        method: Partition thresholding criterion:
+            - `'sign'`: Threshold at $\theta = 0.0$.
+            - `'median'`: Threshold at $\theta = \mathrm{median}(\mathbf{v}_2)$ (balanced bipartition).
+        normalized: Whether to partition using the normalized Laplacian.
+
+    Returns:
+        Tuple of `(partition_a, partition_b, metrics)` where metrics contains:
+            - `'cut_size'`: Sum of weights of edges crossing the cut.
+            - `'ratio_cut'`: $\mathrm{cut}(A, B) \cdot (1/|A| + 1/|B|)$.
+            - `'normalized_cut'`: $\mathrm{cut}(A, B) \cdot (1/\mathrm{vol}(A) + 1/\mathrm{vol}(B))$.
+            - `'conductance'`: $\mathrm{cut}(A, B) / \min(\mathrm{vol}(A), \mathrm{vol}(B))$.
+    """
+    if method not in ('sign', 'median'):
+        raise ValueError(f"method must be 'sign' or 'median', got '{method}'")
+
+    nodes = sorted(set(graph.keys()) | {v for row in graph.values() for v in row}, key=str)
+    n = len(nodes)
+    if n <= 1:
+        return set(nodes), set(), {'cut_size': 0.0, 'ratio_cut': 0.0, 'normalized_cut': 0.0, 'conductance': 0.0}
+
+    _, fiedler = fiedler_vector(graph, normalized=normalized)
+
+    if method == 'median':
+        sorted_vals = sorted(fiedler[u] for u in nodes)
+        theta = sorted_vals[n // 2]
+        v1 = {u for u in nodes if fiedler[u] >= theta}
+        v2 = {u for u in nodes if fiedler[u] < theta}
+    else:
+        v1 = {u for u in nodes if fiedler[u] >= 0.0}
+        v2 = {u for u in nodes if fiedler[u] < 0.0}
+
+    # Ensure non-empty partitions if n >= 2
+    if not v1 or not v2:
+        sorted_nodes = sorted(nodes, key=lambda u: fiedler[u])
+        mid = max(1, n // 2)
+        v1 = set(sorted_nodes[:mid])
+        v2 = set(sorted_nodes[mid:])
+
+    # Compute cut metrics
+    cut_size = 0.0
+    for u in v1:
+        for v, w in graph.get(u, {}).items():
+            if v in v2:
+                rev_w = graph.get(v, {}).get(u, w)
+                cut_size += 0.5 * (float(w) + float(rev_w))
+
+    degrees = {
+        u: sum(0.5 * (float(w) + float(graph.get(v, {}).get(u, w))) for v, w in graph.get(u, {}).items() if u != v)
+        for u in nodes
+    }
+    vol_1 = sum(degrees.get(u, 0.0) for u in v1)
+    vol_2 = sum(degrees.get(u, 0.0) for u in v2)
+
+    ratio_cut = cut_size * (1.0 / len(v1) + 1.0 / len(v2)) if (v1 and v2) else 0.0
+    n_cut = cut_size * (1.0 / vol_1 + 1.0 / vol_2) if (vol_1 > 0 and vol_2 > 0) else 0.0
+    min_vol = min(vol_1, vol_2)
+    conductance = cut_size / min_vol if min_vol > 0 else 0.0
+
+    metrics = {
+        'cut_size': float(cut_size),
+        'ratio_cut': float(ratio_cut),
+        'normalized_cut': float(n_cut),
+        'conductance': float(conductance),
+    }
+    return v1, v2, metrics
+
+
+def laplacian_spectrum(
+    graph: SparseMatrix[K, float],
+    k: int | None = None,
+    normalized: bool = False,
+) -> tuple[list[float], list[SparseVector[K, float]]]:
+    r"""Compute the eigenspectrum ($0 \le \lambda_1 \le \dots \le \lambda_k$) via cyclic Jacobi sweeps.
+
+    Algebraic Signature:
+        $L \mathbf{v}_i = \lambda_i \mathbf{v}_i, \quad 0 = \lambda_1 \le \lambda_2 \le \dots \le \lambda_n$
+
+    Carrier:
+        `tuple[list[float], list[SparseVector[K, float]]]` (Ascending eigenvalues and corresponding eigenvectors).
+
+    Operations:
+        - Jacobi Sweeps: Diagonalizes symmetric matrix $L$ in $O(N^3)$ via orthogonal Givens similarity transformations.
+
+    Properties:
+        All eigenvalues $\lambda_i \ge 0$ (positive semi-definite).
+        Multiplicity of eigenvalue 0 equals the number of connected components.
+
+    Applications:
+        - Graph Fourier Transform (GFT) and spectral filter bank design.
+        - Full spectrum analysis of small-to-medium networks ($N \le 150$).
+        - Spectral embedding, heat kernel signatures, and wave equation simulation.
+
+    Warnings:
+        Issues `PerformanceWarning` if the graph order $N > 150$.
+
+    Args:
+        graph: Sparse adjacency matrix.
+        k: Optional number of smallest eigenvalues/vectors to return (returns all if None).
+        normalized: Whether to compute spectrum of symmetric normalized Laplacian.
+
+    Returns:
+        Tuple of `(eigenvalues, eigenvectors)` where eigenvalues are in ascending order.
+    """
+    nodes = sorted(set(graph.keys()) | {v for row in graph.values() for v in row}, key=str)
+    n = len(nodes)
+    if n > 150:
+        warnings.warn(
+            f'Computing full laplacian_spectrum for N={n} > 150 may be slow in pure Python.',
+            PerformanceWarning,
+            stacklevel=2,
+        )
+
+    if n == 0:
+        return [], []
+
+    lap = laplacian_matrix(graph, normalized='sym' if normalized else None)
+    d_mat = [[lap.get(u, {}).get(v, 0.0) for v in nodes] for u in nodes]
+    v_dense = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+
+    for _ in range(100):
+        max_val = 0.0
+        p, q = 0, 1
+        for i in range(n):
+            for j in range(i + 1, n):
+                if abs(d_mat[i][j]) > max_val:
+                    max_val = abs(d_mat[i][j])
+                    p, q = i, j
+
+        if max_val < 1e-12:
+            break
+
+        diff = d_mat[q][q] - d_mat[p][p]
+        if abs(d_mat[p][q]) < 1e-14:
+            t = 0.0
+        else:
+            phi = diff / (2.0 * d_mat[p][q])
+            t = (1.0 / (abs(phi) + math.sqrt(phi * phi + 1.0))) * (1.0 if phi >= 0 else -1.0)
+        c = 1.0 / math.sqrt(t * t + 1.0)
+        s = t * c
+
+        d_pp = d_mat[p][p]
+        d_qq = d_mat[q][q]
+        d_pq = d_mat[p][q]
+
+        d_mat[p][p] = d_pp - t * d_pq
+        d_mat[q][q] = d_qq + t * d_pq
+        d_mat[p][q] = 0.0
+        d_mat[q][p] = 0.0
+
+        for r in range(n):
+            if r != p and r != q:
+                d_r_p = d_mat[r][p]
+                d_r_q = d_mat[r][q]
+                d_mat[r][p] = c * d_r_p - s * d_r_q
+                d_mat[p][r] = d_mat[r][p]
+                d_mat[r][q] = s * d_r_p + c * d_r_q
+                d_mat[q][r] = d_mat[r][q]
+
+        for r in range(n):
+            v_r_p = v_dense[r][p]
+            v_r_q = v_dense[r][q]
+            v_dense[r][p] = c * v_r_p - s * v_r_q
+            v_dense[r][q] = s * v_r_p + c * v_r_q
+
+    pairs: list[tuple[float, dict[K, float]]] = []
+    for i in range(n):
+        val = max(0.0, d_mat[i][i])
+        vec = {nodes[r]: v_dense[r][i] for r in range(n)}
+        max_k = max(vec.keys(), key=lambda k: abs(vec[k]))
+        if vec[max_k] < 0:
+            vec = {k: -v for k, v in vec.items()}
+        pairs.append((val, vec))
+
+    pairs.sort(key=lambda x: x[0])
+    if k is not None:
+        pairs = pairs[:k]
+
+    return [p[0] for p in pairs], [p[1] for p in pairs]

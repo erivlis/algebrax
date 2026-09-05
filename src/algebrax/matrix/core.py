@@ -1,5 +1,7 @@
+import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
+from typing import Literal
 
 from algebrax.semiring import Semiring, StandardSemiring
 from algebrax.typing import K, N, SparseMatrix, SparseVector, V
@@ -12,6 +14,7 @@ __all__ = [
     'hstack',
     'inner',
     'kronecker_delta',
+    'laplacian_matrix',
     'mat_vec',
     'power',
     'slice_matrix',
@@ -254,6 +257,109 @@ def kronecker_delta(i: K, j: K) -> int:
         1 if i == j, else 0.
     """
     return 1 if i == j else 0
+
+
+def _symmetrize_adjacency(
+    matrix: SparseMatrix[K, float],
+    nodes: set[K],
+    symmetrize: bool,
+) -> dict[K, dict[K, float]]:
+    adj: dict[K, dict[K, float]] = {u: {} for u in nodes}
+    for u, neighbors in matrix.items():
+        for v, w in neighbors.items():
+            if u != v and w != 0:
+                if symmetrize:
+                    rev_w = matrix.get(v, {}).get(u, 0.0)
+                    avg_w = 0.5 * (float(w) + float(rev_w))
+                    if avg_w != 0:
+                        adj[u][v] = avg_w
+                        adj[v][u] = avg_w
+                else:
+                    adj[u][v] = float(w)
+    return adj
+
+
+def _build_laplacian_dict(
+    adj: dict[K, dict[K, float]],
+    degrees: dict[K, float],
+    nodes: set[K],
+    normalized: Literal['sym', 'rw'] | None,
+) -> dict[K, dict[K, float]]:
+    lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
+    if normalized is None:
+        for u in nodes:
+            d_u = degrees[u]
+            if d_u != 0:
+                lap[u][u] = d_u
+            for v, w in adj[u].items():
+                lap[u][v] = -w
+    elif normalized == 'sym':
+        inv_sqrt_d = {u: (1.0 / math.sqrt(degrees[u]) if degrees[u] > 0 else 0.0) for u in nodes}
+        for u in nodes:
+            if degrees[u] > 0:
+                lap[u][u] = 1.0
+            for v, w in adj[u].items():
+                val = -w * inv_sqrt_d[u] * inv_sqrt_d[v]
+                if val != 0:
+                    lap[u][v] = val
+    elif normalized == 'rw':
+        for u in nodes:
+            d = degrees[u]
+            if d > 0:
+                lap[u][u] = 1.0
+                for v, w in adj[u].items():
+                    lap[u][v] = -w / d
+    return lap
+
+
+def laplacian_matrix(
+    matrix: SparseMatrix[K, float],
+    normalized: Literal['sym', 'rw'] | None = None,
+    symmetrize: bool = True,
+) -> SparseMatrix[K, float]:
+    r"""Construct the graph Laplacian matrix from a sparse adjacency or similarity matrix.
+
+    Algebraic Signature:
+        $L = D - W \in \mathbb{R}^{|V| \times |V|}$
+        $L_{\mathrm{sym}} = D^{-1/2} L D^{-1/2} = I - D^{-1/2} W D^{-1/2}$
+        $L_{\mathrm{rw}} = D^{-1} L = I - D^{-1} W$
+
+    Carrier:
+        `SparseMatrix[K, float]` (Symmetric or row-stochastic linear operator).
+
+    Housed In:
+        `algebrax.matrix` (canonical), cross-exported in `algebrax.analysis`.
+
+    Args:
+        matrix: Sparse adjacency or similarity matrix representing weighted edges `u -> {v: weight}`.
+        normalized: Normalization mode:
+            - `None`: Combinatorial Laplacian $L = D - W$.
+            - `'sym'`: Symmetric normalized Laplacian $L_{\mathrm{sym}} = D^{-1/2} L D^{-1/2}$.
+            - `'rw'`: Random-walk normalized Laplacian $L_{\mathrm{rw}} = D^{-1} L$.
+        symmetrize: If True, symmetrizes directed inputs as $(W + W^T) / 2$. Defaults to True.
+
+    Returns:
+        Sparse matrix representation of the Laplacian operator.
+    """
+    if normalized not in (None, 'sym', 'rw'):
+        raise ValueError(f"Unknown normalization mode: '{normalized}'. Expected None, 'sym', or 'rw'.")
+
+    nodes: set[K] = set(matrix.keys())
+    for row in matrix.values():
+        nodes.update(row.keys())
+
+    if not nodes:
+        return {}
+
+    adj = _symmetrize_adjacency(matrix, nodes, symmetrize)
+    degrees = {u: sum(adj[u].values()) for u in nodes}
+    lap = _build_laplacian_dict(adj, degrees, nodes, normalized)
+
+    return {
+        u: {v: w for v, w in row.items() if abs(w) > 1e-14}
+        for u, row in lap.items()
+        if any(abs(w) > 1e-14 for w in row.values())
+    }
 
 
 def mat_vec(
