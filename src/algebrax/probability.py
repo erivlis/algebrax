@@ -10,6 +10,7 @@ for working with Markov chains and marginalizing probability distributions.
 import math
 from collections import defaultdict
 
+from algebrax.analysis import pagerank
 from algebrax.lattice import product
 from algebrax.matrix.core import vec_mat
 from algebrax.typing import K, N, SparseMatrix, SparseVector
@@ -27,6 +28,7 @@ __all__ = [
     'mode',
     'mutual_information',
     'normalize',
+    'pagerank',
     'skewness',
     'variance',
 ]

@@ -26,8 +26,8 @@ import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 
-from algebrax.matrix.core import dot
-from algebrax.semiring import Semiring, StandardSemiring
+from algebrax.matrix.core import dot, vec_mat
+from algebrax.semiring import Semiring, StandardSemiring, _normalize_semiring
 from algebrax.typing import K, SparseMatrix, SparseVector
 
 __all__ = [
@@ -36,6 +36,7 @@ __all__ = [
     'gaussian_kernel',
     'gradient',
     'laplacian',
+    'pagerank',
 ]
 
 
@@ -304,3 +305,147 @@ def laplacian(field: SparseVector, graph: SparseMatrix) -> SparseVector:
             result[u] = local_sum
 
     return dict(result)
+
+
+def _normalize_distribution_vector(
+    vec: SparseVector[K, float] | None,
+    nodes: set[K],
+    name: str,
+) -> dict[K, float]:
+    num_nodes = len(nodes)
+    if vec is None:
+        return dict.fromkeys(nodes, 1.0 / num_nodes)
+
+    for k, v in vec.items():
+        if v < 0.0:
+            raise ValueError(f'{name} values must be non-negative, got {v} for key {k}')
+
+    total_mass = sum(vec.values())
+    if total_mass <= 0.0:
+        raise ValueError(f'{name} vector must have a positive sum')
+
+    return {k: vec.get(k, 0.0) / total_mass for k in nodes}
+
+
+def _build_transition_matrix(
+    graph: SparseMatrix[K, float],
+    nodes: set[K],
+) -> tuple[SparseMatrix[K, float], set[K]]:
+    trans_matrix: SparseMatrix[K, float] = {}
+    dangling_nodes: set[K] = set()
+
+    for u in nodes:
+        row = graph.get(u, {})
+        row_sum = sum(w for w in row.values() if w > 0.0)
+        if row_sum > 0.0:
+            trans_matrix[u] = {v: w / row_sum for v, w in row.items() if w > 0.0}
+        else:
+            dangling_nodes.add(u)
+
+    return trans_matrix, dangling_nodes
+
+
+def pagerank(
+    graph: SparseMatrix[K, float],
+    damping: float = 0.85,
+    personalization: SparseVector[K, float] | None = None,
+    semiring: Semiring[float] | type[Semiring[float]] | None = None,
+    max_iter: int = 100,
+    tol: float = 1e-6,
+    dangling: SparseVector[K, float] | None = None,
+) -> SparseVector[K, float]:
+    r"""Compute algebraic PageRank / Random Walk with Restart over a semiring.
+
+    Algebraic Signature:
+        $\mathbf{p}^{(t+1)} = (\alpha \otimes \mathbf{p}^{(t)} \mathbf{P}) \oplus ((1 - \alpha) \otimes \mathbf{v})$
+
+    Carrier:
+        `SparseVector[K, float]` (Mapping from vertex identifier to centrality probability).
+
+    Operations:
+        - Out-Degree Normalization: Row-stochastic projection $P_{ij} = W_{ij} / \sum_k W_{ik}$.
+        - Dangling Mass Redistribution: Scalar aggregation of dead-end probability mass.
+        - Power Iteration Contraction: Iterative sparse vector-matrix contraction.
+
+    Properties:
+        Conserves total probability mass ($\sum_u p_u = 1.0$); geometrically convergent
+        with contraction factor $\alpha$.
+
+    Applications:
+        Web page ranking, entity resolution, protein-protein interaction networks,
+        personalized recommendation subgraphs, fraud detection.
+
+    Args:
+        graph: Sparse adjacency matrix representing directed weighted edges `u -> {v: weight}`.
+        damping: Random walk continuation probability $\alpha \in [0, 1]$ (default 0.85).
+        personalization: Teleportation restart probability vector $\mathbf{v}$ (default uniform).
+        semiring: Semiring instance or class used for vector-matrix multiplication (default StandardSemiring).
+        max_iter: Maximum number of power iterations (default 100).
+        tol: Convergence tolerance under L1 norm (default 1e-6).
+        dangling: Probability distribution for redistributing mass from sink vertices (default equals personalization).
+
+    Returns:
+        Sparse vector mapping each vertex identifier to its PageRank score.
+
+    Raises:
+        ValueError: If damping is not in [0, 1], max_iter < 1, tol < 0, or
+            personalization/dangling has non-positive sum.
+
+    Example:
+        >>> g = {'a': {'b': 1.0}, 'b': {'a': 1.0}}
+        >>> pr = pagerank(g)
+        >>> round(pr['a'], 2), round(pr['b'], 2)
+        (0.5, 0.5)
+    """
+    if not 0.0 <= damping <= 1.0:
+        raise ValueError(f'damping must be between 0.0 and 1.0, got {damping}')
+    if max_iter < 1:
+        raise ValueError(f'max_iter must be a positive integer, got {max_iter}')
+    if tol < 0.0:
+        raise ValueError(f'tol must be non-negative, got {tol}')
+
+    nodes: set[K] = set(graph.keys())
+    for row in graph.values():
+        nodes.update(row.keys())
+
+    if personalization:
+        nodes.update(personalization.keys())
+    if dangling:
+        nodes.update(dangling.keys())
+
+    if not nodes:
+        return {}
+    if len(nodes) == 1:
+        return {next(iter(nodes)): 1.0}
+
+    p_vec = _normalize_distribution_vector(personalization, nodes, 'Personalization')
+    if damping == 0.0:
+        return dict(p_vec)
+
+    d_vec = p_vec if dangling is None else _normalize_distribution_vector(dangling, nodes, 'Dangling')
+    trans_matrix, dangling_nodes = _build_transition_matrix(graph, nodes)
+    sem = _normalize_semiring(semiring)
+
+    rank: dict[K, float] = dict(p_vec)
+    one_minus_alpha = 1.0 - damping
+
+    for _ in range(max_iter):
+        dangling_mass = sum(rank.get(u, 0.0) for u in dangling_nodes)
+        next_rank = vec_mat(rank, trans_matrix, semiring=sem)
+
+        dangling_term = damping * dangling_mass
+        total_err = 0.0
+        updated_rank: dict[K, float] = {}
+
+        for u in nodes:
+            walk_val = damping * next_rank.get(u, 0.0)
+            restart_val = one_minus_alpha * p_vec.get(u, 0.0) + dangling_term * d_vec.get(u, 0.0)
+            val = walk_val + restart_val
+            updated_rank[u] = val
+            total_err += abs(val - rank.get(u, 0.0))
+
+        rank = updated_rank
+        if total_err < tol:
+            break
+
+    return rank
