@@ -5,8 +5,8 @@ import sys
 
 import pytest
 
-sys.path.insert(0, "src")
-sys.path.insert(0, ".")
+sys.path.insert(0, 'src')
+sys.path.insert(0, '.')
 
 from _generators import distribution, graph, rng, sparse_matrix, sparse_signal, stochastic_matrix
 
@@ -15,8 +15,8 @@ import algebrax as ax
 # region Vector Calculus on Graphs
 
 
-@pytest.mark.benchmark(group="analysis-laplacian")
-@pytest.mark.parametrize("density", [0.05, 0.25])
+@pytest.mark.benchmark(group='analysis-laplacian')
+@pytest.mark.parametrize('density', [0.05, 0.25])
 def test_benchmark_analysis_laplacian(benchmark, density: float):
     g = graph(120, density, seed=1)
     field = {node: float(node % 17) for node in g}
@@ -25,7 +25,7 @@ def test_benchmark_analysis_laplacian(benchmark, density: float):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="analysis-gradient")
+@pytest.mark.benchmark(group='analysis-gradient')
 def test_benchmark_analysis_gradient(benchmark):
     g = graph(120, 0.15, seed=1)
     field = {node: float(node % 17) for node in g}
@@ -34,7 +34,7 @@ def test_benchmark_analysis_gradient(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="analysis-divergence")
+@pytest.mark.benchmark(group='analysis-divergence')
 def test_benchmark_analysis_divergence(benchmark):
     g = graph(120, 0.15, seed=1)
     field = {node: float(node % 17) for node in g}
@@ -44,8 +44,8 @@ def test_benchmark_analysis_divergence(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="analysis-forman-ricci")
-@pytest.mark.parametrize("weighted", [False, True])
+@pytest.mark.benchmark(group='analysis-forman-ricci')
+@pytest.mark.parametrize('weighted', [False, True])
 def test_benchmark_analysis_forman_ricci(benchmark, weighted: bool):
     g = graph(60, 0.15, seed=1, weighted=weighted)
 
@@ -53,11 +53,53 @@ def test_benchmark_analysis_forman_ricci(benchmark, weighted: bool):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="analysis-gaussian-kernel")
+@pytest.mark.benchmark(group='analysis-gaussian-kernel')
 def test_benchmark_analysis_gaussian_kernel(benchmark):
     distances = sparse_matrix(80, 80, 0.25, seed=1)
 
     result = benchmark(ax.analysis.gaussian_kernel, distances, 2.0)
+    assert result is not None
+
+
+@pytest.mark.benchmark(group='analysis-laplacian-matrix')
+@pytest.mark.parametrize('normalized', [None, 'sym', 'rw'])
+def test_benchmark_analysis_laplacian_matrix(benchmark, normalized: str | None):
+    g = graph(100, 0.15, seed=1, weighted=True)
+
+    result = benchmark(ax.matrix.laplacian_matrix, g, normalized=normalized)
+    assert result is not None
+
+
+@pytest.mark.benchmark(group='analysis-spectral-fiedler')
+def test_benchmark_analysis_fiedler_vector(benchmark):
+    g = graph(50, 0.2, seed=1, weighted=True)
+
+    result = benchmark(ax.analysis.fiedler_vector, g, max_iter=25)
+    assert result is not None
+
+
+@pytest.mark.benchmark(group='analysis-spectral-bipartition')
+def test_benchmark_analysis_spectral_bipartition(benchmark):
+    g = graph(50, 0.2, seed=1, weighted=True)
+
+    result = benchmark(ax.analysis.spectral_bipartition, g)
+    assert result is not None
+
+
+@pytest.mark.benchmark(group='analysis-laplacian-smoothing')
+def test_benchmark_analysis_laplacian_smoothing(benchmark):
+    g = graph(80, 0.15, seed=1, weighted=True)
+    field = {node: float(node % 13) for node in g}
+
+    result = benchmark(ax.analysis.laplacian_smoothing, field, g, steps=5, tau=0.1)
+    assert result is not None
+
+
+@pytest.mark.benchmark(group='analysis-pagerank')
+def test_benchmark_analysis_pagerank(benchmark):
+    g = graph(80, 0.15, seed=1, weighted=True)
+
+    result = benchmark(ax.analysis.pagerank, g, max_iter=25)
     assert result is not None
 
 
@@ -67,15 +109,15 @@ def test_benchmark_analysis_gaussian_kernel(benchmark):
 # region Probability & Information Theory
 
 
-@pytest.mark.benchmark(group="probability-information")
-@pytest.mark.parametrize("measure", ["entropy", "kl_divergence", "cross_entropy"])
+@pytest.mark.benchmark(group='probability-information')
+@pytest.mark.parametrize('measure', ['entropy', 'kl_divergence', 'cross_entropy'])
 def test_benchmark_probability_information(benchmark, measure: str):
     p = distribution(500, seed=1)
     q = distribution(500, seed=2)
 
-    if measure == "entropy":
+    if measure == 'entropy':
         result = benchmark(ax.probability.entropy, p)
-    elif measure == "kl_divergence":
+    elif measure == 'kl_divergence':
         result = benchmark(ax.probability.kl_divergence, p, q)
     else:
         result = benchmark(ax.probability.cross_entropy, p, q)
@@ -83,7 +125,7 @@ def test_benchmark_probability_information(benchmark, measure: str):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="probability-mutual-information")
+@pytest.mark.benchmark(group='probability-mutual-information')
 def test_benchmark_probability_mutual_information(benchmark):
     joint = stochastic_matrix(60, 0.3, seed=1)
     total = sum(sum(row.values()) for row in joint.values())
@@ -93,8 +135,8 @@ def test_benchmark_probability_mutual_information(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="probability-markov")
-@pytest.mark.parametrize("steps", [1, 25])
+@pytest.mark.benchmark(group='probability-markov')
+@pytest.mark.parametrize('steps', [1, 25])
 def test_benchmark_probability_markov_step(benchmark, steps: int):
     transitions = stochastic_matrix(80, 0.2, seed=1)
     state = distribution(80, seed=2)
@@ -103,7 +145,7 @@ def test_benchmark_probability_markov_step(benchmark, steps: int):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="probability-markov")
+@pytest.mark.benchmark(group='probability-markov')
 def test_benchmark_probability_markov_steady_state(benchmark):
     transitions = stochastic_matrix(80, 0.2, seed=1)
 
@@ -111,8 +153,8 @@ def test_benchmark_probability_markov_steady_state(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="probability-moments")
-@pytest.mark.parametrize("moment", ["variance", "skewness", "kurtosis"])
+@pytest.mark.benchmark(group='probability-moments')
+@pytest.mark.parametrize('moment', ['variance', 'skewness', 'kurtosis'])
 def test_benchmark_probability_moments(benchmark, moment: str):
     dist = distribution(1000, seed=1)
     func = getattr(ax.probability, moment)
@@ -127,11 +169,11 @@ def test_benchmark_probability_moments(benchmark, moment: str):
 # region Automata
 
 
-@pytest.mark.benchmark(group="automata-dfa")
+@pytest.mark.benchmark(group='automata-dfa')
 def test_benchmark_automata_simulate_dfa(benchmark):
     rand = rng(3)
     states = list(range(20))
-    alphabet = "abcd"
+    alphabet = 'abcd'
     transitions = {s: {a: rand.choice(states) for a in alphabet} for s in states}
     sequence = {i: rand.choice(alphabet) for i in range(2_000)}
 
@@ -139,11 +181,11 @@ def test_benchmark_automata_simulate_dfa(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="automata-nfa")
+@pytest.mark.benchmark(group='automata-nfa')
 def test_benchmark_automata_simulate_nfa(benchmark):
     rand = rng(4)
     states = list(range(12))
-    alphabet = "abc"
+    alphabet = 'abc'
     transitions = {
         s: {a: {rand.choice(states): rand.uniform(0.1, 1.0) for _ in range(3)} for a in alphabet} for s in states
     }
@@ -159,8 +201,8 @@ def test_benchmark_automata_simulate_nfa(benchmark):
 # region Lattice Operations
 
 
-@pytest.mark.benchmark(group="lattice-set-ops")
-@pytest.mark.parametrize("op", ["join", "meet", "difference", "symmetric_difference"])
+@pytest.mark.benchmark(group='lattice-set-ops')
+@pytest.mark.parametrize('op', ['join', 'meet', 'difference', 'symmetric_difference'])
 def test_benchmark_lattice_set_ops(benchmark, op: str):
     m_a = sparse_signal(2_000, 0.6, seed=1)
     m_b = sparse_signal(2_000, 0.6, seed=2)
@@ -170,19 +212,19 @@ def test_benchmark_lattice_set_ops(benchmark, op: str):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="lattice-combine")
-@pytest.mark.parametrize("domain", ["union", "intersection"])
+@pytest.mark.benchmark(group='lattice-combine')
+@pytest.mark.parametrize('domain', ['union', 'intersection'])
 def test_benchmark_lattice_combine(benchmark, domain: str):
     m_a = sparse_signal(2_000, 0.6, seed=1)
     m_b = sparse_signal(2_000, 0.6, seed=2)
-    key_domain = set.union if domain == "union" else set.intersection
+    key_domain = set.union if domain == 'union' else set.intersection
 
     result = benchmark(ax.lattice.combine, m_a, m_b, operator.add, 0, key_domain)
     assert result is not None
 
 
-@pytest.mark.benchmark(group="lattice-means")
-@pytest.mark.parametrize("mean", ["average", "geometric_mean", "harmonic_mean"])
+@pytest.mark.benchmark(group='lattice-means')
+@pytest.mark.parametrize('mean', ['average', 'geometric_mean', 'harmonic_mean'])
 def test_benchmark_lattice_means(benchmark, mean: str):
     m_a = sparse_signal(2_000, 0.6, seed=1)
     m_b = sparse_signal(2_000, 0.6, seed=2)
@@ -198,7 +240,7 @@ def test_benchmark_lattice_means(benchmark, mean: str):
 # region Metrics
 
 
-@pytest.mark.benchmark(group="metrics-fractal")
+@pytest.mark.benchmark(group='metrics-fractal')
 def test_benchmark_metrics_box_counting_dimension(benchmark):
     rand = rng(5)
     points = {(rand.randint(0, 255), rand.randint(0, 255)): 1.0 for _ in range(2_000)}
@@ -207,8 +249,8 @@ def test_benchmark_metrics_box_counting_dimension(benchmark):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="metrics-shape")
-@pytest.mark.parametrize("metric", ["deepness", "wideness", "count_elements"])
+@pytest.mark.benchmark(group='metrics-shape')
+@pytest.mark.parametrize('metric', ['deepness', 'wideness', 'count_elements'])
 def test_benchmark_metrics_shape(benchmark, metric: str):
     tree = sparse_matrix(120, 120, 0.3, seed=1)
     func = getattr(ax.metrics, metric)
@@ -217,7 +259,7 @@ def test_benchmark_metrics_shape(benchmark, metric: str):
     assert result is not None
 
 
-@pytest.mark.benchmark(group="metrics-uniformness")
+@pytest.mark.benchmark(group='metrics-uniformness')
 def test_benchmark_metrics_uniformness(benchmark):
     tree = sparse_matrix(120, 120, 0.3, seed=1)
 
