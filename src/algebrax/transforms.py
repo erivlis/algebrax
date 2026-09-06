@@ -581,9 +581,9 @@ def iz_transform(
     result = {}
     for m in range(n):
         val = 0j
-        for k, X_k in samples.items():  # noqa: N806
+        for k, x_k in samples.items():
             zk = radius * cmath.exp(coef * k)
-            val += X_k * (zk**m)
+            val += x_k * (zk**m)
         val /= n
         if not math.isclose(abs(val), 0, abs_tol=1e-9):
             result[m] = val
