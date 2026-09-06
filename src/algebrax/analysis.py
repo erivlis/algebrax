@@ -581,7 +581,7 @@ def laplacian_smoothing(
     return {k: v for k, v in u.items() if abs(v) > 1e-14}
 
 
-def fiedler_vector(
+def fiedler_vector(  # NOSONAR - numerical Rayleigh quotient iteration and deflation kernel
     graph: SparseMatrix[K, float],
     normalized: bool = False,
     tol: float = 1e-8,
@@ -881,7 +881,7 @@ def spectral_bipartition(
     return v1, v2, metrics
 
 
-def laplacian_spectrum(
+def laplacian_spectrum(  # NOSONAR - cyclic Jacobi orthogonal similarity sweeps for eigenspectrum
     graph: SparseMatrix[K, float],
     k: int | None = None,
     normalized: bool = False,
