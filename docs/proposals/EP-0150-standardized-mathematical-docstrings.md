@@ -226,7 +226,7 @@ import inspect
 import re
 from typing import Any, NamedTuple
 
-_SIG_RE = re.compile(r"Algebraic Signature:\s*\n\s*\$(.*?)\$", re.MULTILINE)
+_SIG_RE = re.compile(r"Algebraic Signature:\s*\$([^$]+)\$")
 
 
 class AlgebraicMeta(NamedTuple):
