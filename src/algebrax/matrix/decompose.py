@@ -148,43 +148,38 @@ def qr(matrix: SparseMatrix) -> tuple[SparseMatrix, SparseMatrix]:
     )
 
 
-def svd(  # NOSONAR - numerical Jacobi singular value decomposition kernel
-        matrix: SparseMatrix,
-        k: int | None = None
-) -> tuple[SparseMatrix, SparseVector[int, float], SparseMatrix]:
-    """
-    Compute Singular Value Decomposition (SVD) for a sparse matrix A:
-        A ≈ U @ diag(S) @ V^T
+def _symmetric_jacobi_eigh(  # NOSONAR - cyclic Jacobi orthogonal similarity sweeps
+    a_mat: list[list[float]],
+    max_sweeps: int = 100,
+    tol: float = 1e-12,
+) -> tuple[list[float], list[list[float]]]:
+    r"""Compute eigenvalues and eigenvectors of a real symmetric matrix using cyclic Jacobi rotations.
+
+    Note on the 'eigh' naming convention:
+        Following standard LAPACK, NumPy, and SciPy conventions, 'eig' denotes general
+        eigenvalue decomposition for arbitrary matrices, whereas 'eigh' is specifically
+        reserved for Hermitian or real symmetric matrices. By the Spectral Theorem,
+        real symmetric matrices are guaranteed to have strictly real eigenvalues and
+        a complete orthonormal basis of eigenvectors ($A = V \Lambda V^T$).
 
     Args:
-        matrix: A sparse matrix dict[i, dict[j, float]].
-        k: Optional maximum rank / number of singular components to compute.
+        a_mat: Symmetric dense matrix represented as a list of rows.
+        max_sweeps: Maximum number of sweep iterations.
+        tol: Convergence tolerance for off-diagonal elements.
 
     Returns:
-        A tuple (U, S, V_T) where:
-          - U is a sparse matrix of left singular vectors
-          - S is a sparse vector dict[int, float] of singular values
-          - V_T is a sparse matrix of right singular vectors (V^T)
+        tuple (eigenvalues, v_dense) where:
+          - eigenvalues: list of real eigenvalues (diagonal elements).
+          - v_dense: n x n eigenvector matrix where column `i` is the `i`-th eigenvector (`v_dense[r][i]`).
     """
-    rows, cols = get_matrix_keys(matrix)
-    m = len(rows)
-    n = len(cols)
-    if m == 0 or n == 0:
-        return {}, {}, {}
+    n = len(a_mat)
+    if n == 0:
+        return [], []
 
-    max_rank = min(m, n)
-    r_k = max_rank if k is None else min(k, max_rank)
-
-    a_mat = sparse_to_grid(matrix, rows, cols)
-
-    # B = A^T @ A
-    b_mat = [[sum(a_mat[r][i] * a_mat[r][j] for r in range(m)) for j in range(n)] for i in range(n)]
-
+    d_mat = [list(row) for row in a_mat]
     v_dense = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
-    d_mat = [list(row) for row in b_mat]
 
-    # Jacobi eigenvalue sweeps on A^T @ A
-    for _ in range(100):
+    for _ in range(max_sweeps):
         max_val = 0.0
         p, q = 0, 1
         for i in range(n):
@@ -193,11 +188,11 @@ def svd(  # NOSONAR - numerical Jacobi singular value decomposition kernel
                     max_val = abs(d_mat[i][j])
                     p, q = i, j
 
-        if max_val < 1e-12:
+        if max_val < tol:
             break
 
         diff = d_mat[q][q] - d_mat[p][p]
-        if abs(d_mat[p][q]) < 1e-12:
+        if abs(d_mat[p][q]) < 1e-14:
             t = 0.0
         else:
             phi = diff / (2.0 * d_mat[p][q])
@@ -229,7 +224,43 @@ def svd(  # NOSONAR - numerical Jacobi singular value decomposition kernel
             v_dense[r][p] = c * v_r_p - s * v_r_q
             v_dense[r][q] = s * v_r_p + c * v_r_q
 
-    eigenvals = [max(0.0, d_mat[i][i]) for i in range(n)]
+    eigenvalues = [d_mat[i][i] for i in range(n)]
+    return eigenvalues, v_dense
+
+
+def svd(
+    matrix: SparseMatrix,
+    k: int | None = None,
+) -> tuple[SparseMatrix, SparseVector[int, float], SparseMatrix]:
+    """Compute Singular Value Decomposition (SVD) for a sparse matrix A:
+        A ≈ U @ diag(S) @ V^T
+
+    Args:
+        matrix: A sparse matrix dict[i, dict[j, float]].
+        k: Optional maximum rank / number of singular components to compute.
+
+    Returns:
+        A tuple (U, S, V_T) where:
+          - U is a sparse matrix of left singular vectors
+          - S is a sparse vector dict[int, float] of singular values
+          - V_T is a sparse matrix of right singular vectors (V^T)
+    """
+    rows, cols = get_matrix_keys(matrix)
+    m = len(rows)
+    n = len(cols)
+    if m == 0 or n == 0:
+        return {}, {}, {}
+
+    max_rank = min(m, n)
+    r_k = max_rank if k is None else min(k, max_rank)
+
+    a_mat = sparse_to_grid(matrix, rows, cols)
+
+    # Compute normal matrix B = A^T @ A
+    b_mat = [[sum(a_mat[r][i] * a_mat[r][j] for r in range(m)) for j in range(n)] for i in range(n)]
+
+    raw_eigenvals, v_dense = _symmetric_jacobi_eigh(b_mat)
+    eigenvals = [max(0.0, ev) for ev in raw_eigenvals]
     pairs = [(math.sqrt(eigenvals[i]), [v_dense[j][i] for j in range(n)]) for i in range(n)]
     pairs.sort(key=lambda x: x[0], reverse=True)
 
