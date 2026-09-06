@@ -140,16 +140,9 @@ class BivariateVarianceSemiring(Semiring[tuple[float, float, float, float]]):
         p1, r1, s1, t1 = a
         p2, r2, s2, t2 = b
 
-        # p = p1 * p2
         p = p1 * p2
-
-        # r = p1*r2 + p2*r1
         r = p1 * r2 + p2 * r1
-
-        # s = p1*s2 + p2*s1
         s = p1 * s2 + p2 * s1
-
-        # t = p1*t2 + p2*t1 + r1*s2 + r2*s1
         t = p1 * t2 + p2 * t1 + r1 * s2 + r2 * s1
 
         return p, r, s, t
