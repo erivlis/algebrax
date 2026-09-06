@@ -148,7 +148,10 @@ def qr(matrix: SparseMatrix) -> tuple[SparseMatrix, SparseMatrix]:
     )
 
 
-def svd(matrix: SparseMatrix, k: int | None = None) -> tuple[SparseMatrix, SparseVector[int, float], SparseMatrix]:
+def svd(  # NOSONAR - numerical Jacobi singular value decomposition kernel
+        matrix: SparseMatrix,
+        k: int | None = None
+) -> tuple[SparseMatrix, SparseVector[int, float], SparseMatrix]:
     """
     Compute Singular Value Decomposition (SVD) for a sparse matrix A:
         A ≈ U @ diag(S) @ V^T
