@@ -279,37 +279,64 @@ def _symmetrize_adjacency(
     return adj
 
 
+def _build_unnormalized_laplacian(
+    adj: dict[K, dict[K, float]],
+    degrees: dict[K, float],
+    nodes: set[K],
+) -> dict[K, dict[K, float]]:
+    lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
+    for u in nodes:
+        d_u = degrees[u]
+        if d_u != 0:
+            lap[u][u] = d_u
+        for v, w in adj[u].items():
+            lap[u][v] = -w
+    return lap
+
+
+def _build_sym_laplacian(
+    adj: dict[K, dict[K, float]],
+    degrees: dict[K, float],
+    nodes: set[K],
+) -> dict[K, dict[K, float]]:
+    lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
+    inv_sqrt_d = {u: (1.0 / math.sqrt(degrees[u]) if degrees[u] > 0 else 0.0) for u in nodes}
+    for u in nodes:
+        if degrees[u] > 0:
+            lap[u][u] = 1.0
+        for v, w in adj[u].items():
+            val = -w * inv_sqrt_d[u] * inv_sqrt_d[v]
+            if val != 0:
+                lap[u][v] = val
+    return lap
+
+
+def _build_rw_laplacian(
+    adj: dict[K, dict[K, float]],
+    degrees: dict[K, float],
+    nodes: set[K],
+) -> dict[K, dict[K, float]]:
+    lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
+    for u in nodes:
+        d = degrees[u]
+        if d > 0:
+            lap[u][u] = 1.0
+            for v, w in adj[u].items():
+                lap[u][v] = -w / d
+    return lap
+
+
 def _build_laplacian_dict(
     adj: dict[K, dict[K, float]],
     degrees: dict[K, float],
     nodes: set[K],
     normalized: Literal['sym', 'rw'] | None,
 ) -> dict[K, dict[K, float]]:
-    lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
-    if normalized is None:
-        for u in nodes:
-            d_u = degrees[u]
-            if d_u != 0:
-                lap[u][u] = d_u
-            for v, w in adj[u].items():
-                lap[u][v] = -w
-    elif normalized == 'sym':
-        inv_sqrt_d = {u: (1.0 / math.sqrt(degrees[u]) if degrees[u] > 0 else 0.0) for u in nodes}
-        for u in nodes:
-            if degrees[u] > 0:
-                lap[u][u] = 1.0
-            for v, w in adj[u].items():
-                val = -w * inv_sqrt_d[u] * inv_sqrt_d[v]
-                if val != 0:
-                    lap[u][v] = val
-    elif normalized == 'rw':
-        for u in nodes:
-            d = degrees[u]
-            if d > 0:
-                lap[u][u] = 1.0
-                for v, w in adj[u].items():
-                    lap[u][v] = -w / d
-    return lap
+    if normalized == 'sym':
+        return _build_sym_laplacian(adj, degrees, nodes)
+    if normalized == 'rw':
+        return _build_rw_laplacian(adj, degrees, nodes)
+    return _build_unnormalized_laplacian(adj, degrees, nodes)
 
 
 def laplacian_matrix(
