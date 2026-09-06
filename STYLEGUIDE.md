@@ -56,6 +56,20 @@ To maintain a consistent codebase, we use the following tools for linting and fo
 * **Float Equality**: When comparing computed floating-point values for equivalence or convergence, use `math.isclose`.
   For exact denominator singularity checks that guard against `ZeroDivisionError`, use `x == 0.0  # NOSONAR` to avoid
   truncating legitimate tiny probabilities or introducing arbitrary epsilon thresholds.
+* **Regular Expressions (Deterministic & Safe Matching)**:
+    * **Simplicity First**: Prefer Python's built-in string methods (`startswith`, `endswith`, `in`, `partition`, `split`)
+      over regex when matching fixed tokens or simple prefixes/suffixes.
+    * **Raw Strings**: Always use raw strings (`r"..."`) to prevent Python string escape sequences (e.g. `\b`) from
+      being misinterpreted.
+    * **Module Precompilation**: Compile patterns at module level into SCREAMING_SNAKE_CASE constants
+      (e.g., `_SIG_RE = re.compile(...)`) to avoid re-compilation in hot paths.
+    * **Linear-Time Delimiters ($O(N)$)**: When extracting bounded content between delimiters, always use negated
+      character classes (e.g., `\$([^$]+)\$`) instead of reluctant wildcards (`\$(.*?)\$`) to eliminate catastrophic
+      backtracking (ReDoS / Sonar S5852).
+    * **Disjoint Tokens**: Avoid overlapping quantifier sequences (e.g. avoid `\s*\n\s*` because `\s` includes `\n`;
+      collapse to `\s*` or enforce horizontal spacing: `[ \t]*\n[ \t]*`). Never use nested repetitions like `(a+)+`.
+    * **Readability**: For complex patterns, use `re.VERBOSE` (`re.X`) with multi-line layout and inline comments, and
+      use named capture groups (`(?P<name>...)`) instead of brittle numeric indices (`group(1)`).
 
 ## Test Style
 
