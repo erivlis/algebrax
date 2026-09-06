@@ -10,11 +10,17 @@ from algebrax.matrix.academic import (
 
 
 def test_determinant_2x2():
+    # Assert
     # |1 2| = 1*4 - 2*3 = -2
     # |3 4|
     m = {0: {0: 1, 1: 2}, 1: {0: 3, 1: 4}}
+
+    # Act
     with pytest.warns(PerformanceWarning):
-        assert determinant(m) == pytest.approx(-2)
+        res = determinant(m)
+
+    # Assert
+    assert res == pytest.approx(-2)
 
 
 def test_determinant_3x3():
