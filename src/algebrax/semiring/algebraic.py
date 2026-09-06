@@ -317,8 +317,10 @@ def _clifford_blade_mul(
                 sign *= 1.0
             elif idx <= p + q:
                 sign *= -1.0
+            elif idx <= p + q + r:
+                return []  # e_k^2 = 0 degenerate generator
             else:
-                return []  # e_k^2 = 0 degenerate
+                raise ValueError(f'Generator index {idx} exceeds Clifford dimension p+q+r={p + q + r}')
             i += 2
         else:
             canonical.append(combined[i])
