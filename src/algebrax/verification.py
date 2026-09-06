@@ -7,6 +7,7 @@ identity, and annihilation).
 """
 
 import cmath
+import itertools
 import math
 from collections.abc import Iterable
 from typing import Any, TypeVar
@@ -14,6 +15,20 @@ from typing import Any, TypeVar
 from algebrax.semiring import Semiring
 
 V = TypeVar('V')
+
+
+def _float_equal(a: float, b: float, tol: float) -> bool:
+    if math.isinf(a) and math.isinf(b):
+        return (a > 0) == (b > 0)
+    if math.isnan(a) and math.isnan(b):
+        return True
+    return math.isclose(a, b, rel_tol=tol, abs_tol=tol)
+
+
+def _dict_equal(a: dict[Any, Any], b: dict[Any, Any], tol: float) -> bool:
+    if set(a.keys()) != set(b.keys()):
+        return False
+    return all(semiring_elements_equal(a[k], b[k], tol) for k in a)
 
 
 def semiring_elements_equal(a: Any, b: Any, tol: float = 1e-7) -> bool:
@@ -24,11 +39,7 @@ def semiring_elements_equal(a: Any, b: Any, tol: float = 1e-7) -> bool:
     if a == b:
         return True
     if isinstance(a, float) and isinstance(b, float):
-        if math.isinf(a) and math.isinf(b):
-            return (a > 0) == (b > 0)
-        if math.isnan(a) and math.isnan(b):
-            return True
-        return math.isclose(a, b, rel_tol=tol, abs_tol=tol)
+        return _float_equal(a, b, tol)
     if isinstance(a, complex) and isinstance(b, complex):
         return cmath.isclose(a, b, rel_tol=tol, abs_tol=tol)
     if isinstance(a, tuple) and isinstance(b, tuple):
@@ -36,16 +47,112 @@ def semiring_elements_equal(a: Any, b: Any, tol: float = 1e-7) -> bool:
             return False
         return all(semiring_elements_equal(x, y, tol) for x, y in zip(a, b))
     if isinstance(a, dict) and isinstance(b, dict):
-        all_keys = set(a.keys()) | set(b.keys())
-        for k in all_keys:
-            v_a = a.get(k)
-            v_b = b.get(k)
-            if v_a is None or v_b is None:
-                return False
-            if not semiring_elements_equal(v_a, v_b, tol):
-                return False
-        return True
+        return _dict_equal(a, b, tol)
     return False
+
+
+def _check_identities_and_annihilation(
+    semiring: Semiring[V],
+    elements: list[V],
+    tol: float,
+) -> dict[str, bool]:
+    """Verify additive/multiplicative identities and left/right annihilation."""
+    zero = semiring.zero
+    one = semiring.one
+    res = {
+        'add_identity': True,
+        'mul_identity': True,
+        'left_annihilation': True,
+        'right_annihilation': True,
+    }
+    for a in elements:
+        if res['add_identity']:
+            left_ok = semiring_elements_equal(semiring.add(zero, a), a, tol)
+            right_ok = semiring_elements_equal(semiring.add(a, zero), a, tol)
+            if not (left_ok and right_ok):
+                res['add_identity'] = False
+
+        if res['mul_identity']:
+            left_ok = semiring_elements_equal(semiring.mul(one, a), a, tol)
+            right_ok = semiring_elements_equal(semiring.mul(a, one), a, tol)
+            if not (left_ok and right_ok):
+                res['mul_identity'] = False
+
+        if res['left_annihilation'] and not semiring_elements_equal(semiring.mul(zero, a), zero, tol):
+            res['left_annihilation'] = False
+
+        if res['right_annihilation'] and not semiring_elements_equal(semiring.mul(a, zero), zero, tol):
+            res['right_annihilation'] = False
+
+    return res
+
+
+def _check_add_commutativity(
+    semiring: Semiring[V],
+    elements: list[V],
+    tol: float,
+) -> bool:
+    """Verify additive commutativity a + b = b + a over all element pairs."""
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(semiring.add(a, b), semiring.add(b, a), tol):
+            return False
+    return True
+
+
+def _check_associativity(
+    semiring: Semiring[V],
+    elements: list[V],
+    tol: float,
+) -> tuple[bool, bool]:
+    """Verify additive and multiplicative associativity over all triplets."""
+    add_assoc = True
+    mul_assoc = True
+
+    for a, b, c in itertools.product(elements, repeat=3):
+        if add_assoc:
+            lhs = semiring.add(semiring.add(a, b), c)
+            rhs = semiring.add(a, semiring.add(b, c))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                add_assoc = False
+
+        if mul_assoc:
+            lhs = semiring.mul(semiring.mul(a, b), c)
+            rhs = semiring.mul(a, semiring.mul(b, c))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                mul_assoc = False
+
+        if not add_assoc and not mul_assoc:
+            break
+
+    return add_assoc, mul_assoc
+
+
+def _check_distributivity(
+    semiring: Semiring[V],
+    elements: list[V],
+    tol: float,
+) -> tuple[bool, bool]:
+    """Verify left and right distributivity over all triplets."""
+    left_dist = True
+    right_dist = True
+
+    for a, b, c in itertools.product(elements, repeat=3):
+        if left_dist:
+            lhs = semiring.mul(a, semiring.add(b, c))
+            rhs = semiring.add(semiring.mul(a, b), semiring.mul(a, c))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                left_dist = False
+
+        if right_dist:
+            lhs = semiring.mul(semiring.add(a, b), c)
+            rhs = semiring.add(semiring.mul(a, c), semiring.mul(b, c))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                right_dist = False
+
+        if not left_dist and not right_dist:
+            break
+
+    return left_dist, right_dist
 
 
 def verify_semiring_laws(
@@ -74,80 +181,10 @@ def verify_semiring_laws(
           - 'right_annihilation'
     """
     elements = list(samples)
-    zero = semiring.zero
-    one = semiring.one
-
-    results = {
-        'add_associativity': True,
-        'add_commutativity': True,
-        'add_identity': True,
-        'mul_associativity': True,
-        'mul_identity': True,
-        'left_distributivity': True,
-        'right_distributivity': True,
-        'left_annihilation': True,
-        'right_annihilation': True,
-    }
-
-    # 1. Identity & Annihilation Checks
-    for a in elements:
-        # Add Identity: a + 0 = a, 0 + a = a
-        if not semiring_elements_equal(semiring.add(a, zero), a, tol) or not semiring_elements_equal(
-            semiring.add(zero, a), a, tol
-        ):
-            results['add_identity'] = False
-
-        # Mul Identity: a * 1 = a, 1 * a = a
-        if not semiring_elements_equal(semiring.mul(a, one), a, tol) or not semiring_elements_equal(
-            semiring.mul(one, a), a, tol
-        ):
-            results['mul_identity'] = False
-
-        # Annihilation: 0 * a = 0, a * 0 = 0
-        if not semiring_elements_equal(semiring.mul(zero, a), zero, tol):
-            results['left_annihilation'] = False
-        if not semiring_elements_equal(semiring.mul(a, zero), zero, tol):
-            results['right_annihilation'] = False
-
-    # 2. Binary Checks (Commutativity)
-    for a in elements:
-        for b in elements:
-            # Add Commutativity: a + b = b + a
-            if not semiring_elements_equal(semiring.add(a, b), semiring.add(b, a), tol):
-                results['add_commutativity'] = False
-
-    # 3. Ternary Checks (Associativity & Distributivity)
-    for a in elements:
-        for b in elements:
-            for c in elements:
-                # Add Associativity: (a + b) + c = a + (b + c)
-                if results['add_associativity']:
-                    lhs = semiring.add(semiring.add(a, b), c)
-                    rhs = semiring.add(a, semiring.add(b, c))
-                    if not semiring_elements_equal(lhs, rhs, tol):
-                        results['add_associativity'] = False
-
-                # Mul Associativity: (a * b) * c = a * (b * c)
-                if results['mul_associativity']:
-                    lhs = semiring.mul(semiring.mul(a, b), c)
-                    rhs = semiring.mul(a, semiring.mul(b, c))
-                    if not semiring_elements_equal(lhs, rhs, tol):
-                        results['mul_associativity'] = False
-
-                # Left Distributivity: a * (b + c) = (a * b) + (a * c)
-                if results['left_distributivity']:
-                    lhs = semiring.mul(a, semiring.add(b, c))
-                    rhs = semiring.add(semiring.mul(a, b), semiring.mul(a, c))
-                    if not semiring_elements_equal(lhs, rhs, tol):
-                        results['left_distributivity'] = False
-
-                # Right Distributivity: (a + b) * c = (a * c) + (b * c)
-                if results['right_distributivity']:
-                    lhs = semiring.mul(semiring.add(a, b), c)
-                    rhs = semiring.add(semiring.mul(a, c), semiring.mul(b, c))
-                    if not semiring_elements_equal(lhs, rhs, tol):
-                        results['right_distributivity'] = False
-
+    results = _check_identities_and_annihilation(semiring, elements, tol)
+    results['add_commutativity'] = _check_add_commutativity(semiring, elements, tol)
+    results['add_associativity'], results['mul_associativity'] = _check_associativity(semiring, elements, tol)
+    results['left_distributivity'], results['right_distributivity'] = _check_distributivity(semiring, elements, tol)
     return results
 
 
