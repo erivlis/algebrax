@@ -538,7 +538,7 @@ def to_numpy(
         return np.zeros((h, w))
 
     r_max = max(matrix.keys()) if isinstance(max(matrix.keys()), int) else len(matrix)
-    c_max = max(c for row in matrix.values() for c in row) if any(row for row in matrix.values()) else 0
+    c_max = max((c for row in matrix.values() for c in row), default=0)
     h, w = shape if shape else (r_max + 1, c_max + 1)
 
     arr = np.zeros((h, w))
