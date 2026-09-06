@@ -74,12 +74,20 @@ from algebrax.typing import (
     SparseVector,
 )
 
+try:
+    import importlib.metadata
+
+    __version__ = importlib.metadata.version('algebrax')
+except Exception:
+    __version__ = '0.8.0'
+
 __all__ = [
     'DenseMatrix',
     'DenseVector',
     'SparseMatrix',
     'SparseTensor',
     'SparseVector',
+    '__version__',
     'analysis',
     'automata',
     'category',

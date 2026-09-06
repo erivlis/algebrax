@@ -20,8 +20,8 @@ def get_version() -> str:
     """Return algebrax package version."""
     try:
         return importlib.metadata.version('algebrax')
-    except Exception:
-        return '0.2.0'
+    except importlib.metadata.PackageNotFoundError:
+        return getattr(ax, '__version__', '0.8.0')
 
 
 def cmd_catalog(args: argparse.Namespace) -> int:

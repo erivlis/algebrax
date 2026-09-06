@@ -86,3 +86,20 @@ def test_cli_inspect_dot(tmp_path, capsys):
     assert ret == 0
     captured = capsys.readouterr()
     assert 'Row 0: {0: 6.0}' in captured.out
+
+
+def test_version_attribute_and_cli():
+    """Verify algebrax exposes valid semantic version and get_version() resolves correctly."""
+    import importlib.metadata
+    from unittest.mock import patch
+
+    import algebrax as ax
+    from algebrax.__main__ import get_version
+
+    assert hasattr(ax, '__version__')
+    assert ax.__version__ == '0.8.0'
+    assert get_version() == '0.8.0'
+
+    # Test fallback when PackageNotFoundError is raised
+    with patch('importlib.metadata.version', side_effect=importlib.metadata.PackageNotFoundError):
+        assert get_version() == '0.8.0'
