@@ -118,7 +118,7 @@ def display_trie(trie: Any, max_depth: int = 4) -> str:
     return ''.join(html_parts)
 
 
-_SIG_RE = re.compile(r'Algebraic Signature:\s*\n\s*\$(.*?)\$', re.MULTILINE | re.DOTALL)
+_SIG_RE = re.compile(r'Algebraic Signature:\s*\$([^$]+)\$')
 
 
 class AlgebraicMeta(NamedTuple):
