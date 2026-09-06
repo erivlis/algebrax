@@ -794,11 +794,11 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
         if p >= 1.0:
             return (float('inf'),) * dim
         if self.order == 0:
-            return (1.0 / (1.0 - p),)
+            return (1.0 / (1.0 - p),)  # NOSONAR - order 0 is 1D scalar
         if self.order == 1:
             p_star = 1.0 / (1.0 - p)
             v_star = a[1] * (p_star**2)
-            return p_star, v_star
+            return p_star, v_star  # NOSONAR - order 1 is 2D vector
 
         scale = 1.0 / (1.0 - p)
         scaled_nil = (0.0, *(val * scale for val in a[1:]))
