@@ -430,7 +430,7 @@ def pagerank(
         return {next(iter(nodes)): 1.0}
 
     p_vec = _normalize_distribution_vector(personalization, nodes, 'Personalization')
-    if damping == 0.0:
+    if damping == 0.0:  # NOSONAR - exact boundary check for pure restart distribution
         return dict(p_vec)
 
     d_vec = p_vec if dangling is None else _normalize_distribution_vector(dangling, nodes, 'Dangling')
