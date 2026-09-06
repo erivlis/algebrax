@@ -111,9 +111,15 @@ def display_trie(trie: Any, max_depth: int = 4) -> str:
         return '<div><i>empty AlgebraicTrie</i></div>'
 
     html_parts = ["<div style='font-family: monospace;'><b>AlgebraicTrie</b><ul>"]
-    for path, val in items[:50]:
+    count = 0
+    for path, val in items:
+        if len(path) > max_depth:
+            continue
         path_str = ' &rarr; '.join(str(p) for p in path)
         html_parts.append(f'<li><code>({path_str})</code> &rArr; <b>{val}</b></li>')
+        count += 1
+        if count >= 50:
+            break
     html_parts.append('</ul></div>')
     return ''.join(html_parts)
 
