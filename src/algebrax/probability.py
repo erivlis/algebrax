@@ -242,7 +242,7 @@ def markov_steady_state(
     state = dict.fromkeys(nodes, 1.0 / n)
 
     for _ in range(iterations):
-        # pi_new = pi_old * P
+        # Transition update step: pi_new = pi_old * P
         new_state = vec_mat(state, transition_matrix)
 
         # Check convergence (L1 norm of difference)
