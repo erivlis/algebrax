@@ -263,13 +263,71 @@ def hilbert(
     return idft(new_spectrum, n)
 
 
+def _legendre_fenchel_standard(
+    signal: SparseVector[K, N],
+    slope: N,
+    zero_val: N,
+) -> N:
+    max_val = float('-inf')
+    for x, fx in signal.items():
+        if not isinstance(x, (int, float)):
+            continue
+        val = slope * x - fx
+        if val > max_val:
+            max_val = val
+    if max_val == float('-inf'):
+        return zero_val
+    return max_val
+
+
+def _legendre_fenchel_term(
+    semiring: Semiring[N],
+    slope: N,
+    x: int | float,
+    fx: N,
+) -> N:
+    try:
+        sx = semiring.mul(slope, x)
+    except Exception:
+        sx = semiring.mul(slope, type(slope)(x))
+
+    if isinstance(semiring, (TropicalSemiring, ArcticSemiring, LogSemiring)):
+        inv_fx = -fx
+        return semiring.mul(sx, inv_fx)
+
+    try:
+        inv_fx = 1.0 / fx if fx != 0 else float('inf')
+        return semiring.mul(sx, inv_fx)
+    except Exception:
+        return sx - fx
+
+
+def _legendre_fenchel_semiring(
+    signal: SparseVector[K, N],
+    slope: N,
+    semiring: Semiring[N],
+) -> N:
+    total = semiring.zero
+    first = True
+    for x, fx in signal.items():
+        if not isinstance(x, (int, float)):
+            continue
+        term = _legendre_fenchel_term(semiring, slope, x, fx)
+        if first:
+            total = term
+            first = False
+        else:
+            total = semiring.add(total, term)
+    return total
+
+
 def legendre_fenchel(
     signal: SparseVector[K, N],
     slope: N,
     semiring: Semiring[N] | None = None,
 ) -> N:
-    """
-    Compute the discrete Fenchel-Legendre transform (Slope Transform) of a signal at a specific slope.
+    r"""Compute the discrete Fenchel-Legendre transform (Slope Transform) of a signal at a specific slope.
+
     This is the Tropical/Idempotent analog of the Fourier Transform.
 
     Morphism Type: Legendre-Fenchel Transform / Convex Conjugate (tropical analogue of the Fourier transform).
@@ -278,8 +336,8 @@ def legendre_fenchel(
         f*(s) = sup_x { s * x - f(x) }
 
     If a general semiring is provided, we compute the generalized Legendre-Fenchel transform:
-        f*(s) = \\bigoplus_x { s \\otimes x \\otimes f(x)^{-1} }
-    where \\bigoplus is semiring.add, \\otimes is semiring.mul, and f(x)^{-1} is the multiplicative inverse
+        f*(s) = \bigoplus_x { s \otimes x \otimes f(x)^{-1} }
+    where \bigoplus is semiring.add, \otimes is semiring.mul, and f(x)^{-1} is the multiplicative inverse
     of f(x) under the semiring's multiplication.
 
     Args:
@@ -291,51 +349,13 @@ def legendre_fenchel(
         The value of the transform at the given slope.
     """
     if not signal:
-        if semiring is not None:
-            return semiring.zero
-        return float('-inf')
+        return semiring.zero if semiring is not None else float('-inf')
 
     if semiring is None or isinstance(semiring, StandardSemiring):
-        max_val = float('-inf')
-        for x, fx in signal.items():
-            if not isinstance(x, (int, float)):
-                continue
-            val = slope * x - fx
-            if val > max_val:
-                max_val = val
-        if max_val == float('-inf'):
-            return semiring.zero if semiring is not None else float('-inf')
-        return max_val
+        zero_val = semiring.zero if semiring is not None else float('-inf')
+        return _legendre_fenchel_standard(signal, slope, zero_val)
 
-    total = semiring.zero
-    first = True
-    for x, fx in signal.items():
-        if not isinstance(x, (int, float)):
-            continue
-
-        try:
-            sx = semiring.mul(slope, x)
-        except Exception:
-            sx = semiring.mul(slope, type(slope)(x))
-
-        if isinstance(semiring, (TropicalSemiring, ArcticSemiring, LogSemiring)):
-            # Multiplication is addition (+), so multiplicative inverse is negation (-fx).
-            inv_fx = -fx
-            term = semiring.mul(sx, inv_fx)
-        else:
-            try:
-                inv_fx = 1.0 / fx if fx != 0 else float('inf')
-                term = semiring.mul(sx, inv_fx)
-            except Exception:
-                term = sx - fx
-
-        if first:
-            total = term
-            first = False
-        else:
-            total = semiring.add(total, term)
-
-    return total
+    return _legendre_fenchel_semiring(signal, slope, semiring)
 
 
 def walsh_hadamard(
