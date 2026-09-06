@@ -43,7 +43,7 @@ def _get_semiring_and_items(
     return sr, items
 
 
-def einsum(
+def einsum(  # NOSONAR - generalized Einstein summation parser and contraction kernel
     subscripts: str,
     *tensors: Any,
     semiring: Semiring[V] | None = None,
