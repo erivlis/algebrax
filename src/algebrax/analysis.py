@@ -31,6 +31,7 @@ from typing import Literal
 
 from algebrax.matrix.academic import PerformanceWarning
 from algebrax.matrix.core import laplacian_matrix, mat_vec, vec_mat
+from algebrax.matrix.decompose import _symmetric_jacobi_eigh
 from algebrax.semiring import Semiring
 from algebrax.typing import K, SparseMatrix, SparseVector
 
@@ -931,58 +932,13 @@ def laplacian_spectrum(  # NOSONAR - cyclic Jacobi orthogonal similarity sweeps 
 
     lap = laplacian_matrix(graph, normalized='sym' if normalized else None)
     d_mat = [[lap.get(u, {}).get(v, 0.0) for v in nodes] for u in nodes]
-    v_dense = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
-
-    for _ in range(100):
-        max_val = 0.0
-        p, q = 0, 1
-        for i in range(n):
-            for j in range(i + 1, n):
-                if abs(d_mat[i][j]) > max_val:
-                    max_val = abs(d_mat[i][j])
-                    p, q = i, j
-
-        if max_val < 1e-12:
-            break
-
-        diff = d_mat[q][q] - d_mat[p][p]
-        if abs(d_mat[p][q]) < 1e-14:
-            t = 0.0
-        else:
-            phi = diff / (2.0 * d_mat[p][q])
-            t = (1.0 / (abs(phi) + math.sqrt(phi * phi + 1.0))) * (1.0 if phi >= 0 else -1.0)
-        c = 1.0 / math.sqrt(t * t + 1.0)
-        s = t * c
-
-        d_pp = d_mat[p][p]
-        d_qq = d_mat[q][q]
-        d_pq = d_mat[p][q]
-
-        d_mat[p][p] = d_pp - t * d_pq
-        d_mat[q][q] = d_qq + t * d_pq
-        d_mat[p][q] = 0.0
-        d_mat[q][p] = 0.0
-
-        for r in range(n):
-            if r != p and r != q:
-                d_r_p = d_mat[r][p]
-                d_r_q = d_mat[r][q]
-                d_mat[r][p] = c * d_r_p - s * d_r_q
-                d_mat[p][r] = d_mat[r][p]
-                d_mat[r][q] = s * d_r_p + c * d_r_q
-                d_mat[q][r] = d_mat[r][q]
-
-        for r in range(n):
-            v_r_p = v_dense[r][p]
-            v_r_q = v_dense[r][q]
-            v_dense[r][p] = c * v_r_p - s * v_r_q
-            v_dense[r][q] = s * v_r_p + c * v_r_q
+    raw_eigenvals, v_dense = _symmetric_jacobi_eigh(d_mat)
 
     pairs: list[tuple[float, dict[K, float]]] = []
     for i in range(n):
-        val = max(0.0, d_mat[i][i])
+        val = max(0.0, raw_eigenvals[i])
         vec = {nodes[r]: v_dense[r][i] for r in range(n)}
-        max_k = max(vec.keys(), key=lambda k: abs(vec[k]))
+        max_k = max(vec.items(), key=lambda item: abs(item[1]))[0]
         if vec[max_k] < 0:
             vec = {k: -v for k, v in vec.items()}
         pairs.append((val, vec))
