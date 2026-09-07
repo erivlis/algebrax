@@ -63,3 +63,17 @@ uses https://github.com/microsoft/markitdown
 ```shell
 uvx --from 'markitdown[pdf]' markitdown {input_pdf} -o {output_md}
 ```
+
+### 6. SonarQube CLI (Code Quality & Security)
+
+**Goal:** Run instant local quality gate analysis against the active SonarCloud profile before committing.
+**Command:**
+
+```shell
+sonar analyze --file {file_path}
+```
+
+*Examples:*
+- Single file: `sonar analyze --file src/algebrax/analysis.py`
+- Multiple files: `sonar analyze --file src/algebrax/matrix/core.py --file src/algebrax/transforms.py`
+- Check authentication: `sonar auth status`
