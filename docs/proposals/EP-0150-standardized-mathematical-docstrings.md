@@ -2,7 +2,7 @@
 title: "EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry"
 description: "Establishes a unified mathematical docstring standard across semirings, algebras, and topological complexes with automated introspection, rich MathJax cards, and registry testing."
 icon: lucide/file-code-2
-status: draft
+status: final
 ---
 
 # EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry
@@ -14,10 +14,10 @@ status: draft
 | **Author**   | Eran Rivlis <eran@rivlis.info>                                      |
 | **Sponsor**  | The Council                                                         |
 | **Delegate** | Richard Feynman & Bertrand Russell                                  |
-| **Status**   | Draft                                                               |
+| **Status**   | Final                                                               |
 | **Type**     | Standards Track                                                     |
 | **Created**  | 2026-09-05                                                          |
-| **Updated**  | 2026-09-05                                                          |
+| **Updated**  | 2026-09-10                                                          |
 
 ---
 
@@ -435,3 +435,6 @@ This proposal is 100% backwards-compatible:
     * Added Section: "How to Teach This (Education & Style Guide Integration)".
     * Updated `STYLEGUIDE.md` to formally document AMDS.
     * Registered EP-0150 in `EP-0099-expansion-roadmap.md` and `docs/eps.md`.
+* **2026-09-10:**
+    * Completed test suite `tests/algebrax/test_docstrings.py` validating 100% AMDS signature extraction and rich display hooks.
+    * Updated status to Final.

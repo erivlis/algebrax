@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                                                    |
 | **Type**    | Informational                                             |
 | **Created** | 2026-08-01                                                |
-| **Updated** | 2026-09-04                                                |
+| **Updated** | 2026-09-10                                                |
 
 ## Abstract
 
@@ -25,8 +25,9 @@ two foundational engine extensions (`EP-0100` and `EP-0101`) to four specialized
 `EP-0113`), an interactive visual studio (`EP-0120`), a maturity & consistency track (`EP-0130` through `EP-0134`),
 the Phase 3.5 Council Refinement Track (`EP-0140` through `EP-0146`), formalized micro-benchmarking (`EP-0148`),
 universal binomial convolution statistical moment semirings (`EP-0149`), standardized mathematical docstrings (`EP-0150`),
-algebraic PageRank contraction solvers over semirings (`EP-0151`), and Spectral Graph Theory with Graph Laplacians
-and Fiedler partitioning (`EP-0152`).
+algebraic PageRank contraction solvers over semirings (`EP-0151`), Spectral Graph Theory with Graph Laplacians
+and Fiedler partitioning (`EP-0152`), and the **Phase 4 Algebraic Continents & Next Frontiers** (`EXP-0001`,
+`EP-0160` through `EP-0163`) extending into Discrete Exterior Calculus and continuous Lie symmetries.
 
 ---
 
@@ -39,6 +40,7 @@ flowchart TD
     CORE --> EP0100["EP-0100\nQuotient Monoid Algebra"]
     CORE --> EP0101["EP-0101\nSparse Chain Complex"]
     CORE --> EP0149["EP-0149\nBinomial Moments & Divided Powers"]
+    CORE --> EP0163["EP-0163\nLie Bracket & BCH Dynamics"]
 
     EP0100 --> EP0111["EP-0111\nClifford Algebra"]
     EP0100 --> EP0112["EP-0112\nGalois Fields"]
@@ -47,9 +49,11 @@ flowchart TD
     EP0101 --> EP0110["EP-0110\nSimplicial Homology"]
     EP0101 --> SHEAF["Sheaf Consensus\n(Existing)"]
     EP0101 --> EP0113["EP-0113\nCategory Kleisli"]
+    EP0101 --> EP0160["EP-0160\nDiscrete Exterior Calculus"]
 
     EP0110 --> P3
     EP0111 --> P3
+    EP0111 --> EP0163
     EP0112 --> P3
     EP0113 --> P3
     EP0149 --> P35
@@ -75,14 +79,27 @@ flowchart TD
         EP0146["EP-0146 Ergonomics ✅\n🤝 Steward"]
         EP0148["EP-0148 Benchmarking ✅\n⏱️ CodSpeed"]
         EP0149_N["EP-0149 Binomial Moments ✅\n∑ Noether & Russell"]
-        EP0150_N["EP-0150 Math Docstrings 📝\n💡 Feynman"]
+        EP0150_N["EP-0150 Math Docstrings ✅\n💡 Feynman"]
         EP0151_N["EP-0151 Algebraic PageRank ✅\n⚡ Shannon & ⚖️ Noether"]
-        EP0152_N["EP-0152 Spectral Graph Theory 📝\n⚖️ Noether & ⚡ Shannon"]
+        EP0152_N["EP-0152 Spectral Graph Theory ✅\n⚖️ Noether & ⚡ Shannon"]
     end
+
+    P35 --> P4
+
+    subgraph P4["Phase 4 — Algebraic Continents & Next Frontiers (EXP-0001)"]
+        EP0160_N["EP-0160 Discrete Exterior Calculus (DEC) 📝\n⚖️ Noether & ⚡ Shannon"]
+        EP0161_N["EP-0161 Cellular Sheaves & Laplacians 💡\n🧩 Russell & 🤝 Steward"]
+        EP0162_N["EP-0162 Persistent Homology (TDA) 💡\n🔬 Popper & 🧭 Explorer"]
+        EP0163_N["EP-0163 Lie Algebras & BCH Dynamics 📝\n⚖️ Noether & 🛡️ Golem"]
+    end
+
+    EP0152_N --> EP0160_N
+    EP0110 --> EP0162_N
 
     style CORE fill:#4a90d9,color:#fff
     style P3 fill:#2d7d46,color:#fff
     style P35 fill:#8b5cf6,color:#fff
+    style P4 fill:#d97706,color:#fff
     style EP0100 fill:#3b82f6,color:#fff
     style EP0101 fill:#3b82f6,color:#fff
     style EP0110 fill:#10b981,color:#fff
@@ -90,6 +107,10 @@ flowchart TD
     style EP0112 fill:#10b981,color:#fff
     style EP0113 fill:#10b981,color:#fff
     style EP0149 fill:#8b5cf6,color:#fff
+    style EP0160_N fill:#f59e0b,color:#fff
+    style EP0161_N fill:#f59e0b,color:#fff
+    style EP0162_N fill:#f59e0b,color:#fff
+    style EP0163_N fill:#f59e0b,color:#fff
     style KNOT fill:#6b7280,color:#fff
     style SHEAF fill:#6b7280,color:#fff
 ```
@@ -145,20 +166,26 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0133: Jupyter & CLI Integration (Steward)                   [Final]
   │     └── EP-0134: Semiring Namespace Refactoring (Russell)              [Final]
   │
-  └── Phase 3.5: Council Refinement Track  ✅ COMPLETE
-        ├── EP-0140: API Symmetry Restoration (Noether)                    [Final]
-        ├── EP-0141: Structural Taxonomy Cleanup (Russell)                 [Final]
-        ├── EP-0142: Performance & Efficiency Optimizations (Shannon)      [Final]
-        ├── EP-0143: Documentation Clarity & Freshman Test (Feynman)       [Final]
-        ├── EP-0144: Testing & Falsifiability Hardening (Popper)           [Final]
-        ├── EP-0145: Type Safety & Contract Hardening (Golem)              [Final]
-        ├── EP-0146: Developer Ergonomics & Ecosystem Bridges (Steward)    [Final]
-        ├── EP-0147: Optional Loop Pragmas & Concurrency (Shannon)         [Deferred]
-        ├── EP-0148: Formalized Micro-Benchmarking & CodSpeed (Popper)     [Final]
-        ├── EP-0149: Universal Binomial Moment Semirings (Noether/Russell) [Final]
-        ├── EP-0150: Standardized Mathematical Docstrings (Feynman/Russell) [Draft]
-        ├── EP-0151: Algebraic PageRank & Semiring Random Walks (Shannon/Noether) [Final]
-        └── EP-0152: Spectral Graph Theory & Graph Laplacians (Noether/Shannon/Popper) [Draft]
+  ├── Phase 3.5: Council Refinement Track  ✅ COMPLETE
+  │     ├── EP-0140: API Symmetry Restoration (Noether)                    [Final]
+  │     ├── EP-0141: Structural Taxonomy Cleanup (Russell)                 [Final]
+  │     ├── EP-0142: Performance & Efficiency Optimizations (Shannon)      [Final]
+  │     ├── EP-0143: Documentation Clarity & Freshman Test (Feynman)       [Final]
+  │     ├── EP-0144: Testing & Falsifiability Hardening (Popper)           [Final]
+  │     ├── EP-0145: Type Safety & Contract Hardening (Golem)              [Final]
+  │     ├── EP-0146: Developer Ergonomics & Ecosystem Bridges (Steward)    [Final]
+  │     ├── EP-0147: Optional Loop Pragmas & Concurrency (Shannon)         [Deferred]
+  │     ├── EP-0148: Formalized Micro-Benchmarking & CodSpeed (Popper)     [Final]
+  │     ├── EP-0149: Universal Binomial Moment Semirings (Noether/Russell) [Final]
+  │     ├── EP-0150: Standardized Mathematical Docstrings (Feynman/Russell) [Final]
+  │     ├── EP-0151: Algebraic PageRank & Semiring Random Walks (Shannon/Noether) [Final]
+  │     └── EP-0152: Spectral Graph Theory & Graph Laplacians (Noether/Shannon/Popper) [Final]
+  │
+  └── Phase 4: Algebraic Continents & Next Frontiers (EXP-0001)  🚀 IN PROGRESS
+        ├── EP-0160: Discrete Exterior Calculus & Helmholtz-Hodge (Noether/Shannon/Feynman) [Draft]
+        ├── EP-0161: Cellular Sheaves & Network Laplacians (Russell/Steward)               [Queued]
+        ├── EP-0162: Persistent Homology & Topological Barcodes (Popper/Explorer)          [Queued]
+        └── EP-0163: Lie Algebras, Root Systems & BCH Dynamics (Noether/Shannon/Golem)     [Draft - Initial Commutator Implemented]
 ```
 
 ---
@@ -190,9 +217,13 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0147** | Optional Loop Pragmas        | Shannon           | `benchmarks/`, core loops           | Deferred | Non-invasive `lucen` pragmas, free-threaded GIL-less scaling        |
 | **EP-0148** | Formalized Benchmarking      | Popper            | `benchmarks/`, `.github/`           | Final    | Standardized `pytest-benchmark` suite & CodSpeed CI tracking        |
 | **EP-0149** | Universal Binomial Moments   | Noether & Russell | `algebrax.semiring`                 | Final    | Divided power quotient ring, MultivariateMomentSemiring, decoders   |
-| **EP-0150** | Standardized Math Docstrings | Feynman & Russell | `algebrax.semiring`, `display`      | Draft    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests     |
+| **EP-0150** | Standardized Math Docstrings | Feynman & Russell | `algebrax.semiring`, `display`      | Final    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests     |
 | **EP-0151** | Algebraic PageRank           | Shannon & Noether | `algebrax.analysis`                 | Final    | Sparse semiring contraction solver, random walk with restart, PPR   |
 | **EP-0152** | Spectral Graph Theory        | Noether & Shannon | `algebrax.analysis`                 | Final    | Graph Laplacians (unnormalized, sym, rw), Fiedler vector, cuts, smoothing |
+| **EP-0160** | Discrete Exterior Calculus   | Noether & Shannon | `algebrax.homology` / `dec`         | Draft    | $\Omega^k$ forms, exterior derivative $d$, Hodge star $\star$, Helmholtz-Hodge |
+| **EP-0161** | Cellular Sheaves & Laplacians| Russell & Steward | `algebrax.homology`                 | Queued   | `CellularSheaf`, coboundary $\delta$, sheaf Laplacian, consensus dynamics |
+| **EP-0162** | Persistent Homology (TDA)    | Popper & Explorer | `algebrax.homology`                 | Queued   | Simplicial filtrations, boundary reduction over $\mathbb{Z}_2$, barcodes |
+| **EP-0163** | Lie Algebras & BCH Dynamics  | Noether & Golem   | `algebrax.matrix` / `lie`           | Draft    | `matrix.commutator`, `LieAlgebra`, structure constants $f_{ab}^c$, BCH solver |
 
 ---
 
@@ -209,6 +240,8 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry.                                           |
 | 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0151: Algebraic PageRank & Semiring Random Walks with Restart.                                                       |
 | 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0152: Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians.                                              |
+| 2026-09-08 | Eran Rivlis & Antigravity | Initiated EXP-0001 (Next Frontiers); drafted EP-0160 (DEC) and EP-0163 (Lie Algebras & BCH Dynamics).                         |
+| 2026-09-10 | Eran Rivlis & Antigravity | Transitioned EP-0150 to Final; added Phase 4 roadmap integration (EP-0160 through EP-0163) and landed sparse commutator.      |
 
 
 
