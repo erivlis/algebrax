@@ -124,6 +124,8 @@ def einsum(  # NOSONAR - generalized Einstein summation parser and contraction k
             new_val = add_op(current_val, accumulated_val)
             if new_val != zero:
                 out_trie[out_key] = new_val
+            elif out_key in out_trie:
+                del out_trie[out_key]
             return
 
         sub_pattern, items = parsed_tensors[tensor_idx]
