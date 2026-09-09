@@ -1,6 +1,7 @@
 import math
+import operator
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Literal
 
 from algebrax.semiring import Semiring, StandardSemiring
@@ -10,7 +11,9 @@ __all__ = [
     'add',
     'block',
     'block_diag',
+    'commutator',
     'dot',
+    'element_wise_binary_op',
     'hstack',
     'inner',
     'kronecker_delta',
@@ -18,11 +21,39 @@ __all__ = [
     'mat_vec',
     'power',
     'slice_matrix',
+    'subtract',
     'trace',
     'transpose',
     'vec_mat',
     'vstack',
 ]
+
+
+def element_wise_binary_op(
+    m1: SparseMatrix[K, N], m2: SparseMatrix[K, N], op: Callable[[N, N], N]
+) -> SparseMatrix[K, N]:
+    """
+    Perform element-wise operation of two sparse matrices (nested mappings).
+
+    Args:
+        m1: The first matrix.
+        m2: The second matrix.
+        op: A binary operation function.
+    """
+    keys = set(m1.keys()) | set(m2.keys())
+    result = {}
+    for r in keys:
+        row1 = m1.get(r, {})
+        row2 = m2.get(r, {})
+        col_keys = set(row1.keys()) | set(row2.keys())
+        new_row = {}
+        for c in col_keys:
+            val = op(row1.get(c, 0), row2.get(c, 0))
+            if val != 0:
+                new_row[c] = val
+        if new_row:
+            result[r] = new_row
+    return result
 
 
 def add(m1: SparseMatrix[K, N], m2: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
@@ -36,20 +67,21 @@ def add(m1: SparseMatrix[K, N], m2: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
     Returns:
         A new nested dictionary representing the sum.
     """
-    keys = set(m1.keys()) | set(m2.keys())
-    result = {}
-    for r in keys:
-        row1 = m1.get(r, {})
-        row2 = m2.get(r, {})
-        col_keys = set(row1.keys()) | set(row2.keys())
-        new_row = {}
-        for c in col_keys:
-            val = row1.get(c, 0) + row2.get(c, 0)
-            if val != 0:
-                new_row[c] = val
-        if new_row:
-            result[r] = new_row
-    return result
+    return element_wise_binary_op(m1, m2, operator.add)
+
+
+def subtract(m1: SparseMatrix[K, N], m2: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
+    """
+    Perform element-wise subtraction of two sparse matrices (nested mappings).
+
+    Args:
+        m1: The first matrix.
+        m2: The second matrix.
+
+    Returns:
+        A new nested dictionary representing the difference.
+    """
+    return element_wise_binary_op(m1, m2, operator.sub)
 
 
 def block(
@@ -141,6 +173,20 @@ def block_diag(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]
         c_offset += max_c + 1
 
     return result
+
+
+def commutator(m1: SparseMatrix[K, V], m2: SparseMatrix[K, V]) -> SparseMatrix[K, V]:
+    """
+    Compute the commutator of two sparse matrices: [M1, M2] = M1 @ M2 - M2 @ M1.
+
+    Args:
+        m1: The first matrix.
+        m2: The second matrix.
+
+    Returns:
+        The commutator matrix.
+    """
+    return subtract(dot(m1, m2), dot(m2, m1))
 
 
 def dot(
