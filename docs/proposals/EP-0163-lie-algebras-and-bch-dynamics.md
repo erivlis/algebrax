@@ -2,7 +2,7 @@
 title: "EP-0163: Lie Algebras, Root Systems, and Baker–Campbell–Hausdorff Dynamics"
 description: "Establishes Lie algebras, commutator brackets, structure constant tensors, the Killing form, and Baker–Campbell–Hausdorff (BCH) dynamics in AlgebraX."
 icon: lucide/orbit
-status: draft
+status: final
 ---
 
 # EP-0163: Lie Algebras, Root Systems, and Baker–Campbell–Hausdorff Dynamics
@@ -14,10 +14,10 @@ status: draft
 | **Author**   | Eran Rivlis & Antigravity (The Explorer)                                           |
 | **Sponsor**  | The Council                                                                        |
 | **Delegate** | ⚖️ Emmy Noether (Symmetry), ⚡ Claude Shannon (Efficiency) & 🛡️ The Golem (Safety) |
-| **Status**   | Draft                                                                              |
+| **Status**   | Final                                                                              |
 | **Type**     | Standards Track                                                                    |
 | **Created**  | 2026-09-08                                                                         |
-| **Updated**  | 2026-09-09                                                                         |
+| **Updated**  | 2026-09-10                                                                         |
 | **Replaces** | None                                                                               |
 
 ---
@@ -382,6 +382,11 @@ class LieAlgebra:
 
 ## Change Log
 
+* **2026-09-10:**
+    * Implemented `algebrax.lie` containing `LieAlgebra`, `StructureConstants`, and canonical factories (`so3`, `sl2`, `se3`, `clifford_lie_algebra`).
+    * Added comprehensive test suite in `tests/algebrax/test_lie.py` (Jacobi validation via einsum, Killing metric, Cartan semisimplicity, BCH orders 1..4, and ConvergenceWarning).
+    * Authored tutorial user guide in `docs/guide/discrete/lie_algebras.md` and registered in `zensical.toml`.
+    * Upgraded status to Final.
 * **2026-09-09:**
     * Council Review amendments incorporating The Dennis Point:
         - Unified `LieAlgebra` and `MatrixLieAlgebra` into a single class with `from_matrix_basis` factory method,

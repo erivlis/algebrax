@@ -90,7 +90,7 @@ flowchart TD
         EP0160_N["EP-0160 Discrete Exterior Calculus (DEC) 📝\n⚖️ Noether & ⚡ Shannon"]
         EP0161_N["EP-0161 Cellular Sheaves & Laplacians 💡\n🧩 Russell & 🤝 Steward"]
         EP0162_N["EP-0162 Persistent Homology (TDA) 💡\n🔬 Popper & 🧭 Explorer"]
-        EP0163_N["EP-0163 Lie Algebras & BCH Dynamics 📝\n⚖️ Noether & 🛡️ Golem"]
+        EP0163_N["EP-0163 Lie Algebras & BCH Dynamics ✅\n⚖️ Noether & 🛡️ Golem"]
     end
 
     EP0152_N --> EP0160_N
@@ -185,7 +185,7 @@ Phase 0: Architecture Roadmap (EP-0099)
         ├── EP-0160: Discrete Exterior Calculus & Helmholtz-Hodge (Noether/Shannon/Feynman) [Draft]
         ├── EP-0161: Cellular Sheaves & Network Laplacians (Russell/Steward)               [Queued]
         ├── EP-0162: Persistent Homology & Topological Barcodes (Popper/Explorer)          [Queued]
-        └── EP-0163: Lie Algebras, Root Systems & BCH Dynamics (Noether/Shannon/Golem)     [Draft - Initial Commutator Implemented]
+        └── EP-0163: Lie Algebras, Root Systems & BCH Dynamics (Noether/Shannon/Golem)     [Final]
 ```
 
 ---
@@ -223,7 +223,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0160** | Discrete Exterior Calculus   | Noether & Shannon | `algebrax.homology` / `dec`         | Draft    | $\Omega^k$ forms, exterior derivative $d$, Hodge star $\star$, Helmholtz-Hodge |
 | **EP-0161** | Cellular Sheaves & Laplacians| Russell & Steward | `algebrax.homology`                 | Queued   | `CellularSheaf`, coboundary $\delta$, sheaf Laplacian, consensus dynamics |
 | **EP-0162** | Persistent Homology (TDA)    | Popper & Explorer | `algebrax.homology`                 | Queued   | Simplicial filtrations, boundary reduction over $\mathbb{Z}_2$, barcodes |
-| **EP-0163** | Lie Algebras & BCH Dynamics  | Noether & Golem   | `algebrax.matrix` / `lie`           | Draft    | `matrix.commutator`, `LieAlgebra`, structure constants $f_{ab}^c$, BCH solver |
+| **EP-0163** | Lie Algebras & BCH Dynamics  | Noether & Golem   | `algebrax.lie`                      | Final    | `LieAlgebra`, `StructureConstants`, `so3`, `sl2`, `se3`, BCH solver |
 
 ---
 
@@ -241,6 +241,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0151: Algebraic PageRank & Semiring Random Walks with Restart.                                                       |
 | 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0152: Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians.                                              |
 | 2026-09-08 | Eran Rivlis & Antigravity | Initiated EXP-0001 (Next Frontiers); drafted EP-0160 (DEC) and EP-0163 (Lie Algebras & BCH Dynamics).                         |
+| 2026-09-10 | Eran Rivlis & Antigravity | Implemented EP-0163 (Lie Algebras & BCH Dynamics), added user guide, and updated status to Final.                             |
 | 2026-09-10 | Eran Rivlis & Antigravity | Transitioned EP-0150 to Final; added Phase 4 roadmap integration (EP-0160 through EP-0163) and landed sparse commutator.      |
 
 
