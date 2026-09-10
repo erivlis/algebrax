@@ -17,6 +17,7 @@ from algebrax.display import (
     semiring_card,
 )
 from algebrax.homology import SimplicialComplex, SparseChainComplex
+from algebrax.lie import LieAlgebra, StructureConstants
 from algebrax.semiring import Semiring, TropicalSemiring
 from algebrax.trie import AlgebraicTrie
 
@@ -96,6 +97,8 @@ def test_non_semiring_algebraic_structures():
         (kleisli_compose, r'g \circ_T f: A \to T(C)'),
         (kan_extension_left, r'\mathrm{Lan}_P F'),
         (pagerank, r'\mathbf{p}^{(t+1)} = (\alpha \otimes \mathbf{p}^{(t)} \mathbf{P})'),
+        (LieAlgebra, r'\langle \mathfrak{g}, [\cdot, \cdot], B \rangle'),
+        (StructureConstants, r'[T_a, T_b] = \sum_c f_{ab}^c T_c'),
     ]
 
     for target, expected_frag in targets:
