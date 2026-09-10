@@ -54,6 +54,7 @@ nav = [
             "guide/discrete/automata.md",
             "guide/discrete/category.md",
             "guide/discrete/algebra.md",
+            "guide/discrete/lie_algebras.md",
         ] },
     ] },
     { Recipes = [
