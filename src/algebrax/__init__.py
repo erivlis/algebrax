@@ -26,6 +26,7 @@ Submodules & Domain Taxonomy
 2. Discrete Geometry, Topology & Fields
    - `homology`: Simplicial complexes, boundary operators, and Betti numbers (`SimplicialComplex`, `betti_numbers`).
    - `clifford`: Clifford Geometric Algebra Cl(p,q,r) multivectors & 3D rotors (`rotor_rotation`).
+   - `lie`: Continuous symmetry Lie algebras, structure constants, Killing forms & BCH dynamics (`so3`, `sl2`, `se3`).
    - `galois`: Finite field matrix arithmetic GF(p^m) (`GaloisFieldSemiring`, `gf_matrix_mul`).
    - `category`: Category theory & monadic Kleisli composition (`kleisli_compose`).
 
@@ -56,6 +57,7 @@ from algebrax import (
     group,
     homology,
     lattice,
+    lie,
     matrix,
     metrics,
     probability,
@@ -98,6 +100,7 @@ __all__ = [
     'group',
     'homology',
     'lattice',
+    'lie',
     'matrix',
     'metrics',
     'probability',
