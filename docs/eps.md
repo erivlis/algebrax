@@ -87,8 +87,9 @@ a comprehensive architectural audit by the 8 Pillars of the Council Framework.
 
 Proposals stemming from the **Next Frontiers Exploration** ([EXP-0001](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0001-algebraic-frontiers-and-missing-domains/README.md)), expanding AlgebraX into discrete differential geometry, continuous symmetries, and higher topology.
 
-| EP                                                                                        | Title                                                          | Council Sponsor                              |         Status          |
-|:------------------------------------------------------------------------------------------|:---------------------------------------------------------------|:---------------------------------------------|:-----------------------:|
-| [EP-0160](proposals/EP-0160-discrete-exterior-calculus-and-hodge-decomposition.md)       | Discrete Exterior Calculus & Helmholtz-Hodge Flow Decomposition | ⚖️ Noether, ⚡ Shannon & 💡 Feynman           | :material-pencil: Draft |
-| [EP-0163](proposals/EP-0163-lie-algebras-and-bch-dynamics.md)                             | Lie Algebras, Root Systems, and Baker–Campbell–Hausdorff Dynamics | ⚖️ Noether, ⚡ Shannon & 🛡️ Golem           | :material-check-all: Final |
+| EP                                                                                 | Title                                                             | Council Sponsor                     |           Status           |
+|:-----------------------------------------------------------------------------------|:------------------------------------------------------------------|:------------------------------------|:--------------------------:|
+| [EP-0160](proposals/EP-0160-discrete-exterior-calculus-and-hodge-decomposition.md) | Discrete Exterior Calculus & Helmholtz-Hodge Flow Decomposition   | ⚖️ Noether, ⚡ Shannon & 💡 Feynman |  :material-pencil: Draft   |
+| [EP-0163](proposals/EP-0163-lie-algebras-and-bch-dynamics.md)                      | Lie Algebras, Root Systems, and Baker–Campbell–Hausdorff Dynamics | ⚖️ Noether, ⚡ Shannon & 🛡️ Golem   | :material-check-all: Final |
+| [EP-0164](proposals/EP-0164-root-systems-and-chevalley-bases.md)                   | Root Systems, Weyl Groups & Chevalley-Serre Simple Lie Algebras   | ⚖️ Noether, ⚡ Shannon & 🧩 Russell | :material-check-all: Final |
 
