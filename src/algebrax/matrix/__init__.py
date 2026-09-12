@@ -27,8 +27,6 @@ from algebrax.matrix.decompose import (
     svd,
 )
 
-from . import academic
-
 __all__ = [
     'academic',
     'add',
