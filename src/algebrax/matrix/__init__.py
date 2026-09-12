@@ -1,3 +1,4 @@
+from algebrax.matrix import academic
 from algebrax.matrix.core import (
     add,
     block_diag,
@@ -26,7 +27,10 @@ from algebrax.matrix.decompose import (
     svd,
 )
 
+from . import academic
+
 __all__ = [
+    'academic',
     'add',
     'cholesky',
     'commutator',
