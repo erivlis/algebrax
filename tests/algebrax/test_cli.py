@@ -97,9 +97,9 @@ def test_version_attribute_and_cli():
     from algebrax.__main__ import get_version
 
     assert hasattr(ax, '__version__')
-    assert ax.__version__ == '0.8.0'
-    assert get_version() == '0.8.0'
+    assert ax.__version__ == '0.9.0'
+    assert get_version() == '0.9.0'
 
     # Test fallback when PackageNotFoundError is raised
     with patch('importlib.metadata.version', side_effect=importlib.metadata.PackageNotFoundError):
-        assert get_version() == '0.8.0'
+        assert get_version() == '0.9.0'
