@@ -548,12 +548,65 @@ def test_validation_errors_and_edge_cases():
     # All Dynkin diagrams
     for dynkin_label in ['A3', 'B2', 'C3', 'D4', 'G2', 'F4', 'E6', 'E7', 'E8']:
         fam = dynkin_label[:2] if dynkin_label.startswith(('G2', 'F4', 'E6', 'E7', 'E8')) else dynkin_label[0]
-        r = int(dynkin_label[1:]) if (len(dynkin_label) > 1 and dynkin_label[1:].isdigit()
-                                      and not dynkin_label.startswith(('G', 'F', 'E'))) else None
+        r = (
+            int(dynkin_label[1:])
+            if (len(dynkin_label) > 1 and dynkin_label[1:].isdigit() and not dynkin_label.startswith(('G', 'F', 'E')))
+            else None
+        )
         rs_diag = RootSystem.from_dynkin(fam, rank=r)
-        d_str = rs_diag.dynkin_diagram()
-        assert len(d_str) > 0
+        d_ascii = rs_diag.dynkin_diagram('ascii')
+        d_mermaid = rs_diag.dynkin_diagram('mermaid')
+        d_svg = rs_diag.dynkin_diagram('svg')
+        assert len(d_ascii) > 0
+        assert d_mermaid.startswith('flowchart LR')
+        assert d_svg.startswith('<svg')
+        assert d_svg.endswith('</svg>')
+        assert rs_diag.dynkin_ascii() == d_ascii
+        assert rs_diag.dynkin_mermaid() == d_mermaid
+        assert rs_diag.dynkin_svg() == d_svg
+        assert rs_diag._repr_svg_() == d_svg
 
+    # Specific structural checks
+    rs_a3 = RootSystem.from_dynkin('A', 3)
+    assert '1((1)) --- 2((2))' in rs_a3.dynkin_mermaid()
+    assert '2((2)) --- 3((3))' in rs_a3.dynkin_mermaid()
+    assert rs_a3.dynkin_ascii() == '(1) --- (2) --- (3)'
 
+    rs_b2 = RootSystem.from_dynkin('B', 2)
+    assert '1((1)) ==> 2((2))' in rs_b2.dynkin_mermaid()
+    assert '<polygon' in rs_b2.dynkin_svg()
 
+    rs_c3 = RootSystem.from_dynkin('C', 3)
+    assert '2((2)) <== 3((3))' in rs_c3.dynkin_mermaid()
+    assert '<polygon' in rs_c3.dynkin_svg()
 
+    rs_d4 = RootSystem.from_dynkin('D', 4)
+    assert '2((2)) --- 3((3))' in rs_d4.dynkin_mermaid()
+    assert '2((2)) --- 4((4))' in rs_d4.dynkin_mermaid()
+
+    rs_g2 = RootSystem.from_dynkin('G2')
+    assert '1((1)) ===|"⇒ (3)"| 2((2))' in rs_g2.dynkin_mermaid()
+    assert '<polygon' in rs_g2.dynkin_svg()
+    assert rs_g2.dynkin_ascii() == '(1) ≡>≡ (2)'
+
+    rs_f4 = RootSystem.from_dynkin('F4')
+    assert '2((2)) ==> 3((3))' in rs_f4.dynkin_mermaid()
+    assert '<polygon' in rs_f4.dynkin_svg()
+
+    rs_e6 = RootSystem.from_dynkin('E6')
+    assert '2((2)) --- 4((4))' in rs_e6.dynkin_mermaid()
+    assert '5((5)) --- 6((6))' in rs_e6.dynkin_mermaid()
+
+    rs_a1 = RootSystem.from_dynkin('A', 1)
+    assert '1((1))' in rs_a1.dynkin_mermaid()
+    assert '<circle' in rs_a1.dynkin_svg()
+
+    # Fallback / custom type
+    rs_custom = RootSystem.from_cartan_matrix([[2]], dynkin_type='CustomX')
+    assert rs_custom.dynkin_diagram('ascii') == 'Dynkin(CustomX, rank=1)'
+    assert '1((1))' in rs_custom.dynkin_diagram('mermaid')
+    assert '<circle' in rs_custom.dynkin_diagram('svg')
+
+    # Invalid format error handling
+    with pytest.raises(ValueError, match="Unsupported Dynkin diagram format 'pdf'"):
+        rs_a3.dynkin_diagram('pdf')  # type: ignore[arg-type]
