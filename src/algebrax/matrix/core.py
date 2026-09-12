@@ -14,8 +14,10 @@ __all__ = [
     'commutator',
     'dot',
     'element_wise_binary_op',
+    'frobenius_inner',
     'hstack',
     'inner',
+    'inverse',
     'kronecker_delta',
     'laplacian_matrix',
     'mat_vec',
@@ -30,7 +32,7 @@ __all__ = [
 
 
 def element_wise_binary_op(
-    m1: SparseMatrix[K, N], m2: SparseMatrix[K, N], op: Callable[[N, N], N]
+        m1: SparseMatrix[K, N], m2: SparseMatrix[K, N], op: Callable[[N, N], N]
 ) -> SparseMatrix[K, N]:
     """
     Perform element-wise operation of two sparse matrices (nested mappings).
@@ -85,9 +87,9 @@ def subtract(m1: SparseMatrix[K, N], m2: SparseMatrix[K, N]) -> SparseMatrix[K, 
 
 
 def block(
-    matrix: SparseMatrix[int, V],
-    rows: slice | range,
-    cols: slice | range,
+        matrix: SparseMatrix[int, V],
+        rows: slice | range,
+        cols: slice | range,
 ) -> SparseMatrix[int, V]:
     """
     Extract a sub-matrix (block) from a sparse matrix.
@@ -190,9 +192,9 @@ def commutator(m1: SparseMatrix[K, V], m2: SparseMatrix[K, V]) -> SparseMatrix[K
 
 
 def dot(
-    m1: SparseMatrix[K, V],
-    m2: SparseMatrix[K, V],
-    semiring: Semiring[V] | None = None,
+        m1: SparseMatrix[K, V],
+        m2: SparseMatrix[K, V],
+        semiring: Semiring[V] | None = None,
 ) -> SparseMatrix[K, V]:
     """
     Perform matrix multiplication (dot product) of two sparse matrices.
@@ -260,9 +262,9 @@ def hstack(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]:
 
 
 def inner(
-    v1: SparseVector[K, V],
-    v2: SparseVector[K, V],
-    semiring: Semiring[V] | None = None,
+        v1: SparseVector[K, V],
+        v2: SparseVector[K, V],
+        semiring: Semiring[V] | None = None,
 ) -> V:
     """
     Compute the inner product (dot product) of two vectors.
@@ -306,9 +308,9 @@ def kronecker_delta(i: K, j: K) -> int:
 
 
 def _symmetrize_adjacency(
-    matrix: SparseMatrix[K, float],
-    nodes: set[K],
-    symmetrize: bool,
+        matrix: SparseMatrix[K, float],
+        nodes: set[K],
+        symmetrize: bool,
 ) -> dict[K, dict[K, float]]:
     adj: dict[K, dict[K, float]] = {u: {} for u in nodes}
     for u, neighbors in matrix.items():
@@ -326,9 +328,9 @@ def _symmetrize_adjacency(
 
 
 def _build_unnormalized_laplacian(
-    adj: dict[K, dict[K, float]],
-    degrees: dict[K, float],
-    nodes: set[K],
+        adj: dict[K, dict[K, float]],
+        degrees: dict[K, float],
+        nodes: set[K],
 ) -> dict[K, dict[K, float]]:
     lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
     for u in nodes:
@@ -341,9 +343,9 @@ def _build_unnormalized_laplacian(
 
 
 def _build_sym_laplacian(
-    adj: dict[K, dict[K, float]],
-    degrees: dict[K, float],
-    nodes: set[K],
+        adj: dict[K, dict[K, float]],
+        degrees: dict[K, float],
+        nodes: set[K],
 ) -> dict[K, dict[K, float]]:
     lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
     inv_sqrt_d = {u: (1.0 / math.sqrt(degrees[u]) if degrees[u] > 0 else 0.0) for u in nodes}
@@ -358,9 +360,9 @@ def _build_sym_laplacian(
 
 
 def _build_rw_laplacian(
-    adj: dict[K, dict[K, float]],
-    degrees: dict[K, float],
-    nodes: set[K],
+        adj: dict[K, dict[K, float]],
+        degrees: dict[K, float],
+        nodes: set[K],
 ) -> dict[K, dict[K, float]]:
     lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
     for u in nodes:
@@ -373,10 +375,10 @@ def _build_rw_laplacian(
 
 
 def _build_laplacian_dict(
-    adj: dict[K, dict[K, float]],
-    degrees: dict[K, float],
-    nodes: set[K],
-    normalized: Literal['sym', 'rw'] | None,
+        adj: dict[K, dict[K, float]],
+        degrees: dict[K, float],
+        nodes: set[K],
+        normalized: Literal['sym', 'rw'] | None,
 ) -> dict[K, dict[K, float]]:
     if normalized == 'sym':
         return _build_sym_laplacian(adj, degrees, nodes)
@@ -386,9 +388,9 @@ def _build_laplacian_dict(
 
 
 def laplacian_matrix(
-    matrix: SparseMatrix[K, float],
-    normalized: Literal['sym', 'rw'] | None = None,
-    symmetrize: bool = True,
+        matrix: SparseMatrix[K, float],
+        normalized: Literal['sym', 'rw'] | None = None,
+        symmetrize: bool = True,
 ) -> SparseMatrix[K, float]:
     r"""Construct the graph Laplacian matrix from a sparse adjacency or similarity matrix.
 
@@ -436,9 +438,9 @@ def laplacian_matrix(
 
 
 def mat_vec(
-    matrix: SparseMatrix[K, V],
-    vector: SparseVector[K, V],
-    semiring: Semiring[V] | None = None,
+        matrix: SparseMatrix[K, V],
+        vector: SparseVector[K, V],
+        semiring: Semiring[V] | None = None,
 ) -> SparseVector[K, V]:
     """
     Multiply a matrix by a vector (M * v).
@@ -466,9 +468,9 @@ def mat_vec(
 
 
 def power(
-    matrix: SparseMatrix[K, V],
-    n: int,
-    semiring: Semiring[V] | None = None,
+        matrix: SparseMatrix[K, V],
+        n: int,
+        semiring: Semiring[V] | None = None,
 ) -> SparseMatrix[K, V]:
     """
     Compute the n-th power of a square matrix using binary exponentiation.
@@ -502,9 +504,9 @@ def power(
 
 
 def slice_matrix(
-    matrix: SparseMatrix[K, V],
-    rows: Iterable[K],
-    cols: Iterable[K],
+        matrix: SparseMatrix[K, V],
+        rows: Iterable[K],
+        cols: Iterable[K],
 ) -> SparseMatrix[K, V]:
     """
     Extract a sub-matrix using explicit row and column keys.
@@ -565,9 +567,9 @@ def transpose(matrix: Mapping[K, Mapping[K, V]]) -> dict[K, dict[K, V]]:
 
 
 def vec_mat(
-    vector: SparseVector[K, V],
-    matrix: SparseMatrix[K, V],
-    semiring: Semiring[V] | None = None,
+        vector: SparseVector[K, V],
+        matrix: SparseMatrix[K, V],
+        semiring: Semiring[V] | None = None,
 ) -> SparseVector[K, V]:
     """
     Multiply a vector by a matrix (v * M).
@@ -621,4 +623,133 @@ def vstack(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]:
 
         r_offset += max_r + 1
 
+    return result
+
+
+def frobenius_inner(
+        m1: SparseMatrix[K, N],
+        m2: SparseMatrix[K, N],
+        conjugate: bool = True,
+        semiring: Semiring[N] | None = None,
+) -> N:
+    r"""Compute the Frobenius (Hilbert-Schmidt) inner product of two sparse matrices.
+
+    Formula:
+        $\langle A, B \rangle_F = \mathrm{Tr}(A^\dagger B) = \sum_{r, c} \overline{A_{rc}} B_{rc}$
+
+    Under a semiring $(S, \oplus, \otimes)$:
+        $\bigoplus_{r, c} A_{rc} \otimes B_{rc}$
+
+    Args:
+        m1: First sparse matrix.
+        m2: Second sparse matrix.
+        conjugate: Whether to take the complex conjugate of m1 entries (default True).
+        semiring: Optional semiring for generalized inner products. Defaults to standard arithmetic.
+
+    Returns:
+        Scalar inner product value.
+    """
+    if semiring is not None:
+        sr_add = semiring.add
+        sr_mul = semiring.mul
+        res = semiring.zero
+        for r, row in m1.items():
+            if r in m2:
+                row2 = m2[r]
+                for c, v1 in row.items():
+                    if c in row2:
+                        term = sr_mul(v1, row2[c])
+                        res = sr_add(res, term)
+        return res
+
+    val: complex = 0.0 + 0.0j
+    for r, row in m1.items():
+        if r in m2:
+            row2 = m2[r]
+            for c, v in row.items():
+                if c in row2:
+                    v_conj = v.conjugate() if (conjugate and isinstance(v, complex)) else v
+                    val += v_conj * row2[c]
+    return val.real if abs(val.imag) < 1e-14 else val
+
+
+def inverse(  # noqa: C901, NOSONAR - Gauss-Jordan sparse elimination kernel with partial pivoting
+        matrix: SparseMatrix[K, N],
+        tol: float = 1e-12,
+) -> SparseMatrix[K, N]:
+    r"""Compute the inverse of a square sparse matrix using Gauss-Jordan elimination with partial pivoting.
+
+    Operates natively on sparse dictionary mappings (`SparseMatrix[K, V]`) without converting
+    to dense arrays. Supports real numbers, complex numbers, and arbitrary hashable row/column keys.
+
+    Args:
+        matrix: Input square sparse matrix (`dict[K, dict[K, V]]`).
+        tol: Tolerance for zero detection and singularity checks (default 1e-12).
+
+    Returns:
+        The sparse inverse matrix $A^{-1}$ satisfying $\mathrm{dot}(A, A^{-1}) = I$.
+
+    Raises:
+        ValueError: If the matrix is singular (cannot be inverted) or empty.
+    """
+    keys = sorted(set(matrix.keys()) | {c for row in matrix.values() for c in row}, key=str)
+    n = len(keys)
+    if n == 0:
+        raise ValueError('Cannot invert an empty sparse matrix.')
+
+    key_map = {k: i for i, k in enumerate(keys)}
+
+    # Single augmented matrix [A | I] where columns 0..n-1 are A and n..2n-1 are I
+    aug: dict[int, dict[int, N]] = {i: {n + i: 1.0} for i in range(n)}
+
+    for r, row in matrix.items():
+        if r in key_map:
+            r_idx = key_map[r]
+            for c, val in row.items():
+                if c in key_map and abs(val) > tol:
+                    aug[r_idx][key_map[c]] = val
+
+    for k in range(n):
+        pivot_r = k
+        max_val = abs(aug[k].get(k, 0.0))
+        for p in range(k + 1, n):
+            val = abs(aug[p].get(k, 0.0))
+            if val > max_val:
+                max_val = val
+                pivot_r = p
+
+        if max_val < tol:
+            raise ValueError(f'Matrix is singular at pivot column {k} (tolerance={tol}).')
+
+        if pivot_r != k:
+            aug[k], aug[pivot_r] = aug[pivot_r], aug[k]
+
+        pivot = aug[k][k]
+        aug[k] = {c: v / pivot for c, v in aug[k].items()}
+        row_k = aug[k]
+
+        # Single-pass elimination across the entire augmented row [A | I]
+        for r in range(n):
+            if r != k and k in aug[r]:
+                factor = aug[r][k]
+                if abs(factor) > tol:
+                    for c, val in row_k.items():
+                        new_val = aug[r].get(c, 0.0) - factor * val
+                        if abs(new_val) > tol:
+                            aug[r][c] = new_val
+                        elif c in aug[r]:
+                            del aug[r][c]
+
+    result: dict[K, dict[K, N]] = {}
+    for i, row in aug.items():
+        r_key = keys[i]
+        row_dict = {}
+        for c, v in row.items():
+            if c >= n:
+                col_key = keys[c - n]
+                clean_v = v.real if abs(getattr(v, 'imag', 0.0)) < tol else v
+                if abs(clean_v) > tol:
+                    row_dict[col_key] = clean_v
+        if row_dict:
+            result[r_key] = row_dict
     return result
