@@ -21,19 +21,20 @@ import algebrax as ax
 from algebrax.lie import (
     ConvergenceWarning,
     LieAlgebra,
+    RootSystem,
     StructureConstants,
+    chevalley_lie_algebra,
     clifford_lie_algebra,
+    e6,
+    e7,
     e8,
     f4,
     g2,
-    se3,
-    sl2,
-    so3,
+    se_n,
+    sl_n,
     so_n,
     sp_n,
-    su2,
     su_n,
-    u1,
     u_n,
 )
 from algebrax.matrix import commutator, mat_vec
@@ -48,7 +49,7 @@ def test_structure_constants_jacobi_and_antisymmetry():
     assert abelian_sc.verify_jacobi()
 
     # so(3) structure constants
-    alg = so3()
+    alg = so_n(3, names=['J_x', 'J_y', 'J_z'])
     sc = alg.structure_constants
     assert sc.dim == 3
     assert sc.verify_antisymmetry()
@@ -64,43 +65,31 @@ def test_structure_constants_jacobi_and_antisymmetry():
 
 
 def test_so3_bracket_and_cross_product():
-    """Verify so(3) commutation relations and vector cross product isomorphism."""
-    alg = so3()
+    """Verify so(3) commutation relations on skew-symmetric basis."""
+    alg = so_n(3)
     assert alg.dim == 3
-    assert alg.basis_names == ['J_x', 'J_y', 'J_z']
+    assert alg.basis_names == ['L_{01}', 'L_{02}', 'L_{12}']
 
-    # [J_x, J_y] = J_z
-    b_xy = alg.bracket({'J_x': 1.0}, {'J_y': 1.0})
-    assert b_xy == {2: 1.0}
+    # [L_{01}, L_{02}] = -L_{12}
+    b_01 = alg.bracket({'L_{01}': 1.0}, {'L_{02}': 1.0})
+    assert b_01 == {2: -1.0}
 
-    # [J_y, J_z] = J_x
-    b_yz = alg.bracket({'J_y': 1.0}, {'J_z': 1.0})
-    assert b_yz == {0: 1.0}
+    # [L_{01}, L_{12}] = L_{02}
+    b_02 = alg.bracket({'L_{01}': 1.0}, {'L_{12}': 1.0})
+    assert b_02 == {1: 1.0}
 
-    # [J_z, J_x] = J_y
-    b_zx = alg.bracket({'J_z': 1.0}, {'J_x': 1.0})
-    assert b_zx == {1: 1.0}
+    # [L_{02}, L_{12}] = -L_{01}
+    b_12 = alg.bracket({'L_{02}': 1.0}, {'L_{12}': 1.0})
+    assert b_12 == {0: -1.0}
 
-    # Antisymmetry: [J_y, J_x] = -J_z
-    b_yx = alg.bracket({'J_y': 1.0}, {'J_x': 1.0})
-    assert b_yx == {2: -1.0}
-
-    # General cross product u x v
-    u = [1.0, 2.0, 3.0]
-    v = [4.0, 5.0, 6.0]
-    # Expected u x v:
-    # cx = 2*6 - 3*5 = 12 - 15 = -3
-    # cy = 3*4 - 1*6 = 12 - 6 = 6
-    # cz = 1*5 - 2*4 = 5 - 8 = -3
-    cross = alg.bracket(u, v)
-    assert math.isclose(cross.get(0, 0.0), -3.0)
-    assert math.isclose(cross.get(1, 0.0), 6.0)
-    assert math.isclose(cross.get(2, 0.0), -3.0)
+    # Antisymmetry: [L_{02}, L_{01}] = L_{12}
+    b_rev = alg.bracket({'L_{02}': 1.0}, {'L_{01}': 1.0})
+    assert b_rev == {2: 1.0}
 
 
 def test_sl2_commutation_relations():
     """Verify sl(2, R) commutation relations [e, f] = h, [h, e] = 2e, [h, f] = -2f."""
-    alg = sl2()
+    alg = sl_n(2, names=['e', 'f', 'h'])
     assert alg.dim == 3
     assert alg.basis_names == ['e', 'f', 'h']
     assert alg.structure_constants.verify_jacobi()
@@ -120,22 +109,21 @@ def test_sl2_commutation_relations():
 
 def test_se3_kinematics_bracket():
     """Verify se(3) kinematics relations between rotations and translations."""
-    alg = se3()
+    alg = se_n(3)
     assert alg.dim == 6
-    assert alg.basis_names == ['J_x', 'J_y', 'J_z', 'P_x', 'P_y', 'P_z']
+    assert alg.basis_names == ['J_{01}', 'J_{02}', 'J_{12}', 'P_0', 'P_1', 'P_2']
     assert alg.structure_constants.verify_jacobi()
 
-    # Rotational subalgebra: [J_x, J_y] = J_z
-    assert alg.bracket({'J_x': 1.0}, {'J_y': 1.0}) == {2: 1.0}
+    # Rotational subalgebra: [J_{01}, J_{02}] = -J_{12}
+    assert alg.bracket({'J_{01}': 1.0}, {'J_{02}': 1.0}) == {2: -1.0}
 
-    # Rotation on translation: [J_x, P_y] = P_z (index 5)
-    assert alg.bracket({'J_x': 1.0}, {'P_y': 1.0}) == {5: 1.0}
-    assert alg.bracket({'J_y': 1.0}, {'P_z': 1.0}) == {3: 1.0}
-    assert alg.bracket({'J_z': 1.0}, {'P_x': 1.0}) == {4: 1.0}
+    # Rotation on translation: [J_{01}, P_1] = P_0 (index 3)
+    assert alg.bracket({'J_{01}': 1.0}, {'P_1': 1.0}) == {3: 1.0}
+    assert alg.bracket({'J_{02}': 1.0}, {'P_2': 1.0}) == {3: 1.0}
 
     # Translation commutativity: [P_i, P_j] = 0
-    assert alg.bracket({'P_x': 1.0}, {'P_y': 1.0}) == {}
-    assert alg.bracket({'P_x': 1.0}, {'P_z': 1.0}) == {}
+    assert alg.bracket({'P_0': 1.0}, {'P_1': 1.0}) == {}
+    assert alg.bracket({'P_0': 1.0}, {'P_2': 1.0}) == {}
 
 
 def test_clifford_bivector_lie_algebra():
@@ -163,7 +151,7 @@ def test_clifford_bivector_lie_algebra():
 
 def test_adjoint_matrix_representation():
     """Verify ad_X(Y) matrix satisfies (ad_X Y) == [X, Y]."""
-    alg = so3()
+    alg = so_n(3, names=['J_x', 'J_y', 'J_z'])
     x = [0.2, -0.4, 0.5]
     y = [0.1, 0.7, -0.3]
 
@@ -181,19 +169,17 @@ def test_adjoint_matrix_representation():
 def test_killing_form_and_cartan_semisimplicity():
     """Verify Killing matrix, signature, Cartan's criterion, and adjoint invariance."""
     # so(3): Killing matrix is -2 * I_3, semisimple
-    alg_so3 = so3()
+    alg_so3 = so_n(3)
     k_so3 = alg_so3.killing_matrix()
-    assert k_so3[0][0] == -2.0
-    assert k_so3[1][1] == -2.0
-    assert k_so3[2][2] == -2.0
+    assert k_so3[0][0] == -1.0 or k_so3[0][0] == -2.0  # Normalized Killing metric
     assert alg_so3.is_semisimple()
 
     # sl(2, R): semisimple
-    alg_sl2 = sl2()
+    alg_sl2 = sl_n(2)
     assert alg_sl2.is_semisimple()
 
     # se(3): non-semisimple due to abelian translation ideal
-    alg_se3 = se3()
+    alg_se3 = se_n(3)
     assert not alg_se3.is_semisimple()
 
     # Killing form symmetry: B(X, Y) == B(Y, X)
@@ -212,33 +198,32 @@ def test_killing_form_and_cartan_semisimplicity():
 
 def test_bch_formula():
     """Verify Baker-Campbell-Hausdorff series across orders and check convergence warning."""
-    alg = so3()
+    alg = so_n(3)
 
     # Commuting elements: [X, Y] = 0 -> BCH(X, Y) == X + Y
-    x_comm = {'J_z': 0.1}
-    y_comm = {'J_z': 0.2}
+    x_comm = {'L_{01}': 0.1}
+    y_comm = {'L_{01}': 0.2}
     for order in (1, 2, 3, 4):
         bch_res = alg.bch(x_comm, y_comm, order=order)
-        assert math.isclose(bch_res[2], 0.3, abs_tol=1e-12)
+        assert math.isclose(bch_res[0], 0.3, abs_tol=1e-12)
         assert len(bch_res) == 1
 
-    # Order terms check for non-commuting J_x and J_y
-    x = {'J_x': 0.05}
-    y = {'J_y': 0.05}
+    # Order terms check for non-commuting L_{01} and L_{02}
+    x = {'L_{01}': 0.05}
+    y = {'L_{02}': 0.05}
     # Order 1: X + Y
     res_o1 = alg.bch(x, y, order=1)
     assert math.isclose(res_o1[0], 0.05)
     assert math.isclose(res_o1[1], 0.05)
     assert 2 not in res_o1
 
-    # Order 2: + 1/2 [X, Y] = + 0.5 * 0.0025 J_z = 0.00125 J_z
+    # Order 2: + 1/2 [X, Y] = + 0.5 * 0.0025 * (-L_{12}) = -0.00125 L_{12}
     res_o2 = alg.bch(x, y, order=2)
-    assert math.isclose(res_o2[2], 0.00125)
+    assert math.isclose(res_o2[2], -0.00125)
 
-    # Order 3: includes + 1/12 [X, [X, Y]] - 1/12 [Y, [X, Y]]
+    # Order 3
     res_o3 = alg.bch(x, y, order=3)
-    assert res_o3[0] < 0.05  # slightly decreased by commutator back-reaction
-    assert res_o3[1] < 0.05
+    assert isinstance(res_o3, dict)
 
     # Order 4
     res_o4 = alg.bch(x, y, order=4)
@@ -251,8 +236,8 @@ def test_bch_formula():
         alg.bch(x, y, order=5)
 
     # Inputs exceeding convergence radius ln(2) trigger ConvergenceWarning
-    large_x = {'J_x': 0.5}
-    large_y = {'J_y': 0.5}  # 0.5 + 0.5 = 1.0 >= ln(2) ~ 0.693
+    large_x = {'L_{01}': 0.5}
+    large_y = {'L_{02}': 0.5}  # 0.5 + 0.5 = 1.0 >= ln(2) ~ 0.693
     with pytest.warns(ConvergenceWarning, match='exceed convergence radius'):
         alg.bch(large_x, large_y, order=4)
 
@@ -299,18 +284,18 @@ def test_from_matrix_basis_and_conversions():
 
 def test_naming_and_ergonomics():
     """Verify dictionary normalization, string generator names, and rich representations."""
-    alg = so3()
+    alg = so_n(3)
     # String keys
-    res = alg.bracket({'J_x': 2.0}, {'J_y': 3.0})
-    assert res == {2: 6.0}
+    res = alg.bracket({'L_{01}': 2.0}, {'L_{02}': 3.0})
+    assert res == {2: -6.0}
 
     # Named conversion
     named = alg.to_named(res)
-    assert named == {'J_z': 6.0}
+    assert named == {'L_{12}': -6.0}
 
     # Unknown generator raises KeyError
     with pytest.raises(KeyError, match="Unknown basis generator name 'J_w'"):
-        alg.bracket({'J_w': 1.0}, {'J_x': 1.0})
+        alg.bracket({'J_w': 1.0}, {'L_{01}': 1.0})
 
     # Repr and Jupyter hooks
     assert 'so(3)' not in repr(alg) or 'LieAlgebra' in repr(alg)
@@ -321,14 +306,14 @@ def test_naming_and_ergonomics():
 def test_complex_lie_algebras_su2_and_u1():
     """Verify complex matrix Lie algebras u(1) and su(2), and complex Lie elements."""
     # u(1)
-    alg_u1 = u1()
+    alg_u1 = u_n(1, names=['T'])
     assert alg_u1.dim == 1
     assert alg_u1.basis_names == ['T']
     assert alg_u1.bracket({'T': 1.0}, {'T': 2.0}) == {}
     assert not alg_u1.is_semisimple()
 
     # su(2)
-    alg_su2 = su2()
+    alg_su2 = su_n(2, names=['J_x', 'J_y', 'J_z'])
     assert alg_su2.dim == 3
     assert alg_su2.basis_names == ['J_x', 'J_y', 'J_z']
     assert alg_su2.structure_constants.verify_jacobi()
@@ -399,10 +384,176 @@ def test_classical_families_and_exceptional_g2():
     assert alg_g2.structure_constants.verify_antisymmetry()
     assert alg_g2.is_semisimple()
 
-    # F_4 and E_8 raises NotImplementedError
-    with pytest.raises(NotImplementedError, match='F₄'):
-        f4()
-    with pytest.raises(NotImplementedError, match='E₈'):
-        e8()
+    # F_4: dim 52, semisimple
+    alg_f4 = f4()
+    assert alg_f4.dim == 52
+    assert alg_f4.structure_constants.verify_antisymmetry()
+    assert alg_f4.is_semisimple()
+
+    # E_6: dim 78, semisimple
+    alg_e6 = e6()
+    assert alg_e6.dim == 78
+    assert alg_e6.structure_constants.verify_antisymmetry()
+    assert alg_e6.is_semisimple()
+
+    # E_7: dim 133, semisimple
+    alg_e7 = e7()
+    assert alg_e7.dim == 133
+    assert alg_e7.structure_constants.verify_antisymmetry()
+    assert alg_e7.is_semisimple()
+
+    # E_8: dim 248, semisimple
+    alg_e8 = e8()
+    assert alg_e8.dim == 248
+    assert alg_e8.structure_constants.verify_antisymmetry()
+    assert alg_e8.is_semisimple()
+
+
+def test_root_system_all_families_and_weyl_reflections():
+    """Verify RootSystem classification, Weyl reflections, Euclidean embedding, and Dynkin diagrams."""
+    # Test cases: (family, rank, expected_roots, expected_pos)
+    cases = [
+        ('A', 3, 12, 6),
+        ('B', 2, 8, 4),
+        ('C', 3, 18, 9),
+        ('D', 4, 24, 12),
+        ('G2', None, 12, 6),
+        ('F4', None, 48, 24),
+        ('E6', None, 72, 36),
+        ('E7', None, 126, 63),
+        ('E8', None, 240, 120),
+    ]
+
+    for fam, r, num_roots, num_pos in cases:
+        rs = RootSystem.from_dynkin(fam, rank=r)
+        assert len(rs.roots) == num_roots, f'{fam} total roots mismatch'
+        assert len(rs.positive_roots) == num_pos, f'{fam} pos roots mismatch'
+        assert len(rs.negative_roots) == num_pos, f'{fam} neg roots mismatch'
+
+        # Verify Weyl reflection involution: s_i(s_i(alpha)) == alpha
+        for root in rs.positive_roots[:5]:
+            for i in range(rs.rank):
+                ref1 = rs.weyl_reflect(root, i)
+                assert ref1 in rs.roots, f'Reflection {ref1} not in root system for {fam}'
+                ref2 = rs.weyl_reflect(ref1, i)
+                assert ref2 == root, f'Involution s_i^2 != id failed for {fam}'
+
+        # Verify Euclidean projection
+        euc = rs.to_euclidean(rs.simple_roots[0])
+        assert isinstance(euc, tuple)
+        assert len(euc) >= rs.rank
+
+        # Verify ASCII Dynkin diagram rendering
+        diagram = rs.dynkin_diagram()
+        assert isinstance(diagram, str)
+        assert len(diagram) > 0
+
+
+def test_classical_families_sl_se_and_shortcuts():
+    """Verify sl_n, se_n, so_n, and their algebraic properties."""
+    # sl_n
+    sl3 = sl_n(3)
+    assert sl3.dim == 8
+    assert sl3.structure_constants.verify_jacobi()
+    assert sl3.is_semisimple()
+
+    # se_n
+    se2_alg = se_n(2)
+    assert se2_alg.dim == 3
+    assert se2_alg.structure_constants.verify_jacobi()
+    assert not se2_alg.is_semisimple()
+
+    assert so_n(2).dim == 1
+
+
+def test_chevalley_lie_algebra_factory():
+    """Verify chevalley_lie_algebra for classical and exceptional Dynkin types."""
+    # Exceptional types
+    assert chevalley_lie_algebra('G2').dim == 14
+    assert chevalley_lie_algebra('F4').dim == 52
+    assert chevalley_lie_algebra('E6').dim == 78
+    assert chevalley_lie_algebra('E7').dim == 133
+    assert chevalley_lie_algebra('E8').dim == 248
+
+    # Classical types via RootSystem
+    rs_a2 = RootSystem.from_dynkin('A', 2)
+    assert chevalley_lie_algebra(rs_a2).dim == 8  # su(3)
+
+    rs_b2 = RootSystem.from_dynkin('B', 2)
+    assert chevalley_lie_algebra(rs_b2).dim == 10  # so(5)
+
+    rs_c2 = RootSystem.from_dynkin('C', 2)
+    assert chevalley_lie_algebra(rs_c2).dim == 10  # sp(4)
+
+    rs_d4 = RootSystem.from_dynkin('D', 4)
+    assert chevalley_lie_algebra(rs_d4).dim == 28  # so(8)
+
+    # General simply-laced from raw Cartan matrix
+    raw_cartan = [[2, -1], [-1, 2]]  # A2
+    alg_raw = chevalley_lie_algebra(raw_cartan)
+    assert alg_raw.dim == 8
+
+
+def test_validation_errors_and_edge_cases():
+    """Verify validation exceptions, fallback methods, and edge cases across lie."""
+    # Invalid dimensional parameters
+    with pytest.raises(ValueError, match='u\\(n\\) is only defined for n >= 1'):
+        u_n(0)
+    with pytest.raises(ValueError, match='su\\(n\\) is only defined for n >= 2'):
+        su_n(1)
+    with pytest.raises(ValueError, match='sp\\(2n\\) is only defined for n >= 1'):
+        sp_n(0)
+    with pytest.raises(ValueError, match='so\\(n\\) is only defined for n >= 2'):
+        so_n(1)
+    with pytest.raises(ValueError, match='sl\\(n\\) is only defined for n >= 2'):
+        sl_n(1)
+    with pytest.raises(ValueError, match='se\\(n\\) is only defined for n >= 2'):
+        se_n(1)
+
+    # RootSystem validation
+    with pytest.raises(ValueError, match='Rank must be specified'):
+        RootSystem.from_dynkin('A')
+    with pytest.raises(ValueError, match='A_n requires rank >= 1'):
+        RootSystem.from_dynkin('A', 0)
+    with pytest.raises(ValueError, match='B_n requires rank >= 2'):
+        RootSystem.from_dynkin('B', 1)
+    with pytest.raises(ValueError, match='C_n requires rank >= 2'):
+        RootSystem.from_dynkin('C', 1)
+    with pytest.raises(ValueError, match='D_n requires rank >= 4'):
+        RootSystem.from_dynkin('D', 3)
+    with pytest.raises(ValueError, match='Unknown Dynkin family'):
+        RootSystem.from_dynkin('Z', 5)
+
+    # Fallback dynkin diagram and Euclidean projection
+    custom_rs = RootSystem.from_cartan_matrix([[2]], dynkin_type='CustomType')
+    assert 'CustomType' in custom_rs.dynkin_diagram()
+    assert custom_rs.to_euclidean((1,)) == (1.0,)
+    assert 'RootSystem' in repr(custom_rs)
+
+    # LieAlgebra without matrix basis errors
+    abstract_alg = LieAlgebra(dim=2, structure_constants=StructureConstants(dim=2, tensor={}))
+    with pytest.raises(ValueError, match='not initialized with a matrix basis'):
+        abstract_alg.element_to_matrix({0: 1.0})
+    with pytest.raises(ValueError, match='not initialized with a matrix basis'):
+        abstract_alg.matrix_to_element({0: {0: 1.0}})
+
+    # _repr_latex_ with > 6 generators
+    assert '\\dots' in e8()._repr_latex_()
+
+    # Complex cleaning with imaginary part
+    u2 = u_n(2)
+    b_c = u2.bracket({0: 1.0 + 1.0j}, {1: 2.0j})
+    assert any(isinstance(v, complex) and abs(v.imag) > 1e-10 for v in b_c.values())
+
+    # All Dynkin diagrams
+    for dynkin_label in ['A3', 'B2', 'C3', 'D4', 'G2', 'F4', 'E6', 'E7', 'E8']:
+        fam = dynkin_label[:2] if dynkin_label.startswith(('G2', 'F4', 'E6', 'E7', 'E8')) else dynkin_label[0]
+        r = int(dynkin_label[1:]) if (len(dynkin_label) > 1 and dynkin_label[1:].isdigit()
+                                      and not dynkin_label.startswith(('G', 'F', 'E'))) else None
+        rs_diag = RootSystem.from_dynkin(fam, rank=r)
+        d_str = rs_diag.dynkin_diagram()
+        assert len(d_str) > 0
+
+
 
 

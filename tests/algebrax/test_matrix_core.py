@@ -3,8 +3,10 @@ from algebrax.matrix.core import (
     commutator,
     dot,
     element_wise_binary_op,
+    frobenius_inner,
     hstack,
     inner,
+    inverse,
     kronecker_delta,
     laplacian_matrix,
     mat_vec,
@@ -285,4 +287,75 @@ def test_matrix_core_untested_branches():
     lap_directed_sym = laplacian_matrix(directed_sink, symmetrize=False, normalized='sym')
     assert lap_directed_sym[0] == {0: 1.0}
     assert 1 not in lap_directed_sym
+
+
+def test_frobenius_inner():
+    from algebrax.semiring import TropicalSemiring
+
+    # Real matrices: Tr(A^T @ B)
+    a = {0: {0: 1.0, 1: 2.0}, 1: {0: 3.0, 1: 4.0}}
+    b = {0: {0: 2.0, 1: 1.0}, 1: {0: 0.0, 1: 3.0}}
+    # 1*2 + 2*1 + 3*0 + 4*3 = 2 + 2 + 0 + 12 = 16.0
+    res = frobenius_inner(a, b)
+    assert res == 16.0
+
+    # Complex conjugate inner product: Tr(A^H @ B)
+    ac = {0: {0: 1.0 + 2.0j}}
+    bc = {0: {0: 1.0 + 2.0j}}
+    # conj(1+2j) * (1+2j) = (1-2j)(1+2j) = 1 - 4j^2 = 5.0
+    assert frobenius_inner(ac, bc, conjugate=True) == 5.0
+    # without conjugate: (1+2j)^2 = 1 + 4j - 4 = -3 + 4j
+    assert frobenius_inner(ac, bc, conjugate=False) == -3.0 + 4.0j
+
+    # Semiring Frobenius inner product: sum=min, mul=+
+    t1 = {0: {0: 5.0, 1: 3.0}}
+    t2 = {0: {0: 2.0, 1: 10.0}}
+    # min(5+2, 3+10) = min(7, 13) = 7.0
+    res_trop = frobenius_inner(t1, t2, semiring=TropicalSemiring())
+    assert res_trop == 7.0
+
+
+def test_invert_sparse():
+    import pytest
+
+    # 1. 2x2 Real matrix inversion
+    a = {0: {0: 2.0, 1: 1.0}, 1: {0: 1.0, 1: 3.0}}
+    a_inv = inverse(a)
+    # A^-1 = [[0.6, -0.2], [-0.2, 0.4]]
+    assert pytest.approx(a_inv[0][0]) == 0.6
+    assert pytest.approx(a_inv[0][1]) == -0.2
+    assert pytest.approx(a_inv[1][0]) == -0.2
+    assert pytest.approx(a_inv[1][1]) == 0.4
+
+    # Verify A @ A^-1 == I
+    prod = dot(a, a_inv)
+    assert pytest.approx(prod[0][0]) == 1.0
+    assert pytest.approx(prod[1][1]) == 1.0
+    assert abs(prod[0].get(1, 0.0)) < 1e-11
+    assert abs(prod[1].get(0, 0.0)) < 1e-11
+
+    # 2. String keys
+    s = {'u': {'u': 1.0, 'v': 2.0}, 'v': {'u': 3.0, 'v': 4.0}}
+    s_inv = inverse(s)
+    s_prod = dot(s, s_inv)
+    assert pytest.approx(s_prod['u']['u']) == 1.0
+    assert pytest.approx(s_prod['v']['v']) == 1.0
+
+    # 3. Permuted/Diagonal matrix
+    d = {0: {1: 2.0}, 1: {0: 5.0}}
+    d_inv = inverse(d)
+    d_prod = dot(d, d_inv)
+    assert pytest.approx(d_prod[0][0]) == 1.0
+    assert pytest.approx(d_prod[1][1]) == 1.0
+
+    # 4. Singular matrix error
+    singular = {0: {0: 1.0, 1: 2.0}, 1: {0: 2.0, 1: 4.0}}
+    with pytest.raises(ValueError, match='singular'):
+        inverse(singular)
+
+    # 5. Empty matrix error
+    with pytest.raises(ValueError, match='empty'):
+        inverse({})
+
+
 
