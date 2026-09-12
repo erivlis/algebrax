@@ -1,3 +1,43 @@
+## v0.9.0 (2026-09-13)
+
+### Feat
+
+- **lie**: Adds Mermaid and SVG rendering for Dynkin diagrams.
+- **matrix.core**: Adds Frobenius inner product and matrix inverse.
+- **EP-0163**: add Lie algebra module with structure constants and operations
+- add element-wise binary operations and commutator function for sparse matrices
+
+### Fix
+
+- **tensor**: remove keys from output trie when value is zero
+- **algebraic**: improve error handling for generator index exceeding dimensions
+- **docs/proposals**: simplify `_SIG_RE` regex for algebraic signature parsing
+- **display**: simplify `_SIG_RE` regex for signature parsing
+
+### Refactor
+
+- **lie**: Splits into core, classical, exceptional, and roots modules.
+- **styleguide**: enhance clarity and structure of mathematical classes documentation
+- **display**: limit displayed items to a maximum of 50 and skip paths exceeding max depth
+- **academic, probability**: enhance comments for cofactor and determinant functions, clarify transition update step
+- **academic, probability**: enhance comments for cofactor and determinant functions, clarify transition update step
+- **probability**: clarify transition update step comment for better understanding
+- **converters**: simplify maximum column calculation with default parameter
+- **transforms**: standardize variable naming in sample processing loop for consistency
+- **eigenvalue**: replace manual Jacobi eigenvalue computation with modular function for improved readability
+- **decompose**: modularize SVD and Jacobi eigenvalue decomposition logic for clarity
+- **statistical**: simplify calculations by removing commented-out code
+- **transforms**: modularize Legendre-Fenchel transform logic for clarity and reuse
+- **core**: modularize Laplacian construction into specialized functions
+- **verification**: modularize semiring law checks for clarity and reuse
+- **core**: expose `__version__` attribute and enhance version resolution logic
+- **recipes**: Modularize `spectral_graph_clustering` with reusable functions
+- **analysis**: Move `eigen_centrality` from `matrix.academic` to `analysis`
+
+### Perf
+
+- **lie**: Adds benchmarks for Lie algebra and root systems.
+
 ## v0.8.0 (2026-09-06)
 
 ### Feat
