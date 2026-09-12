@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from algebrax.lie.core import LieAlgebra
@@ -21,42 +21,58 @@ def _standard_cartan_matrix(family: str, rank: int | None = None) -> tuple[list[
     if fam in ('G2', 'G'):
         return [[2, -1], [-3, 2]], 'G2', 2
     if fam in ('F4', 'F'):
-        return [
-            [2, -1, 0, 0],
-            [-1, 2, -2, 0],
-            [0, -1, 2, -1],
-            [0, 0, -1, 2],
-        ], 'F4', 4
+        return (
+            [
+                [2, -1, 0, 0],
+                [-1, 2, -2, 0],
+                [0, -1, 2, -1],
+                [0, 0, -1, 2],
+            ],
+            'F4',
+            4,
+        )
     if fam in ('E6',):
-        return [
-            [2, 0, -1, 0, 0, 0],
-            [0, 2, 0, -1, 0, 0],
-            [-1, 0, 2, -1, 0, 0],
-            [0, -1, -1, 2, -1, 0],
-            [0, 0, 0, -1, 2, -1],
-            [0, 0, 0, 0, -1, 2],
-        ], 'E6', 6
+        return (
+            [
+                [2, 0, -1, 0, 0, 0],
+                [0, 2, 0, -1, 0, 0],
+                [-1, 0, 2, -1, 0, 0],
+                [0, -1, -1, 2, -1, 0],
+                [0, 0, 0, -1, 2, -1],
+                [0, 0, 0, 0, -1, 2],
+            ],
+            'E6',
+            6,
+        )
     if fam in ('E7',):
-        return [
-            [2, 0, -1, 0, 0, 0, 0],
-            [0, 2, 0, -1, 0, 0, 0],
-            [-1, 0, 2, -1, 0, 0, 0],
-            [0, -1, -1, 2, -1, 0, 0],
-            [0, 0, 0, -1, 2, -1, 0],
-            [0, 0, 0, 0, -1, 2, -1],
-            [0, 0, 0, 0, 0, -1, 2],
-        ], 'E7', 7
+        return (
+            [
+                [2, 0, -1, 0, 0, 0, 0],
+                [0, 2, 0, -1, 0, 0, 0],
+                [-1, 0, 2, -1, 0, 0, 0],
+                [0, -1, -1, 2, -1, 0, 0],
+                [0, 0, 0, -1, 2, -1, 0],
+                [0, 0, 0, 0, -1, 2, -1],
+                [0, 0, 0, 0, 0, -1, 2],
+            ],
+            'E7',
+            7,
+        )
     if fam in ('E8',):
-        return [
-            [2, 0, -1, 0, 0, 0, 0, 0],
-            [0, 2, 0, -1, 0, 0, 0, 0],
-            [-1, 0, 2, -1, 0, 0, 0, 0],
-            [0, -1, -1, 2, -1, 0, 0, 0],
-            [0, 0, 0, -1, 2, -1, 0, 0],
-            [0, 0, 0, 0, -1, 2, -1, 0],
-            [0, 0, 0, 0, 0, -1, 2, -1],
-            [0, 0, 0, 0, 0, 0, -1, 2],
-        ], 'E8', 8
+        return (
+            [
+                [2, 0, -1, 0, 0, 0, 0, 0],
+                [0, 2, 0, -1, 0, 0, 0, 0],
+                [-1, 0, 2, -1, 0, 0, 0, 0],
+                [0, -1, -1, 2, -1, 0, 0, 0],
+                [0, 0, 0, -1, 2, -1, 0, 0],
+                [0, 0, 0, 0, -1, 2, -1, 0],
+                [0, 0, 0, 0, 0, -1, 2, -1],
+                [0, 0, 0, 0, 0, 0, -1, 2],
+            ],
+            'E8',
+            8,
+        )
 
     # Classical series A_n, B_n, C_n, D_n
     if rank is None:
@@ -222,35 +238,255 @@ class RootSystem:
         # Fallback: identity embedding
         return tuple(float(x) for x in root)
 
-    def dynkin_diagram(self) -> str:
-        """Render publication-grade ASCII Dynkin diagram."""
-        dt = self.dynkin_type
-        r = self.rank
-        if dt == 'G2':
-            return '(1) ≡>≡ (2)'
-        if dt == 'F4':
-            return '(1) --- (2) ===> (3) --- (4)'
-        if dt == 'E6':
-            return '          (2)\n           |\n(1)---(3)-(4)-(5)-(6)'
-        if dt == 'E7':
-            return '          (2)\n           |\n(1)---(3)-(4)-(5)-(6)-(7)'
-        if dt == 'E8':
-            return '          (2)\n           |\n(1)---(3)-(4)-(5)-(6)-(7)-(8)'
-        if dt.startswith('A') and (len(dt) == 1 or dt[1:].isdigit()):
-            return ' --- '.join(f'({i + 1})' for i in range(r))
-        if dt.startswith('B') and (len(dt) == 1 or dt[1:].isdigit()):
-            chain = ' --- '.join(f'({i + 1})' for i in range(r - 1))
-            return f'{chain} ===> ({r})'
-        if dt == 'C' or (dt.startswith('C') and dt[1:].isdigit()):
-            chain = ' --- '.join(f'({i + 1})' for i in range(r - 1))
-            return f'{chain} <=== ({r})'
-        if dt.startswith('D') and (len(dt) == 1 or dt[1:].isdigit()):
-            chain = ' --- '.join(f'({i + 1})' for i in range(r - 2))
-            return f'           ({r - 1})\n          /\n{chain}\n          \\\n           ({r})'
-        return f'Dynkin({dt}, rank={r})'
+    def dynkin_diagram(self, format: Literal['ascii', 'mermaid', 'svg'] = 'ascii') -> str:
+        """Render Coxeter-Dynkin diagram in ASCII, Mermaid, or SVG format.
+
+        Parameters
+        ----------
+        format : {'ascii', 'mermaid', 'svg'}, default 'ascii'
+            Output format for the diagram:
+            - 'ascii': Text representation using Unicode box and arrow characters.
+            - 'mermaid': Mermaid flowchart markdown string for documentation.
+            - 'svg': Standalone responsive XML vector graphic with color-coded nodes.
+
+        Returns
+        -------
+        str
+            Rendered diagram string in the requested format.
+
+        Raises
+        ------
+        ValueError
+            If format is not one of 'ascii', 'mermaid', or 'svg'.
+        """
+        fmt = format.lower().strip()
+        if fmt == 'ascii':
+            return self.dynkin_ascii()
+        if fmt == 'mermaid':
+            return self.dynkin_mermaid()
+        if fmt == 'svg':
+            return self.dynkin_svg()
+        raise ValueError(f"Unsupported Dynkin diagram format '{format}'. Expected 'ascii', 'mermaid', or 'svg'.")
+
+    def dynkin_ascii(self) -> str:
+        """Render publication-grade ASCII Coxeter-Dynkin diagram."""
+        return _dynkin_ascii(self.dynkin_type, self.rank)
+
+    def dynkin_mermaid(self) -> str:
+        """Render Mermaid flowchart Coxeter-Dynkin diagram."""
+        return _dynkin_mermaid(self.dynkin_type, self.rank)
+
+    def dynkin_svg(self) -> str:
+        """Render standalone responsive SVG Coxeter-Dynkin diagram."""
+        return _dynkin_svg(self.dynkin_type, self.rank)
+
+    def _repr_svg_(self) -> str:
+        """Jupyter rich display hook for interactive SVG rendering."""
+        return self.dynkin_svg()
 
     def __repr__(self) -> str:
         return f'RootSystem({self.dynkin_type}, rank={self.rank}, num_roots={len(self.roots)})'
+
+
+def _dynkin_ascii(dt: str, r: int) -> str:
+    """Render publication-grade ASCII Dynkin diagram."""
+    if dt == 'G2':
+        return '(1) ≡>≡ (2)'
+    if dt == 'F4':
+        return '(1) --- (2) ===> (3) --- (4)'
+    if dt == 'E6':
+        return '          (2)\n           |\n(1)---(3)-(4)-(5)-(6)'
+    if dt == 'E7':
+        return '          (2)\n           |\n(1)---(3)-(4)-(5)-(6)-(7)'
+    if dt == 'E8':
+        return '          (2)\n           |\n(1)---(3)-(4)-(5)-(6)-(7)-(8)'
+    if dt.startswith('A') and (len(dt) == 1 or dt[1:].isdigit()):
+        return ' --- '.join(f'({i + 1})' for i in range(r))
+    if dt.startswith('B') and (len(dt) == 1 or dt[1:].isdigit()):
+        chain = ' --- '.join(f'({i + 1})' for i in range(r - 1))
+        return f'{chain} ===> ({r})'
+    if dt == 'C' or (dt.startswith('C') and dt[1:].isdigit()):
+        chain = ' --- '.join(f'({i + 1})' for i in range(r - 1))
+        return f'{chain} <=== ({r})'
+    if dt.startswith('D') and (len(dt) == 1 or dt[1:].isdigit()):
+        chain = ' --- '.join(f'({i + 1})' for i in range(r - 2))
+        return f'           ({r - 1})\n          /\n{chain}\n          \\\n           ({r})'
+    return f'Dynkin({dt}, rank={r})'
+
+
+def _dynkin_mermaid(dt: str, r: int) -> str:
+    """Render Mermaid flowchart Coxeter-Dynkin diagram."""
+    lines = ['flowchart LR']
+    if dt.startswith('A') and (len(dt) == 1 or dt[1:].isdigit()):
+        if r == 1:
+            lines.append('    1((1))')
+        else:
+            for i in range(1, r):
+                lines.append(f'    {i}(({i})) --- {i + 1}(({i + 1}))')
+        return '\n'.join(lines)
+    if dt.startswith('B') and (len(dt) == 1 or dt[1:].isdigit()):
+        for i in range(1, r - 1):
+            lines.append(f'    {i}(({i})) --- {i + 1}(({i + 1}))')
+        lines.append(f'    {r - 1}(({r - 1})) ==> {r}(({r}))')
+        return '\n'.join(lines)
+    if dt == 'C' or (dt.startswith('C') and dt[1:].isdigit()):
+        for i in range(1, r - 1):
+            lines.append(f'    {i}(({i})) --- {i + 1}(({i + 1}))')
+        lines.append(f'    {r - 1}(({r - 1})) <== {r}(({r}))')
+        return '\n'.join(lines)
+    if dt.startswith('D') and (len(dt) == 1 or dt[1:].isdigit()):
+        for i in range(1, r - 2):
+            lines.append(f'    {i}(({i})) --- {i + 1}(({i + 1}))')
+        lines.append(f'    {r - 2}(({r - 2})) --- {r - 1}(({r - 1}))')
+        lines.append(f'    {r - 2}(({r - 2})) --- {r}(({r}))')
+        return '\n'.join(lines)
+    if dt == 'G2':
+        lines.append('    1((1)) ===|"⇒ (3)"| 2((2))')
+        return '\n'.join(lines)
+    if dt == 'F4':
+        lines.extend(
+            [
+                '    1((1)) --- 2((2))',
+                '    2((2)) ==> 3((3))',
+                '    3((3)) --- 4((4))',
+            ]
+        )
+        return '\n'.join(lines)
+    if dt in ('E6', 'E7', 'E8'):
+        lines.extend(
+            [
+                '    1((1)) --- 3((3))',
+                '    3((3)) --- 4((4))',
+                '    2((2)) --- 4((4))',
+            ]
+        )
+        for i in range(4, r):
+            lines.append(f'    {i}(({i})) --- {i + 1}(({i + 1}))')
+        return '\n'.join(lines)
+    for i in range(1, r + 1):
+        lines.append(f'    {i}(({i}))')
+    return '\n'.join(lines)
+
+
+def _render_svg_node(cx: float, cy: float, label: str) -> str:
+    """Render SVG circle node with centered bold label."""
+    c_tag = f'    <circle cx="{cx:.1f}" cy="{cy:.1f}" r="14" fill="#2563eb" stroke="#1d4ed8" stroke-width="2"/>'
+    t_tag = (
+        f'    <text x="{cx:.1f}" y="{cy:.1f}" font-family="system-ui, -apple-system, sans-serif" '
+        f'font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="central">'
+        f'{label}</text>'
+    )
+    return f'{c_tag}\n{t_tag}'
+
+
+def _svg_line(x1: float, y1: float, x2: float, y2: float, w: float = 2.0) -> str:
+    return f'    <line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="#4b5563" stroke-width="{w}"/>'
+
+
+def _svg_poly(pts: str) -> str:
+    return f'    <polygon points="{pts}" fill="#4b5563"/>'
+
+
+def _render_svg_edge(x1: float, y1: float, x2: float, y2: float, kind: str = 'single') -> str:
+    """Render single, double, or triple bond SVG edge between two points."""
+    if kind == 'single':
+        return _svg_line(x1, y1, x2, y2, 2.0)
+    mx = (x1 + x2) / 2.0
+    y = y1
+    if kind == 'double_right':
+        l1 = _svg_line(x1, y - 3.5, x2, y - 3.5, 2.0)
+        l2 = _svg_line(x1, y + 3.5, x2, y + 3.5, 2.0)
+        p = _svg_poly(f'{mx + 5:.1f},{y:.1f} {mx - 4:.1f},{y - 5.5:.1f} {mx - 4:.1f},{y + 5.5:.1f}')
+        return f'{l1}\n{l2}\n{p}'
+    if kind == 'double_left':
+        l1 = _svg_line(x1, y - 3.5, x2, y - 3.5, 2.0)
+        l2 = _svg_line(x1, y + 3.5, x2, y + 3.5, 2.0)
+        p = _svg_poly(f'{mx - 5:.1f},{y:.1f} {mx + 4:.1f},{y - 5.5:.1f} {mx + 4:.1f},{y + 5.5:.1f}')
+        return f'{l1}\n{l2}\n{p}'
+    if kind == 'triple_right':
+        l1 = _svg_line(x1, y - 5.0, x2, y - 5.0, 1.8)
+        l2 = _svg_line(x1, y, x2, y, 1.8)
+        l3 = _svg_line(x1, y + 5.0, x2, y + 5.0, 1.8)
+        p = _svg_poly(f'{mx + 6:.1f},{y:.1f} {mx - 4:.1f},{y - 6:.1f} {mx - 4:.1f},{y + 6:.1f}')
+        return f'{l1}\n{l2}\n{l3}\n{p}'
+    return ''
+
+
+def _dynkin_svg_layout(
+    dt: str, r: int
+) -> tuple[int, int, list[tuple[float, float, str]], list[tuple[float, float, float, float, str]]]:
+    """Compute (width, height, nodes, edges) geometry for SVG Dynkin diagram."""
+    nodes: list[tuple[float, float, str]] = []
+    edges: list[tuple[float, float, float, float, str]] = []
+
+    if dt in ('E6', 'E7', 'E8'):
+        w, h = 60 + (r - 2) * 60, 105
+        h_order = [1, 3, 4, *list(range(5, r + 1))]
+        coords = {lbl: (30.0 + idx * 60.0, 80.0) for idx, lbl in enumerate(h_order)}
+        coords[2] = (coords[4][0], 25.0)
+        nodes.extend((coords[lbl][0], coords[lbl][1], str(lbl)) for lbl in sorted(coords))
+        edges.append((*coords[1], *coords[3], 'single'))
+        edges.append((*coords[3], *coords[4], 'single'))
+        edges.append((*coords[2], *coords[4], 'single'))
+        for idx in range(4, r):
+            edges.append((*coords[idx], *coords[idx + 1], 'single'))
+        return w, h, nodes, edges
+
+    if dt.startswith('D') and (len(dt) == 1 or dt[1:].isdigit()):
+        w, h = 60 + (r - 2) * 60, 100
+        for i in range(1, r - 1):
+            nodes.append((30.0 + (i - 1) * 60.0, 50.0, str(i)))
+        bx = 30.0 + (r - 2) * 60.0
+        nodes.append((bx, 22.0, str(r - 1)))
+        nodes.append((bx, 78.0, str(r)))
+        for i in range(1, r - 2):
+            edges.append((nodes[i - 1][0], 50.0, nodes[i][0], 50.0, 'single'))
+        fork_x = nodes[r - 3][0]
+        edges.append((fork_x, 50.0, bx, 22.0, 'single'))
+        edges.append((fork_x, 50.0, bx, 78.0, 'single'))
+        return w, h, nodes, edges
+
+    w, h = max(60, 60 + (r - 1) * 60), 70
+    for i in range(1, r + 1):
+        nodes.append((30.0 + (i - 1) * 60.0, 35.0, str(i)))
+
+    if dt == 'G2':
+        edges.append((nodes[0][0], 35.0, nodes[1][0], 35.0, 'triple_right'))
+    elif dt == 'F4':
+        edges.append((nodes[0][0], 35.0, nodes[1][0], 35.0, 'single'))
+        edges.append((nodes[1][0], 35.0, nodes[2][0], 35.0, 'double_right'))
+        edges.append((nodes[2][0], 35.0, nodes[3][0], 35.0, 'single'))
+    elif dt.startswith('B') and (len(dt) == 1 or dt[1:].isdigit()):
+        for i in range(r - 2):
+            edges.append((nodes[i][0], 35.0, nodes[i + 1][0], 35.0, 'single'))
+        if r >= 2:
+            edges.append((nodes[r - 2][0], 35.0, nodes[r - 1][0], 35.0, 'double_right'))
+    elif dt == 'C' or (dt.startswith('C') and dt[1:].isdigit()):
+        for i in range(r - 2):
+            edges.append((nodes[i][0], 35.0, nodes[i + 1][0], 35.0, 'single'))
+        if r >= 2:
+            edges.append((nodes[r - 2][0], 35.0, nodes[r - 1][0], 35.0, 'double_left'))
+    elif dt.startswith('A') and (len(dt) == 1 or dt[1:].isdigit()):
+        for i in range(r - 1):
+            edges.append((nodes[i][0], 35.0, nodes[i + 1][0], 35.0, 'single'))
+
+    return w, h, nodes, edges
+
+
+def _dynkin_svg(dt: str, r: int) -> str:
+    """Render standalone responsive SVG Coxeter-Dynkin diagram."""
+    w, h, nodes, edges = _dynkin_svg_layout(dt, r)
+    svg_edges = [_render_svg_edge(*e) for e in edges]
+    svg_nodes = [_render_svg_node(cx, cy, lbl) for cx, cy, lbl in nodes]
+    svg_parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">',
+        '  <g class="dynkin-diagram">',
+        *svg_edges,
+        *svg_nodes,
+        '  </g>',
+        '</svg>',
+    ]
+    return '\n'.join(svg_parts)
 
 
 def chevalley_lie_algebra(
