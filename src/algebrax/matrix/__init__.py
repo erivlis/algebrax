@@ -1,9 +1,3 @@
-from algebrax.matrix.academic import (
-    adjoint,
-    cofactor,
-    determinant,
-    inverse,
-)
 from algebrax.matrix.core import (
     add,
     block_diag,
@@ -34,11 +28,8 @@ from algebrax.matrix.decompose import (
 
 __all__ = [
     'add',
-    'adjoint',
     'cholesky',
-    'cofactor',
     'commutator',
-    'determinant',
     'dot',
     'frobenius_inner',
     'inner',
