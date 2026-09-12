@@ -17,7 +17,7 @@ status: final
 | **Status**   | Final                                                                              |
 | **Type**     | Standards Track                                                                    |
 | **Created**  | 2026-09-08                                                                         |
-| **Updated**  | 2026-09-10                                                                         |
+| **Updated**  | 2026-09-12                                                                         |
 | **Replaces** | None                                                                               |
 
 ---
@@ -382,6 +382,8 @@ class LieAlgebra:
 
 ## Change Log
 
+* **2026-09-12:**
+    * Authored comprehensive micro-benchmarking suite in `benchmarks/test_lie_benchmarks.py` covering 28 benchmark scenarios across Lie algebra construction, Clifford embedding, bracket evaluation, Jacobi identity verification, adjoint/Killing form, and BCH series orders 1..4.
 * **2026-09-10:**
     * Implemented `algebrax.lie` containing `LieAlgebra`, `StructureConstants`, and canonical factories (`so3`, `sl2`, `se3`, `clifford_lie_algebra`).
     * Added comprehensive test suite in `tests/algebrax/test_lie.py` (Jacobi validation via einsum, Killing metric, Cartan semisimplicity, BCH orders 1..4, and ConvergenceWarning).
