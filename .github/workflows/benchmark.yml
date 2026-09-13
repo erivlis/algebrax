@@ -19,17 +19,15 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v10.1.0
         with:
           python-version: "3.14"
 
       - name: Install Dependencies
-        run: |
-          uv sync --group benchmark
+        run: uv sync --group benchmark
 
       - name: Run pytest-benchmark (Walltime Statistics)
-        run: |
-          uv run pytest benchmarks/ --benchmark-only
+        run: uv run pytest benchmarks/ --benchmark-only
 
       - name: Run CodSpeed Benchmarks (Instruction Count & PR Reports)
         uses: CodSpeedHQ/action@v5
