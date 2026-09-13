@@ -73,7 +73,7 @@ def test_benchmark_matrix_inner(benchmark):
 def test_benchmark_matrix_determinant(benchmark, size: int):
     m_a = symmetric_positive_definite(size, seed=1)
 
-    result = benchmark(ax.matrix.determinant, m_a)
+    result = benchmark(ax.matrix.academic.determinant, m_a)
     assert result is not None
 
 
