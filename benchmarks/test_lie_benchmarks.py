@@ -185,3 +185,5 @@ def test_benchmark_chevalley_construction(benchmark):
     rs = RootSystem.from_dynkin('G', 2)
     result = benchmark(chevalley_lie_algebra, rs)
     assert result.dim == 14
+
+# endregion
