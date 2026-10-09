@@ -6,6 +6,7 @@ formal Enhancement Proposals (EPs).
 
 ## Index of Explorations
 
-| EXP          | Title                                                      |   Status   |    Date    | Target EPs                         | Compendium Link                                                          |
-|:-------------|:-----------------------------------------------------------|:----------:|:----------:|:-----------------------------------|:-------------------------------------------------------------------------|
-| **EXP-0001** | Next Frontiers: Uncharted Algebraic Continents in AlgebraX | **Active** | 2026-09-07 | EP-0160, EP-0161, EP-0162, EP-0163 | [EXP-0001](./EXP-0001-algebraic-frontiers-and-missing-domains/README.md) |
+| EXP          | Title                                                                                   |   Status   |    Date    | Target EPs                         | Compendium Link                                                          |
+|:-------------|:----------------------------------------------------------------------------------------|:----------:|:----------:|:-----------------------------------|:-------------------------------------------------------------------------|
+| **EXP-0001** | Next Frontiers: Uncharted Algebraic Continents in AlgebraX                              | **Active** | 2026-09-07 | EP-0160, EP-0161, EP-0162, EP-0163 | [EXP-0001](./EXP-0001-algebraic-frontiers-and-missing-domains/README.md) |
+| **EXP-0002** | Off the Map: Quantum Groups, Free Probability, Topos Logics, and Tropical Cryptosystems | **Active** | 2026-10-09 | EP-0170, EP-0171, EP-0172, EP-0173 | [EXP-0002](./EXP-0002-off-the-map-frontiers/README.md)                   |
