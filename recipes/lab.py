@@ -284,6 +284,11 @@ from recipes.relativistic_dirac_spinor import (  # noqa: E402
     create_dirac_spinor,
     rotate_spinor,
 )
+from recipes.rubiks_cube_group_solver import (  # noqa: E402
+    RubiksCube,
+    invert_sequence,
+    solve_cayley_subgroup,
+)
 from recipes.sheaf_cohomology_consensus import (  # noqa: E402
     simulate_sheaf_consensus,
 )
@@ -4547,6 +4552,177 @@ def build_view_spectral_graph_clustering() -> None:
                     pass
 
 
+# --- Rubik's Cube Permutation Group & Commutator Solver State & Callbacks ---
+rubik_current_cube = RubiksCube()
+rubik_last_scramble: list[str] = []
+
+
+def update_rubik_ui(status_msg: str = '') -> None:
+    if not dpg.does_item_exist('table_rubik_audit'):
+        return
+    dpg.set_value('rubik_net_text', rubik_current_cube.render_ascii_net())
+    if status_msg:
+        dpg.set_value('rubik_status_text', status_msg)
+    try:
+        audit = rubik_current_cube.audit_invariants()
+        is_solved = rubik_current_cube.is_solved()
+        clear_table_rows('table_rubik_audit')
+        rows = [
+            ('Cube State Status', 'Solved (Identity element e)' if is_solved else 'Scrambled (Perturbed orbit)'),
+            (
+                'Algebraic Conservation Laws',
+                'Valid (Reachable in Group G)' if audit['is_algebraically_valid'] else 'Violation detected!',
+            ),
+            ('Corner Orientation Sum', f'{audit["corner_twist_sum_mod_3"]} mod 3 (Conservation Law: 0)'),
+            ('Edge Orientation Sum', f'{audit["edge_flip_sum_mod_2"]} mod 2 (Conservation Law: 0)'),
+            ('Corner Permutation Signature', f'{audit["corner_signature"]:+d}'),
+            ('Edge Permutation Signature', f'{audit["edge_signature"]:+d}'),
+            ('Combined Permutation Parity', f'{audit["combined_parity"]} (Conservation Law: +1)'),
+        ]
+        for metric, val in rows:
+            with dpg.table_row(parent='table_rubik_audit'):
+                dpg.add_input_text(default_value=metric, readonly=True, width=-1)
+                dpg.add_input_text(default_value=val, readonly=True, width=-1)
+    except Exception as e:
+        dpg.set_value('rubik_status_text', f'Audit Error: {e}')
+
+
+def cb_rubik_move(sender: int | str, app_data: Any, user_data: str) -> None:
+    global rubik_current_cube
+    try:
+        rubik_current_cube = rubik_current_cube.apply_move(user_data)
+        update_rubik_ui(f'Applied generator move: {user_data}')
+    except Exception as e:
+        update_rubik_ui(f'Move error: {e}')
+
+
+def cb_rubik_scramble() -> None:
+    global rubik_current_cube, rubik_last_scramble
+    try:
+        rubik_current_cube, rubik_last_scramble = rubik_current_cube.scramble(n_moves=12)
+        seq_str = ' '.join(rubik_last_scramble)
+        dpg.set_value('rubik_scramble_input', seq_str)
+        update_rubik_ui(f'Scrambled with 12 moves: {seq_str}')
+    except Exception as e:
+        update_rubik_ui(f'Scramble error: {e}')
+
+
+def cb_rubik_reset() -> None:
+    global rubik_current_cube, rubik_last_scramble
+    rubik_current_cube = RubiksCube()
+    rubik_last_scramble = []
+    dpg.set_value('rubik_scramble_input', '')
+    dpg.set_value('rubik_solution_text', '')
+    update_rubik_ui('Reset cube to Solved Identity state.')
+
+
+def cb_rubik_corner_3cycle() -> None:
+    global rubik_current_cube
+    seq = "R' D' R U R' D R U'"
+    rubik_current_cube = rubik_current_cube.apply_sequence(seq)
+    update_rubik_ui("Applied Corner 3-Cycle Commutator [R' D' R, U]. Edges preserved!")
+
+
+def cb_rubik_edge_3cycle() -> None:
+    global rubik_current_cube
+    seq = "F2 U L R' F2 L' R U F2"
+    rubik_current_cube = rubik_current_cube.apply_sequence(seq)
+    update_rubik_ui("Applied Edge 3-Cycle Commutator F2 U L R' F2 L' R U F2. Corners preserved!")
+
+
+def cb_rubik_corner_twist() -> None:
+    global rubik_current_cube
+    seq = "R' D' R D R' D' R D U D' R' D R D' R' D R U'"
+    rubik_current_cube = rubik_current_cube.apply_sequence(seq)
+    update_rubik_ui('Applied Corner Twisting Commutator. Zero net orientation change!')
+
+
+def cb_rubik_solve_cayley() -> None:
+    global rubik_current_cube
+    try:
+        sol = solve_cayley_subgroup(rubik_current_cube, max_depth=5)
+        if sol is not None:
+            sol_str = ' '.join(sol)
+            rubik_current_cube = rubik_current_cube.apply_sequence(sol)
+            dpg.set_value('rubik_solution_text', f'Cayley Shortest Path ({len(sol)} moves): {sol_str}')
+            update_rubik_ui(f'Solved via Cayley Graph: {sol_str}')
+        else:
+            dpg.set_value('rubik_solution_text', 'Depth bound exceeded for Cayley BFS. Use Inverse Word.')
+            update_rubik_ui('Cayley BFS depth bound exceeded.')
+    except Exception as e:
+        update_rubik_ui(f'Solver error: {e}')
+
+
+def cb_rubik_solve_inverse() -> None:
+    global rubik_current_cube
+    seq_str = dpg.get_value('rubik_scramble_input')
+    if seq_str and seq_str.strip():
+        inv_word = invert_sequence(seq_str.strip())
+        rubik_current_cube = rubik_current_cube.apply_sequence(inv_word)
+        dpg.set_value('rubik_solution_text', f'Inverse Word: {inv_word}')
+        update_rubik_ui('Solved via Group Inversion S o S^-1 = id')
+    else:
+        update_rubik_ui('No active scramble to invert.')
+
+
+def build_view_rubiks_cube() -> None:
+    with dpg.group(tag='view_rubiks_cube_group_solver_group', show=False):
+        dpg.add_text(
+            "Rubik's Cube Permutation Group G <= S_48, Commutators & Invariant Solver",
+            color=(150, 180, 255),
+        )
+        dpg.add_separator()
+        with dpg.group(horizontal=True):
+            with dpg.group(width=420):
+                dpg.add_text('2D Unfolded Net View (U, L, F, R, B, D Facelets):')
+                dpg.add_input_text(
+                    default_value=RubiksCube().render_ascii_net(),
+                    multiline=True,
+                    readonly=True,
+                    tag='rubik_net_text',
+                    width=400,
+                    height=200,
+                )
+                dpg.add_spacer(height=5)
+                dpg.add_text('Generator Face Turns (Quarter-Turns):')
+                with dpg.group(horizontal=True):
+                    for m in ['U', 'D', 'L', 'R', 'F', 'B']:
+                        dpg.add_button(label=m, callback=cb_rubik_move, user_data=m, width=40)
+                with dpg.group(horizontal=True):
+                    for m in ["U'", "D'", "L'", "R'", "F'", "B'"]:
+                        dpg.add_button(label=m, callback=cb_rubik_move, user_data=m, width=40)
+
+            with dpg.group(width=-1):
+                dpg.add_text('Solvability Invariants & Group Parity (Popper Falsifiability):')
+                create_bordered_table(
+                    tag='table_rubik_audit',
+                    columns=['Conservation Law / Invariant Metric', 'Current Value & Solvability Status'],
+                    width=550,
+                )
+                dpg.add_spacer(height=8)
+                dpg.add_text('Group-Theoretic Commutator Surgery:')
+                with dpg.group(horizontal=True):
+                    dpg.add_button(label="Corner 3-Cycle [R' D' R, U]", callback=cb_rubik_corner_3cycle)
+                    dpg.add_button(label="Edge 3-Cycle F2 U L R'...", callback=cb_rubik_edge_3cycle)
+                    dpg.add_button(label="Corner Twist [R' D']^2", callback=cb_rubik_corner_twist)
+
+                dpg.add_spacer(height=8)
+                dpg.add_text('Scramble & Algorithmic Solvers:')
+                with dpg.group(horizontal=True):
+                    dpg.add_button(label='Random Scramble (12 Moves)', callback=cb_rubik_scramble)
+                    dpg.add_button(label='Reset to Identity e', callback=cb_rubik_reset)
+                    dpg.add_button(label='Cayley Shortest Path BFS', callback=cb_rubik_solve_cayley)
+                    dpg.add_button(label='Group Word Inversion S^-1', callback=cb_rubik_solve_inverse)
+
+                dpg.add_text('Active Scramble Sequence:')
+                dpg.add_input_text(default_value='', tag='rubik_scramble_input', readonly=True, width=650)
+                dpg.add_text('Solver Output:')
+                dpg.add_input_text(default_value='', tag='rubik_solution_text', readonly=True, width=650)
+                dpg.add_input_text(
+                    default_value='Identity Solved State', tag='rubik_status_text', readonly=True, width=650
+                )
+
+
 # --- Navigation Sidebar Builder ---
 VIEWS: list[str] = [
     'semiring_matrix_power',
@@ -4581,6 +4757,7 @@ VIEWS: list[str] = [
     'quantum_feynman_path_integral',
     'relativistic_dirac_spinor',
     'distributed_vector_clocks',
+    'rubiks_cube_group_solver',
 ]
 
 
@@ -4758,6 +4935,12 @@ def build_navigation_sidebar() -> None:
                 callback=change_view,
                 user_data='categorical_kleisli',
             )
+            dpg.add_selectable(
+                label="Rubik's Cube Permutations",
+                tag='sel_rubiks_cube_group_solver',
+                callback=change_view,
+                user_data='rubiks_cube_group_solver',
+            )
 
         with dpg.tree_node(label='Information, Distributed & Crypto', default_open=True):
             dpg.add_selectable(
@@ -4914,6 +5097,7 @@ def main() -> None:
                 build_view_quantum_feynman_path_integral()
                 build_view_relativistic_dirac_spinor()
                 build_view_distributed_vector_clocks()
+                build_view_rubiks_cube()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()

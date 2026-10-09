@@ -291,6 +291,12 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 * **Components**: `matrix.core.laplacian_matrix`, `analysis.fiedler_vector`, `analysis.spectral_bipartition`, `analysis.laplacian_smoothing`, `analysis.laplacian_spectrum`
 * **Summary**: Formulates graph manifold clustering and diffusion smoothing via Spectral Graph Theory (EP-0152). Computes discrete combinatorial Laplacians ($L = D - W$), solves algebraic connectivity $\lambda_2$ and the Fiedler eigenvector $\mathbf{v}_2$ via Rayleigh-Quotient CG, partitions communities bounding Cheeger conductance, low-pass filters spatial node noise via Dirichlet energy minimization, and audits semiring factory ergonomics (`Semiring.default()`, `Semiring.normalize()`, `Semiring.create()`).
 
+### Rubik's Cube Permutation Group & Commutator Solver
+* **Files**: [`rubiks_cube_group_solver.py`](https://github.com/erivlis/algebrax/blob/main/recipes/rubiks_cube_group_solver.py) | [`rubiks_cube_group_solver.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/rubiks_cube_group_solver.ipynb)
+* **Run**: `uv run recipes/rubiks_cube_group_solver.py`
+* **Components**: `group.compose`, `group.invert`, `group.signature`
+* **Summary**: Models the Rubik's cube permutation group $\mathcal{G} \le S_{48}$, verifies the three fundamental solvability conservation laws (corner twist sum $\equiv 0 \pmod 3$, edge flip sum $\equiv 0 \pmod 2$, and parity conservation $\operatorname{sgn}(\sigma_{\text{corners}}) \cdot \operatorname{sgn}(\sigma_{\text{edges}}) = 1$), demonstrates non-abelian commutator surgery ($[A, B] = A B A^{-1} B^{-1}$ for pure 3-cycles and twists), and solves cube states via Cayley graph shortest-path BFS and group word inversion.
+
 ---
 
 ## Graphical Laboratory
