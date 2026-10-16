@@ -358,4 +358,113 @@ def test_invert_sparse():
         inverse({})
 
 
+def test_semiring_add_and_trace():
+    import math
 
+    from algebrax.semiring import BooleanSemiring, ProvenanceSemiring, TropicalSemiring
+
+    # Tropical add (min): min(5, 2) = 2, min(3, inf) = 3, min(inf, 4) = 4
+    m1 = {0: {0: 5.0, 1: 3.0}}
+    m2 = {0: {0: 2.0, 2: 4.0}}
+    res_trop = add(m1, m2, semiring=TropicalSemiring)
+    assert res_trop == {0: {0: 2.0, 1: 3.0, 2: 4.0}}
+
+    # String alias normalization for add and trace
+    assert add(m1, m2, semiring='tropical') == res_trop
+    assert trace({0: {0: 5.0}, 1: {1: 2.0}}, semiring='tropical') == 2.0
+    assert trace({}, semiring='tropical') == math.inf
+
+    # Boolean add (OR) and trace
+    b1 = {0: {0: True, 1: False}}
+    b2 = {0: {1: True}}
+    assert add(b1, b2, semiring=BooleanSemiring) == {0: {0: True, 1: True}}
+    assert trace({}, semiring=BooleanSemiring) is False
+    assert trace({0: {0: False}, 1: {1: True}}, semiring='boolean') is True
+
+    # Provenance semiring add (polynomial/monoid-algebra coefficient sum) and trace
+    p = ProvenanceSemiring()
+    p1 = {0: {0: {'e1': 1}}}
+    p2 = {0: {0: {'e2': 2}}}
+    p_sum = add(p1, p2, semiring=p)
+    assert p_sum == {0: {0: {'e1': 1, 'e2': 2}}}
+    assert trace({}, semiring=p) == {}
+
+
+def test_semiring_distributivity_law():
+    from algebrax.semiring import BooleanSemiring, TropicalSemiring
+
+    # Verify A @ (B (+) C) == (A @ B) (+) (A @ C) over TropicalSemiring
+    a = {0: {0: 2.0, 1: 5.0}, 1: {0: 1.0, 1: 3.0}}
+    b = {0: {0: 4.0, 1: 1.0}, 1: {0: 2.0, 1: 6.0}}
+    c = {0: {0: 1.0, 1: 8.0}, 1: {0: 3.0, 1: 2.0}}
+
+    for sem in (TropicalSemiring(), 'tropical'):
+        lhs = dot(a, add(b, c, semiring=sem), semiring=sem)
+        rhs = add(dot(a, b, semiring=sem), dot(a, c, semiring=sem), semiring=sem)
+        assert lhs == rhs
+
+    # Verify over BooleanSemiring
+    ba = {0: {0: True, 1: False}, 1: {0: True, 1: True}}
+    bb = {0: {1: True}, 1: {0: True}}
+    bc = {0: {0: True}, 1: {1: True}}
+    b_lhs = dot(ba, add(bb, bc, semiring=BooleanSemiring), semiring=BooleanSemiring)
+    b_rhs = add(
+        dot(ba, bb, semiring=BooleanSemiring),
+        dot(ba, bc, semiring=BooleanSemiring),
+        semiring=BooleanSemiring,
+    )
+    assert b_lhs == b_rhs
+
+
+def test_semiring_normalize_across_matrix_ops():
+    from algebrax.matrix.core import power
+
+    m = {0: {0: 2.0, 1: 3.0}, 1: {0: 1.0, 1: 4.0}}
+    v = {0: 1.0, 1: 2.0}
+
+    assert dot(m, m, semiring='tropical') == {0: {0: 4.0, 1: 5.0}, 1: {0: 3.0, 1: 4.0}}
+    assert inner(v, v, semiring='tropical') == 2.0
+    assert mat_vec(m, v, semiring='tropical') == {0: 3.0, 1: 2.0}
+    assert vec_mat(v, m, semiring='tropical') == {0: 3.0, 1: 4.0}
+    assert power(m, 2, semiring='tropical') == dot(m, m, semiring='tropical')
+    assert frobenius_inner(m, m, semiring='tropical') == 2.0
+
+
+def test_sparse_vector_primitives():
+    import math
+
+    import pytest
+
+    from algebrax.matrix import vec_add, vec_axpy, vec_clean, vec_norm, vec_scale
+
+    u = {'a': 1.0, 'b': -2.0, 'c': 3.0}
+    v = {'b': 2.0, 'c': 1.0, 'd': 4.0}
+
+    # vec_add with cancellation on 'b'
+    added = vec_add(u, v)
+    assert added == {'a': 1.0, 'c': 4.0, 'd': 4.0}
+
+    # vec_scale
+    assert vec_scale(u, 2.0) == {'a': 2.0, 'b': -4.0, 'c': 6.0}
+    assert vec_scale(u, 0.0) == {}
+
+    # vec_axpy: a * x + y
+    assert vec_axpy(0.0, u, v) == {'b': 2.0, 'c': 1.0, 'd': 4.0}
+    assert vec_axpy(1.0, u, v) == added
+    assert vec_axpy(-0.5, {'a': 2.0}, {'a': 1.0, 'b': 3.0}) == {'b': 3.0}
+
+    # vec_norm: L2, L1, L_inf, general p, empty, and invalid p
+    vec34 = {'x': 3.0, 'y': -4.0}
+    assert vec_norm(vec34) == pytest.approx(5.0)
+    assert vec_norm(vec34, p=1) == pytest.approx(7.0)
+    assert vec_norm(vec34, p=math.inf) == pytest.approx(4.0)
+    assert vec_norm(vec34, p=3) == pytest.approx((27.0 + 64.0) ** (1.0 / 3.0))
+    assert vec_norm({}) == 0.0
+    assert vec_norm({}, p=math.inf) == 0.0
+
+    with pytest.raises(ValueError, match='p must be positive'):
+        vec_norm(vec34, p=0)
+
+    # vec_clean
+    noisy = {'a': 1.0, 'b': 1e-16, 'c': -1e-15}
+    assert vec_clean(noisy, tol=1e-14) == {'a': 1.0}
