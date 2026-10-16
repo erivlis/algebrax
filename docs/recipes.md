@@ -299,6 +299,14 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Topological Neural Networks & Hodge Flow Denoising
+* **Files**: [`topological_neural_network.py`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_neural_network.py) | [`topological_neural_network.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_neural_network.ipynb)
+* **Run**: `uv run recipes/topological_neural_network.py`
+* **Components**: `homology.SimplicialComplex`, `homology.helmholtz_hodge_decomposition`, `matrix.core.dot`, `matrix.core.mat_vec`, `matrix.core.transpose`
+* **Summary**: Generalizes graph neural networks to cellular domains through a Simplicial Convolutional Network (SCNN). Computes lower ($L_1^{\text{down}} = B_1^T B_1$) and upper ($L_1^{\text{up}} = B_2 B_2^T$) Hodge 1-Laplacians across a triangulated annulus with non-trivial homology ($\beta_1 = 1$), trains filter weights via gradient descent to denoise missing/corrupted physical edge flows, and audits harmonic loop preservation vs. divergence suppression using Helmholtz-Hodge decomposition.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
