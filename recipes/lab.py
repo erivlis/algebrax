@@ -207,7 +207,6 @@ When adding a new Use Case experiment view to `recipes/lab.py`:
    ```
 """
 
-import cmath
 import json
 import math
 import os
@@ -243,10 +242,7 @@ from recipes.clifford_rotor_kinematics import (  # noqa: E402
     compute_geometric_magnitude,
 )
 from recipes.distributed_vector_clocks import (  # noqa: E402
-    compare_vector_clocks,
-    compute_causal_dag_analysis,
     compute_causality_matrix,
-    merge_vector_clocks,
     simulate_distributed_cluster,
     synchronize_crdt_replicas,
 )
@@ -257,16 +253,15 @@ from recipes.extreme_risk_tail_moments import (  # noqa: E402
 )
 from recipes.financial_risk_portfolio import (  # noqa: E402
     compute_portfolio_centralities,
-    evaluate_portfolio_path_variance,
     simulate_trading_strategy,
 )
-from recipes.forward_mode_autodiff import DualNumber, evaluate_dual, evaluate_dual_graph  # noqa: E402
-from recipes.functional_autograd_engine import Value, build_and_evaluate_dag  # noqa: E402
+from recipes.forward_mode_autodiff import evaluate_dual, evaluate_dual_graph  # noqa: E402
+from recipes.functional_autograd_engine import build_and_evaluate_dag  # noqa: E402
 from recipes.galois_field_cryptography import (  # noqa: E402
     gf_mix_columns,
     gf_multiply,
 )
-from recipes.nlp_provenance_parser import GrammarSemiring, parse_cyk  # noqa: E402
+from recipes.nlp_provenance_parser import parse_cyk  # noqa: E402
 from recipes.optical_holography_simulation import (  # noqa: E402
     record_hologram,
 )
@@ -276,7 +271,6 @@ from recipes.post_quantum_crypto_exchange import (  # noqa: E402
 from recipes.quantum_feynman_path_integral import (  # noqa: E402
     simulate_aharonov_bohm_effect,
     simulate_double_slit,
-    simulate_two_path_interference,
 )
 from recipes.relativistic_dirac_spinor import (  # noqa: E402
     boost_spinor,
@@ -292,10 +286,7 @@ from recipes.rubiks_cube_group_solver import (  # noqa: E402
 from recipes.sheaf_cohomology_consensus import (  # noqa: E402
     simulate_sheaf_consensus,
 )
-from recipes.sparse_neural_backprop import SparseLinearLayer, SparseMLP, train_sparse_mlp  # noqa: E402
-from recipes.spectral_graph_clustering import (  # noqa: E402
-    collaboration_network as spectral_default_network,
-)
+from recipes.sparse_neural_backprop import SparseMLP, train_sparse_mlp  # noqa: E402
 from recipes.spectral_graph_clustering import (  # noqa: E402
     compute_spectral_clustering,
     simulate_manifold_diffusion,
@@ -332,11 +323,11 @@ dragged_node: int | str | None = None
 
 # --- UI Helper Utilities ---
 def create_bordered_table(
-    tag: str,
-    columns: list[str] | None = None,
-    width: int | None = None,
-    height: int | None = None,
-    parent: str | int | None = None,
+        tag: str,
+        columns: list[str] | None = None,
+        width: int | None = None,
+        height: int | None = None,
+        parent: str | int | None = None,
 ) -> int | str:
     """Helper to create a standard bordered table in DearPyGui with optional fixed columns."""
     kwargs: dict[str, Any] = {
@@ -385,13 +376,13 @@ def display_matrix_in_table(matrix: Mapping[Any, Mapping[Any, Any]], table_tag: 
         sorted_cols: list[Any] = sorted(cols)
 
         with dpg.table(
-            tag=table_tag,
-            parent=container_tag,
-            header_row=True,
-            borders_innerH=True,
-            borders_innerV=True,
-            borders_outerH=True,
-            borders_outerV=True,
+                tag=table_tag,
+                parent=container_tag,
+                header_row=True,
+                borders_innerH=True,
+                borders_innerV=True,
+                borders_outerH=True,
+                borders_outerV=True,
         ):
             dpg.add_table_column(label='Row/Col')
             for col in sorted_cols:
@@ -606,7 +597,6 @@ def run_crypto_exchange() -> None:
 
 
 def run_trie_operations() -> None:
-
     try:
         trie: ax.trie.AlgebraicTrie[Any, float] = ax.trie.AlgebraicTrie(semiring=ax.semiring.StandardSemiring)
         points_str: str = dpg.get_value('trie_points_input')
@@ -724,10 +714,10 @@ def automata_type_callback(sender: int | str, app_data: str) -> None:
 
 
 def _simulate_dfa_step_by_step(
-    seq: list[str],
-    start_str: str,
-    accept_states: list[Any],
-    transitions: dict[Any, dict[Any, Any]],
+        seq: list[str],
+        start_str: str,
+        accept_states: list[Any],
+        transitions: dict[Any, dict[Any, Any]],
 ) -> tuple[list[str], str, tuple[int, int, int]]:
     start_state: Any = start_str.strip().strip('"').strip("'")
     if isinstance(start_state, str) and start_state.isdigit():
@@ -767,10 +757,10 @@ def _simulate_dfa_step_by_step(
 
 
 def _simulate_nfa_step_by_step(
-    seq: list[str],
-    start_str: str,
-    accept_states: list[Any],
-    transitions: dict[Any, dict[Any, Any]],
+        seq: list[str],
+        start_str: str,
+        accept_states: list[Any],
+        transitions: dict[Any, dict[Any, Any]],
 ) -> tuple[list[str], str, tuple[int, int, int]]:
     start_states: Any = json.loads(start_str)
     if isinstance(start_states, str):
@@ -1010,7 +1000,6 @@ def run_blackhole_sim() -> None:
 
 
 def run_sparse_tensor_einsum() -> None:
-
     subscripts: str = dpg.get_value('tensor_subscripts')
     semiring_name: str = dpg.get_value('tensor_semiring')
     a_str: str = dpg.get_value('tensor_a_input')
@@ -1095,7 +1084,6 @@ def run_knot_theory() -> None:
 
 
 def run_optical_holography() -> None:
-
     ref_phase: float = float(dpg.get_value('hologram_ref_phase'))
     object_str: str = dpg.get_value('hologram_object_input')
 
@@ -1304,7 +1292,6 @@ def run_gaussian_splatting() -> None:
 
 
 def run_topological_homology() -> None:
-
     try:
         preset: str = dpg.get_value('homology_preset')
         dpg.delete_item('homology_canvas', children_only=True)
@@ -1358,7 +1345,7 @@ def run_clifford_geometric_algebra() -> None:
 
         v = {(1,): e1, (2,): e2}
         mag = compute_geometric_magnitude(v, p=3, q=0, r=0)
-        v_sq_val = mag**2
+        v_sq_val = mag ** 2
 
         bivector = (1, 2) if plane == 'e12 Plane (XY)' else ((2, 3) if plane == 'e23 Plane (YZ)' else (3, 1))
         v_rot = apply_rotor_rotation(v, angle_rad=math.radians(angle_deg), plane=bivector, p=3, q=0, r=0)
@@ -2673,12 +2660,12 @@ def open_file_dialog_callback(sender: int | str, app_data: Any) -> None:
             load_image_file_into_lab(filepath)
 
     with dpg.file_dialog(
-        directory_selector=False,
-        show=True,
-        callback=file_selected_callback,
-        width=700,
-        height=400,
-        modal=True,
+            directory_selector=False,
+            show=True,
+            callback=file_selected_callback,
+            width=700,
+            height=400,
+            modal=True,
     ):
         dpg.add_file_extension('.*', color=(255, 255, 255, 255))
         dpg.add_file_extension('.png', color=(0, 255, 0, 255))
@@ -2795,15 +2782,15 @@ def run_image_convolution_2d() -> None:
 
 def _all_node_pairs(nodes: list[int | str]) -> Iterator[tuple[int | str, int | str]]:
     for i, u in enumerate(nodes):
-        for v in nodes[i + 1 :]:
+        for v in nodes[i + 1:]:
             yield (u, v)
 
 
 def _apply_pairwise_forces(
-    pairs: Iterable[tuple[int | str, int | str]],
-    force_func: Callable[[float], float],
-    forces: dict[int | str, list[float]],
-    epsilon: float = 1e-4,
+        pairs: Iterable[tuple[int | str, int | str]],
+        force_func: Callable[[float], float],
+        forces: dict[int | str, list[float]],
+        epsilon: float = 1e-4,
 ) -> None:
     for u, v in pairs:
         dx = pos[u][0] - pos[v][0]
@@ -5052,12 +5039,12 @@ dpg.bind_theme(global_theme)
 # --- Main Window Builder ---
 def main() -> None:
     with dpg.window(
-        label='AlgebraX Graphical Lab',
-        width=1180,
-        height=860,
-        no_title_bar=True,
-        no_move=True,
-        no_resize=True,
+            label='AlgebraX Graphical Lab',
+            width=1180,
+            height=860,
+            no_title_bar=True,
+            no_move=True,
+            no_resize=True,
     ) as main_window:
         dpg.add_text('ALGEBRAX GRAPHICAL LABORATORY', color=(150, 180, 255))
         dpg.add_separator()
