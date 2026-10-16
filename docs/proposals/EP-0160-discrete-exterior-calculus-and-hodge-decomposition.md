@@ -2,7 +2,7 @@
 title: "EP-0160: Discrete Exterior Calculus & Helmholtz-Hodge Flow Decomposition"
 description: "Establishes Discrete Exterior Calculus (DEC) and the Helmholtz-Hodge flow decomposition on simplicial and network complexes."
 icon: lucide/triangle
-status: draft
+status: final
 ---
 
 # EP-0160: Discrete Exterior Calculus & Helmholtz-Hodge Flow Decomposition
@@ -14,7 +14,7 @@ status: draft
 | **Author**   | Eran Rivlis & Antigravity (The Explorer)                                                  |
 | **Sponsor**  | The Council                                                                               |
 | **Delegate** | ⚖️ Emmy Noether (Symmetry), ⚡ Claude Shannon (Efficiency) & 💡 Richard Feynman (Clarity) |
-| **Status**   | Draft                                                                                     |
+| **Status**   | Final                                                                                     |
 | **Type**     | Standards Track                                                                           |
 | **Created**  | 2026-09-08                                                                                |
 | **Updated**  | 2026-10-16                                                                                |

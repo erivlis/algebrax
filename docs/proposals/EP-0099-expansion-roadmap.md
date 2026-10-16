@@ -88,11 +88,11 @@ flowchart TD
     P35 --> P4
 
     subgraph P4["Phase 4 — Algebraic Continents & Next Frontiers (EXP-0001)"]
-        EP0160_N["EP-0160 Discrete Exterior Calculus (DEC) 📝\n⚖️ Noether & ⚡ Shannon"]
+        EP0160_N["EP-0160 Discrete Exterior Calculus (DEC) ✅\n⚖️ Noether & ⚡ Shannon"]
         EP0161_N["EP-0161 Cellular Sheaves & Laplacians 💡\n🧩 Russell & 🤝 Steward"]
         EP0162_N["EP-0162 Persistent Homology (TDA) 💡\n🔬 Popper & 🧭 Explorer"]
         EP0163_N["EP-0163 Lie Algebras & BCH Dynamics ✅\n⚖️ Noether & 🛡️ Golem"]
-        EP0164_N["EP-0164 Root Systems & Chevalley 📝\n⚖️ Noether & ⚡ Shannon"]
+        EP0164_N["EP-0164 Root Systems & Chevalley ✅\n⚖️ Noether & ⚡ Shannon"]
     end
 
     EP0152_N --> EP0160_N
@@ -227,7 +227,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0151** | Algebraic PageRank            | Shannon & Noether | `algebrax.analysis`                 | Final    | Sparse semiring contraction solver, random walk with restart, PPR              |
 | **EP-0152** | Spectral Graph Theory         | Noether & Shannon | `algebrax.analysis`                 | Final    | Graph Laplacians (unnormalized, sym, rw), Fiedler vector, cuts, smoothing      |
 | **EP-0153** | Semiring Matrix & Cochain Sym | Noether & Shannon | `matrix`, `analysis`, `homology`    | Final    | Semiring `add`/`trace`, `vec_*` primitives, `Cochain` carrier, AMDS cleanup    |
-| **EP-0160** | Discrete Exterior Calculus    | Noether & Shannon | `algebrax.homology` / `dec`         | Draft    | $\Omega^k$ forms, exterior derivative $d$, Hodge star $\star$, Helmholtz-Hodge |
+| **EP-0160** | Discrete Exterior Calculus    | Noether & Shannon | `algebrax.homology` / `analysis`    | Final    | $\Omega^k$ forms, exterior derivative $d$, Hodge star $\star$, Helmholtz-Hodge |
 | **EP-0161** | Cellular Sheaves & Laplacians | Russell & Steward | `algebrax.homology`                 | Queued   | `CellularSheaf`, coboundary $\delta$, sheaf Laplacian, consensus dynamics      |
 | **EP-0162** | Persistent Homology (TDA)     | Popper & Explorer | `algebrax.homology`                 | Queued   | Simplicial filtrations, boundary reduction over $\mathbb{Z}_2$, barcodes       |
 | **EP-0163** | Lie Algebras & BCH Dynamics   | Noether & Golem   | `algebrax.lie`                      | Final    | `LieAlgebra`, `StructureConstants`, `so3`, `sl2`, `se3`, BCH solver            |
