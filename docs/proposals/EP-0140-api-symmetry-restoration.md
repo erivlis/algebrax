@@ -36,11 +36,14 @@ and preventing verification of factorization correctness.
 def recompose_lu(P: SparseMatrix, L: SparseMatrix, U: SparseMatrix) -> SparseMatrix:
     """Reconstruct A from LU factorization: A = P^T @ L @ U"""
 
+
 def recompose_qr(Q: SparseMatrix, R: SparseMatrix) -> SparseMatrix:
     """Reconstruct A from QR factorization: A = Q @ R"""
 
+
 def recompose_svd(U: SparseMatrix, S: SparseVector, V_T: SparseMatrix) -> SparseMatrix:
     """Reconstruct A from SVD: A = U @ diag(S) @ V_T"""
+
 
 def recompose_cholesky(L: SparseMatrix) -> SparseMatrix:
     """Reconstruct A from Cholesky: A = L @ L^T"""
@@ -52,8 +55,10 @@ def recompose_cholesky(L: SparseMatrix) -> SparseMatrix:
 def iwalsh_hadamard(signal: SparseVector, n: int | None = None) -> SparseVector:
     """Inverse Walsh-Hadamard transform: X_k = (1/N) * WHT(x)_k"""
 
+
 def iz_transform(X: Callable, signal_length: int, radius: float = 1.0) -> SparseVector:
     """Inverse Z-transform via contour integration approximation."""
+
 
 def deconvolve(signal: SparseVector, kernel: SparseVector) -> SparseVector:
     """Spectral deconvolution: recover f from g = f * kernel via DFT division."""
@@ -71,6 +76,7 @@ def unpermute_tensor(tensor: SparseTensor, axes: tuple[int, ...], original_axes:
 ```python
 def coboundary(complex: SparseChainComplex, k: int) -> SparseMatrix:
     """Coboundary operator d^k = D_{k+1}^T : C^k -> C^{k+1}"""
+
 
 def cohomology_rank(complex: SparseChainComplex, k: int) -> int:
     """Compute k-th cohomology rank: dim(ker d^k) - dim(im d^{k-1})"""

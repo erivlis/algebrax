@@ -11,13 +11,13 @@ import algebrax as ax
 trie = ax.trie.AlgebraicTrie(ax.semiring.StandardSemiring)
 
 # Add paths
-trie.add(["home", "user", "docs"], 1)
-trie.add(["home", "user", "pics"], 1)
-trie.add(["home", "bin"], 1)
+trie.add(['home', 'user', 'docs'], 1)
+trie.add(['home', 'user', 'pics'], 1)
+trie.add(['home', 'bin'], 1)
 
 # Contract (Sum) over a prefix
 # Sum of all paths starting with "home/user"
-count = trie.contract(["home", "user"])
+count = trie.contract(['home', 'user'])
 print(count)
 # output: 2.0
 ```

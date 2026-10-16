@@ -146,10 +146,10 @@ These helpers import `CliffordSemiring` / `GaloisFieldSemiring` from the semirin
 
 ```python
 # These all continue to work unchanged:
-from algebrax.semiring import TropicalSemiring        # ✅ via __init__.py re-export
-from algebrax.semiring import CliffordSemiring         # ✅ via __init__.py re-export
-from algebrax import CliffordSemiring                  # ✅ via algebrax.__init__.py
-from algebrax.clifford import CliffordSemiring         # ✅ via thin wrapper re-export
+from algebrax.semiring import TropicalSemiring  # ✅ via __init__.py re-export
+from algebrax.semiring import CliffordSemiring  # ✅ via __init__.py re-export
+from algebrax import CliffordSemiring  # ✅ via algebrax.__init__.py
+from algebrax.clifford import CliffordSemiring  # ✅ via thin wrapper re-export
 ```
 
 ## Deliverables

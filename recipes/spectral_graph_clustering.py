@@ -134,12 +134,12 @@ def run_demo() -> None:
         d_u = results['lap_comb'][u].get(u, 0.0)
         print(f'  Node {u}: Degree d_{u} = {d_u:.1f}')
 
-    print(f"\nAlgebraic Connectivity (lambda_2): {results['lambda_2']:.6f}")
+    print(f'\nAlgebraic Connectivity (lambda_2): {results["lambda_2"]:.6f}')
 
     print('\nFiedler Vector v_2 (Cluster Embedding):')
     for u in sorted(results['fiedler'].keys()):
         cluster_hint = 'Cluster A' if results['fiedler'][u] >= 0 else 'Cluster B'
-        print(f"  Node {u} [{researchers[u]}]: v_2 = {results['fiedler'][u]:+.4f} [{cluster_hint}]")
+        print(f'  Node {u} [{researchers[u]}]: v_2 = {results["fiedler"][u]:+.4f} [{cluster_hint}]')
 
     print('\nSpectral Bipartition Results:')
     print('  Cluster A (AI Lab):', sorted(results['cluster_a']))
@@ -166,7 +166,7 @@ def run_demo() -> None:
     print('\nFull Laplacian Spectrum:')
     for idx, val in enumerate(results['eigenvalues']):
         print(f'  lambda_{idx + 1} = {val:.4f}')
-    print(f"\nSpectral Gap (lambda_2 - lambda_1): {results['spectral_gap']:.4f}")
+    print(f'\nSpectral Gap (lambda_2 - lambda_1): {results["spectral_gap"]:.4f}')
 
 
 def main() -> None:

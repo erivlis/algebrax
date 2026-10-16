@@ -27,27 +27,27 @@ import algebrax as ax
 
 # 1. Cholesky Decomposition
 A_spd = {
-    "0": {"0": 4.0, "1": 12.0},
-    "1": {"0": 12.0, "1": 37.0},
+    '0': {'0': 4.0, '1': 12.0},
+    '1': {'0': 12.0, '1': 37.0},
 }
 L = ax.matrix.cholesky(A_spd)
-print("Cholesky L:", L)
-print("L @ L^T == A:", ax.matrix.dot(L, ax.matrix.transpose(L)) == A_spd)
+print('Cholesky L:', L)
+print('L @ L^T == A:', ax.matrix.dot(L, ax.matrix.transpose(L)) == A_spd)
 
 # 2. LU Decomposition
 A = {
-    "0": {"0": 1.0, "1": 2.0, "2": 4.0},
-    "1": {"0": 3.0, "1": 8.0, "2": 14.0},
-    "2": {"0": 2.0, "1": 6.0, "2": 13.0},
+    '0': {'0': 1.0, '1': 2.0, '2': 4.0},
+    '1': {'0': 3.0, '1': 8.0, '2': 14.0},
+    '2': {'0': 2.0, '1': 6.0, '2': 13.0},
 }
 P, L, U = ax.matrix.lu(A)
-print("P @ A == L @ U:", ax.matrix.dot(P, A) == ax.matrix.dot(L, U))
+print('P @ A == L @ U:', ax.matrix.dot(P, A) == ax.matrix.dot(L, U))
 
 # 3. QR Decomposition
 Q, R = ax.matrix.qr(A)
-print("Q @ R == A:", ax.matrix.dot(Q, R) == A)
+print('Q @ R == A:', ax.matrix.dot(Q, R) == A)
 
 # 4. Truncated SVD (Top k=1 singular component)
 U1, S1, VT1 = ax.matrix.svd(A, k=1)
-print("Top Singular Value:", S1[0])
+print('Top Singular Value:', S1[0])
 ```

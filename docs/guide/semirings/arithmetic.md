@@ -60,16 +60,16 @@ import algebrax as ax
 z5 = ax.semiring.ModularSemiring(p=5)
 
 # Ring operations in Z_5
-print("3 + 4 mod 5:", z5.add(3, 4))    # 2
-print("3 * 4 mod 5:", z5.mul(3, 4))    # 2
-print("2^4 mod 5:  ", z5.power(2, 4))  # 1
+print('3 + 4 mod 5:', z5.add(3, 4))  # 2
+print('3 * 4 mod 5:', z5.mul(3, 4))  # 2
+print('2^4 mod 5:  ', z5.power(2, 4))  # 1
 
 # Matrix multiplication over Z_5
 A = {0: {0: 3, 1: 4}, 1: {0: 2, 1: 1}}
 B = {0: {0: 2, 1: 1}, 1: {0: 4, 1: 3}}
 
 C = ax.matrix.dot(A, B, semiring=z5)
-print("A @ B over Z_5:", C)
+print('A @ B over Z_5:', C)
 ```
 
 ---

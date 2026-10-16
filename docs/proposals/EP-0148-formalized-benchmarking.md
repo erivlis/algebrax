@@ -83,8 +83,8 @@ import pytest
 import algebrax as ax
 
 
-@pytest.mark.benchmark(group="matrix-dot")
-@pytest.mark.parametrize("density", [0.05, 0.25, 0.50, 0.75])
+@pytest.mark.benchmark(group='matrix-dot')
+@pytest.mark.parametrize('density', [0.05, 0.25, 0.50, 0.75])
 def test_benchmark_matrix_dot(benchmark, density):
     A = generate_sparse_matrix(100, 100, density)
     B = generate_sparse_matrix(100, 100, density)

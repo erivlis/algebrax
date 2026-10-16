@@ -64,19 +64,19 @@ from algebrax import lie
 
 # Initialize so(3) algebra
 alg = lie.so3()
-print(f"Dimension: {alg.dim}, Generators: {alg.basis_names}")
+print(f'Dimension: {alg.dim}, Generators: {alg.basis_names}')
 # Output: Dimension: 3, Generators: ['J_x', 'J_y', 'J_z']
 
 # Commutator [J_x, J_y] = J_z
 comm = alg.bracket({'J_x': 1.0}, {'J_y': 1.0})
-print("Commutator [J_x, J_y]:", alg.to_named(comm))
+print('Commutator [J_x, J_y]:', alg.to_named(comm))
 # Output: {'J_z': 1.0}
 
 # Equivalence to vector cross product u x v
 u = [1.0, 0.0, 0.0]  # x-axis
 v = [0.0, 1.0, 0.0]  # y-axis
 cross = alg.bracket(u, v)
-print("u x v:", cross)
+print('u x v:', cross)
 # Output: {2: 1.0} (z-axis)
 ```
 
@@ -84,15 +84,15 @@ print("u x v:", cross)
 
 ```python
 # Check Cartan's criterion
-print("Is so(3) semisimple?", alg.is_semisimple())
+print('Is so(3) semisimple?', alg.is_semisimple())
 # Output: True
 
-print("Killing matrix for so(3):", alg.killing_matrix())
+print('Killing matrix for so(3):', alg.killing_matrix())
 # Output: {0: {0: -2.0}, 1: {1: -2.0}, 2: {2: -2.0}} (-2 * I_3)
 
 # se(3) contains translations forming an abelian ideal
 se3_alg = lie.se3()
-print("Is se(3) semisimple?", se3_alg.is_semisimple())
+print('Is se(3) semisimple?', se3_alg.is_semisimple())
 # Output: False
 ```
 
@@ -105,7 +105,7 @@ omega_2 = {'J_y': 0.05}
 
 # Compute compound step up to order 4
 z = alg.bch(omega_1, omega_2, order=4)
-print("Compound BCH generator step:", alg.to_named(z))
+print('Compound BCH generator step:', alg.to_named(z))
 # Output: {'J_x': 0.049958..., 'J_y': 0.049958..., 'J_z': 0.00125}
 ```
 
@@ -116,13 +116,13 @@ $\mathfrak{su}(2)$ is represented by $2 \times 2$ skew-Hermitian traceless matri
 ```python
 # Initialize su(2) from complex skew-Hermitian matrices
 su2_alg = lie.su2()
-print(f"su(2) dim: {su2_alg.dim}, Generators: {su2_alg.basis_names}")
+print(f'su(2) dim: {su2_alg.dim}, Generators: {su2_alg.basis_names}')
 # Output: su(2) dim: 3, Generators: ['J_x', 'J_y', 'J_z']
 
 # [J_x, J_y] = J_z
-print("Commutator [J_x, J_y]:", su2_alg.to_named(su2_alg.bracket({'J_x': 1.0}, {'J_y': 1.0})))
+print('Commutator [J_x, J_y]:', su2_alg.to_named(su2_alg.bracket({'J_x': 1.0}, {'J_y': 1.0})))
 # Output: {'J_z': 1.0}
-print("Is su(2) semisimple?", su2_alg.is_semisimple())
+print('Is su(2) semisimple?', su2_alg.is_semisimple())
 # Output: True
 ```
 
@@ -131,8 +131,8 @@ print("Is su(2) semisimple?", su2_alg.is_semisimple())
 ```python
 # Bivectors of Cl(3, 0) form an isomorphic so(3) algebra
 cliff_lie = lie.clifford_lie_algebra(p=3, q=0)
-print(f"Clifford Lie Algebra dim: {cliff_lie.dim}, Generators: {cliff_lie.basis_names}")
+print(f'Clifford Lie Algebra dim: {cliff_lie.dim}, Generators: {cliff_lie.basis_names}')
 # Output: Clifford Lie Algebra dim: 3, Generators: ['e_01', 'e_02', 'e_12']
-print("Jacobi identity satisfied?", cliff_lie.structure_constants.verify_jacobi())
+print('Jacobi identity satisfied?', cliff_lie.structure_constants.verify_jacobi())
 # Output: True
 ```

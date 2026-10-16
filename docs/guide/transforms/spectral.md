@@ -39,12 +39,12 @@ import algebrax as ax
 f = {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0}
 wht = ax.transforms.walsh_hadamard(f, n=4)
 
-print("Walsh-Hadamard Spectrum:", wht)
+print('Walsh-Hadamard Spectrum:', wht)
 # Output: {0: 10.0, 1: -4.0, 2: -2.0, 3: 0.0}
 
 # Dual Self-Inverse Property: WHT(WHT(f)) / N = f
 reconstructed = {k: v / 4.0 for k, v in ax.transforms.walsh_hadamard(wht, n=4).items()}
-print("Reconstructed Signal:   ", reconstructed)
+print('Reconstructed Signal:   ', reconstructed)
 # Output: {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0}
 ```
 
@@ -62,15 +62,19 @@ By swapping the underlying algebraic semiring, `convolve` performs non-linear **
 ```python linenums="1"
 import algebrax as ax
 
+
 def add_2d(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
     return (p1[0] + p2[0], p1[1] + p2[1])
+
 
 image = {(3, 3): 1.0, (3, 4): 1.0, (4, 3): 1.0, (4, 4): 1.0}
 
 # 3x3 Cross Footprint Kernel
 cross_kernel = {
     (-1, 0): 0.0,
-    (0, -1): 0.0, (0, 0): 0.0, (0, 1): 0.0,
+    (0, -1): 0.0,
+    (0, 0): 0.0,
+    (0, 1): 0.0,
     (1, 0): 0.0,
 }
 
@@ -82,7 +86,7 @@ dilated = ax.transforms.convolve(
     semiring=ax.semiring.ArcticSemiring(),
 )
 
-print(f"Dilated image contains {len(dilated)} non-zero pixels (expanded footprint).")
+print(f'Dilated image contains {len(dilated)} non-zero pixels (expanded footprint).')
 assert len(dilated) == 12
 ```
 
@@ -105,7 +109,7 @@ signal = {0: 0, 1: 1, 2: 4, 3: 9}  # f(x) = x^2
 # f*(s) = sup(s*x - f(x))
 # at s=2: max(2*0-0, 2*1-1, 2*2-4, 2*3-9) = max(0, 1, 0, -3) = 1
 val = ax.transforms.legendre_fenchel(signal, slope=2)
-print(f"Convex Conjugate at slope 2: {val}")
+print(f'Convex Conjugate at slope 2: {val}')
 ```
 
 ---

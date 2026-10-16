@@ -48,7 +48,7 @@ int_semiring = ax.semiring.StandardSemiring(int)
 string_algebra = ax.semiring.MonoidAlgebraSemiring(
     coeff_semiring=int_semiring,
     key_op=lambda a, b: a + b,
-    zero_key="",
+    zero_key='',
 )
 
 # 3. Define formal linear combinations
@@ -135,7 +135,7 @@ p1 = {0: 1.0, 1: 1.0}
 p2 = {0: 1.0, 1: 1.0}
 
 result = semiring.mul(p1, p2)
-print("Result of (1+x)^2 mod (x^2+1):", result)
+print('Result of (1+x)^2 mod (x^2+1):', result)
 # Output: {1: 2.0}
 ```
 
@@ -186,12 +186,12 @@ p2 = {0: 3, 2: 4}
 # Addition: (1 + 2x) + (3 + 4x^2) = 4 + 2x + 4x^2
 added = poly_semiring.add(p1, p2)
 # Result: {0: 4, 1: 2, 2: 4}
-print(f"p1 + p2 = {added}")
+print(f'p1 + p2 = {added}')
 
 # Multiplication: (1 + 2x) * (3 + 4x^2) = 3 + 6x + 4x^2 + 8x^3
 multiplied = poly_semiring.mul(p1, p2)
 # Result: {0: 3, 1: 6, 2: 4, 3: 8}
-print(f"p1 * p2 = {multiplied}")
+print(f'p1 * p2 = {multiplied}')
 ```
 
 ## Use Cases
@@ -217,10 +217,7 @@ import algebrax as ax
 # 0 -> 1 (label 'x')
 # 1 -> 2 (label 'y')
 # 0 -> 2 (label 'z')
-graph = {
-    0: {1: {('x',): 1}, 2: {('z',): 1}},
-    1: {2: {('y',): 1}}
-}
+graph = {0: {1: {('x',): 1}, 2: {('z',): 1}}, 1: {2: {('y',): 1}}}
 
 # Paths of length 2
 # 0->1->2: x * y = xy
@@ -296,14 +293,14 @@ b = {'3_1': 1, '5_2': -1}
 # Addition: (2*3_1 + 4_1) + (3_1 - 5_2) = 3*3_1 + 4_1 - 5_2
 added = knot_semiring.add(a, b)
 # Result: {'3_1': 3, '4_1': 1, '5_2': -1}
-print(f"Addition over Integers: {added}")
+print(f'Addition over Integers: {added}')
 
 # Multiplication (Connected Sum): (2*3_1 + 4_1) # 3_1
 # = 2 * (3_1 # 3_1) + 1 * (4_1 # 3_1)
 # = 2 * (3_1#3_1) + 1 * (3_1#4_1)
 multiplied = knot_semiring.mul(a, {'3_1': 1})
 # Result: {'3_1#3_1': 2, '3_1#4_1': 1}
-print(f"Multiplication over Integers: {multiplied}")
+print(f'Multiplication over Integers: {multiplied}')
 ```
 
 ### Example 2: Custom Coefficient Semiring (Real Numbers)
@@ -328,12 +325,12 @@ b = {'3_1': 0.5}
 # Addition: 0.5*3_1 + 0.5*3_1 = 1.0*3_1
 added = knot_semiring_float.add(a, b)
 # Result: {'3_1': 1.0}
-print(f"Addition over Floats: {added}")
+print(f'Addition over Floats: {added}')
 
 # Multiplication: (0.5*3_1) # (0.5*3_1) = 0.25 * (3_1#3_1)
 multiplied = knot_semiring_float.mul(a, b)
 # Result: {'3_1#3_1': 0.25}
-print(f"Multiplication over Floats: {multiplied}")
+print(f'Multiplication over Floats: {multiplied}')
 ```
 
 ## Use Cases
@@ -376,7 +373,7 @@ v = {(1,): 3.0, (2,): 4.0}
 
 # Geometric Vector Squared v^2 = |v|^2 = 25.0
 v_sq = cs.mul(v, v)
-print("Vector Squared v^2:", v_sq)
+print('Vector Squared v^2:', v_sq)
 # Output: {(): 25.0}
 
 # Rotate v in e12 bivector plane by 90 degrees (pi/2)
@@ -411,7 +408,7 @@ e1_e2 = gca.mul(e1, e2)  # e1 * e2 = {(1, 1): 1.0 + 0.0j}
 e2_e1 = gca.mul(e2, e1)  # e2 * e1 = {(1, 1): exp(-2*pi*i / 3)}
 
 omega = cmath.exp(2j * cmath.pi / 3)
-print("e1 * e2 == omega * e2 * e1:", cmath.isclose(e1_e2[(1, 1)] / e2_e1[(1, 1)], omega))
+print('e1 * e2 == omega * e2 * e1:', cmath.isclose(e1_e2[(1, 1)] / e2_e1[(1, 1)], omega))
 # Output: True
 ```
 
@@ -436,7 +433,7 @@ e2 = {(0, 1): 1.0 + 0j}
 e1_e2 = qc.mul(e1, e2)  # {(1, 1): 1.0}
 e2_e1 = qc.mul(e2, e1)  # {(1, 1): -0.5}
 
-print("e2 * e1 =", e2_e1)
+print('e2 * e1 =', e2_e1)
 # Output: {(1, 1): (-0.5+0j)}
 ```
 
@@ -465,7 +462,7 @@ gf = ax.galois.GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1)
 
 # Element multiplication: x^4 * x^4 = x^8 mod P(x) = x^4 + x^3 + x + 1
 res_poly = gf.mul({4: 1}, {4: 1})
-print("x^4 * x^4 mod P(x) in GF(2^8):", res_poly)
+print('x^4 * x^4 mod P(x) in GF(2^8):', res_poly)
 # Output: {0: 1, 1: 1, 3: 1, 4: 1}
 
 # Sparse Matrix Multiplication over GF(2^8)
@@ -479,7 +476,7 @@ state = {
 }
 
 out_state = ax.galois.gf_matrix_mul(mix_col, state, p=2)
-print("Transformed AES State:", out_state)
+print('Transformed AES State:', out_state)
 ```
 
 ---

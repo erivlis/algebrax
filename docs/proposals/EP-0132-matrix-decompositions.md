@@ -37,11 +37,14 @@ asymmetry that Noether's pillar demands we resolve.
 def lu(matrix: SparseMatrix) -> tuple[SparseMatrix, SparseMatrix, SparseMatrix]:
     """LU decomposition with partial pivoting: P @ A = L @ U"""
 
+
 def qr(matrix: SparseMatrix) -> tuple[SparseMatrix, SparseMatrix]:
     """QR decomposition via modified Gram-Schmidt: A = Q @ R"""
 
+
 def svd(matrix: SparseMatrix) -> tuple[SparseMatrix, SparseVector, SparseMatrix]:
     """Truncated SVD for sparse matrices: A ≈ U @ diag(S) @ V^T"""
+
 
 def cholesky(matrix: SparseMatrix) -> SparseMatrix:
     """Cholesky decomposition for positive-definite matrices: A = L @ L^T"""

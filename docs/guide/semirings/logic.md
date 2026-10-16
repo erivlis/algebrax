@@ -26,17 +26,13 @@ import algebrax as ax
 # 0 -> 1
 # 1 -> 2
 # 3 -> 4 (Disconnected component)
-graph = {
-    0: {1: True},
-    1: {2: True},
-    3: {4: True}
-}
+graph = {0: {1: True}, 1: {2: True}, 3: {4: True}}
 
 semiring = ax.semiring.BooleanSemiring()
 
 # Reachability in exactly 2 steps
 step2 = ax.matrix.dot(graph, graph, semiring=semiring)
-print(f"0 -> 2 reachable in 2 steps? {step2.get(0, {}).get(2, False)}")
+print(f'0 -> 2 reachable in 2 steps? {step2.get(0, {}).get(2, False)}')
 # output: True
 
 # Full Transitive Closure (Reachability)
@@ -50,13 +46,14 @@ print(f"0 -> 2 reachable in 2 steps? {step2.get(0, {}).get(2, False)}")
 # This makes A^k include all paths of length <= k
 n_nodes = 5
 for i in range(n_nodes):
-    if i not in graph: graph[i] = {}
+    if i not in graph:
+        graph[i] = {}
     graph[i][i] = True
 
 closure = ax.matrix.power(graph, n_nodes, semiring=semiring)
 
-print(f"0 -> 2 reachable? {closure.get(0, {}).get(2, False)}")
-print(f"0 -> 4 reachable? {closure.get(0, {}).get(4, False)}")
+print(f'0 -> 2 reachable? {closure.get(0, {}).get(2, False)}')
+print(f'0 -> 4 reachable? {closure.get(0, {}).get(4, False)}')
 # output: True
 # output: False
 ```
@@ -127,11 +124,11 @@ luk = ax.semiring.LukasiewiczSemiring()
 # Two fuzzy propositions: P(A) = 0.8, P(B) = 0.7
 # Conjunction P(A ∧ B) = max(0, 0.8 + 0.7 - 1) = 0.5
 conj = luk.mul(0.8, 0.7)
-print("Fuzzy Conjunction:", conj)  # 0.5
+print('Fuzzy Conjunction:', conj)  # 0.5
 
 # Disjunction P(A ∨ B) = max(0.8, 0.7) = 0.8
 disj = luk.add(0.8, 0.7)
-print("Fuzzy Disjunction:", disj)  # 0.8
+print('Fuzzy Disjunction:', disj)  # 0.8
 ```
 
 ---
@@ -153,12 +150,12 @@ str_sem = ax.semiring.StringSemiring()
 
 # Transition from Node 0 to Node 1 on {"cat", "dog"}
 # Transition from Node 1 to Node 2 on {"s", "es"}
-trans1 = {"cat", "dog"}
-trans2 = {"s", "es"}
+trans1 = {'cat', 'dog'}
+trans2 = {'s', 'es'}
 
 # Concatenation of languages
 result = str_sem.mul(trans1, trans2)
-print("Generated Words:", sorted(result))
+print('Generated Words:', sorted(result))
 # ["cats", "cates", "dogs", "doges"]
 ```
 
@@ -178,10 +175,10 @@ import algebrax as ax
 k_sem = ax.semiring.KCollapsedSemiring(k=10)
 
 # Saturated Addition
-print("5 + 7 mod k=10:", k_sem.add(5, 7))  # 10
+print('5 + 7 mod k=10:', k_sem.add(5, 7))  # 10
 
 # Saturated Multiplication
-print("3 * 4 mod k=10:", k_sem.mul(3, 4))  # 10
+print('3 * 4 mod k=10:', k_sem.mul(3, 4))  # 10
 ```
 
 ---

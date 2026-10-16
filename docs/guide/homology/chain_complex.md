@@ -36,12 +36,12 @@ assert sc_ring.verify_nilpotency(k=1)
 
 # Compute Betti Numbers
 betti_ring = sc_ring.betti_numbers(max_k=1)
-print(f"1D Ring Betti Numbers: beta_0={betti_ring[0]}, beta_1={betti_ring[1]}")
+print(f'1D Ring Betti Numbers: beta_0={betti_ring[0]}, beta_1={betti_ring[1]}')
 # Output: 1D Ring Betti Numbers: beta_0=1, beta_1=1
 
 # 2. 3D Solid Tetrahedron Topology
 sc_tet = ax.homology.SimplicialComplex([(0, 1, 2, 3)])
 betti_tet = sc_tet.betti_numbers(max_k=2)
-print(f"Solid Tetrahedron Betti Numbers: beta_0={betti_tet[0]}, beta_1={betti_tet[1]}, beta_2={betti_tet[2]}")
+print(f'Solid Tetrahedron Betti Numbers: beta_0={betti_tet[0]}, beta_1={betti_tet[1]}, beta_2={betti_tet[2]}')
 # Output: Solid Tetrahedron Betti Numbers: beta_0=1, beta_1=0, beta_2=0
 ```

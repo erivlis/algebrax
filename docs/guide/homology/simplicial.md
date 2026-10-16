@@ -31,7 +31,7 @@ assert sc.verify_nilpotency(k=1)
 
 # Compute Betti numbers
 betti = sc.betti_numbers(max_k=1)
-print("Betti numbers:", betti)
+print('Betti numbers:', betti)
 # beta_0 = 1 (1 connected component), beta_1 = 1 (1 topological loop)
 ```
 

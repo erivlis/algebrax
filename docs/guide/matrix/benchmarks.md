@@ -59,7 +59,7 @@ A = generate_sparse_matrix(100, 100, density=0.05)
 B = generate_sparse_matrix(100, 100, density=0.05)
 
 t_algebrax = timeit.timeit(lambda: ax.matrix.dot(A, B), number=50)
-print(f"AlgebraX sparse dot execution time (50 runs): {t_algebrax:.4f} s")
+print(f'AlgebraX sparse dot execution time (50 runs): {t_algebrax:.4f} s')
 ```
 
 ---

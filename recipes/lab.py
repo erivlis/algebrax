@@ -323,11 +323,11 @@ dragged_node: int | str | None = None
 
 # --- UI Helper Utilities ---
 def create_bordered_table(
-        tag: str,
-        columns: list[str] | None = None,
-        width: int | None = None,
-        height: int | None = None,
-        parent: str | int | None = None,
+    tag: str,
+    columns: list[str] | None = None,
+    width: int | None = None,
+    height: int | None = None,
+    parent: str | int | None = None,
 ) -> int | str:
     """Helper to create a standard bordered table in DearPyGui with optional fixed columns."""
     kwargs: dict[str, Any] = {
@@ -376,13 +376,13 @@ def display_matrix_in_table(matrix: Mapping[Any, Mapping[Any, Any]], table_tag: 
         sorted_cols: list[Any] = sorted(cols)
 
         with dpg.table(
-                tag=table_tag,
-                parent=container_tag,
-                header_row=True,
-                borders_innerH=True,
-                borders_innerV=True,
-                borders_outerH=True,
-                borders_outerV=True,
+            tag=table_tag,
+            parent=container_tag,
+            header_row=True,
+            borders_innerH=True,
+            borders_innerV=True,
+            borders_outerH=True,
+            borders_outerV=True,
         ):
             dpg.add_table_column(label='Row/Col')
             for col in sorted_cols:
@@ -714,10 +714,10 @@ def automata_type_callback(sender: int | str, app_data: str) -> None:
 
 
 def _simulate_dfa_step_by_step(
-        seq: list[str],
-        start_str: str,
-        accept_states: list[Any],
-        transitions: dict[Any, dict[Any, Any]],
+    seq: list[str],
+    start_str: str,
+    accept_states: list[Any],
+    transitions: dict[Any, dict[Any, Any]],
 ) -> tuple[list[str], str, tuple[int, int, int]]:
     start_state: Any = start_str.strip().strip('"').strip("'")
     if isinstance(start_state, str) and start_state.isdigit():
@@ -757,10 +757,10 @@ def _simulate_dfa_step_by_step(
 
 
 def _simulate_nfa_step_by_step(
-        seq: list[str],
-        start_str: str,
-        accept_states: list[Any],
-        transitions: dict[Any, dict[Any, Any]],
+    seq: list[str],
+    start_str: str,
+    accept_states: list[Any],
+    transitions: dict[Any, dict[Any, Any]],
 ) -> tuple[list[str], str, tuple[int, int, int]]:
     start_states: Any = json.loads(start_str)
     if isinstance(start_states, str):
@@ -1345,7 +1345,7 @@ def run_clifford_geometric_algebra() -> None:
 
         v = {(1,): e1, (2,): e2}
         mag = compute_geometric_magnitude(v, p=3, q=0, r=0)
-        v_sq_val = mag ** 2
+        v_sq_val = mag**2
 
         bivector = (1, 2) if plane == 'e12 Plane (XY)' else ((2, 3) if plane == 'e23 Plane (YZ)' else (3, 1))
         v_rot = apply_rotor_rotation(v, angle_rad=math.radians(angle_deg), plane=bivector, p=3, q=0, r=0)
@@ -2660,12 +2660,12 @@ def open_file_dialog_callback(sender: int | str, app_data: Any) -> None:
             load_image_file_into_lab(filepath)
 
     with dpg.file_dialog(
-            directory_selector=False,
-            show=True,
-            callback=file_selected_callback,
-            width=700,
-            height=400,
-            modal=True,
+        directory_selector=False,
+        show=True,
+        callback=file_selected_callback,
+        width=700,
+        height=400,
+        modal=True,
     ):
         dpg.add_file_extension('.*', color=(255, 255, 255, 255))
         dpg.add_file_extension('.png', color=(0, 255, 0, 255))
@@ -2782,15 +2782,15 @@ def run_image_convolution_2d() -> None:
 
 def _all_node_pairs(nodes: list[int | str]) -> Iterator[tuple[int | str, int | str]]:
     for i, u in enumerate(nodes):
-        for v in nodes[i + 1:]:
+        for v in nodes[i + 1 :]:
             yield (u, v)
 
 
 def _apply_pairwise_forces(
-        pairs: Iterable[tuple[int | str, int | str]],
-        force_func: Callable[[float], float],
-        forces: dict[int | str, list[float]],
-        epsilon: float = 1e-4,
+    pairs: Iterable[tuple[int | str, int | str]],
+    force_func: Callable[[float], float],
+    forces: dict[int | str, list[float]],
+    epsilon: float = 1e-4,
 ) -> None:
     for u, v in pairs:
         dx = pos[u][0] - pos[v][0]
@@ -5039,12 +5039,12 @@ dpg.bind_theme(global_theme)
 # --- Main Window Builder ---
 def main() -> None:
     with dpg.window(
-            label='AlgebraX Graphical Lab',
-            width=1180,
-            height=860,
-            no_title_bar=True,
-            no_move=True,
-            no_resize=True,
+        label='AlgebraX Graphical Lab',
+        width=1180,
+        height=860,
+        no_title_bar=True,
+        no_move=True,
+        no_resize=True,
     ) as main_window:
         dpg.add_text('ALGEBRAX GRAPHICAL LABORATORY', color=(150, 180, 255))
         dpg.add_separator()

@@ -54,11 +54,14 @@ installed. These are **optional** — the core library remains zero-dependency.
 def to_numpy(matrix: SparseMatrix, shape: tuple[int, int] | None = None) -> 'numpy.ndarray':
     """Convert sparse dict matrix to NumPy 2D array."""
 
+
 def from_numpy(arr: 'numpy.ndarray') -> SparseMatrix:
     """Convert NumPy 2D array to sparse dict matrix (zero entries pruned)."""
 
+
 def to_scipy(matrix: SparseMatrix, format: str = 'csr') -> 'scipy.sparse.spmatrix':
     """Convert sparse dict matrix to SciPy sparse matrix."""
+
 
 def from_scipy(sp_matrix: 'scipy.sparse.spmatrix') -> SparseMatrix:
     """Convert SciPy sparse matrix to sparse dict matrix."""
@@ -72,8 +75,10 @@ Added `algebrax.display` module:
 def display_matrix(matrix: SparseMatrix, title: str = '') -> str:
     """Return HTML table representation for Jupyter Notebooks."""
 
+
 def display_vector(vector: SparseVector, title: str = '') -> str:
     """Return HTML representation of a sparse vector."""
+
 
 def display_trie(trie: AlgebraicTrie, max_depth: int = 4) -> str:
     """Return HTML tree representation of an AlgebraicTrie."""

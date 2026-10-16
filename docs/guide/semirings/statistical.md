@@ -53,11 +53,11 @@ log_p2 = math.log(0.5)
 
 # Total probability: 0.3 + 0.5 = 0.8
 log_total = semiring.add(log_p1, log_p2)
-print("Total Probability:", math.exp(log_total))  # 0.8
+print('Total Probability:', math.exp(log_total))  # 0.8
 
 # Cyclic feedback loop with prob 0.2: sum_{k=0}^inf 0.2^k = 1 / 0.8 = 1.25
 star_val = semiring.star(math.log(0.2))
-print("Geometric Series Mass:", math.exp(star_val))  # 1.25
+print('Geometric Series Mass:', math.exp(star_val))  # 1.25
 ```
 
 ---
@@ -85,10 +85,10 @@ path2 = (0.5, 0.5 * 6.0, 0.5 * 36.0, 0.5 * 216.0, 0.5 * 1296.0)
 # Parallel Union of Paths
 bundle = sem.add(path1, path2)
 
-print(f"Mean (μ): {sem.mean(bundle):.2f}")          # 4.00
-print(f"Variance (σ²): {sem.variance(bundle):.2f}")  # 4.00
-print(f"Skewness (γ1): {sem.skewness(bundle):.2f}")  # 0.00 (Symmetric distribution)
-print(f"Kurtosis (β2): {sem.kurtosis(bundle):.2f}")  # 1.00
+print(f'Mean (μ): {sem.mean(bundle):.2f}')  # 4.00
+print(f'Variance (σ²): {sem.variance(bundle):.2f}')  # 4.00
+print(f'Skewness (γ1): {sem.skewness(bundle):.2f}')  # 0.00 (Symmetric distribution)
+print(f'Kurtosis (β2): {sem.kurtosis(bundle):.2f}')  # 1.00
 ```
 
 ---
@@ -125,7 +125,7 @@ e2 = (1.0, 1.0, 4.0, 4.0)
 # Sequential Composition
 seq = bivar_sem.mul(e1, e2)
 p, r, s, t = seq
-print(f"Total Mass: {p}, E[X]: {r/p}, E[Y]: {s/p}, E[XY]: {t/p}")
+print(f'Total Mass: {p}, E[X]: {r / p}, E[Y]: {s / p}, E[XY]: {t / p}')
 ```
 
 ---
@@ -168,10 +168,10 @@ bundle = msem.add(pa, pb)
 means = msem.mean_vector(bundle)
 cov = msem.covariance_matrix(bundle)
 
-print(f"Mean Vector [Latency, Cost]: {means}")  # [2.0, 4.0]
-print(f"Covariance Matrix Σ:")
-print(f"  [{cov[0][0]:.2f}, {cov[0][1]:.2f}]")  # [1.00, 2.00]
-print(f"  [{cov[1][0]:.2f}, {cov[1][1]:.2f}]")  # [2.00, 4.00]
+print(f'Mean Vector [Latency, Cost]: {means}')  # [2.0, 4.0]
+print(f'Covariance Matrix Σ:')
+print(f'  [{cov[0][0]:.2f}, {cov[0][1]:.2f}]')  # [1.00, 2.00]
+print(f'  [{cov[1][0]:.2f}, {cov[1][1]:.2f}]')  # [2.00, 4.00]
 ```
 
 ---

@@ -226,7 +226,7 @@ import inspect
 import re
 from typing import Any, NamedTuple
 
-_SIG_RE = re.compile(r"Algebraic Signature:\s*\$([^$]+)\$")
+_SIG_RE = re.compile(r'Algebraic Signature:\s*\$([^$]+)\$')
 
 
 class AlgebraicMeta(NamedTuple):
@@ -239,7 +239,7 @@ class AlgebraicMeta(NamedTuple):
 
 def extract_algebraic_signature(cls_or_inst: Any) -> str | None:
     """Extract raw LaTeX algebraic signature from an object's docstring."""
-    doc = inspect.getdoc(cls_or_inst) or ""
+    doc = inspect.getdoc(cls_or_inst) or ''
     match = _SIG_RE.search(doc)
     return match.group(1).strip() if match else None
 
@@ -247,9 +247,9 @@ def extract_algebraic_signature(cls_or_inst: Any) -> str | None:
 def get_algebraic_metadata(cls_or_inst: Any) -> AlgebraicMeta:
     """Return structured metadata extracted directly from class docstring."""
     cls = cls_or_inst if isinstance(cls_or_inst, type) else type(cls_or_inst)
-    doc = inspect.getdoc(cls) or ""
-    sig = extract_algebraic_signature(cls) or r"\text{N/A}"
-    summary = doc.split("\n")[0].strip() if doc else cls.__name__
+    doc = inspect.getdoc(cls) or ''
+    sig = extract_algebraic_signature(cls) or r'\text{N/A}'
+    summary = doc.split('\n')[0].strip() if doc else cls.__name__
     return AlgebraicMeta(
         name=cls.__name__,
         target_class=cls,
@@ -269,30 +269,30 @@ def semiring_card(semiring: Any) -> str:
     zero_val = getattr(semiring, 'zero', 'N/A')
     one_val = getattr(semiring, 'one', 'N/A')
 
-    math_block = ""
-    if meta.signature != r"\text{N/A}":
+    math_block = ''
+    if meta.signature != r'\text{N/A}':
         math_block = (
             f"<div style='margin: 8px 0 12px 0; padding: 6px 12px; background: #e2e8f0; "
-            f"border-radius: 6px; font-size: 15px; text-align: center; color: #0f172a; "
+            f'border-radius: 6px; font-size: 15px; text-align: center; color: #0f172a; '
             f"box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);'>"
-            f"$${meta.signature}$$"
-            f"</div>"
+            f'$${meta.signature}$$'
+            f'</div>'
         )
 
     return (
         f"<div style='border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; "
-        f"font-family: system-ui, -apple-system, sans-serif; max-width: 520px; "
+        f'font-family: system-ui, -apple-system, sans-serif; max-width: 520px; '
         f"background-color: #f8fafc; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>"
         f"<div style='font-size: 16px; font-weight: bold; color: #0f172a;'>{meta.name}</div>"
         f"<div style='font-size: 13px; color: #475569; margin-top: 2px;'>{meta.summary}</div>"
-        f"{math_block}"
+        f'{math_block}'
         f"<table style='width: 100%; border-collapse: collapse; font-family: monospace; font-size: 13px;'>"
         f"<tr><td style='color: #64748b; padding: 3px 0;'>Identity &oplus; (zero):</td>"
         f"<td style='font-weight: bold; color: #0369a1;'><code>{zero_val}</code></td></tr>"
         f"<tr><td style='color: #64748b; padding: 3px 0;'>Identity &otimes; (one):</td>"
         f"<td style='font-weight: bold; color: #15803d;'><code>{one_val}</code></td></tr>"
-        f"</table>"
-        f"</div>"
+        f'</table>'
+        f'</div>'
     )
 ```
 
@@ -303,7 +303,7 @@ Add `_repr_latex_` to `Semiring`:
 ```python
 def _repr_latex_(self) -> str:
     sig = extract_algebraic_signature(self)
-    return f"$${sig}$$" if sig else ""
+    return f'$${sig}$$' if sig else ''
 ```
 
 Evaluating any semiring instance in a Jupyter cell now natively renders the mathematical formula.
@@ -329,13 +329,13 @@ def test_all_catalog_semirings_follow_docstring_standard():
     for name, cls in catalog.items():
         doc = inspect.getdoc(cls)
         if not doc:
-            missing.append(f"{name} (missing docstring)")
+            missing.append(f'{name} (missing docstring)')
             continue
         sig = extract_algebraic_signature(cls)
         if not sig:
             missing.append(f"{name} (missing or invalid 'Algebraic Signature: $...$')")
 
-    assert not missing, f"Semirings failing docstring standard: {missing}"
+    assert not missing, f'Semirings failing docstring standard: {missing}'
 
 
 def test_specialized_structures_follow_docstring_standard():

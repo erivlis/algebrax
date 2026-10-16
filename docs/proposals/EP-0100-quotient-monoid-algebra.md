@@ -64,7 +64,7 @@ custom multiplication loops, violating **Shannon's Efficiency** and **Russell's 
 class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T], Generic[K, T]):
     """
     Monoid Algebra Semiring R[M] / I with a quotient reduction function.
-    
+
     Args:
         coeff_semiring: The coefficient semiring R.
         key_op: Key multiplication operation k1 * k2.
@@ -73,11 +73,11 @@ class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T], Generic[K, T]):
     """
 
     def __init__(
-            self,
-            coeff_semiring: Semiring[T],
-            key_op: Callable[[K, K], K],
-            zero_key: K,
-            quotient_fn: Callable[[K, T], Iterable[tuple[K, T]]] | None = None,
+        self,
+        coeff_semiring: Semiring[T],
+        key_op: Callable[[K, K], K],
+        zero_key: K,
+        quotient_fn: Callable[[K, T], Iterable[tuple[K, T]]] | None = None,
     ):
         super().__init__(coeff_semiring, key_op, zero_key)
         self.quotient_fn = quotient_fn or (lambda k, c: [(k, c)])

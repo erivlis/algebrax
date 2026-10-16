@@ -51,11 +51,11 @@ def dot(m1, m2, semiring=None):
 ```python
 from functools import cache
 
+
 class Semiring(Protocol[V]):
     @staticmethod
     @cache
-    def catalog() -> dict[str, type['Semiring']]:
-        ...
+    def catalog() -> dict[str, type['Semiring']]: ...
 ```
 
 Currently re-imports all 24 semiring modules on **every call**. Caching eliminates repeated import overhead.

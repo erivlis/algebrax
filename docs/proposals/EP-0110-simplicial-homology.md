@@ -31,8 +31,8 @@ class SimplicialComplex(SparseChainComplex):
     """
     Simplicial Complex built on SparseChainComplex (EP-0101).
     """
-    def add_simplex(self, simplex: tuple[int, ...]) -> None:
-        ...
+
+    def add_simplex(self, simplex: tuple[int, ...]) -> None: ...
 ```
 
 ### 2. Topological Betti Numbers $\beta_k$

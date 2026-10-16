@@ -186,4 +186,5 @@ def test_benchmark_chevalley_construction(benchmark):
     result = benchmark(chevalley_lie_algebra, rs)
     assert result.dim == 14
 
+
 # endregion

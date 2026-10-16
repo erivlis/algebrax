@@ -341,16 +341,16 @@ To ensure safe, uniform semiring lifecycle management across algorithms and reci
 from algebrax.semiring import Semiring, TropicalSemiring
 
 # 1. Canonical default semiring (StandardSemiring over float or custom dtype)
-s_default = Semiring.default()                # StandardSemiring[float]
+s_default = Semiring.default()  # StandardSemiring[float]
 s_complex = Semiring.default(dtype=complex)  # StandardSemiring[complex]
 
 # 2. Normalize optional semiring parameters in library functions and algorithms
-s1 = Semiring.normalize(None)                 # Resolves to StandardSemiring[float]
-s2 = Semiring.normalize(None, default=TropicalSemiring()) # Resolves to TropicalSemiring
-s3 = Semiring.normalize(TropicalSemiring())   # Returns TropicalSemiring as-is
+s1 = Semiring.normalize(None)  # Resolves to StandardSemiring[float]
+s2 = Semiring.normalize(None, default=TropicalSemiring())  # Resolves to TropicalSemiring
+s3 = Semiring.normalize(TropicalSemiring())  # Returns TropicalSemiring as-is
 
 # 3. Convenience alias
-s4 = Semiring.create("tropical") if False else Semiring.create()
+s4 = Semiring.create('tropical') if False else Semiring.create()
 ```
 
 ### Factory Methods Reference
@@ -372,11 +372,10 @@ import algebrax as ax
 
 # Test all 9 axioms with numerical/sparse equality checks
 results = ax.verification.verify_semiring_laws(
-    semiring=ax.semiring.TropicalSemiring(),
-    samples=[float("inf"), 0.0, 1.5, 4.0, 10.0]
+    semiring=ax.semiring.TropicalSemiring(), samples=[float('inf'), 0.0, 1.5, 4.0, 10.0]
 )
 
-print("Axiom Audit Results:", results)
+print('Axiom Audit Results:', results)
 # Output: {"add_associativity": True, "add_commutativity": True, "add_identity": True, ...}
 ```
 

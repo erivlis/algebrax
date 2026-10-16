@@ -69,9 +69,7 @@ Replaced flawed fallback branch with explicit validation:
 if key not in current:
     current[key] = {}
 elif not isinstance(current[key], dict):
-    raise ValueError(
-        f"Key collision: cannot nest dict under existing non-dict leaf at {keys[: i + 1]}"
-    )
+    raise ValueError(f'Key collision: cannot nest dict under existing non-dict leaf at {keys[: i + 1]}')
 ```
 
 ### 4. Enforce Parameterized Generic Types

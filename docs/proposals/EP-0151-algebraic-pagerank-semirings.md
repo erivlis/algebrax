@@ -145,13 +145,13 @@ where $\mathbf{M}^* = \bigoplus_{k=0}^\infty \mathbf{M}^k$.
 
 ```python
 def pagerank(
-        graph: SparseMatrix[K, V],
-        damping: float = 0.85,
-        personalization: SparseVector[K, float] | None = None,
-        semiring: Semiring[V] | None = None,
-        max_iter: int = 100,
-        tol: float = 1e-6,
-        dangling: SparseVector[K, float] | None = None,
+    graph: SparseMatrix[K, V],
+    damping: float = 0.85,
+    personalization: SparseVector[K, float] | None = None,
+    semiring: Semiring[V] | None = None,
+    max_iter: int = 100,
+    tol: float = 1e-6,
+    dangling: SparseVector[K, float] | None = None,
 ) -> SparseVector[K, V]:
     r"""Compute algebraic PageRank / Random Walk with Restart over a semiring.
 
@@ -201,13 +201,13 @@ def pagerank(
 
 ```python
 def pagerank(
-        graph: SparseMatrix[K, float],
-        damping: float = 0.85,
-        personalization: SparseVector[K, float] | None = None,
-        semiring: Semiring[float] | None = None,
-        max_iter: int = 100,
-        tol: float = 1e-6,
-        dangling: SparseVector[K, float] | None = None,
+    graph: SparseMatrix[K, float],
+    damping: float = 0.85,
+    personalization: SparseVector[K, float] | None = None,
+    semiring: Semiring[float] | None = None,
+    max_iter: int = 100,
+    tol: float = 1e-6,
+    dangling: SparseVector[K, float] | None = None,
 ) -> SparseVector[K, float]:
     nodes = set(graph.keys()) | {dst for row in graph.values() for dst in row}
     if personalization:

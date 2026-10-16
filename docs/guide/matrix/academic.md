@@ -37,20 +37,20 @@ import algebrax as ax
 
 # 1. Square 3x3 Sparse Matrix
 A = {
-    "0": {"0": 1.0, "1": 2.0, "2": 3.0},
-    "1": {"0": 0.0, "1": 1.0, "2": 4.0},
-    "2": {"0": 5.0, "1": 6.0, "2": 0.0},
+    '0': {'0': 1.0, '1': 2.0, '2': 3.0},
+    '1': {'0': 0.0, '1': 1.0, '2': 4.0},
+    '2': {'0': 5.0, '1': 6.0, '2': 0.0},
 }
 
 # 2. Determinant & Inverse
 det_A = ax.matrix.academic.determinant(A)
 inv_A = ax.matrix.academic.inverse(A)
-print(f"det(A) = {det_A}")
-print("A^-1:", inv_A)
+print(f'det(A) = {det_A}')
+print('A^-1:', inv_A)
 
 # 3. Cofactor & Adjugate
 C = ax.matrix.academic.cofactor(A)
 adj_A = ax.matrix.academic.adjoint(A)
-print("Cofactor Matrix:", C)
-print("Adjugate Matrix:", adj_A)
+print('Cofactor Matrix:', C)
+print('Adjugate Matrix:', adj_A)
 ```

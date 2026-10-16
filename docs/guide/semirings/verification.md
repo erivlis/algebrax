@@ -32,11 +32,11 @@ built-in semiring types.
 import algebrax as ax
 
 # Programmatic verification for Tropical ax.semiring.Semiring
-semiring, samples = ax.verification.get_semiring_samples("Tropical")
+semiring, samples = ax.verification.get_semiring_samples('Tropical')
 results = ax.verification.verify_semiring_laws(semiring, samples)
 
 for axiom, passed in results.items():
-    print(f"{axiom:20s}: {'PASS' if passed else 'FAIL'}")
+    print(f'{axiom:20s}: {"PASS" if passed else "FAIL"}')
 ```
 
 ---

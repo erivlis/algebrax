@@ -111,16 +111,18 @@ import functools
 import math
 from algebrax.semiring._base import Semiring
 
+
 @functools.lru_cache(maxsize=32)
 def _get_pascal_table(order: int) -> tuple[tuple[int, ...], ...]:
     return tuple(tuple(math.comb(n, k) for k in range(n + 1)) for n in range(order + 1))
+
 
 class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
     """Universal 1D Binomial Convolution Semiring over R[ε] / (ε^{K+1})."""
 
     def __init__(self, order: int = 1) -> None:
         if order < 0:
-            raise ValueError(f"order must be a non-negative integer, got {order}")
+            raise ValueError(f'order must be a non-negative integer, got {order}')
         self.order = order
         self._pascal = _get_pascal_table(order)
 
@@ -134,12 +136,12 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
 
     def add(self, a: tuple[float, ...], b: tuple[float, ...]) -> tuple[float, ...]:
         if len(a) != self.order + 1 or len(b) != self.order + 1:
-            raise ValueError(f"Operands must have length {self.order + 1}")
+            raise ValueError(f'Operands must have length {self.order + 1}')
         return tuple(u + v for u, v in zip(a, b))
 
     def mul(self, a: tuple[float, ...], b: tuple[float, ...]) -> tuple[float, ...]:
         if len(a) != self.order + 1 or len(b) != self.order + 1:
-            raise ValueError(f"Operands must have length {self.order + 1}")
+            raise ValueError(f'Operands must have length {self.order + 1}')
         order = self.order
         pascal = self._pascal
         res = [0.0] * (order + 1)
@@ -161,14 +163,14 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
     def raw_moments(self, m: tuple[float, ...]) -> list[float]:
         p = m[0]
         if p == 0.0:  # NOSONAR - exact zero denominator singularity check
-            return [float("nan")] * len(m)
+            return [float('nan')] * len(m)
         return [val / p for val in m]
 
     def central_moments(self, m: tuple[float, ...]) -> list[float]:
         """Compute all central moments μ_k = E[(X - μ)^k] from raw moments."""
         p = m[0]
         if p == 0.0:  # NOSONAR - exact zero denominator singularity check
-            return [float("nan")] * len(m)
+            return [float('nan')] * len(m)
         raw = [val / p for val in m]
         mu = raw[1] if len(raw) > 1 else 0.0
         pascal = self._pascal
@@ -181,7 +183,7 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
 
     def mean(self, m: tuple[float, ...]) -> float:
         if m[0] == 0.0:  # NOSONAR - exact zero denominator singularity check
-            return float("nan")
+            return float('nan')
         return m[1] / m[0]
 
     def variance(self, m: tuple[float, ...]) -> float:
@@ -191,13 +193,13 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
     def skewness(self, m: tuple[float, ...]) -> float:
         cm = self.central_moments(m)
         if len(cm) <= 3 or cm[2] <= 0.0:
-            return float("nan")
+            return float('nan')
         return cm[3] / (cm[2] ** 1.5)
 
     def kurtosis(self, m: tuple[float, ...]) -> float:
         cm = self.central_moments(m)
         if len(cm) <= 4 or cm[2] <= 0.0:
-            return float("nan")
+            return float('nan')
         return cm[4] / (cm[2] ** 2)
 ```
 
@@ -205,20 +207,24 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
 
 ```python
 @functools.lru_cache(maxsize=32)
-def _get_multivariate_transition_table(num_vars: int, order: int) -> dict[tuple[tuple[int, ...], tuple[int, ...]], tuple[tuple[int, ...], int]]:
+def _get_multivariate_transition_table(
+    num_vars: int, order: int
+) -> dict[tuple[tuple[int, ...], tuple[int, ...]], tuple[tuple[int, ...], int]]:
     """Lazy bounded cache of multi-index transitions (alpha, beta) -> (gamma, coeff)."""
     # Populated on demand without eager memory blowup
     return {}
+
 
 class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], float]]):
     """
     Universal Multivariate Binomial Convolution Semiring over R[ε1,...,εd] / <ε^β : |β| = K+1>.
     """
+
     def __init__(self, num_vars: int, order: int = 1) -> None:
         if num_vars < 1:
-            raise ValueError(f"num_vars must be >= 1, got {num_vars}")
+            raise ValueError(f'num_vars must be >= 1, got {num_vars}')
         if order < 0:
-            raise ValueError(f"order must be >= 0, got {order}")
+            raise ValueError(f'order must be >= 0, got {order}')
         self.num_vars = num_vars
         self.order = order
 
@@ -256,7 +262,7 @@ class MultivariateMomentSemiring(MultivariateBinomialConvolutionSemiring):
     def mean_vector(self, m: dict[tuple[int, ...], float]) -> list[float]:
         p = m.get((0,) * self.num_vars, 0.0)
         if p == 0.0:  # NOSONAR - exact zero denominator singularity check
-            return [float("nan")] * self.num_vars
+            return [float('nan')] * self.num_vars
         means = []
         for i in range(self.num_vars):
             idx = tuple(1 if j == i else 0 for j in range(self.num_vars))
@@ -265,10 +271,10 @@ class MultivariateMomentSemiring(MultivariateBinomialConvolutionSemiring):
 
     def covariance_matrix(self, m: dict[tuple[int, ...], float]) -> list[list[float]]:
         if self.order < 2:
-            raise ValueError(f"Covariance matrix calculation requires order >= 2, but instance has order={self.order}")
+            raise ValueError(f'Covariance matrix calculation requires order >= 2, but instance has order={self.order}')
         p = m.get((0,) * self.num_vars, 0.0)
         if p == 0.0:  # NOSONAR - exact zero denominator singularity check
-            return [[float("nan")] * self.num_vars for _ in range(self.num_vars)]
+            return [[float('nan')] * self.num_vars for _ in range(self.num_vars)]
         means = self.mean_vector(m)
         d = self.num_vars
         cov = [[0.0] * d for _ in range(d)]

@@ -157,9 +157,10 @@ LieElement: TypeAlias = SparseVector[int, float]
 @dataclass(frozen=True)
 class StructureConstants:
     """Sparse rank-3 tensor representing f_{ab}^c for a Lie algebra.
-    
+
     Stored as coordinate 3-tuples (a, b, c) -> value, representing [T_a, T_b] = sum_c f_{ab}^c T_c.
     """
+
     dim: int
     tensor: dict[tuple[int, int, int], float]
 
@@ -175,26 +176,26 @@ class StructureConstants:
 ```python
 class LieAlgebra:
     """Finite-dimensional Lie algebra defined by structure constants or matrix generators."""
+
     dim: int
     basis_names: list[str]
     structure_constants: StructureConstants
     matrix_basis: list[SparseMatrix[int, float]] | None
 
     def __init__(
-            self,
-            dim: int,
-            structure_constants: StructureConstants,
-            basis_names: Sequence[str] | None = None,
-            matrix_basis: Sequence[SparseMatrix[int, float]] | None = None,
-    ):
-        ...
+        self,
+        dim: int,
+        structure_constants: StructureConstants,
+        basis_names: Sequence[str] | None = None,
+        matrix_basis: Sequence[SparseMatrix[int, float]] | None = None,
+    ): ...
 
     @classmethod
     def from_matrix_basis(
-            cls,
-            basis_matrices: Sequence[SparseMatrix[int, float]],
-            names: Sequence[str] | None = None,
-    ) -> "LieAlgebra":
+        cls,
+        basis_matrices: Sequence[SparseMatrix[int, float]],
+        names: Sequence[str] | None = None,
+    ) -> 'LieAlgebra':
         """Construct a LieAlgebra by projecting matrix commutators [A, B] = AB - BA onto the basis."""
         ...
 
@@ -220,12 +221,12 @@ class LieAlgebra:
 
     def bch(self, x: LieElement, y: LieElement, order: int = 4) -> LieElement:
         r"""Compute the Baker-Campbell-Hausdorff series up to specified order (1 <= order <= 4).
-        
+
         Order 1: X + Y
         Order 2: + 1/2 [X, Y]
         Order 3: + 1/12 [X, [X, Y]] - 1/12 [Y, [X, Y]]
         Order 4: - 1/24 [Y, [X, [X, Y]]]
-        
+
         Issues ConvergenceWarning if ||X||_2 + ||Y||_2 >= ln(2).
         """
         ...
@@ -277,6 +278,7 @@ from algebrax.typing import SparseMatrix, SparseVector
 
 class ConvergenceWarning(UserWarning):
     """Warning raised when BCH series inputs exceed the radius of convergence."""
+
     pass
 
 
@@ -286,7 +288,7 @@ class LieAlgebra:
     def __init__(self, dim, structure_constants, basis_names=None, matrix_basis=None):
         self.dim = dim
         self.structure_constants = structure_constants
-        self.basis_names = list(basis_names) if basis_names else [f"T_{i}" for i in range(dim)]
+        self.basis_names = list(basis_names) if basis_names else [f'T_{i}' for i in range(dim)]
         self.matrix_basis = list(matrix_basis) if matrix_basis else None
 
     @classmethod
@@ -321,7 +323,7 @@ class LieAlgebra:
         norm_y = math.sqrt(sum(v * v for v in y.values()))
         if norm_x + norm_y >= math.log(2.0):
             warnings.warn(
-                f"BCH input norms ({norm_x + norm_y:.4f}) exceed convergence radius ln(2) ~= 0.69315",
+                f'BCH input norms ({norm_x + norm_y:.4f}) exceed convergence radius ln(2) ~= 0.69315',
                 ConvergenceWarning,
                 stacklevel=2,
             )

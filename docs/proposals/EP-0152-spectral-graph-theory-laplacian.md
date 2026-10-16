@@ -188,11 +188,11 @@ def laplacian_matrix(
 
 
 def fiedler_vector(
-        graph: SparseMatrix[K, float],
-        normalized: bool = False,
-        tol: float = 1e-8,
-        max_iter: int = 500,
-        seed: int | None = 42,
+    graph: SparseMatrix[K, float],
+    normalized: bool = False,
+    tol: float = 1e-8,
+    max_iter: int = 500,
+    seed: int | None = 42,
 ) -> tuple[float, SparseVector[K, float]]:
     r"""Compute the Fiedler eigenvalue (algebraic connectivity $\lambda_2$) and Fiedler vector $\mathbf{v}_2$.
 
@@ -215,9 +215,9 @@ def fiedler_vector(
 
 
 def algebraic_connectivity(
-        graph: SparseMatrix[K, float],
-        normalized: bool = False,
-        tol: float = 1e-8,
+    graph: SparseMatrix[K, float],
+    normalized: bool = False,
+    tol: float = 1e-8,
 ) -> float:
     r"""Compute the algebraic connectivity (Fiedler eigenvalue $\lambda_2$) of a graph.
 
@@ -227,9 +227,9 @@ def algebraic_connectivity(
 
 
 def spectral_bipartition(
-        graph: SparseMatrix[K, float],
-        method: Literal['sign', 'median'] = 'sign',
-        normalized: bool = False,
+    graph: SparseMatrix[K, float],
+    method: Literal['sign', 'median'] = 'sign',
+    normalized: bool = False,
 ) -> tuple[set[K], set[K], dict[str, float]]:
     r"""Bipartition graph vertices into two clusters $V_1$ and $V_2$ using the Fiedler vector.
 

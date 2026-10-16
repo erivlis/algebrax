@@ -56,21 +56,21 @@ graph = {
 
 # Standard Linear Matrix Multiplication (+, *)
 linear_mult = ax.matrix.dot(graph, graph, semiring=ax.semiring.StandardSemiring())
-print("Linear Multiplication (0->2):", linear_mult[0][2])
+print('Linear Multiplication (0->2):', linear_mult[0][2])
 # Output: 30.0 (path combination weight)
 
 # Tropical Shortest Path (min, +)
 shortest_path = ax.matrix.dot(graph, graph, semiring=ax.semiring.TropicalSemiring())
-print("Shortest Path Cost (0->1->2):", shortest_path[0][2])
+print('Shortest Path Cost (0->1->2):', shortest_path[0][2])
 # Output: 5.0 (min(2 + 3, 10 + inf))
 
 # Symbolic Provenance Rule Tracking
 provenance_graph = {
-    0: {1: {("rule_A",): 1}, 2: {("rule_C",): 1}},
-    1: {2: {("rule_B",): 1}},
+    0: {1: {('rule_A',): 1}, 2: {('rule_C',): 1}},
+    1: {2: {('rule_B',): 1}},
 }
 provenance_mult = ax.matrix.dot(provenance_graph, provenance_graph, semiring=ax.semiring.ProvenanceSemiring())
-print("Symbolic Derivation Polynomial:", provenance_mult[0][2])
+print('Symbolic Derivation Polynomial:', provenance_mult[0][2])
 # Output: {('rule_A', 'rule_B'): 1}
 ```
 

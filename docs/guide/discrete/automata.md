@@ -35,15 +35,9 @@ from typing import Set, Dict, Tuple
 # NP -> 'I' | 'Python'
 # VP -> V NP
 # V -> 'love'
-rules = {
-    ('NP', 'VP'): {'S'},
-    ('V', 'NP'): {'VP'}
-}
-lexicon = {
-    'I': {'NP'},
-    'love': {'V'},
-    'Python': {'NP'}
-}
+rules = {('NP', 'VP'): {'S'}, ('V', 'NP'): {'VP'}}
+lexicon = {'I': {'NP'}, 'love': {'V'}, 'Python': {'NP'}}
+
 
 class GrammarSemiring(ax.semiring.Semiring[Set[str]]):
     @property
@@ -55,7 +49,7 @@ class GrammarSemiring(ax.semiring.Semiring[Set[str]]):
         # Identity for multiplication is tricky here.
         # Ideally, a special 'Identity' non-terminal, but for CYK we usually
         # don't need the identity matrix, just the closure.
-        return set() 
+        return set()
 
     def add(self, a: Set[str], b: Set[str]) -> Set[str]:
         return a | b
@@ -69,6 +63,7 @@ class GrammarSemiring(ax.semiring.Semiring[Set[str]]):
                 if (lhs, rhs) in rules:
                     res.update(rules[(lhs, rhs)])
         return res
+
 
 # Sentence: "I love Python"
 sentence = ['I', 'love', 'Python']
@@ -84,8 +79,9 @@ n = len(sentence)
 # Initialize spans of length 1 (Diagonal + 1)
 chart = {}
 for i, word in enumerate(sentence):
-    if i not in chart: chart[i] = {}
-    chart[i][i+1] = lexicon[word]
+    if i not in chart:
+        chart[i] = {}
+    chart[i][i + 1] = lexicon[word]
 
 # CYK Step: Combine spans
 # Span(i, k) = Span(i, j) * Span(j, k)
@@ -98,17 +94,18 @@ semiring = GrammarSemiring()
 for _ in range(n):
     # New spans = Old spans * Old spans
     new_spans = ax.matrix.dot(chart, chart, semiring=semiring)
-    
+
     # Union with existing spans (Add)
     for r, row in new_spans.items():
-        if r not in chart: chart[r] = {}
+        if r not in chart:
+            chart[r] = {}
         for c, val in row.items():
             current = chart[r].get(c, set())
             chart[r][c] = current | val
 
 # Check if 'S' spans the whole sentence (0 to n)
 final_tags = chart.get(0, {}).get(n, set())
-print(f"Parses as: {final_tags}")
+print(f'Parses as: {final_tags}')
 # output: {'S'}
 ```
 

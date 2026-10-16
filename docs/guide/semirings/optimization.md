@@ -26,10 +26,7 @@ import algebrax as ax
 # 0 -> 1 (cost 2)
 # 1 -> 2 (cost 3)
 # 0 -> 2 (cost 10)
-graph = {
-    0: {1: 2.0, 2: 10.0},
-    1: {2: 3.0}
-}
+graph = {0: {1: 2.0, 2: 10.0}, 1: {2: 3.0}}
 
 # Shortest path of length 2
 # path(0->2) = min(
@@ -58,17 +55,11 @@ import algebrax as ax
 
 # HMM State Transition (Probability of A->B)
 # Healthy (H), Fever (F)
-transitions = {
-    'H': {'H': 0.7, 'F': 0.3},
-    'F': {'H': 0.4, 'F': 0.6}
-}
+transitions = {'H': {'H': 0.7, 'F': 0.3}, 'F': {'H': 0.4, 'F': 0.6}}
 
 # Emission Probabilities (State -> Observation)
 # Normal (N), Cold (C), Dizzy (D)
-emissions = {
-    'H': {'N': 0.5, 'C': 0.4, 'D': 0.1},
-    'F': {'N': 0.1, 'C': 0.3, 'D': 0.6}
-}
+emissions = {'H': {'N': 0.5, 'C': 0.4, 'D': 0.1}, 'F': {'N': 0.1, 'C': 0.3, 'D': 0.6}}
 
 # Initial State Distribution
 start = {'H': 0.6, 'F': 0.4}
@@ -105,7 +96,7 @@ for obs in obs_seq:
     next_step = ax.matrix.dot(vec_matrix, transitions, semiring=semiring)
     current_probs = next_step[0]
 
-print(f"Final Probabilities: {current_probs}")
+print(f'Final Probabilities: {current_probs}')
 # The max value indicates the probability of the most likely path ending in that state.
 ```
 
@@ -150,12 +141,7 @@ bottleneck = ax.semiring.BottleneckSemiring()
 # 1 -> 2: bandwidth 20 Mbps
 # 0 -> 3: bandwidth 50 Mbps
 # 3 -> 2: bandwidth 40 Mbps
-adj = {
-    0: {1: 100.0, 3: 50.0},
-    1: {2: 20.0},
-    3: {2: 40.0},
-    2: {}
-}
+adj = {0: {1: 100.0, 3: 50.0}, 1: {2: 20.0}, 3: {2: 40.0}, 2: {}}
 
 # Compute 2-hop maximum bottleneck paths: C^2
 paths_2hop = ax.matrix.power(adj, 2, semiring=bottleneck)
@@ -163,7 +149,7 @@ paths_2hop = ax.matrix.power(adj, 2, semiring=bottleneck)
 # Path 0 -> 1 -> 2 has capacity min(100, 20) = 20
 # Path 0 -> 3 -> 2 has capacity min(50, 40) = 40
 # Max bottleneck capacity from 0 to 2 = max(20, 40) = 40.0
-print("Max Bottleneck Capacity (0 -> 2):", paths_2hop[0][2])  # 40.0
+print('Max Bottleneck Capacity (0 -> 2):', paths_2hop[0][2])  # 40.0
 ```
 
 ---
@@ -197,15 +183,10 @@ min_times = ax.semiring.MinTimesSemiring()
 # Multiplicative cost graph:
 # 0 -> 1: factor 1.2, 1 -> 2: factor 1.5 (total = 1.2 * 1.5 = 1.80)
 # 0 -> 3: factor 2.0, 3 -> 2: factor 0.8 (total = 2.0 * 0.8 = 1.60)
-adj_mult = {
-    0: {1: 1.2, 3: 2.0},
-    1: {2: 1.5},
-    3: {2: 0.8},
-    2: {}
-}
+adj_mult = {0: {1: 1.2, 3: 2.0}, 1: {2: 1.5}, 3: {2: 0.8}, 2: {}}
 
 res = ax.matrix.power(adj_mult, 2, semiring=min_times)
-print("Optimal Multiplicative Factor (0 -> 2):", res[0][2])  # 1.60
+print('Optimal Multiplicative Factor (0 -> 2):', res[0][2])  # 1.60
 ```
 
 ---

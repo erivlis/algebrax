@@ -33,16 +33,16 @@ g_prob = {'B': {'D': 0.9}, 'C': {'D': 0.5}}
 
 # 1. Probabilistic Viterbi Monad
 prob_res = ax.category.kleisli_compose(f_prob, g_prob, semiring=ax.semiring.ViterbiSemiring())
-print("Probabilistic Max Path A -> D:", prob_res['A']['D'])
+print('Probabilistic Max Path A -> D:', prob_res['A']['D'])
 # Output: 0.72
 
 # 2. Lawvere Metric Cost Monad
 cost_res = ax.category.kleisli_compose({'A': {'B': 3.0}}, {'B': {'D': 2.0}}, semiring=ax.semiring.TropicalSemiring())
-print("Min Shortest Path Cost A -> D:", cost_res['A']['D'])
+print('Min Shortest Path Cost A -> D:', cost_res['A']['D'])
 # Output: 5.0
 
 # 3. Boolean Reachability Monad
 bool_res = ax.category.kleisli_compose({'A': {'B': True}}, {'B': {'D': True}}, semiring=ax.semiring.BooleanSemiring())
-print("Boolean Reachability A -> D:", bool_res['A']['D'])
+print('Boolean Reachability A -> D:', bool_res['A']['D'])
 # Output: True
 ```
