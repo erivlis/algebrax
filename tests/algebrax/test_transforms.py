@@ -83,6 +83,30 @@ def test_hilbert_empty():
     assert hilbert({}) == {}
 
 
+def test_hilbert_odd_n():
+    # For n=3, the frequencies are k=0, 1, 2.
+    # k=0 is DC, k=1 is positive, k=2 is negative (-1).
+    # The hilbert transform should keep k=0, double k=1, and zero out k=2.
+    n = 3
+    # Signal is a cosine with frequency k=1: cos(2*pi*m/3)
+    signal = {0: 1.0, 1: -0.5, 2: -0.5}
+
+    # The analytic signal should be exp(j*2*pi*m/3)
+    analytic_sig = hilbert(signal, n=n)
+
+    # Expected values: cos(2*pi*m/3) + j * sin(2*pi*m/3)
+    expected = {
+        0: 1.0 + 0.0j,
+        1: -0.5 + 1j * (math.sqrt(3) / 2),
+        2: -0.5 - 1j * (math.sqrt(3) / 2),
+    }
+
+    assert set(analytic_sig.keys()) == set(expected.keys())
+    for m in range(n):
+        assert analytic_sig[m].real == pytest.approx(signal[m])
+        assert analytic_sig[m] == pytest.approx(expected[m])
+
+
 def test_z_transform():
     from algebrax.semiring import ArcticSemiring, StandardSemiring, TropicalSemiring
 
