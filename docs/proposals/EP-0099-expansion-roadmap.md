@@ -82,6 +82,7 @@ flowchart TD
         EP0150_N["EP-0150 Math Docstrings ✅\n💡 Feynman"]
         EP0151_N["EP-0151 Algebraic PageRank ✅\n⚡ Shannon & ⚖️ Noether"]
         EP0152_N["EP-0152 Spectral Graph Theory ✅\n⚖️ Noether & ⚡ Shannon"]
+        EP0153_N["EP-0153 Semiring Matrix & Cochain ✅\n⚖️ Noether & ⚡ Shannon"]
     end
 
     P35 --> P4
@@ -95,6 +96,7 @@ flowchart TD
     end
 
     EP0152_N --> EP0160_N
+    EP0153_N --> EP0160_N
     EP0110 --> EP0162_N
     EP0163_N --> EP0164_N
 
@@ -181,7 +183,8 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0149: Universal Binomial Moment Semirings (Noether/Russell) [Final]
   │     ├── EP-0150: Standardized Mathematical Docstrings (Feynman/Russell) [Final]
   │     ├── EP-0151: Algebraic PageRank & Semiring Random Walks (Shannon/Noether) [Final]
-  │     └── EP-0152: Spectral Graph Theory & Graph Laplacians (Noether/Shannon/Popper) [Final]
+  │     ├── EP-0152: Spectral Graph Theory & Graph Laplacians (Noether/Shannon/Popper) [Final]
+  │     └── EP-0153: Semiring Matrix Symmetry & Vector Primitives (Noether/Shannon/Russell) [Draft]
   │
   └── Phase 4: Algebraic Continents & Next Frontiers (EXP-0001)  🚀 IN PROGRESS
         ├── EP-0160: Discrete Exterior Calculus & Helmholtz-Hodge (Noether/Shannon/Feynman) [Draft]
@@ -223,6 +226,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0150** | Standardized Math Docstrings  | Feynman & Russell | `algebrax.semiring`, `display`      | Final    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests                |
 | **EP-0151** | Algebraic PageRank            | Shannon & Noether | `algebrax.analysis`                 | Final    | Sparse semiring contraction solver, random walk with restart, PPR              |
 | **EP-0152** | Spectral Graph Theory         | Noether & Shannon | `algebrax.analysis`                 | Final    | Graph Laplacians (unnormalized, sym, rw), Fiedler vector, cuts, smoothing      |
+| **EP-0153** | Semiring Matrix & Cochain Sym | Noether & Shannon | `matrix`, `analysis`, `homology`    | Final    | Semiring `add`/`trace`, `vec_*` primitives, `Cochain` carrier, AMDS cleanup    |
 | **EP-0160** | Discrete Exterior Calculus    | Noether & Shannon | `algebrax.homology` / `dec`         | Draft    | $\Omega^k$ forms, exterior derivative $d$, Hodge star $\star$, Helmholtz-Hodge |
 | **EP-0161** | Cellular Sheaves & Laplacians | Russell & Steward | `algebrax.homology`                 | Queued   | `CellularSheaf`, coboundary $\delta$, sheaf Laplacian, consensus dynamics      |
 | **EP-0162** | Persistent Homology (TDA)     | Popper & Explorer | `algebrax.homology`                 | Queued   | Simplicial filtrations, boundary reduction over $\mathbb{Z}_2$, barcodes       |
@@ -233,22 +237,23 @@ Phase 0: Architecture Roadmap (EP-0099)
 
 ## Change Log
 
-| Date       | Author                    | Description                                                                                                                   |
-|:-----------|:--------------------------|:------------------------------------------------------------------------------------------------------------------------------|
-| 2026-08-01 | Eran Rivlis & Antigravity | Initial Master Roadmap EP created.                                                                                            |
-| 2026-08-02 | Eran Rivlis & Antigravity | Implemented Phase 1 & Phase 2 proposals; status updated to Final.                                                             |
-| 2026-08-02 | Eran Rivlis & Antigravity | Phase 3 track added: EP-0120, EP-0130, EP-0131, EP-0132, EP-0133.                                                             |
-| 2026-08-02 | Eran Rivlis & Antigravity | EP-0134 (Semiring Namespace Refactoring) added to Phase 3.                                                                    |
-| 2026-08-02 | Eran Rivlis & Antigravity | Phase 3.5 Council Refinement Track: EP-0140 through EP-0146.                                                                  |
-| 2026-09-04 | Eran Rivlis & Antigravity | Phase 3.5 completed; added EP-0148 (CodSpeed CI), EP-0149 (Binomial Moment Semirings), and User Guide architectural overhaul. |
-| 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry.                                           |
-| 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0151: Algebraic PageRank & Semiring Random Walks with Restart.                                                       |
-| 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0152: Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians.                                              |
-| 2026-09-08 | Eran Rivlis & Antigravity | Initiated EXP-0001 (Next Frontiers); drafted EP-0160 (DEC) and EP-0163 (Lie Algebras & BCH Dynamics).                         |
-| 2026-09-10 | Eran Rivlis & Antigravity | Implemented EP-0163 (Lie Algebras & BCH Dynamics), added user guide, and updated status to Final.                             |
-| 2026-09-10 | Eran Rivlis & Antigravity | Added EP-0164: Root Systems, Weyl Groups & Chevalley-Serre Construction for Simple Lie Algebras.                              |
-| 2026-09-10 | Eran Rivlis & Antigravity | Transitioned EP-0150 to Final; added Phase 4 roadmap integration (EP-0160 through EP-0163) and landed sparse commutator.      |
+| Date       | Author                    | Description                                                                                                                                 |
+|:-----------|:--------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-08-01 | Eran Rivlis & Antigravity | Initial Master Roadmap EP created.                                                                                                          |
+| 2026-08-02 | Eran Rivlis & Antigravity | Implemented Phase 1 & Phase 2 proposals; status updated to Final.                                                                           |
+| 2026-08-02 | Eran Rivlis & Antigravity | Phase 3 track added: EP-0120, EP-0130, EP-0131, EP-0132, EP-0133.                                                                           |
+| 2026-08-02 | Eran Rivlis & Antigravity | EP-0134 (Semiring Namespace Refactoring) added to Phase 3.                                                                                  |
+| 2026-08-02 | Eran Rivlis & Antigravity | Phase 3.5 Council Refinement Track: EP-0140 through EP-0146.                                                                                |
+| 2026-09-04 | Eran Rivlis & Antigravity | Phase 3.5 completed; added EP-0148 (CodSpeed CI), EP-0149 (Binomial Moment Semirings), and User Guide architectural overhaul.               |
+| 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry.                                                         |
+| 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0151: Algebraic PageRank & Semiring Random Walks with Restart.                                                                     |
+| 2026-09-05 | Eran Rivlis & Antigravity | Added EP-0152: Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians.                                                            |
+| 2026-09-08 | Eran Rivlis & Antigravity | Initiated EXP-0001 (Next Frontiers); drafted EP-0160 (DEC) and EP-0163 (Lie Algebras & BCH Dynamics).                                       |
+| 2026-09-10 | Eran Rivlis & Antigravity | Implemented EP-0163 (Lie Algebras & BCH Dynamics), added user guide, and updated status to Final.                                           |
+| 2026-09-10 | Eran Rivlis & Antigravity | Added EP-0164: Root Systems, Weyl Groups & Chevalley-Serre Construction for Simple Lie Algebras.                                            |
+| 2026-09-10 | Eran Rivlis & Antigravity | Transitioned EP-0150 to Final; added Phase 4 roadmap integration (EP-0160 through EP-0163) and landed sparse commutator.                    |
 | 2026-09-12 | Eran Rivlis & Antigravity | Implemented EP-0164: added multi-format Dynkin diagrams (ASCII/Mermaid/SVG), Jupyter rich display, benchmarks, and updated status to Final. |
+| 2026-10-16 | Eran Rivlis & Antigravity | Added EP-0153: Semiring Matrix Symmetry, Sparse Vector Primitives & Cochain Flow Bridges.                                                   |
 
 
 
