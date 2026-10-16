@@ -946,3 +946,132 @@ def inverse(  # noqa: C901, NOSONAR - Gauss-Jordan sparse elimination kernel wit
         if row_dict:
             result[r_key] = row_dict
     return result
+
+
+def _find_matrix_components(matrix: SparseMatrix[K, float], keys: list[K]) -> list[list[K]]:
+    """Partition matrix keys into undirected connected components for component-wise nullspace deflation."""
+    adj: dict[K, set[K]] = {k: set() for k in keys}
+    for r, row in matrix.items():
+        if r in adj:
+            for c, val in row.items():
+                if c in adj and c != r and val != 0:
+                    adj[r].add(c)
+                    adj[c].add(r)
+
+    visited: set[K] = set()
+    components: list[list[K]] = []
+    for k in keys:
+        if k not in visited:
+            comp: list[K] = []
+            queue = [k]
+            visited.add(k)
+            while queue:
+                curr = queue.pop(0)
+                comp.append(curr)
+                for nxt in adj[curr]:
+                    if nxt not in visited:
+                        visited.add(nxt)
+                        queue.append(nxt)
+            components.append(comp)
+    return components
+
+
+def _deflate_components(
+    v: SparseVector[K, float],
+    components: list[list[K]],
+    tol: float = 1e-15,
+) -> dict[K, float]:
+    """Project vector v orthogonal to the piecewise-constant nullspace over each component."""
+    out: dict[K, float] = {}
+    for comp in components:
+        if not comp:
+            continue
+        mean = sum(float(v.get(k, 0.0)) for k in comp) / len(comp)
+        for k in comp:
+            shifted = float(v.get(k, 0.0)) - mean
+            if abs(shifted) > tol:
+                out[k] = shifted
+    return out
+
+
+def cg_solve(
+    matrix: SparseMatrix[K, float],
+    rhs: SparseVector[K, float],
+    tol: float = 1e-9,
+    max_iter: int | None = None,
+    project_nullspace: bool = False,
+) -> dict[K, float]:
+    r"""Solve $A \mathbf{x} = \mathbf{b}$ for a symmetric positive semi-definite sparse matrix via Conjugate Gradients.
+
+    Algebraic Signature:
+        $\mathbf{x}^* = \arg\min_{\mathbf{x} \perp \ker(A)}
+        \left(\frac{1}{2} \mathbf{x}^T A \mathbf{x} - \mathbf{b}^T \mathbf{x}\right)$
+
+    Carrier:
+        `dict[K, float]` (Sparse solution vector).
+
+    Operations:
+        - Krylov Subspace Iteration: Updates iterate $\mathbf{x}$, residual $\mathbf{r}$, and $A$-conjugate
+          search direction $\mathbf{p}$ using sparse `mat_vec`, `inner`, and `vec_axpy`.
+        - Nullspace Gauge Deflation (`project_nullspace=True`): Projects residuals onto $\mathbf{1}_C^\perp$
+          across each connected component $C$ to solve singular Laplacian systems ($\Delta_0 \alpha = \delta_1 \omega$).
+
+    Properties:
+        Converges in at most $\operatorname{rank}(A)$ exact-arithmetic steps or $O(\sqrt{\kappa(A)})$
+        iterations without matrix factorization or fill-in.
+
+    Applications:
+        - Discrete Poisson and Hodge Laplacian potential equations ($\Delta_k u = f$).
+        - Helmholtz-Hodge flow decomposition and harmonic interpolation.
+
+    Args:
+        matrix: Symmetric positive (semi-)definite `SparseMatrix[K, float]`.
+        rhs: Right-hand side `SparseVector[K, float]`.
+        tol: Residual Euclidean norm convergence threshold (default `1e-9`).
+        max_iter: Maximum Krylov iterations (defaults to `max(500, 10 * n)`).
+        project_nullspace: Whether to deflate the piecewise-constant nullspace at each step.
+
+    Returns:
+        Sparse solution dictionary mapping keys `K` to float values.
+    """
+    if not matrix or not rhs:
+        return {}
+
+    keys = sorted(set(matrix.keys()) | {c for row in matrix.values() for c in row}, key=str)
+    if not keys:
+        return {}
+
+    iters = max_iter if max_iter is not None else max(500, 10 * len(keys))
+    components = _find_matrix_components(matrix, keys) if project_nullspace else []
+
+    x: dict[K, float] = {}
+    b = _deflate_components(rhs, components) if project_nullspace else {k: float(v) for k, v in rhs.items()}
+    r: dict[K, float] = dict(b)
+    p: dict[K, float] = dict(r)
+    rsold = float(inner(r, r))
+
+    if math.sqrt(rsold) <= tol:
+        return x
+
+    for _ in range(iters):
+        ap = mat_vec(matrix, p)
+        if project_nullspace:
+            ap = _deflate_components(ap, components)
+        pap = float(inner(p, ap))
+        if abs(pap) <= 1e-15:
+            break
+        alpha = rsold / pap
+        x = vec_axpy(alpha, p, x, tol=1e-15)  # type: ignore[assignment]
+        r = vec_axpy(-alpha, ap, r, tol=1e-15)  # type: ignore[assignment]
+        if project_nullspace:
+            r = _deflate_components(r, components)
+        rsnew = float(inner(r, r))
+        if math.sqrt(rsnew) <= tol:
+            break
+        beta = rsnew / rsold
+        p = vec_axpy(beta, p, r, tol=1e-15)  # type: ignore[assignment]
+        rsold = rsnew
+
+    if project_nullspace:
+        x = _deflate_components(x, components, tol=1e-12)
+    return vec_clean(x, tol=1e-12)  # type: ignore[return-value]

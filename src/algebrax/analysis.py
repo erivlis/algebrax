@@ -12,7 +12,19 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from typing import Literal
 
-from algebrax.homology import Cochain, cochain_to_flow, flow_to_cochain
+from algebrax.homology import (
+    Cochain,
+    DiscreteForm,
+    HodgeDecomposition,
+    canonicalize_form,
+    cochain_to_flow,
+    codifferential,
+    exterior_derivative,
+    flow_to_cochain,
+    helmholtz_hodge_decomposition,
+    hodge_laplacian,
+    hodge_star,
+)
 from algebrax.matrix.academic import PerformanceWarning
 from algebrax.matrix.core import laplacian_matrix, mat_vec, vec_mat
 from algebrax.matrix.decompose import _symmetric_jacobi_eigh
@@ -21,15 +33,23 @@ from algebrax.typing import K, SparseMatrix, SparseVector
 
 __all__ = [
     'Cochain',
+    'DiscreteForm',
+    'HodgeDecomposition',
     'algebraic_connectivity',
+    'canonicalize_form',
     'cochain_to_flow',
+    'codifferential',
     'divergence',
     'eigen_centrality',
+    'exterior_derivative',
     'fiedler_vector',
     'flow_to_cochain',
     'forman_ricci_curvature',
     'gaussian_kernel',
     'gradient',
+    'helmholtz_hodge_decomposition',
+    'hodge_laplacian',
+    'hodge_star',
     'laplacian',
     'laplacian_matrix',
     'laplacian_smoothing',

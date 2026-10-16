@@ -2,6 +2,7 @@ from algebrax.matrix import academic
 from algebrax.matrix.core import (
     add,
     block_diag,
+    cg_solve,
     commutator,
     dot,
     frobenius_inner,
@@ -36,6 +37,7 @@ __all__ = [
     'academic',
     'add',
     'block_diag',
+    'cg_solve',
     'cholesky',
     'commutator',
     'dot',
