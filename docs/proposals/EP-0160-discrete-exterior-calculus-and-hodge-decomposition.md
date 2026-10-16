@@ -17,7 +17,7 @@ status: draft
 | **Status**   | Draft                                                                                     |
 | **Type**     | Standards Track                                                                           |
 | **Created**  | 2026-09-08                                                                                |
-| **Updated**  | 2026-09-09                                                                                |
+| **Updated**  | 2026-10-16                                                                                |
 | **Replaces** | None                                                                                      |
 
 ---
@@ -139,40 +139,43 @@ The design is governed by the 8 Pillars of The Council Framework (`PRINCIPLES.md
 
 ## Specification
 
-### 1. Data Models & Type Contracts
+### 1. Data Models & Type Contracts (Built on `EP-0153`)
+
+Building directly on the `Cochain[K, V]` carrier and `Simplex` type alias established in `EP-0153`:
 
 ```python
 from collections.abc import Mapping
 from typing import NamedTuple, TypeAlias
-from algebrax.typing import SparseMatrix, SparseVector
+from algebrax.homology import Cochain
+from algebrax.typing import K, Simplex, SparseMatrix, SparseVector
 
-Simplex: TypeAlias = tuple[int, ...]
-DiscreteForm: TypeAlias = SparseVector[Simplex, float]
+DiscreteForm: TypeAlias = Cochain[int, float]
 
 
 class HodgeDecomposition(NamedTuple):
     """Result of Helmholtz-Hodge decomposition on a 1-form (edge flow)."""
-    exact: DiscreteForm  # Gradient flow d(alpha) in im(d_0)
-    coexact: DiscreteForm  # Solenoidal circulation delta(beta) in im(delta_2)
-    harmonic: DiscreteForm  # Topological circulation gamma in ker(Delta_1)
-    potential: DiscreteForm  # 0-form potential alpha such that exact = d(alpha)
-    stream: DiscreteForm  # 2-form stream function beta such that coexact = delta(beta)
+
+    exact: Cochain[int, float]  # Gradient flow d(alpha) in im(d_0)
+    coexact: Cochain[int, float]  # Solenoidal circulation delta(beta) in im(delta_2)
+    harmonic: Cochain[int, float]  # Topological circulation gamma in ker(Delta_1)
+    potential: Cochain[int, float]  # 0-form potential alpha such that exact = d(alpha)
+    stream: Cochain[int, float]  # 2-form stream function beta such that coexact = delta(beta)
 ```
 
 ### 2. Foundational Sparse Linear Solver in `algebrax.matrix`
 
-To support singular and semi-definite systems ($\Delta_0 \alpha = \delta_1 \omega$), `algebrax.matrix` provides:
+To support singular and semi-definite systems ($\Delta_0 \alpha = \delta_1 \omega$), `algebrax.matrix` provides `cg_solve` powered by `EP-0153`'s sparse vector primitives (`vec_axpy`, `inner`):
 
 ```python
 def cg_solve(
-        matrix: SparseMatrix[K, float],
-        rhs: SparseVector[K, float],
-        tol: float = 1e-9,
-        max_iter: int | None = None,
-        project_nullspace: bool = False,
-) -> SparseVector[K, float]:
+    matrix: SparseMatrix[K, float],
+    rhs: SparseVector[K, float],
+    tol: float = 1e-9,
+    max_iter: int | None = None,
+    project_nullspace: bool = False,
+) -> dict[K, float]:
     r"""Solve A x = b for a symmetric positive semi-definite sparse matrix A using Conjugate Gradients.
-    
+
     If project_nullspace is True, deflates the constant nullspace component (1^T x = 0)
     at each iteration.
     """
@@ -183,22 +186,22 @@ def cg_solve(
 
 ```python
 def exterior_derivative(
-        complex: SimplicialComplex,
-        k: int,
-) -> SparseMatrix[Simplex, float]:
+    complex: SimplicialComplex,
+    k: int,
+) -> SparseMatrix[Simplex[int], float]:
     r"""Construct the discrete exterior derivative operator d_k: \Omega^k -> \Omega^{k+1}.
-    
+
     Equivalent to coboundary(complex, k) == \partial_{k+1}^T.
     """
     ...
 
 
 def hodge_laplacian(
-        complex: SimplicialComplex,
-        k: int,
-) -> SparseMatrix[Simplex, float]:
+    complex: SimplicialComplex,
+    k: int,
+) -> SparseMatrix[Simplex[int], float]:
     r"""Construct the k-th Hodge Laplacian operator \Delta_k.
-    
+
     \Delta_k = d_{k-1} \delta_k + \delta_{k+1} d_k
              = \partial_k^T \partial_k + \partial_{k+1} \partial_{k+1}^T
     """
@@ -206,28 +209,31 @@ def hodge_laplacian(
 
 
 def canonicalize_form(
-        flow: Mapping[tuple[int, ...], float],
-) -> dict[tuple[int, ...], float]:
-    r"""Normalize simplex orientations so that keys are sorted tuples, flipping sign on parity swap."""
-    ...
+    flow: Mapping[tuple[int, ...], float],
+) -> Cochain[int, float]:
+    r"""Normalize simplex orientations into an alternating Cochain, flipping sign on odd parity swap.
+
+    Delegates directly to `Cochain(flow)`.
+    """
+    return Cochain(flow)
 
 
 def helmholtz_hodge_decomposition(
-        complex: SimplicialComplex,
-        flow: Mapping[tuple[int, ...], float],
-        tol: float = 1e-9,
-        max_iter: int = 1000,
+    complex: SimplicialComplex,
+    flow: Cochain[int, float] | Mapping[tuple[int, ...], float] | SparseMatrix[int, float],
+    tol: float = 1e-9,
+    max_iter: int = 1000,
 ) -> HodgeDecomposition:
-    r"""Decompose a 1-form (edge flow) into exact, coexact, and harmonic components.
-    
+    r"""Decompose a 1-form (cochain or nested adjacency edge flow) into exact, coexact, and harmonic components.
+
     \omega = d(\alpha) + \delta(\beta) + \gamma
     where:
         \Delta_0 \alpha = \partial_1 \omega (solved via deflated CG)
         exact = \partial_1^T \alpha
-        
+
         \Delta_2 \beta = \partial_2^T \omega (solved via CG on 2-simplices)
         coexact = \partial_2 \beta
-        
+
         harmonic = \omega - exact - coexact
     """
     ...
@@ -243,14 +249,15 @@ This proposal is purely additive:
   completely untouched.
 - `exterior_derivative` and `hodge_laplacian` leverage the existing `SparseMatrix` data structure and sparse operations
   in `algebrax.matrix`.
-- No existing public interfaces or serialized state are modified.
+- Because `Cochain` (`EP-0153`) implements `Mapping[tuple[K, ...], float]`, every component of `HodgeDecomposition`
+  behaves as both a `SparseVector` and an orientation-aware `Cochain`.
 
 ---
 
 ## How to Teach This / Documentation Plan
 
 1. **User Guide**: Add `docs/guide/analysis/discrete_exterior_calculus.md` detailing:
-    - Cochains as discrete forms.
+    - `Cochain` as discrete differential forms.
     - The boundary-exterior derivative adjunction ($\partial_k^T = d_{k-1}$).
     - Visual step-by-step diagram of Helmholtz-Hodge flow decomposition.
 2. **Interactive Recipe**: Add a practical recipe in `docs/recipes.md`:
@@ -266,37 +273,34 @@ This proposal is purely additive:
 ```python
 import math
 from collections.abc import Mapping
-from algebrax.matrix import dot, mat_vec, transpose, add, subtract
-from algebrax.homology import SimplicialComplex, coboundary
+from algebrax.matrix import dot, inner, mat_vec, transpose, vec_axpy, vec_clean
+from algebrax.homology import Cochain, SimplicialComplex
 from algebrax.typing import SparseMatrix, SparseVector
 
 
 def cg_solve(
-        matrix: SparseMatrix,
-        rhs: SparseVector,
-        tol: float = 1e-9,
-        max_iter: int = 500,
-        project_nullspace: bool = False,
+    matrix: SparseMatrix,
+    rhs: SparseVector,
+    tol: float = 1e-9,
+    max_iter: int = 500,
+    project_nullspace: bool = False,
 ) -> dict:
     """Coordinate-sparse Conjugate Gradient solver for positive semi-definite systems."""
     keys = list(matrix.keys())
     if not keys or not rhs:
         return {}
 
-    def inner_prod(v1, v2):
-        return sum(v1.get(k, 0.0) * v2.get(k, 0.0) for k in keys)
-
-    def deflate(v):
+    def deflate(v: SparseVector) -> dict:
         if not project_nullspace or not keys:
-            return v
+            return dict(v)
         mean = sum(v.get(k, 0.0) for k in keys) / len(keys)
         return {k: v.get(k, 0.0) - mean for k in keys if abs(v.get(k, 0.0) - mean) > 1e-15}
 
-    x = {k: 0.0 for k in keys}
-    b = deflate(dict(rhs)) if project_nullspace else dict(rhs)
+    x: dict = {}
+    b = deflate(rhs) if project_nullspace else dict(rhs)
     r = dict(b)
     p = dict(r)
-    rsold = inner_prod(r, r)
+    rsold = float(inner(r, r))
 
     if rsold < tol * tol:
         return x
@@ -305,59 +309,55 @@ def cg_solve(
         ap = mat_vec(matrix, p)
         if project_nullspace:
             ap = deflate(ap)
-        pap = inner_prod(p, ap)
+        pap = float(inner(p, ap))
         if abs(pap) < 1e-15:
             break
         alpha = rsold / pap
-        for k in keys:
-            x[k] = x.get(k, 0.0) + alpha * p.get(k, 0.0)
-            r[k] = r.get(k, 0.0) - alpha * ap.get(k, 0.0)
+        x = vec_axpy(alpha, p, x, tol=1e-15)
+        r = vec_axpy(-alpha, ap, r, tol=1e-15)
         if project_nullspace:
             r = deflate(r)
-        rsnew = inner_prod(r, r)
+        rsnew = float(inner(r, r))
         if math.sqrt(rsnew) < tol:
             break
         beta = rsnew / rsold
-        for k in keys:
-            p[k] = r.get(k, 0.0) + beta * p.get(k, 0.0)
+        p = vec_axpy(beta, p, r, tol=1e-15)
         rsold = rsnew
 
-    return {k: v for k, v in x.items() if abs(v) > 1e-12}
+    return vec_clean(x, tol=1e-12)
 
 
 def helmholtz_hodge_decomposition(
-        complex: SimplicialComplex,
-        flow: Mapping[tuple[int, ...], float],
+    complex: SimplicialComplex,
+    flow: Cochain[int, float] | Mapping[tuple[int, ...], float] | SparseMatrix[int, float],
 ) -> HodgeDecomposition:
+    # 0. Normalize input flow (accepts either Cochain/tuple-dict or nested adjacency SparseMatrix)
+    first_key = next(iter(flow), None)
+    omega = Cochain(flow) if isinstance(first_key, tuple) or first_key is None else Cochain.from_flow(flow)
+
     # 1. Operators
     b1 = complex.boundary_matrices.get(1, {})  # \partial_1: C_1 -> C_0
     d0 = transpose(b1)  # d_0 = \partial_1^T: C^0 -> C^1
     delta0 = dot(b1, d0)  # \Delta_0 = \partial_1 \partial_1^T
 
     # 2. Exact component (potential flow)
-    div_flow = mat_vec(b1, flow)  # \delta_1 \omega = \partial_1 \omega
-    alpha = cg_solve(delta0, div_flow, project_nullspace=True)
-    exact = mat_vec(d0, alpha)
+    div_flow = mat_vec(b1, omega)  # \delta_1 \omega = \partial_1 \omega
+    alpha = Cochain(cg_solve(delta0, div_flow, project_nullspace=True), degree=0)
+    exact = Cochain(mat_vec(d0, alpha), degree=1)
 
     # 3. Coexact component (solenoidal circulation)
-    coexact = {}
-    stream = {}
+    coexact: Cochain[int, float] = Cochain(degree=1)
+    stream: Cochain[int, float] = Cochain(degree=2)
     if 2 in complex.boundary_matrices:
         b2 = complex.boundary_matrices[2]  # \partial_2: C_2 -> C_1
         d1 = transpose(b2)  # d_1: C^1 -> C^2
         delta2 = dot(d1, b2)  # \partial_2^T \partial_2
-        curl_flow = mat_vec(d1, flow)  # d_1 \omega = \partial_2^T \omega
-        stream = cg_solve(delta2, curl_flow)
-        coexact = mat_vec(b2, stream)
+        curl_flow = mat_vec(d1, omega)  # d_1 \omega = \partial_2^T \omega
+        stream = Cochain(cg_solve(delta2, curl_flow), degree=2)
+        coexact = Cochain(mat_vec(b2, stream), degree=1)
 
-    # 4. Harmonic component
-    # \gamma = \omega - exact - coexact
-    harmonic = {}
-    all_edges = set(flow.keys()) | set(exact.keys()) | set(coexact.keys())
-    for e in all_edges:
-        val = flow.get(e, 0.0) - exact.get(e, 0.0) - coexact.get(e, 0.0)
-        if abs(val) > 1e-10:
-            harmonic[e] = val
+    # 4. Harmonic component via Cochain vector-space subtraction
+    harmonic = omega - exact - coexact
 
     return HodgeDecomposition(
         exact=exact,
@@ -380,7 +380,7 @@ def helmholtz_hodge_decomposition(
       computational overhead.
 2. **Dense Pseudoinverse via SVD**:
     - *Considered*: Computing $\alpha = \Delta_0^+ (\partial_1 \omega)$ via dense Moore-Penrose pseudoinverse.
-    - *Rejected*: Incurrs $O (N^3)$ computational cost and breaks sparse scaling. Conjugate gradients directly over
+    - *Rejected*: Incurs $O (N^3)$ computational cost and breaks sparse scaling. Conjugate gradients directly over
       `SparseMatrix` solves the potential equations in $O (|E|)$ iterations.
 
 ---
@@ -396,6 +396,10 @@ def helmholtz_hodge_decomposition(
 
 ## Change Log
 
+* **2026-10-16:**
+    * Aligned with `EP-0153`: replaced raw dict `DiscreteForm` with `Cochain[int, float]`, accepted both `Cochain` and
+      nested `SparseMatrix` edge flows in `helmholtz_hodge_decomposition`, and refactored `cg_solve` and harmonic
+      residual extraction to use `vec_axpy`, `inner`, and `Cochain` subtraction.
 * **2026-09-09:**
     * Council Review amendments incorporating The Dennis Point:
         - Added specification of pure-Python coordinate-sparse Conjugate Gradient (`cg_solve`) with nullspace deflation
