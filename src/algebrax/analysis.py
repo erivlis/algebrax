@@ -1,25 +1,8 @@
-"""
-Analyze edge curvature via discrete combinatorics. Supports weighted and unweighted
-graphs, with optional augmentation based on triangle contributions.
+"""Discrete exterior calculus, spectral graph theory, and combinatorial curvature operators.
 
-This method abstracts curvature calculation for both weighted and unweighted
-graphs. It captures the notion of Ricci curvature locally, reflecting flow
-expansion/contraction by considering topological or geometrical graph features.
-
-Args:
-    graph (SparseMatrix): Representation of the graph structure where edges are
-        stored using a sparse matrix format/mapping.
-    weighted (bool | None): Whether to compute weighted Forman-Ricci curvature.
-        Defaults to None, which determines weighting based on edge properties:
-            - True: Use weights explicitly.
-            - False: Assume unweighted graph (1 for all edges).
-    augmented (bool): Whether to include triangle-based adjustments in the
-        curvature calculation. Defaults to True. Relevant for both weighted
-        and unweighted variants, boosting edges shared in small cliques.
-
-Returns:
-    dict[tuple[K, K], float]: Dictionary where keys are edge pairs (u, v) and
-        values are their computed Forman-Ricci curvature values.
+This module provides differential and spectral operators over sparse graphs and networks,
+including discrete gradient, divergence, Laplacian diffusion, Forman-Ricci curvature,
+spectral partitioning (Fiedler vector, algebraic connectivity), and centrality measures.
 """
 
 import math
@@ -29,6 +12,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from typing import Literal
 
+from algebrax.homology import Cochain, cochain_to_flow, flow_to_cochain
 from algebrax.matrix.academic import PerformanceWarning
 from algebrax.matrix.core import laplacian_matrix, mat_vec, vec_mat
 from algebrax.matrix.decompose import _symmetric_jacobi_eigh
@@ -36,10 +20,13 @@ from algebrax.semiring import Semiring
 from algebrax.typing import K, SparseMatrix, SparseVector
 
 __all__ = [
+    'Cochain',
     'algebraic_connectivity',
+    'cochain_to_flow',
     'divergence',
     'eigen_centrality',
     'fiedler_vector',
+    'flow_to_cochain',
     'forman_ricci_curvature',
     'gaussian_kernel',
     'gradient',
@@ -53,33 +40,41 @@ __all__ = [
 
 
 def divergence(flow: SparseMatrix) -> SparseVector:
-    """
-    Compute the discrete divergence of a 1-form (flow/edge signals).
-    Maps edges (matrix) to nodes (vector).
-    div(F)_i = sum_j (F_ij)
+    r"""Compute the discrete divergence (codifferential $\delta_1 = d_0^*$) of an edge flow.
 
-    This corresponds to the adjoint of the gradient (d*).
+    Algebraic Signature:
+        $\operatorname{div}: C^1(G; \mathbb{R}) \to C^0(G; \mathbb{R}), \quad
+        (\operatorname{div} F)_u = \sum_{v} (F_{uv} - F_{vu})$
+
+    Carrier:
+        `SparseVector[K, float]` (0-cochain mapping each vertex to its net outgoing flux).
+
+    Operations:
+        - Row Accumulation: Adds outgoing flow $F_{uv}$ to source vertex $u$.
+        - Column Accumulation: Subtracts incoming flow $F_{uv}$ from target vertex $v$.
+
+    Properties:
+        Formal adjoint of the discrete gradient operator (`gradient`), satisfying the discrete
+        integration-by-parts identity
+        $\langle \operatorname{grad} f, F \rangle = \langle f, \operatorname{div} F \rangle$
+        and conservation law $\sum_{u \in V} (\operatorname{div} F)_u = 0$.
+
+    Applications:
+        - Conservation law verification and sink/source detection in transport networks.
+        - Helmholtz-Hodge flow decomposition (curl-free vs. divergence-free components).
+        - Discrete Poisson and heat equation assembly ($\Delta = \operatorname{div} \circ \operatorname{grad}$).
 
     Args:
-        flow: A matrix representing flow between nodes.
-              Positive F_ij implies flow from i to j.
-              (Note: Convention varies, sometimes it's net flow *out*).
+        flow: Sparse matrix representing directed edge flows where $F_{uv} > 0$ denotes
+            flux from $u$ to $v$.
 
     Returns:
-        A vector representing the net flow out of each node.
+        A sparse vector representing the net divergence at each vertex.
     """
     result = defaultdict(int)
     for u, neighbors in flow.items():
         for v, val in neighbors.items():
-            # Flow u -> v counts as positive divergence for u
             result[u] += val
-            # And negative divergence for v (if the matrix is not skew-symmetric stored)
-            # If the matrix is fully stored (both u->v and v->u), we just sum rows.
-            # If it's sparse/upper-triangular, we need to handle the other side.
-            # Let's assume the matrix represents the 1-form fully or we treat it as directed.
-            # Standard divergence is row_sum - col_sum?
-            # If F is skew-symmetric (F_ij = -F_ji), then row_sum is sufficient.
-            # If F is just weights, we usually define div at i as sum(w_ij) - sum(w_ji).
             result[v] -= val
 
     return dict(result)
@@ -182,31 +177,37 @@ def forman_ricci_curvature(
     weighted: bool | None = None,
     augmented: bool = True,
 ) -> dict[tuple[K, K], float]:
-    """
-    Compute the Forman-Ricci Curvature for edges in a graph.
+    r"""Compute the combinatorial Forman-Ricci curvature for edges in a graph.
 
-    Forman-Ricci Curvature (FRC) is a discrete combinatorial analog of the Ricci
-    curvature on Riemannian manifolds. It measures the local divergence or cohesion
-    of flows along edges.
+    Algebraic Signature:
+        $\mathcal{F}(e) = 4 - \deg(u) - \deg(v) + 3\,|\triangle(e)|$ (unweighted augmented)
 
-    For an undirected edge e = (u, v) in an unweighted graph:
-    - 1D FRC: F(e) = 4 - deg(u) - deg(v)
-    - Augmented FRC (incorporating triangles): F(e) = 4 - deg(u) - deg(v) + 3 * tri(e)
+    Carrier:
+        `dict[tuple[K, K], float]` (Mapping from canonical undirected edge `(u, v)` with `u < v` to curvature).
 
-    For a weighted graph (Sreejith et al. formulation):
-    - F(e) = w_e * (w_u/w_e + w_v/w_e - sum_{e' ~ u} w_u/sqrt(w_e * w_e') - sum_{e' ~ v} w_v/sqrt(w_e * w_e'))
-      where node weights w_u and w_v default to node strengths (weighted degree).
-    - Augmented FRC: F_weighted_1D(e) + 3 * sum_{f > e} w_e / w_f
-      where the weight of a triangle face f = (u, v, w) is the geometric mean of its edge weights.
+    Operations:
+        - 1D Combinatorial Dispersion: Evaluates
+          $w_e \left(\frac{w_u}{w_e} + \frac{w_v}{w_e} - \sum_{e' \sim u} \frac{w_u}{\sqrt{w_e w_{e'}}}
+          - \sum_{e' \sim v} \frac{w_v}{\sqrt{w_e w_{e'}}}\right)$.
+        - 2D Simplicial Augmentation: Adds $+3 \sum_{f > e} \frac{w_e}{w_f}$ over incident triangles $f = (u, v, w)$.
+
+    Properties:
+        Discrete Bochner-Weitzenböck analog of Riemannian Ricci curvature; positive on clique-like
+        clusters and negative across inter-community bridges (tree-like bottlenecks).
+
+    Applications:
+        - Structural bottleneck detection and geometric community identification.
+        - Graph neural network rewiring (mitigating over-squashing).
+        - Network robustness and backbone extraction in biological and infrastructure graphs.
 
     Args:
-        graph: Adjacency matrix (weighted or unweighted).
-        weighted: Whether to compute weighted curvature. If None, automatically detected
-                  based on whether any edge weights differ from 1.
-        augmented: Whether to include 2D triangle contributions (default is True).
+        graph: Sparse adjacency matrix (weighted or unweighted).
+        weighted: Whether to compute weighted curvature. If `None`, automatically detected
+            based on whether any edge weights differ from `1.0`.
+        augmented: Whether to include 2D triangle face contributions (default `True`).
 
     Returns:
-        A dictionary mapping edges (u, v) (with u < v) to their curvature values.
+        Dictionary mapping canonical edges `(u, v)` to their Forman-Ricci curvature.
     """
     if weighted is None:
         weighted = _is_graph_weighted(graph)
@@ -220,20 +221,33 @@ def forman_ricci_curvature(
 
 
 def gaussian_kernel(distance_matrix: SparseMatrix, sigma: float = 1.0, threshold: float = 1e-6) -> SparseMatrix:
-    """
-    Compute the Gaussian (RBF) kernel from a distance matrix.
-    K_ij = exp(-d_ij^2 / (2 * sigma^2))
+    r"""Compute the Gaussian Radial Basis Function (RBF) similarity kernel from a distance matrix.
 
-    This transforms a distance metric into a similarity (adjacency) matrix,
-    often used for spectral clustering or diffusion maps.
+    Algebraic Signature:
+        $K_{uv} = \exp\left(-\frac{d_{uv}^2}{2\sigma^2}\right) \cdot \mathbb{I}(K_{uv} > \tau)$
+
+    Carrier:
+        `SparseMatrix[K, float]` (Sparse similarity/affinity matrix).
+
+    Operations:
+        - Gaussian Attenuation: Maps pairwise distances $d_{uv}$ to $(0, 1]$ affinities via bandwidth $\sigma$.
+        - Sparsity Thresholding: Prunes entries with $K_{uv} \le \tau$ to preserve sparse graph topology.
+
+    Properties:
+        Produces a symmetric positive semi-definite affinity kernel when applied to Euclidean
+        metrics, with $K_{uu} = 1$ for zero self-distance.
+
+    Applications:
+        - Manifold learning, diffusion maps, and spectral clustering affinity construction.
+        - Non-local graph signal processing and bilateral mesh filtering.
 
     Args:
-        distance_matrix: A sparse matrix of distances between nodes.
-        sigma: The bandwidth parameter (standard deviation).
-        threshold: Minimum value to retain in the sparse output.
+        distance_matrix: Sparse matrix of pairwise distances between nodes.
+        sigma: Bandwidth parameter $\sigma > 0$ (standard deviation).
+        threshold: Minimum kernel affinity $\tau$ to retain in the sparse output.
 
     Returns:
-        A sparse similarity matrix.
+        A sparse affinity matrix.
     """
     result = {}
     denom = 2 * sigma * sigma
@@ -251,17 +265,33 @@ def gaussian_kernel(distance_matrix: SparseMatrix, sigma: float = 1.0, threshold
 
 
 def gradient(field: SparseVector, graph: Mapping[K, Iterable[K]]) -> SparseMatrix:
-    """
-    Compute the discrete gradient (exterior derivative d0) of a 0-form (node signals).
-    Maps nodes (vector) to edges (matrix).
-    grad(f)_ij = f(j) - f(i)
+    r"""Compute the discrete gradient (exterior derivative $d_0$) of a vertex scalar field.
+
+    Algebraic Signature:
+        $d_0: C^0(G; \mathbb{R}) \to C^1(G; \mathbb{R}), \quad (\operatorname{grad} f)_{uv} = f(v) - f(u)$
+
+    Carrier:
+        `SparseMatrix[K, float]` (Skew-symmetric edge flow representation of a 1-cochain).
+
+    Operations:
+        - Finite Difference: Evaluates potential difference $f(v) - f(u)$ along every directed edge $(u, v)$.
+
+    Properties:
+        Satisfies skew-symmetry $(\operatorname{grad} f)_{uv} = -(\operatorname{grad} f)_{vu}$ on undirected graphs,
+        vanishes on constant fields ($\ker d_0 = \operatorname{span}\{\mathbf{1}\}$ on connected components),
+        and produces curl-free (exact) 1-forms ($\delta_1 \circ d_0 = 0$).
+
+    Applications:
+        - Potential-driven flow modeling in electrical, hydraulic, and arbitrage networks.
+        - Exact component extraction in Helmholtz-Hodge decomposition.
+        - Total variation and Dirichlet energy evaluation on graphs.
 
     Args:
-        field: A vector of values at nodes.
-        graph: Adjacency list defining the edges (topology).
+        field: Sparse vector of scalar potential values at vertices.
+        graph: Adjacency mapping defining the directed or undirected edges.
 
     Returns:
-        A matrix (1-form) representing the gradient along edges.
+        A sparse matrix representing the gradient 1-form along edges.
     """
     result = {}
     for u, neighbors in graph.items():
@@ -281,18 +311,33 @@ def gradient(field: SparseVector, graph: Mapping[K, Iterable[K]]) -> SparseMatri
 
 
 def laplacian(field: SparseVector, graph: SparseMatrix) -> SparseVector:
-    """
-    Compute the combinatorial Laplacian of a scalar field.
-    L = D - A (for unweighted) or L f = div(grad f).
+    r"""Apply the combinatorial graph Laplacian operator ($\Delta_0 = d_0^* d_0$) to a scalar field.
 
-    Delta f_i = sum_{j ~ i} w_ij * (f_i - f_j)
+    Algebraic Signature:
+        $(\Delta f)_u = \sum_{v \sim u} w_{uv} (f(u) - f(v)) = ((D - W) f)_u$
+
+    Carrier:
+        `SparseVector[K, float]` (0-cochain representing local harmonic defect at each vertex).
+
+    Operations:
+        - Weighted Neighborhood Diffusion: Sums weighted potential differences $w_{uv}(f_u - f_v)$
+          directly without materializing intermediate edge matrices.
+
+    Properties:
+        Self-adjoint positive semi-definite operator satisfying
+        $\langle f, \Delta f \rangle = \frac{1}{2} \sum_{u, v} w_{uv}(f_u - f_v)^2 \ge 0$;
+        harmonic functions ($\Delta f = 0$) satisfy the discrete mean-value property.
+
+    Applications:
+        - Heat diffusion, consensus dynamics, and harmonic interpolation on graphs.
+        - Graph signal smoothness quantification and Dirichlet energy gradients.
 
     Args:
-        field: A vector of values at nodes.
-        graph: Adjacency matrix (weighted).
+        field: Sparse vector of scalar values at vertices.
+        graph: Sparse weighted adjacency matrix.
 
     Returns:
-        A vector representing the Laplacian at each node.
+        A sparse vector representing the Laplacian evaluated at each vertex.
     """
     # L = div(grad(f))
     # But calculating grad then div is expensive (creates intermediate matrix).

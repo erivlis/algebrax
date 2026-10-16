@@ -44,7 +44,7 @@ def adjoint(matrix: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
 
 
 def cofactor(  # NOSONAR - academic O(N^5) recursive minor expansion demonstration
-        matrix: SparseMatrix[K, N]
+    matrix: SparseMatrix[K, N],
 ) -> SparseMatrix[K, N]:
     """
     Compute the cofactor matrix.
@@ -124,8 +124,7 @@ def cofactor(  # NOSONAR - academic O(N^5) recursive minor expansion demonstrati
 
 
 def determinant(  # NOSONAR - academic O(N^3) Gaussian elimination pivot demonstration
-        matrix: SparseMatrix[K, N],
-        n: int | None = None
+    matrix: SparseMatrix[K, N], n: int | None = None
 ) -> N:
     """
     Compute the determinant of a square matrix using Gaussian elimination.

@@ -14,7 +14,12 @@ from algebrax.matrix.core import (
     subtract,
     trace,
     transpose,
+    vec_add,
+    vec_axpy,
+    vec_clean,
     vec_mat,
+    vec_norm,
+    vec_scale,
 )
 from algebrax.matrix.decompose import (
     cholesky,
@@ -30,6 +35,7 @@ from algebrax.matrix.decompose import (
 __all__ = [
     'academic',
     'add',
+    'block_diag',
     'cholesky',
     'commutator',
     'dot',
@@ -50,5 +56,10 @@ __all__ = [
     'svd',
     'trace',
     'transpose',
+    'vec_add',
+    'vec_axpy',
+    'vec_clean',
     'vec_mat',
+    'vec_norm',
+    'vec_scale',
 ]

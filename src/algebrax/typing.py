@@ -19,6 +19,7 @@ __all__ = [
     'K',
     'N',
     'S',
+    'Simplex',
     'SparseMatrix',
     'SparseTensor',
     'SparseVector',
@@ -40,6 +41,13 @@ S = TypeVar('S')  # State type (for automata)
 
 A = TypeVar('A')  # Alphabet/Symbol type (for automata)
 """Generic type for input symbols in finite state machines."""
+
+# Simplicial & Cochain Types
+Simplex: TypeAlias = tuple[K, ...]
+"""
+An oriented k-simplex represented as a (k+1)-tuple of vertices (v_0, ..., v_k).
+Example: `(0, 1, 2)` represents an oriented 2-simplex (triangle).
+"""
 
 # Sparse Types
 SparseVector: TypeAlias = Mapping[K, V]

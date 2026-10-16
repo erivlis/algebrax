@@ -26,14 +26,22 @@ __all__ = [
     'subtract',
     'trace',
     'transpose',
+    'vec_add',
+    'vec_axpy',
+    'vec_clean',
     'vec_mat',
+    'vec_norm',
+    'vec_scale',
     'vstack',
 ]
 
 
 def element_wise_binary_op(
-        m1: SparseMatrix[K, N], m2: SparseMatrix[K, N], op: Callable[[N, N], N]
-) -> SparseMatrix[K, N]:
+    m1: SparseMatrix[K, V],
+    m2: SparseMatrix[K, V],
+    op: Callable[[V, V], V],
+    zero: V = 0,  # type: ignore[assignment]
+) -> SparseMatrix[K, V]:
     """
     Perform element-wise operation of two sparse matrices (nested mappings).
 
@@ -41,35 +49,48 @@ def element_wise_binary_op(
         m1: The first matrix.
         m2: The second matrix.
         op: A binary operation function.
+        zero: The additive identity element for missing entries and zero-pruning (default 0).
     """
     keys = set(m1.keys()) | set(m2.keys())
-    result = {}
+    result: dict[K, dict[K, V]] = {}
     for r in keys:
         row1 = m1.get(r, {})
         row2 = m2.get(r, {})
         col_keys = set(row1.keys()) | set(row2.keys())
-        new_row = {}
+        new_row: dict[K, V] = {}
         for c in col_keys:
-            val = op(row1.get(c, 0), row2.get(c, 0))
-            if val != 0:
+            val = op(row1.get(c, zero), row2.get(c, zero))
+            if val != zero:
                 new_row[c] = val
         if new_row:
             result[r] = new_row
     return result
 
 
-def add(m1: SparseMatrix[K, N], m2: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
-    """
-    Perform element-wise addition of two sparse matrices (nested mappings).
+def add(
+    m1: SparseMatrix[K, V],
+    m2: SparseMatrix[K, V],
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
+) -> SparseMatrix[K, V]:
+    r"""
+    Perform element-wise addition of two sparse matrices (nested mappings) over a semiring.
+
+    Algebraic Signature:
+        $(A \oplus B)_{rc} = A_{rc} \oplus B_{rc}$
 
     Args:
         m1: The first matrix.
         m2: The second matrix.
+        semiring: Optional algebraic structure (instance, class, or catalog name).
+            Defaults to StandardSemiring (+, *).
 
     Returns:
         A new nested dictionary representing the sum.
     """
-    return element_wise_binary_op(m1, m2, operator.add)
+    if semiring is None:
+        return element_wise_binary_op(m1, m2, operator.add, zero=0)  # type: ignore[arg-type]
+    sr = Semiring.normalize(semiring)
+    return element_wise_binary_op(m1, m2, sr.add, zero=sr.zero)
 
 
 def subtract(m1: SparseMatrix[K, N], m2: SparseMatrix[K, N]) -> SparseMatrix[K, N]:
@@ -87,9 +108,9 @@ def subtract(m1: SparseMatrix[K, N], m2: SparseMatrix[K, N]) -> SparseMatrix[K, 
 
 
 def block(
-        matrix: SparseMatrix[int, V],
-        rows: slice | range,
-        cols: slice | range,
+    matrix: SparseMatrix[int, V],
+    rows: slice | range,
+    cols: slice | range,
 ) -> SparseMatrix[int, V]:
     """
     Extract a sub-matrix (block) from a sparse matrix.
@@ -192,9 +213,9 @@ def commutator(m1: SparseMatrix[K, V], m2: SparseMatrix[K, V]) -> SparseMatrix[K
 
 
 def dot(
-        m1: SparseMatrix[K, V],
-        m2: SparseMatrix[K, V],
-        semiring: Semiring[V] | None = None,
+    m1: SparseMatrix[K, V],
+    m2: SparseMatrix[K, V],
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
 ) -> SparseMatrix[K, V]:
     """
     Perform matrix multiplication (dot product) of two sparse matrices.
@@ -203,17 +224,17 @@ def dot(
     Args:
         m1: The first matrix (left operand).
         m2: The second matrix (right operand).
-        semiring: The algebraic structure to use. Defaults to StandardSemiring (+, *).
+        semiring: The algebraic structure to use (instance, class, or catalog name).
+            Defaults to StandardSemiring (+, *).
 
     Returns:
         A new nested dictionary representing the product.
     """
-    if semiring is None:
-        semiring = StandardSemiring()
+    sr = StandardSemiring() if semiring is None else Semiring.normalize(semiring)
 
-    sr_add = semiring.add
-    sr_mul = semiring.mul
-    zero = semiring.zero
+    sr_add = sr.add
+    sr_mul = sr.mul
+    zero = sr.zero
 
     result = {}
     for r, row1 in m1.items():
@@ -262,9 +283,9 @@ def hstack(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]:
 
 
 def inner(
-        v1: SparseVector[K, V],
-        v2: SparseVector[K, V],
-        semiring: Semiring[V] | None = None,
+    v1: SparseVector[K, V],
+    v2: SparseVector[K, V],
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
 ) -> V:
     """
     Compute the inner product (dot product) of two vectors.
@@ -272,19 +293,19 @@ def inner(
     Args:
         v1: The first vector.
         v2: The second vector.
-        semiring: The algebraic structure to use. Defaults to StandardSemiring.
+        semiring: The algebraic structure to use (instance, class, or catalog name).
+            Defaults to StandardSemiring.
 
     Returns:
         The scalar dot product.
     """
-    if semiring is None:
-        semiring = StandardSemiring()
+    sr = StandardSemiring() if semiring is None else Semiring.normalize(semiring)
 
-    sr_add = semiring.add
-    sr_mul = semiring.mul
+    sr_add = sr.add
+    sr_mul = sr.mul
 
     common = set(v1.keys()) & set(v2.keys())
-    result = semiring.zero
+    result = sr.zero
     for k in common:
         term = sr_mul(v1[k], v2[k])
         result = sr_add(result, term)
@@ -308,9 +329,9 @@ def kronecker_delta(i: K, j: K) -> int:
 
 
 def _symmetrize_adjacency(
-        matrix: SparseMatrix[K, float],
-        nodes: set[K],
-        symmetrize: bool,
+    matrix: SparseMatrix[K, float],
+    nodes: set[K],
+    symmetrize: bool,
 ) -> dict[K, dict[K, float]]:
     adj: dict[K, dict[K, float]] = {u: {} for u in nodes}
     for u, neighbors in matrix.items():
@@ -328,9 +349,9 @@ def _symmetrize_adjacency(
 
 
 def _build_unnormalized_laplacian(
-        adj: dict[K, dict[K, float]],
-        degrees: dict[K, float],
-        nodes: set[K],
+    adj: dict[K, dict[K, float]],
+    degrees: dict[K, float],
+    nodes: set[K],
 ) -> dict[K, dict[K, float]]:
     lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
     for u in nodes:
@@ -343,9 +364,9 @@ def _build_unnormalized_laplacian(
 
 
 def _build_sym_laplacian(
-        adj: dict[K, dict[K, float]],
-        degrees: dict[K, float],
-        nodes: set[K],
+    adj: dict[K, dict[K, float]],
+    degrees: dict[K, float],
+    nodes: set[K],
 ) -> dict[K, dict[K, float]]:
     lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
     inv_sqrt_d = {u: (1.0 / math.sqrt(degrees[u]) if degrees[u] > 0 else 0.0) for u in nodes}
@@ -360,9 +381,9 @@ def _build_sym_laplacian(
 
 
 def _build_rw_laplacian(
-        adj: dict[K, dict[K, float]],
-        degrees: dict[K, float],
-        nodes: set[K],
+    adj: dict[K, dict[K, float]],
+    degrees: dict[K, float],
+    nodes: set[K],
 ) -> dict[K, dict[K, float]]:
     lap: dict[K, dict[K, float]] = {u: {} for u in nodes}
     for u in nodes:
@@ -375,10 +396,10 @@ def _build_rw_laplacian(
 
 
 def _build_laplacian_dict(
-        adj: dict[K, dict[K, float]],
-        degrees: dict[K, float],
-        nodes: set[K],
-        normalized: Literal['sym', 'rw'] | None,
+    adj: dict[K, dict[K, float]],
+    degrees: dict[K, float],
+    nodes: set[K],
+    normalized: Literal['sym', 'rw'] | None,
 ) -> dict[K, dict[K, float]]:
     if normalized == 'sym':
         return _build_sym_laplacian(adj, degrees, nodes)
@@ -388,9 +409,9 @@ def _build_laplacian_dict(
 
 
 def laplacian_matrix(
-        matrix: SparseMatrix[K, float],
-        normalized: Literal['sym', 'rw'] | None = None,
-        symmetrize: bool = True,
+    matrix: SparseMatrix[K, float],
+    normalized: Literal['sym', 'rw'] | None = None,
+    symmetrize: bool = True,
 ) -> SparseMatrix[K, float]:
     r"""Construct the graph Laplacian matrix from a sparse adjacency or similarity matrix.
 
@@ -438,9 +459,9 @@ def laplacian_matrix(
 
 
 def mat_vec(
-        matrix: SparseMatrix[K, V],
-        vector: SparseVector[K, V],
-        semiring: Semiring[V] | None = None,
+    matrix: SparseMatrix[K, V],
+    vector: SparseVector[K, V],
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
 ) -> SparseVector[K, V]:
     """
     Multiply a matrix by a vector (M * v).
@@ -448,29 +469,29 @@ def mat_vec(
     Args:
         matrix: The matrix.
         vector: The vector.
-        semiring: The algebraic structure to use. Defaults to StandardSemiring.
+        semiring: The algebraic structure to use (instance, class, or catalog name).
+            Defaults to StandardSemiring.
 
     Returns:
         The resulting vector.
     """
-    if semiring is None:
-        semiring = StandardSemiring()
+    sr = StandardSemiring() if semiring is None else Semiring.normalize(semiring)
 
-    zero = semiring.zero
+    zero = sr.zero
     result = {}
 
     for r, row in matrix.items():
         # row * vector (inner product)
-        val = inner(row, vector, semiring)
+        val = inner(row, vector, sr)
         if val != zero:
             result[r] = val
     return result
 
 
 def power(
-        matrix: SparseMatrix[K, V],
-        n: int,
-        semiring: Semiring[V] | None = None,
+    matrix: SparseMatrix[K, V],
+    n: int,
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
 ) -> SparseMatrix[K, V]:
     """
     Compute the n-th power of a square matrix using binary exponentiation.
@@ -478,7 +499,8 @@ def power(
     Args:
         matrix: The input matrix.
         n: The exponent (must be non-negative).
-        semiring: The algebraic structure to use. Defaults to StandardSemiring.
+        semiring: The algebraic structure to use (instance, class, or catalog name).
+            Defaults to StandardSemiring.
 
     Returns:
         The result of matrix ** n.
@@ -486,27 +508,26 @@ def power(
     if n < 0:
         raise ValueError('Exponent must be non-negative.')
 
-    if semiring is None:
-        semiring = StandardSemiring()
+    sr = StandardSemiring() if semiring is None else Semiring.normalize(semiring)
 
     # Identity matrix construction
     keys = set(matrix.keys()) | {k for row in matrix.values() for k in row}
-    one = semiring.one
+    one = sr.one
     result = {k: {k: one} for k in keys}
 
     base = matrix
     while n > 0:
         if n % 2 == 1:
-            result = dot(result, base, semiring)
-        base = dot(base, base, semiring)
+            result = dot(result, base, sr)
+        base = dot(base, base, sr)
         n //= 2
     return result
 
 
 def slice_matrix(
-        matrix: SparseMatrix[K, V],
-        rows: Iterable[K],
-        cols: Iterable[K],
+    matrix: SparseMatrix[K, V],
+    rows: Iterable[K],
+    cols: Iterable[K],
 ) -> SparseMatrix[K, V]:
     """
     Extract a sub-matrix using explicit row and column keys.
@@ -533,17 +554,33 @@ def slice_matrix(
     return result
 
 
-def trace(matrix: SparseMatrix[K, N]) -> N:
-    """
-    Calculate the trace of a matrix (sum of diagonal elements).
+def trace(
+    matrix: SparseMatrix[K, V],
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
+) -> V:
+    r"""
+    Calculate the trace of a matrix (sum of diagonal elements) over a semiring.
+
+    Algebraic Signature:
+        $\mathrm{Tr}_{\mathcal{S}}(A) = \bigoplus_{r} A_{rr}$
 
     Args:
         matrix: The input matrix.
+        semiring: Optional algebraic structure (instance, class, or catalog name).
+            Defaults to StandardSemiring.
 
     Returns:
         The sum of diagonal elements.
     """
-    return sum(row.get(r, 0) for r, row in matrix.items())
+    if semiring is None:
+        return sum(row.get(r, 0) for r, row in matrix.items())  # type: ignore[return-value, misc]
+    sr = Semiring.normalize(semiring)
+    acc = sr.zero
+    sr_add = sr.add
+    for r, row in matrix.items():
+        if r in row:
+            acc = sr_add(acc, row[r])
+    return acc
 
 
 def transpose(matrix: Mapping[K, Mapping[K, V]]) -> dict[K, dict[K, V]]:
@@ -567,9 +604,9 @@ def transpose(matrix: Mapping[K, Mapping[K, V]]) -> dict[K, dict[K, V]]:
 
 
 def vec_mat(
-        vector: SparseVector[K, V],
-        matrix: SparseMatrix[K, V],
-        semiring: Semiring[V] | None = None,
+    vector: SparseVector[K, V],
+    matrix: SparseMatrix[K, V],
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
 ) -> SparseVector[K, V]:
     """
     Multiply a vector by a matrix (v * M).
@@ -577,17 +614,17 @@ def vec_mat(
     Args:
         vector: The vector.
         matrix: The matrix.
-        semiring: The algebraic structure to use. Defaults to StandardSemiring.
+        semiring: The algebraic structure to use (instance, class, or catalog name).
+            Defaults to StandardSemiring.
 
     Returns:
         The resulting vector.
     """
-    if semiring is None:
-        semiring = StandardSemiring()
+    sr = StandardSemiring() if semiring is None else Semiring.normalize(semiring)
 
-    sr_add = semiring.add
-    sr_mul = semiring.mul
-    zero = semiring.zero
+    sr_add = sr.add
+    sr_mul = sr.mul
+    zero = sr.zero
     result = defaultdict(lambda: zero)
 
     for k, val in vector.items():
@@ -597,6 +634,160 @@ def vec_mat(
                 result[c] = sr_add(result[c], term)
 
     return {k: v for k, v in result.items() if v != zero}
+
+
+def vec_add(
+    u: SparseVector[K, V],
+    v: SparseVector[K, V],
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
+    tol: float = 0.0,
+) -> dict[K, V]:
+    r"""Compute sparse vector addition $(u \oplus v)_k = u_k \oplus v_k$.
+
+    Args:
+        u: First sparse vector.
+        v: Second sparse vector.
+        semiring: Optional algebraic structure (instance, class, or catalog name).
+            Defaults to StandardSemiring.
+        tol: Numerical pruning threshold when using standard numeric addition (default 0.0).
+
+    Returns:
+        A new dictionary representing the vector sum.
+    """
+    keys = set(u.keys()) | set(v.keys())
+    if semiring is not None:
+        sr = Semiring.normalize(semiring)
+        sr_add = sr.add
+        zero = sr.zero
+        res_sr: dict[K, V] = {}
+        for k in keys:
+            val = sr_add(u.get(k, zero), v.get(k, zero))
+            if val != zero:
+                res_sr[k] = val
+        return res_sr
+
+    res: dict[K, V] = {}
+    for k in keys:
+        val = u.get(k, 0) + v.get(k, 0)  # type: ignore[operator]
+        keep = (abs(val) > tol) if tol > 0.0 else (val != 0)  # type: ignore[arg-type]
+        if keep:
+            res[k] = val
+    return res
+
+
+def vec_scale(
+    u: SparseVector[K, V],
+    scalar: V,
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
+    tol: float = 1e-14,
+) -> dict[K, V]:
+    r"""Compute left scalar multiplication $(s \otimes u)_k = s \otimes u_k$ with sparsity pruning.
+
+    Args:
+        u: Input sparse vector.
+        scalar: Scalar multiplier.
+        semiring: Optional algebraic structure (instance, class, or catalog name).
+        tol: Numerical magnitude pruning threshold when `semiring` is None (default 1e-14).
+
+    Returns:
+        A new scaled sparse vector dictionary.
+    """
+    if semiring is not None:
+        sr = Semiring.normalize(semiring)
+        sr_mul = sr.mul
+        zero = sr.zero
+        res_sr: dict[K, V] = {}
+        for k, val in u.items():
+            prod = sr_mul(scalar, val)
+            if prod != zero:
+                res_sr[k] = prod
+        return res_sr
+
+    res: dict[K, V] = {}
+    for k, val in u.items():
+        prod = scalar * val  # type: ignore[operator]
+        keep = (abs(prod) > tol) if tol > 0.0 else (prod != 0)  # type: ignore[arg-type]
+        if keep:
+            res[k] = prod
+    return res
+
+
+def vec_axpy(
+    a: float | complex,
+    x: SparseVector[K, float | complex],
+    y: SparseVector[K, float | complex],
+    tol: float = 1e-14,
+) -> dict[K, float | complex]:
+    r"""Compute fused sparse linear combination $\mathbf{z} = a \mathbf{x} + \mathbf{y}$ in a single pass.
+
+    Args:
+        a: Scalar multiplier for vector `x`.
+        x: Scaled sparse vector.
+        y: Base sparse vector added to `a * x`.
+        tol: Numerical magnitude threshold for pruning near-zero entries (default 1e-14).
+
+    Returns:
+        A new sparse vector dictionary representing `a * x + y`.
+    """
+    if a == 0:  # NOSONAR - exact zero multiplier shortcut
+        return {k: v for k, v in y.items() if (abs(v) > tol if tol > 0.0 else v != 0)}
+
+    keys = set(x.keys()) | set(y.keys())
+    res: dict[K, float | complex] = {}
+    for k in keys:
+        val = a * x.get(k, 0.0) + y.get(k, 0.0)
+        if (abs(val) > tol) if tol > 0.0 else (val != 0):
+            res[k] = val
+    return res
+
+
+def vec_norm(
+    u: SparseVector[K, float | complex],
+    p: float = 2.0,
+) -> float:
+    r"""Compute the $L_p$ norm $\|\mathbf{u}\|_p = \left(\sum_k |u_k|^p\right)^{1/p}$ of a sparse vector.
+
+    Args:
+        u: Input real or complex sparse vector.
+        p: Norm order ($p \ge 1$ or `math.inf`, default 2.0).
+
+    Returns:
+        Non-negative float norm.
+
+    Raises:
+        ValueError: If `p <= 0`.
+    """
+    if p <= 0.0:
+        raise ValueError(f'Norm order p must be positive, got {p}.')
+    if not u:
+        return 0.0
+    if math.isinf(p):
+        return float(max(abs(v) for v in u.values()))
+    if p == 1.0:  # NOSONAR - exact L1 norm dispatch
+        return float(sum(abs(v) for v in u.values()))
+    if p == 2.0:  # NOSONAR - exact Euclidean L2 norm dispatch
+        return math.sqrt(sum(abs(v) ** 2 for v in u.values()))
+    return float(sum(abs(v) ** p for v in u.values()) ** (1.0 / p))
+
+
+def vec_clean(
+    u: SparseVector[K, float | complex],
+    tol: float = 1e-12,
+) -> dict[K, float | complex]:
+    """Prune numerical noise $|u_k| \\le \\text{tol}$ and strip negligible imaginary components.
+
+    Args:
+        u: Input real or complex sparse vector.
+        tol: Magnitude tolerance threshold (default 1e-12).
+
+    Returns:
+        Cleaned sparse vector dictionary.
+    """
+    res: dict[K, float | complex] = {}
+    for k, v in u.items():
+        if abs(v) > tol:
+            res[k] = v.real if isinstance(v, complex) and abs(v.imag) < tol else v
+    return res
 
 
 def vstack(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]:
@@ -627,10 +818,10 @@ def vstack(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]:
 
 
 def frobenius_inner(
-        m1: SparseMatrix[K, N],
-        m2: SparseMatrix[K, N],
-        conjugate: bool = True,
-        semiring: Semiring[N] | None = None,
+    m1: SparseMatrix[K, N],
+    m2: SparseMatrix[K, N],
+    conjugate: bool = True,
+    semiring: Semiring[N] | type[Semiring[N]] | str | None = None,
 ) -> N:
     r"""Compute the Frobenius (Hilbert-Schmidt) inner product of two sparse matrices.
 
@@ -644,15 +835,17 @@ def frobenius_inner(
         m1: First sparse matrix.
         m2: Second sparse matrix.
         conjugate: Whether to take the complex conjugate of m1 entries (default True).
-        semiring: Optional semiring for generalized inner products. Defaults to standard arithmetic.
+        semiring: Optional semiring for generalized inner products (instance, class, or catalog name).
+            Defaults to standard arithmetic.
 
     Returns:
         Scalar inner product value.
     """
     if semiring is not None:
-        sr_add = semiring.add
-        sr_mul = semiring.mul
-        res = semiring.zero
+        sr = Semiring.normalize(semiring)
+        sr_add = sr.add
+        sr_mul = sr.mul
+        res = sr.zero
         for r, row in m1.items():
             if r in m2:
                 row2 = m2[r]
@@ -674,8 +867,8 @@ def frobenius_inner(
 
 
 def inverse(  # noqa: C901, NOSONAR - Gauss-Jordan sparse elimination kernel with partial pivoting
-        matrix: SparseMatrix[K, N],
-        tol: float = 1e-12,
+    matrix: SparseMatrix[K, N],
+    tol: float = 1e-12,
 ) -> SparseMatrix[K, N]:
     r"""Compute the inverse of a square sparse matrix using Gauss-Jordan elimination with partial pivoting.
 

@@ -14,7 +14,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TypeAlias
 
-from algebrax.matrix import commutator, frobenius_inner, inverse, mat_vec
+from algebrax.matrix import commutator, frobenius_inner, inverse, mat_vec, vec_add, vec_axpy, vec_clean, vec_norm
 from algebrax.tensor import einsum
 from algebrax.typing import SparseMatrix, SparseVector
 
@@ -23,30 +23,6 @@ LieElement: TypeAlias = SparseVector[int, float | complex]
 
 class ConvergenceWarning(UserWarning):
     """Warning raised when BCH series inputs exceed the radius of convergence."""
-
-
-def _vec_add(u: LieElement, v: LieElement) -> LieElement:
-    res = dict(u)
-    for k, val in v.items():
-        res[k] = res.get(k, 0.0) + val
-    return res
-
-
-def _vec_scale(u: LieElement, s: float | complex) -> LieElement:
-    return {k: s * val for k, val in u.items() if abs(s * val) > 1e-14}
-
-
-def _vec_norm(u: LieElement) -> float:
-    """Compute Euclidean 2-norm ||X||_2 = sqrt(sum |x_i|^2) safe for complex vectors."""
-    return math.sqrt(sum(abs(v) ** 2 for v in u.values()))
-
-
-def _vec_clean(u: LieElement, tol: float = 1e-12) -> LieElement:
-    res: dict[int, float | complex] = {}
-    for k, v in u.items():
-        if abs(v) > tol:
-            res[k] = v.real if abs(v.imag) < tol else v
-    return res
 
 
 def _verify_closure(
@@ -278,7 +254,7 @@ class LieAlgebra:
             yb = y_norm.get(b, 0.0)
             if xa and yb:
                 res[c] = res.get(c, 0.0) + fabc * xa * yb
-        return _vec_clean(res)
+        return vec_clean(res)
 
     def adjoint_matrix(
         self,
@@ -383,8 +359,8 @@ class LieAlgebra:
         x_norm = self._normalize_element(x)
         y_norm = self._normalize_element(y)
 
-        norm_x = _vec_norm(x_norm)
-        norm_y = _vec_norm(y_norm)
+        norm_x = vec_norm(x_norm)
+        norm_y = vec_norm(y_norm)
         if norm_x + norm_y >= math.log(2.0):
             warnings.warn(
                 f'BCH input norms ({norm_x + norm_y:.4f}) exceed convergence radius ln(2) ~= 0.69315',
@@ -393,29 +369,29 @@ class LieAlgebra:
             )
 
         # Order 1: X + Y
-        res = _vec_add(x_norm, y_norm)
+        res = vec_add(x_norm, y_norm)
         if order == 1:
-            return _vec_clean(res)
+            return vec_clean(res)
 
         # Order 2: + 1/2 [X, Y]
         xy = self.bracket(x_norm, y_norm)
-        res = _vec_add(res, _vec_scale(xy, 0.5))
+        res = vec_axpy(0.5, xy, res)
         if order == 2:
-            return _vec_clean(res)
+            return vec_clean(res)
 
         # Order 3: + 1/12 [X, [X, Y]] - 1/12 [Y, [X, Y]]
         x_xy = self.bracket(x_norm, xy)
         y_xy = self.bracket(y_norm, xy)
-        res = _vec_add(res, _vec_scale(x_xy, 1.0 / 12.0))
-        res = _vec_add(res, _vec_scale(y_xy, -1.0 / 12.0))
+        res = vec_axpy(1.0 / 12.0, x_xy, res)
+        res = vec_axpy(-1.0 / 12.0, y_xy, res)
         if order == 3:
-            return _vec_clean(res)
+            return vec_clean(res)
 
         # Order 4: - 1/24 [Y, [X, [X, Y]]]
         y_x_xy = self.bracket(y_norm, x_xy)
-        res = _vec_add(res, _vec_scale(y_x_xy, -1.0 / 24.0))
+        res = vec_axpy(-1.0 / 24.0, y_x_xy, res)
 
-        return _vec_clean(res)
+        return vec_clean(res)
 
     def element_to_matrix(
         self,
@@ -467,8 +443,8 @@ class LieAlgebra:
     def _repr_html_(self) -> str:
         return (
             f"<div style='border: 1px solid #8b5cf6; padding: 8px; border-radius: 4px;'>"
-            f"<strong>LieAlgebra</strong> (&dim; = {self.dim})<br>"
-            f"Generators: {', '.join(self.basis_names)}<br>"
+            f'<strong>LieAlgebra</strong> (&dim; = {self.dim})<br>'
+            f'Generators: {", ".join(self.basis_names)}<br>'
             f'Semisimple: <code>{self.is_semisimple()}</code>'
             f'</div>'
         )

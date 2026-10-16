@@ -9,18 +9,371 @@ This module provides tools for constructing simplicial complexes, computing boun
 evaluating Betti numbers beta_k, and conducting topological data analysis.
 """
 
-from collections.abc import Iterable
+from __future__ import annotations
+
+import math
+from collections.abc import Iterable, Iterator, Mapping
 from itertools import combinations
+from typing import Any, Generic, Literal
 
 from algebrax.semiring import Semiring
-from algebrax.typing import K, SparseMatrix, V
+from algebrax.typing import K, SparseMatrix, SparseVector, V
 
 __all__ = [
+    'Cochain',
     'SimplicialComplex',
     'SparseChainComplex',
     'coboundary',
+    'cochain_to_flow',
     'cohomology_rank',
+    'flow_to_cochain',
 ]
+
+
+def _count_inversions_and_sort(s: tuple[K, ...], oriented: bool) -> tuple[tuple[K, ...], int]:
+    n = len(s)
+    try:
+        inversions = 0
+        if oriented:
+            for i in range(n):
+                s_i = s[i]
+                for j in range(i + 1, n):
+                    if s_i > s[j]:  # type: ignore[operator]
+                        inversions += 1
+        return tuple(sorted(s)), (-1 if (inversions % 2 == 1) else 1)  # type: ignore[type-var]
+    except TypeError:
+        keyed = [((str(type(x)), str(x)), x) for x in s]
+        inversions = 0
+        if oriented:
+            for i in range(n):
+                k_i = keyed[i][0]
+                for j in range(i + 1, n):
+                    if k_i > keyed[j][0]:
+                        inversions += 1
+        keyed.sort(key=lambda item: item[0])
+        return tuple(item[1] for item in keyed), (-1 if (inversions % 2 == 1) else 1)
+
+
+def _canonicalize_simplex(
+    simplex: Iterable[K],
+    oriented: bool = True,
+) -> tuple[tuple[K, ...], int]:
+    """Return `(canonical_sorted_simplex, parity_sign)` where `parity_sign` is 0 if degenerate."""
+    s = tuple(simplex)
+    n = len(s)
+    if n <= 1:
+        return s, 1
+    if len(set(s)) < n:
+        return s, 0
+    return _count_inversions_and_sort(s, oriented)
+
+
+def _is_non_zero(val: Any, tol: float) -> bool:
+    if isinstance(val, (int, float, complex)) and not isinstance(val, bool):
+        return (abs(val) > tol) if tol > 0.0 else (val != 0)
+    return bool(val)
+
+
+def _resolve_bidirectional_edge_flux(
+    f_uv: float,
+    f_vu: float,
+    mode: Literal['auto', 'net', 'half_skew'],
+    tol: float,
+) -> float:
+    if mode == 'half_skew':
+        return 0.5 * (f_uv - f_vu)
+    if mode == 'net':
+        return f_uv - f_vu
+    if mode == 'auto':
+        if f_uv != 0.0 and f_vu != 0.0 and math.isclose(f_uv, -f_vu, rel_tol=1e-9, abs_tol=max(tol, 1e-12)):
+            return f_uv
+        return f_uv - f_vu
+    raise ValueError(f"Unknown mode '{mode}'. Expected 'auto', 'net', or 'half_skew'.")
+
+
+class Cochain(Mapping[tuple[K, ...], V], Generic[K, V]):
+    r"""Alternating discrete differential k-form / cochain over oriented simplices.
+
+    Algebraic Signature:
+        $\omega \in C^k(K; R), \quad
+        \omega(v_{\pi(0)}, \dots, v_{\pi(k)}) = \operatorname{sgn}(\pi)\,\omega(v_0, \dots, v_k)$
+
+    Carrier:
+        `Mapping[tuple[K, ...], V]` (Immutable sparse mapping over canonical simplices $v_0 < v_1 < \dots < v_k$).
+
+    Operations:
+        - Orientation Lookup (`__getitem__`, `get`): Evaluates $\omega(\sigma)$ for any vertex permutation $\sigma$,
+          returning $\operatorname{sgn}(\pi)\,\omega(\sigma_{\text{sorted}})$ and $0$ on degenerate simplices.
+        - Vector Space Arithmetic (`+`, `-`, `*`, unary `-`): Linear combinations in $C^k(K; R)$.
+        - Chain Pairing (`eval`): Bilinear Kronecker pairing
+          $\langle \omega, c \rangle = \sum_{\sigma} \omega(\sigma) c(\sigma)$.
+        - Flow & Node Bridges (`from_flow`, `to_flow`, `from_nodes`, `to_nodes`): Lossless conversion between
+          graph adjacency edge flows (`SparseMatrix`), node scalar fields (`SparseVector`), and cochains.
+
+    Properties:
+        Alternating antisymmetry, degenerate simplex annihilation ($\omega(\dots, u, \dots, u, \dots) = 0$),
+        full compatibility with `SparseVector` (`Mapping[tuple[K, ...], V]`).
+
+    Applications:
+        Discrete Exterior Calculus (DEC), Helmholtz-Hodge flow decomposition, simplicial cohomology,
+        conservative vs. rotational network flow analysis.
+    """
+
+    def __init__(
+        self,
+        data: Mapping[tuple[K, ...], V] | Iterable[tuple[tuple[K, ...], V]] | None = None,
+        *,
+        degree: int | None = None,
+        oriented: bool = True,
+        tol: float = 1e-14,
+    ) -> None:
+        self._oriented = oriented
+        self._tol = tol
+        self._data: dict[tuple[K, ...], V] = {}
+
+        if data is not None:
+            items = data.items() if isinstance(data, Mapping) else data
+            for raw_simplex, raw_val in items:
+                if not isinstance(raw_simplex, tuple):
+                    raw_simplex = tuple(raw_simplex)
+                if degree is not None and len(raw_simplex) != degree + 1:
+                    raise ValueError(
+                        f'Simplex {raw_simplex} has dimension {len(raw_simplex) - 1}, expected degree {degree}.'
+                    )
+                canon, sign = _canonicalize_simplex(raw_simplex, oriented=oriented)
+                if sign == 0:
+                    continue
+                signed_val: V = -raw_val if sign == -1 else raw_val  # type: ignore[operator]
+                prev = self._data.get(canon)
+                combined = (prev + signed_val) if prev is not None else signed_val  # type: ignore[operator]
+                if _is_non_zero(combined, tol):
+                    self._data[canon] = combined
+                else:
+                    self._data.pop(canon, None)
+
+        if degree is not None:
+            self._degree: int | None = degree
+        elif self._data:
+            lengths = {len(s) - 1 for s in self._data}
+            self._degree = next(iter(lengths)) if len(lengths) == 1 else None
+        else:
+            self._degree = None
+
+    @property
+    def degree(self) -> int | None:
+        """Simplicial degree k of the cochain (where simplices are (k+1)-tuples), or None if empty/mixed."""
+        return self._degree
+
+    @property
+    def oriented(self) -> bool:
+        """Whether simplex permutation parity flips the sign of coefficients."""
+        return self._oriented
+
+    def __getitem__(self, simplex: tuple[K, ...]) -> V:
+        if not isinstance(simplex, tuple):
+            raise KeyError(simplex)
+        canon, sign = _canonicalize_simplex(simplex, oriented=self._oriented)
+        if sign == 0 or canon not in self._data:
+            raise KeyError(simplex)
+        val = self._data[canon]
+        return -val if sign == -1 else val  # type: ignore[operator]
+
+    def get(self, key: tuple[K, ...], default: Any = None) -> Any:
+        if not isinstance(key, tuple):
+            return default
+        canon, sign = _canonicalize_simplex(key, oriented=self._oriented)
+        if sign == 0:
+            return 0.0 if default is None else default
+        if canon not in self._data:
+            return default
+        val = self._data[canon]
+        return -val if sign == -1 else val  # type: ignore[operator]
+
+    def __iter__(self) -> Iterator[tuple[K, ...]]:
+        return iter(self._data)
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Cochain):
+            return self._data == other._data and self._oriented == other._oriented
+        if isinstance(other, Mapping):
+            try:
+                other_cochain = Cochain(other, oriented=self._oriented, tol=self._tol)
+            except (TypeError, ValueError):
+                return False
+            return self._data == other_cochain._data
+        return NotImplemented
+
+    def __add__(self, other: Mapping[tuple[K, ...], V]) -> Cochain[K, V]:
+        if not isinstance(other, Mapping):
+            return NotImplemented
+        other_c = other if isinstance(other, Cochain) else Cochain(other, oriented=self._oriented, tol=self._tol)
+        merged: dict[tuple[K, ...], V] = dict(self._data)
+        for s, val in other_c._data.items():
+            merged[s] = (merged[s] + val) if s in merged else val  # type: ignore[operator]
+        deg = self._degree if self._degree == other_c._degree else None
+        return Cochain(merged, degree=deg, oriented=self._oriented, tol=self._tol)
+
+    def __sub__(self, other: Mapping[tuple[K, ...], V]) -> Cochain[K, V]:
+        if not isinstance(other, Mapping):
+            return NotImplemented
+        other_c = other if isinstance(other, Cochain) else Cochain(other, oriented=self._oriented, tol=self._tol)
+        merged: dict[tuple[K, ...], V] = dict(self._data)
+        for s, val in other_c._data.items():
+            merged[s] = (merged[s] - val) if s in merged else (-val)  # type: ignore[operator]
+        deg = self._degree if self._degree == other_c._degree else None
+        return Cochain(merged, degree=deg, oriented=self._oriented, tol=self._tol)
+
+    def __neg__(self) -> Cochain[K, V]:
+        neg_data = {s: -val for s, val in self._data.items()}  # type: ignore[operator]
+        return Cochain(neg_data, degree=self._degree, oriented=self._oriented, tol=self._tol)
+
+    def __mul__(self, scalar: V) -> Cochain[K, V]:
+        if isinstance(scalar, Mapping):
+            return NotImplemented
+        scaled = {s: val * scalar for s, val in self._data.items()}  # type: ignore[operator]
+        return Cochain(scaled, degree=self._degree, oriented=self._oriented, tol=self._tol)
+
+    def __rmul__(self, scalar: V) -> Cochain[K, V]:
+        if isinstance(scalar, Mapping):
+            return NotImplemented
+        scaled = {s: scalar * val for s, val in self._data.items()}  # type: ignore[operator]
+        return Cochain(scaled, degree=self._degree, oriented=self._oriented, tol=self._tol)
+
+    def eval(self, chain: Mapping[tuple[K, ...], V]) -> V:
+        r"""Evaluate bilinear Kronecker pairing $\langle \omega, c \rangle = \sum_\sigma \omega(\sigma) c_\sigma$."""
+        total: Any = 0.0
+        for simplex, coeff in chain.items():
+            w_val = self.get(simplex, 0.0)
+            if w_val != 0.0:
+                total += w_val * coeff
+        return total  # type: ignore[return-value]
+
+    @classmethod
+    def from_nodes(
+        cls,
+        field: SparseVector[K, V],
+        *,
+        tol: float = 1e-14,
+    ) -> Cochain[K, V]:
+        """Lift a 0-form vertex signal `{u: val}` to a 0-cochain `{(u,): val}`."""
+        return cls({(u,): val for u, val in field.items()}, degree=0, oriented=True, tol=tol)
+
+    def to_nodes(self) -> dict[K, V]:
+        """Project a 0-cochain `{(u,): val}` back to a vertex dictionary `{u: val}`."""
+        res: dict[K, V] = {}
+        for s, val in self._data.items():
+            if len(s) != 1:
+                raise ValueError(f'to_nodes requires a 0-cochain (1-tuple simplices), got simplex {s}.')
+            res[s[0]] = val
+        return res
+
+    @classmethod
+    def from_flow(
+        cls,
+        flow: SparseMatrix[K, float],
+        *,
+        mode: Literal['auto', 'net', 'half_skew'] = 'auto',
+        tol: float = 1e-14,
+    ) -> Cochain[K, float]:
+        r"""Project a nested adjacency edge-flow matrix onto a canonically oriented 1-cochain.
+
+        Args:
+            flow: Nested mapping `u -> {v: flux}` representing directed edge signals.
+            mode: Reduction rule when both `(u, v)` and `(v, u)` exist (`u < v`):
+                - `'auto'` (default): Preserves $F_{uv}$ if $F_{vu} = -F_{uv}$ (skew-symmetric),
+                  otherwise computes net flux $F_{uv} - F_{vu}$.
+                - `'net'`: Always computes net flux $F_{uv} - F_{vu}$.
+                - `'half_skew'`: Computes the skew-symmetric projection $\frac{1}{2}(F_{uv} - F_{vu})$.
+            tol: Magnitude threshold for pruning zero edge flows.
+
+        Returns:
+            A degree-1 `Cochain[K, float]`.
+        """
+        if mode not in ('auto', 'net', 'half_skew'):
+            raise ValueError(f"Unknown mode '{mode}'. Expected 'auto', 'net', or 'half_skew'.")
+
+        canonical_edges: set[tuple[K, K]] = set()
+        for u, row in flow.items():
+            for v in row:
+                if u != v:
+                    canon, sign = _canonicalize_simplex((u, v), oriented=True)
+                    if sign != 0:
+                        canonical_edges.add((canon[0], canon[1]))
+
+        cochain_data: dict[tuple[K, ...], float] = {}
+        for u, v in canonical_edges:
+            f_uv = float(flow.get(u, {}).get(v, 0.0))
+            f_vu = float(flow.get(v, {}).get(u, 0.0))
+            val = _resolve_bidirectional_edge_flux(f_uv, f_vu, mode, tol)
+            if abs(val) > tol:
+                cochain_data[(u, v)] = val
+
+        return cls(cochain_data, degree=1, oriented=True, tol=tol)
+
+    def to_flow(
+        self,
+        *,
+        skew_symmetric: bool = True,
+        tol: float = 1e-14,
+    ) -> dict[K, dict[K, float]]:
+        r"""Lift a 1-cochain $\omega \in C^1(K; \mathbb{R})$ to a nested adjacency flow matrix.
+
+        Args:
+            skew_symmetric: If True, populates both $F_{uv} = \omega((u, v))$ and $F_{vu} = -\omega((u, v))$.
+                If False, populates only the positive-flux direction.
+            tol: Magnitude threshold for pruning near-zero flows.
+
+        Returns:
+            Nested dictionary `u -> {v: flux}`.
+        """
+        res: dict[K, dict[K, float]] = {}
+        for s, raw_val in self._data.items():
+            if len(s) != 2:
+                raise ValueError(f'to_flow requires a 1-cochain (2-tuple simplices), got simplex {s}.')
+            val = float(raw_val)  # type: ignore[arg-type]
+            if abs(val) <= tol:
+                continue
+            u, v = s[0], s[1]
+            if skew_symmetric:
+                res.setdefault(u, {})[v] = val
+                res.setdefault(v, {})[u] = -val
+            elif val > 0.0:
+                res.setdefault(u, {})[v] = val
+            else:
+                res.setdefault(v, {})[u] = -val
+        return res
+
+    def __repr__(self) -> str:
+        deg_str = f', degree={self._degree}' if self._degree is not None else ''
+        return f'Cochain({self._data!r}{deg_str})'
+
+    def _repr_latex_(self) -> str:
+        deg = self._degree if self._degree is not None else 'k'
+        return f'$$\\omega \\in C^{{{deg}}}(K), \\; |\\mathrm{{supp}}(\\omega)| = {len(self._data)}$$'
+
+
+def flow_to_cochain(
+    flow: SparseMatrix[K, float],
+    *,
+    mode: Literal['auto', 'net', 'half_skew'] = 'auto',
+    tol: float = 1e-14,
+) -> Cochain[K, float]:
+    """Project a nested adjacency edge-flow matrix onto a canonically oriented 1-cochain."""
+    return Cochain.from_flow(flow, mode=mode, tol=tol)
+
+
+def cochain_to_flow(
+    cochain: Mapping[tuple[K, ...], float],
+    *,
+    skew_symmetric: bool = True,
+    tol: float = 1e-14,
+) -> dict[K, dict[K, float]]:
+    """Lift a 1-cochain mapping to a nested adjacency edge-flow matrix."""
+    c = cochain if isinstance(cochain, Cochain) else Cochain(cochain, degree=1, tol=tol)
+    return c.to_flow(skew_symmetric=skew_symmetric, tol=tol)
 
 
 class SparseChainComplex:

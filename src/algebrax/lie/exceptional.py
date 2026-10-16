@@ -191,9 +191,7 @@ def _build_simply_laced_algebra(
                     f_tensor[(r + a_idx, r + b_idx, r + sum_idx)] = float(eps(a, b))
 
     basis_names = (
-        list(names)
-        if names is not None
-        else [f'H_{i}' for i in range(r)] + [f'E_{i}' for i in range(len(all_roots))]
+        list(names) if names is not None else [f'H_{i}' for i in range(r)] + [f'E_{i}' for i in range(len(all_roots))]
     )
     sc = StructureConstants(dim=dim, tensor=f_tensor)
     return LieAlgebra(dim=dim, structure_constants=sc, basis_names=basis_names)
