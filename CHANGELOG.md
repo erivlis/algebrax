@@ -1,3 +1,13 @@
+## v0.10.0 (2026-10-16)
+
+### Feat
+
+- Implements EP-0153 Cochain carrier, semiring matrix, and vector primitives.
+
+### Perf
+
+- **benchmarks**: Updates determinant benchmark to use `academic.determinant`.
+
 ## v0.9.0 (2026-09-13)
 
 ### Feat
