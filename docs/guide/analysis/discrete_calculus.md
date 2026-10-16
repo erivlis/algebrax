@@ -125,6 +125,27 @@ print('Flow 0 -> 1:', one_form[(0, 1)], 'Flow 1 -> 0:', one_form[(1, 0)])
 reconstructed_flow = one_form.to_flow(skew_symmetric=True)
 ```
 
+### Helmholtz–Hodge Flow Decomposition ($\omega = d\alpha + \delta\beta + \gamma$)
+
+Every edge flow $\omega \in C^1(K; \mathbb{R})$ on a simplicial complex $K$ decomposes into three mutually orthogonal components:
+1. **Exact ($d_0 \alpha$)**: Curl-free flow driven by scalar vertex potentials $\alpha$.
+2. **Coexact ($\delta_2 \beta$)**: Divergence-free local rotational eddies circulating around filled 2-simplices (triangles).
+3. **Harmonic ($\gamma$)**: Global topological circulation wrapping around 1D holes ($\ker \Delta_1 \cong H^1(K; \mathbb{R})$).
+
+```python
+from algebrax.analysis import helmholtz_hodge_decomposition
+from algebrax.homology import SimplicialComplex
+
+# Complex with a filled triangle (0, 1, 2) and a hollow loop (1, 2)-(2, 3)-(1, 3)
+sc = SimplicialComplex([(0, 1, 2), (1, 3), (2, 3)])
+flow = {(0, 1): 2.5, (1, 2): 3.5, (2, 0): 1.5, (2, 3): 2.0, (3, 1): 2.0}
+
+decomp = helmholtz_hodge_decomposition(sc, flow)
+print('Exact (gradient) flow:', decomp.exact)
+print('Coexact (triangular curl) flow:', decomp.coexact)
+print('Harmonic (topological cycle) flow:', decomp.harmonic)
+```
+
 ---
 
 ## Related Recipes & Applications
