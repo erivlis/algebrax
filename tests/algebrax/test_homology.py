@@ -216,3 +216,131 @@ def test_cochain_bridges_and_coboundary_equivalence():
         c0.to_flow()
     with pytest.raises(ValueError, match='Unknown mode'):
         Cochain.from_flow(grad_flow, mode='invalid')  # type: ignore[arg-type]
+
+
+def test_dec_operators_and_hodge_star():
+    import pytest
+
+    from algebrax.analysis import (
+        canonicalize_form,
+        codifferential,
+        exterior_derivative,
+        hodge_laplacian,
+        hodge_star,
+    )
+    from algebrax.homology import SimplicialComplex
+    from algebrax.matrix import dot
+
+    sc = SimplicialComplex([(0, 1, 2)])
+    d0 = exterior_derivative(sc, 0)
+    d1 = exterior_derivative(sc, 1)
+
+    # Exact chain nilpotency: d1 o d0 == 0
+    assert dot(d1, d0) == {}
+
+    # Codifferential nilpotency: delta_1 o delta_2 == 0
+    delta1 = codifferential(sc, 1)
+    delta2 = codifferential(sc, 2)
+    assert dot(delta1, delta2) == {}
+    assert codifferential(sc, 99) == {}
+
+    # Weighted codifferential and hodge_star
+    w_edges = {(0, 1): 2.0, (0, 2): 4.0, (1, 2): 1.0}
+    w_verts = {(0,): 1.0, (1,): 2.0, (2,): 2.0}
+    delta1_w = codifferential(sc, 1, dual_weights_k=w_edges, dual_weights_km1=w_verts)
+    assert delta1_w[(0,)][(0, 1)] == pytest.approx(-2.0)
+
+    form = canonicalize_form({(1, 0): 3.0})
+    assert form[(0, 1)] == -3.0
+    starred = hodge_star(form, dual_weights=w_edges)
+    assert starred[(0, 1)] == pytest.approx(-6.0)
+    unstarred = hodge_star(starred, dual_weights=w_edges, inverse=True)
+    assert unstarred == form
+    assert hodge_star(form) == form
+
+    with pytest.raises(ValueError, match='positive'):
+        hodge_star(form, dual_weights={(0, 1): -1.0})
+
+    # Functional hodge_laplacian matches SimplicialComplex.hodge_laplacian
+    assert hodge_laplacian(sc, 1) == sc.hodge_laplacian(1)
+
+
+def test_helmholtz_hodge_decomposition_topologies():
+    import pytest
+
+    from algebrax.analysis import (
+        Cochain,
+        codifferential,
+        exterior_derivative,
+        helmholtz_hodge_decomposition,
+    )
+    from algebrax.homology import SimplicialComplex
+    from algebrax.matrix import inner, mat_vec
+
+    # 1. Acyclic Tree (0 - 1 - 2): every flow is purely exact (coexact = 0, harmonic = 0)
+    tree = SimplicialComplex([(0, 1), (1, 2)])
+    tree_flow = {(0, 1): 4.0, (1, 2): -2.0}
+    decomp_tree = helmholtz_hodge_decomposition(tree, tree_flow)
+    assert decomp_tree.exact == Cochain(tree_flow)
+    assert len(decomp_tree.coexact) == 0
+    assert len(decomp_tree.harmonic) == 0
+
+    # 2. Filled 2-Simplex Disc (0, 1, 2): closed cycle has beta_1 = 0 -> purely coexact!
+    disc = SimplicialComplex([(0, 1, 2)])
+    vortex_flow = {(0, 1): 2.0, (1, 2): 2.0, (2, 0): 2.0}  # boundary of 2*(0,1,2)
+    decomp_disc = helmholtz_hodge_decomposition(disc, vortex_flow)
+    assert len(decomp_disc.exact) == 0
+    assert len(decomp_disc.harmonic) == 0
+    assert decomp_disc.coexact == Cochain(vortex_flow)
+    assert decomp_disc.stream[(0, 1, 2)] == pytest.approx(2.0, abs=1e-7)
+
+    # 3. Hollow Ring S^1 (edges (0,1), (1,2), (0,2), no 2-simplex): cycle is purely harmonic!
+    ring = SimplicialComplex([(0, 1), (1, 2), (0, 2)])
+    decomp_ring = helmholtz_hodge_decomposition(ring, vortex_flow)
+    assert len(decomp_ring.exact) == 0
+    assert len(decomp_ring.coexact) == 0
+    assert decomp_ring.harmonic == Cochain(vortex_flow)
+
+    # 4. Mixed Topology: filled triangle (0, 1, 2) + hollow handle loop (1, 2)-(2, 3)-(1, 3)
+    mixed_sc = SimplicialComplex([(0, 1, 2), (1, 3), (2, 3)])
+    d0 = exterior_derivative(mixed_sc, 0)
+    d1 = exterior_derivative(mixed_sc, 1)
+    delta1 = codifferential(mixed_sc, 1)
+
+    # Synthesize a flow with all 3 components:
+    # - gradient of alpha = {0: 1.0, 1: -2.0, 2: 3.0, 3: 0.5}
+    # - curl around filled triangle (0, 1, 2)
+    # - circulation around handle (1, 2) -> (2, 3) -> (3, 1)
+    true_alpha = Cochain.from_nodes({0: 1.0, 1: -2.0, 2: 3.0, 3: 0.5})
+    grad_part = Cochain(mat_vec(d0, true_alpha), degree=1)
+    curl_part = Cochain({(0, 1): 1.5, (1, 2): 1.5, (2, 0): 1.5})
+    handle_loop = Cochain({(1, 2): 2.0, (2, 3): 2.0, (3, 1): 2.0})
+    combined_flow = grad_part + curl_part + handle_loop
+
+    res = helmholtz_hodge_decomposition(mixed_sc, combined_flow)
+
+    # Exact reconstruction: omega == exact + coexact + harmonic
+    reconstructed = res.exact + res.coexact + res.harmonic
+    for edge in combined_flow:
+        assert reconstructed[edge] == pytest.approx(combined_flow[edge], abs=1e-7)
+
+    # Mutual L2 orthogonality: <exact, coexact> == <exact, harmonic> == <coexact, harmonic> == 0
+    assert inner(res.exact, res.coexact) == pytest.approx(0.0, abs=1e-7)
+    assert inner(res.exact, res.harmonic) == pytest.approx(0.0, abs=1e-7)
+    assert inner(res.coexact, res.harmonic) == pytest.approx(0.0, abs=1e-7)
+
+    # Differential invariants:
+    # - exact is curl-free (d_1(exact) == 0)
+    # - coexact is divergence-free (delta_1(coexact) == 0)
+    # - harmonic is both curl-free and divergence-free
+    assert all(abs(v) < 1e-7 for v in mat_vec(d1, res.exact).values())
+    assert all(abs(v) < 1e-7 for v in mat_vec(delta1, res.coexact).values())
+    assert all(abs(v) < 1e-7 for v in mat_vec(d1, res.harmonic).values())
+    assert all(abs(v) < 1e-7 for v in mat_vec(delta1, res.harmonic).values())
+
+    # Nested SparseMatrix adjacency input produces identical decomposition
+    nested_input = combined_flow.to_flow(skew_symmetric=True)
+    res_nested = helmholtz_hodge_decomposition(mixed_sc, nested_input)
+    for edge in res.exact:
+        assert res_nested.exact[edge] == pytest.approx(res.exact[edge], abs=1e-7)
+    assert helmholtz_hodge_decomposition(mixed_sc, {}).exact == Cochain(degree=1)

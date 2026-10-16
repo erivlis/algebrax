@@ -468,3 +468,32 @@ def test_sparse_vector_primitives():
     # vec_clean
     noisy = {'a': 1.0, 'b': 1e-16, 'c': -1e-15}
     assert vec_clean(noisy, tol=1e-14) == {'a': 1.0}
+
+
+def test_cg_solve_spd_and_singular_laplacian():
+    import pytest
+
+    from algebrax.matrix import cg_solve
+
+    # 1. Strictly SPD 2x2 matrix: [[4, 1], [1, 3]] @ [1, 2] = [6, 7]
+    a_spd = {0: {0: 4.0, 1: 1.0}, 1: {0: 1.0, 1: 3.0}}
+    b_spd = {0: 6.0, 1: 7.0}
+    x_spd = cg_solve(a_spd, b_spd, tol=1e-11)
+    assert x_spd[0] == pytest.approx(1.0, abs=1e-8)
+    assert x_spd[1] == pytest.approx(2.0, abs=1e-8)
+
+    # 2. Singular Laplacian on a 3-cycle (nullspace spanned by [1, 1, 1])
+    graph = {0: {1: 1.0, 2: 1.0}, 1: {0: 1.0, 2: 1.0}, 2: {0: 1.0, 1: 1.0}}
+    lap = laplacian_matrix(graph)
+    rhs = {0: 3.0, 1: -1.0, 2: -2.0}  # orthogonal to [1, 1, 1]
+    sol = cg_solve(lap, rhs, tol=1e-11, project_nullspace=True)
+    # Mean-zero gauge: sum(sol) == 0 and L @ sol == rhs
+    assert sum(sol.values()) == pytest.approx(0.0, abs=1e-9)
+    reconstructed = mat_vec(lap, sol)
+    for k, val in rhs.items():
+        assert reconstructed[k] == pytest.approx(val, abs=1e-7)
+
+    # 3. Empty / zero edge cases
+    assert cg_solve({}, {0: 1.0}) == {}
+    assert cg_solve(a_spd, {}) == {}
+    assert cg_solve(a_spd, {0: 0.0, 1: 0.0}) == {}
