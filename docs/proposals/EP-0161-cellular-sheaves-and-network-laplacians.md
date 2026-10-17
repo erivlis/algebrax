@@ -2,7 +2,7 @@
 title: "EP-0161: Cellular Sheaves, Sheaf Cohomology & Network Laplacians"
 description: "Generalizes scalar graph Laplacians and cochains to vector-valued Cellular Sheaves with linear restriction maps, sheaf coboundary operators, and Sheaf Laplacians for heterogeneous consensus and opinion dynamics."
 icon: lucide/network
-status: draft
+status: final
 ---
 
 # EP-0161: Cellular Sheaves, Sheaf Cohomology & Network Laplacians
@@ -14,10 +14,10 @@ status: draft
 | **Author**   | Eran Rivlis & Antigravity (The Explorer)                                                                                 |
 | **Sponsor**  | The Council                                                                                                              |
 | **Delegate** | 🧩 Bertrand Russell (Consistency), 🤝 The Steward (Harmony), ⚖️ Emmy Noether (Symmetry) & ⚡ Claude Shannon (Efficiency) |
-| **Status**   | Draft                                                                                                                    |
+| **Status**   | Final                                                                                                                    |
 | **Type**     | Standards Track                                                                                                          |
 | **Created**  | 2026-10-16                                                                                                               |
-| **Updated**  | 2026-10-16                                                                                                               |
+| **Updated**  | 2026-10-17                                                                                                               |
 | **Replaces** | None                                                                                                                     |
 
 ---
@@ -146,28 +146,28 @@ class CellularSheaf:
     """
 
     def __init__(
-            self,
-            vertex_stalks: Mapping[K, int] | None = None,
-            edge_stalks: Mapping[tuple[K, K], int] | None = None,
-            restrictions: Mapping[tuple[K, tuple[K, K]], RestrictionMap] | None = None,
+        self,
+        vertex_stalks: Mapping[K, int] | None = None,
+        edge_stalks: Mapping[tuple[K, K], int] | None = None,
+        restrictions: Mapping[tuple[K, tuple[K, K]], RestrictionMap] | None = None,
     ) -> None: ...
 
     def add_vertex(self, vertex: K, dim: int = 1) -> None: ...
 
     def add_edge(
-            self,
-            u: K,
-            v: K,
-            dim: int,
-            rho_u: RestrictionMap,
-            rho_v: RestrictionMap,
+        self,
+        u: K,
+        v: K,
+        dim: int,
+        rho_u: RestrictionMap,
+        rho_v: RestrictionMap,
     ) -> None: ...
 
     @classmethod
     def constant(
-            cls,
-            graph: SparseMatrix[K, float],
-            stalk_dim: int = 1,
+        cls,
+        graph: SparseMatrix[K, float],
+        stalk_dim: int = 1,
     ) -> CellularSheaf:
         """Construct the constant sheaf (or weighted scalar sheaf) of dimension `stalk_dim` over `graph`."""
 
@@ -192,20 +192,20 @@ def sheaf_laplacian(sheaf: CellularSheaf) -> SparseMatrix[StalkCoord, float]:
 
 
 def sheaf_diffusion(
-        sheaf: CellularSheaf,
-        initial_state: SparseVector[StalkCoord, float],
-        steps: int = 20,
-        tau: float = 0.1,
+    sheaf: CellularSheaf,
+    initial_state: SparseVector[StalkCoord, float],
+    steps: int = 20,
+    tau: float = 0.1,
 ) -> dict[StalkCoord, float]:
     r"""Simulate discrete-time sheaf heat diffusion $x^{(t+1)} = (I - \tau L_{\mathcal{F}}) x^{(t)}$."""
 
 
 def sheaf_harmonic_extension(
-        sheaf: CellularSheaf,
-        boundary_values: SparseVector[StalkCoord, float],
-        boundary_vertices: set[K],
-        tol: float = 1e-9,
-        max_iter: int = 1000,
+    sheaf: CellularSheaf,
+    boundary_values: SparseVector[StalkCoord, float],
+    boundary_vertices: set[K],
+    tol: float = 1e-9,
+    max_iter: int = 1000,
 ) -> dict[StalkCoord, float]:
     r"""Compute the harmonic 0-cochain $x \in C^0(G; \mathcal{F})$ minimizing $\frac{1}{2} \|\delta_{\mathcal{F}} x\|_2^2$ subject to $x|_B = \text{boundary\_values}$."""
 ```
@@ -237,8 +237,9 @@ from collections.abc import Mapping, Sequence
 from algebrax.matrix import cg_solve, dot, inner, mat_vec, transpose, vec_axpy, vec_clean
 
 
-def _normalize_restriction(rho: Mapping[int, Mapping[int, float]] | Sequence[Sequence[float]]) -> dict[
-    int, dict[int, float]]:
+def _normalize_restriction(
+    rho: Mapping[int, Mapping[int, float]] | Sequence[Sequence[float]],
+) -> dict[int, dict[int, float]]:
     if isinstance(rho, Mapping):
         return {int(r): {int(c): float(v) for c, v in row.items() if abs(float(v)) > 1e-15} for r, row in rho.items()}
     out: dict[int, dict[int, float]] = {}
@@ -280,4 +281,5 @@ coordinate $j \in \{0, \dots, d_e - 1\}$:
 
 ## Change Log
 
+* **2026-10-17:** Finalized and fully implemented with `CellularSheaf`, `sheaf_laplacian`, `sheaf_diffusion`, and `sheaf_harmonic_extension` in `algebrax.homology` and `algebrax.analysis`.
 * **2026-10-16:** Initial Draft authored by Eran Rivlis & Antigravity, building on `EP-0153` and `EP-0160`.

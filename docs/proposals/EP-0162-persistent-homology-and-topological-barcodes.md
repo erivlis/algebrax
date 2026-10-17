@@ -130,8 +130,8 @@ class FilteredSimplicialComplex:
     r"""Monotone filtration of a simplicial complex $\emptyset = K_0 \subseteq K_1 \subseteq \dots \subseteq K_m$."""
 
     def __init__(
-            self,
-            simplices: Mapping[tuple[int, ...], float] | Iterable[tuple[tuple[int, ...], float]] | None = None,
+        self,
+        simplices: Mapping[tuple[int, ...], float] | Iterable[tuple[tuple[int, ...], float]] | None = None,
     ) -> None: ...
 
     def add_simplex(self, simplex: tuple[int, ...], filtration: float = 0.0) -> None:
@@ -142,25 +142,25 @@ class FilteredSimplicialComplex:
 
     @classmethod
     def from_vietoris_rips(
-            cls,
-            distance_matrix: SparseMatrix[int, float],
-            max_dim: int = 2,
-            max_edge_length: float = math.inf,
+        cls,
+        distance_matrix: SparseMatrix[int, float],
+        max_dim: int = 2,
+        max_edge_length: float = math.inf,
     ) -> FilteredSimplicialComplex:
         r"""Construct the Vietoris-Rips filtration where $f(\sigma) = \max_{u, v \in \sigma} d(u, v)$."""
 
     @classmethod
     def from_lower_star(
-            cls,
-            complex: SimplicialComplex,
-            vertex_values: SparseVector[int, float],
+        cls,
+        complex: SimplicialComplex,
+        vertex_values: SparseVector[int, float],
     ) -> FilteredSimplicialComplex:
         r"""Construct the lower-star sublevel filtration where $f(\sigma) = \max_{v \in \sigma} h(v)$."""
 
     def persistent_homology(
-            self,
-            max_k: int = 2,
-            include_zero_persistence: bool = False,
+        self,
+        max_k: int = 2,
+        include_zero_persistence: bool = False,
     ) -> list[PersistenceInterval]:
         """Compute persistence intervals across dimensions $0 \\le k \\le \\text{max\\_k}$."""
 ```
@@ -169,32 +169,32 @@ class FilteredSimplicialComplex:
 
 ```python
 def persistent_homology(
-        filtration: FilteredSimplicialComplex,
-        max_k: int = 2,
-        include_zero_persistence: bool = False,
+    filtration: FilteredSimplicialComplex,
+    max_k: int = 2,
+    include_zero_persistence: bool = False,
 ) -> list[PersistenceInterval]:
     """Compute the persistence barcode of a `FilteredSimplicialComplex`."""
 
 
 def betti_curve(
-        intervals: Iterable[PersistenceInterval],
-        thresholds: Sequence[float],
-        dimension: int = 0,
+    intervals: Iterable[PersistenceInterval],
+    thresholds: Sequence[float],
+    dimension: int = 0,
 ) -> list[int]:
     """Evaluate the Betti number $\\beta_k(t)$ at each threshold $t \\in \\text{thresholds}$."""
 
 
 def persistence_entropy(
-        intervals: Iterable[PersistenceInterval],
-        dimension: int | None = None,
+    intervals: Iterable[PersistenceInterval],
+    dimension: int | None = None,
 ) -> float:
     r"""Compute the Shannon entropy $H = -\sum_i p_i \ln p_i$ of finite persistence lifespans $L_i = d_i - b_i$."""
 
 
 def bottleneck_distance(
-        diagram_a: Iterable[PersistenceInterval],
-        diagram_b: Iterable[PersistenceInterval],
-        dimension: int | None = None,
+    diagram_a: Iterable[PersistenceInterval],
+    diagram_b: Iterable[PersistenceInterval],
+    dimension: int | None = None,
 ) -> float:
     r"""Compute the exact $L_\infty$ bottleneck distance $d_B(D_A, D_B)$ between two persistence diagrams."""
 ```
@@ -221,14 +221,14 @@ Purely additive. `SimplicialComplex` and all existing `algebrax.homology` functi
 
 ```python
 def _reduce_filtration_columns(
-        ordered_simplices: list[tuple[tuple[int, ...], float]],
-        max_k: int,
+    ordered_simplices: list[tuple[tuple[int, ...], float]],
+    max_k: int,
 ) -> list[PersistenceInterval]:
     idx_of = {s: i for i, (s, _) in enumerate(ordered_simplices)}
     cols: dict[int, set[int]] = {}
     for j, (s, _) in enumerate(ordered_simplices):
         if 1 <= len(s) - 1 <= max_k + 1:
-            cols[j] = {idx_of[s[:i] + s[i + 1:]] for i in range(len(s))}
+            cols[j] = {idx_of[s[:i] + s[i + 1 :]] for i in range(len(s))}
 
     low_to_col: dict[int, int] = {}
     paired_births: set[int] = set()
