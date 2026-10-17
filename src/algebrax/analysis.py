@@ -13,9 +13,13 @@ from collections.abc import Iterable, Mapping
 from typing import Literal
 
 from algebrax.homology import (
+    CellularSheaf,
     Cochain,
     DiscreteForm,
+    EdgeStalkCoord,
     HodgeDecomposition,
+    RestrictionMap,
+    StalkCoord,
     canonicalize_form,
     cochain_to_flow,
     codifferential,
@@ -24,6 +28,9 @@ from algebrax.homology import (
     helmholtz_hodge_decomposition,
     hodge_laplacian,
     hodge_star,
+    sheaf_diffusion,
+    sheaf_harmonic_extension,
+    sheaf_laplacian,
 )
 from algebrax.matrix.academic import PerformanceWarning
 from algebrax.matrix.core import laplacian_matrix, mat_vec, vec_mat
@@ -32,9 +39,13 @@ from algebrax.semiring import Semiring
 from algebrax.typing import K, SparseMatrix, SparseVector
 
 __all__ = [
+    'CellularSheaf',
     'Cochain',
     'DiscreteForm',
+    'EdgeStalkCoord',
     'HodgeDecomposition',
+    'RestrictionMap',
+    'StalkCoord',
     'algebraic_connectivity',
     'canonicalize_form',
     'cochain_to_flow',
@@ -55,6 +66,9 @@ __all__ = [
     'laplacian_smoothing',
     'laplacian_spectrum',
     'pagerank',
+    'sheaf_diffusion',
+    'sheaf_harmonic_extension',
+    'sheaf_laplacian',
     'spectral_bipartition',
 ]
 
