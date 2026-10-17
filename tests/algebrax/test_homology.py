@@ -344,3 +344,191 @@ def test_helmholtz_hodge_decomposition_topologies():
     for edge in res.exact:
         assert res_nested.exact[edge] == pytest.approx(res.exact[edge], abs=1e-7)
     assert helmholtz_hodge_decomposition(mixed_sc, {}).exact == Cochain(degree=1)
+
+
+def test_cellular_sheaf_constant_equivalence():
+    import pytest
+
+    from algebrax.analysis import CellularSheaf, sheaf_laplacian
+    from algebrax.matrix import laplacian_matrix
+
+    # 1. Weighted triangle graph
+    g = {
+        0: {1: 2.5, 2: 1.0},
+        1: {0: 2.5, 2: 3.5},
+        2: {0: 1.0, 1: 3.5},
+    }
+    l_std = laplacian_matrix(g)
+    sheaf = CellularSheaf.constant(g, stalk_dim=1)
+    l_sheaf = sheaf.laplacian_matrix()
+
+    for u in l_std:
+        for v in l_std[u]:
+            assert l_sheaf[(u, 0)][(v, 0)] == pytest.approx(l_std[u][v], abs=1e-13)
+
+    assert sheaf_laplacian(sheaf) == l_sheaf
+    assert sheaf.global_sections_dimension() == 1
+
+    # 2. Multi-component graph with isolated node
+    g_disjoint = {
+        0: {1: 1.0},
+        1: {0: 1.0},
+        2: {3: 2.0},
+        3: {2: 2.0},
+        4: {},
+    }
+    sheaf_disjoint = CellularSheaf.constant(g_disjoint, stalk_dim=1)
+    assert sheaf_disjoint.global_sections_dimension() == 3
+
+    # 3. Higher stalk dimensions (stalk_dim = 2)
+    sheaf_dim2 = CellularSheaf.constant(g, stalk_dim=2)
+    l_dim2 = sheaf_dim2.laplacian_matrix()
+    for u in l_std:
+        for v in l_std[u]:
+            for d in range(2):
+                assert l_dim2[(u, d)][(v, d)] == pytest.approx(l_std[u][v], abs=1e-13)
+            assert (v, 1) not in l_dim2.get((u, 0), {})
+
+    with pytest.raises(ValueError, match='positive'):
+        CellularSheaf.constant(g, stalk_dim=0)
+
+
+def test_cellular_sheaf_connection_and_holonomy():
+    import math
+
+    import pytest
+
+    from algebrax.analysis import CellularSheaf, sheaf_diffusion
+    from algebrax.matrix import vec_norm
+
+    def rot(theta: float) -> list[list[float]]:
+        c, s = math.cos(theta), math.sin(theta)
+        return [[c, -s], [s, c]]
+
+    ident = [[1.0, 0.0], [0.0, 1.0]]
+
+    # 1. Flat Connection: SO(2) rotation angles sum to 0 (holonomy I)
+    sheaf_flat = CellularSheaf()
+    sheaf_flat.add_edge(0, 1, dim=2, rho_u=rot(math.pi / 3), rho_v=ident)
+    sheaf_flat.add_edge(1, 2, dim=2, rho_u=rot(math.pi / 6), rho_v=ident)
+    sheaf_flat.add_edge(0, 2, dim=2, rho_u=rot(math.pi / 2), rho_v=ident)
+
+    assert sheaf_flat.global_sections_dimension() == 2
+
+    # A non-zero global section has zero Dirichlet energy and is invariant under diffusion
+    x_flat = {
+        (0, 0): 1.0,
+        (0, 1): 0.0,
+        (1, 0): math.cos(math.pi / 3),
+        (1, 1): math.sin(math.pi / 3),
+        (2, 0): math.cos(math.pi / 2),
+        (2, 1): math.sin(math.pi / 2),
+    }
+    assert sheaf_flat.dirichlet_energy(x_flat) == pytest.approx(0.0, abs=1e-12)
+    x_diff_flat = sheaf_diffusion(sheaf_flat, x_flat, steps=10, tau=0.1)
+    for k, v in x_flat.items():
+        assert x_diff_flat.get(k, 0.0) == pytest.approx(v, abs=1e-10)
+
+    # 2. Frustrated Connection: loop holonomy is -I (discrete Mobius strip)
+    sheaf_frustrated = CellularSheaf()
+    sheaf_frustrated.add_edge(0, 1, dim=2, rho_u=ident, rho_v=ident)
+    sheaf_frustrated.add_edge(1, 2, dim=2, rho_u=ident, rho_v=ident)
+    sheaf_frustrated.add_edge(0, 2, dim=2, rho_u=rot(math.pi), rho_v=ident)
+
+    assert sheaf_frustrated.global_sections_dimension() == 0
+
+    x0 = {(0, 0): 1.0, (1, 0): 1.0, (2, 0): 1.0}
+    e0 = sheaf_frustrated.dirichlet_energy(x0)
+    assert e0 > 0.0
+
+    x_decayed = sheaf_diffusion(sheaf_frustrated, x0, steps=80, tau=0.1)
+    e_decayed = sheaf_frustrated.dirichlet_energy(x_decayed)
+    assert e_decayed < e0 * 1e-4
+    assert vec_norm(x_decayed) < 1e-3
+
+
+def test_cellular_sheaf_dirichlet_energy_and_symmetry():
+    import pytest
+
+    from algebrax.analysis import CellularSheaf
+    from algebrax.matrix import inner, mat_vec
+
+    sheaf1 = CellularSheaf()
+    sheaf1.add_edge('A', 'B', dim=2, rho_u=[[1.0, 2.0], [0.0, 1.0]], rho_v=[[2.0, 0.0], [1.0, 1.0]])
+
+    sheaf2 = CellularSheaf()
+    sheaf2.add_edge('B', 'A', dim=2, rho_u=[[2.0, 0.0], [1.0, 1.0]], rho_v=[[1.0, 2.0], [0.0, 1.0]])
+
+    # Orientation Invariance
+    l1 = sheaf1.laplacian_matrix()
+    l2 = sheaf2.laplacian_matrix()
+    assert l1 == l2
+
+    # Self-Adjoint Symmetry of Laplacian: L[r][c] == L[c][r]
+    for r, row in l1.items():
+        for c, val in row.items():
+            assert l1[c][r] == pytest.approx(val, abs=1e-14)
+
+    # Energy Equivalence: 1/2 ||delta x||^2 == 1/2 <x, L x>
+    test_sec = {('A', 0): 2.0, ('A', 1): -1.0, ('B', 0): 0.5, ('B', 1): 3.0}
+    energy_coboundary = sheaf1.dirichlet_energy(test_sec)
+    energy_laplacian = 0.5 * inner(test_sec, mat_vec(l1, test_sec))
+    assert energy_coboundary == pytest.approx(energy_laplacian, abs=1e-12)
+    assert energy_coboundary >= 0.0
+
+
+def test_cellular_sheaf_harmonic_extension():
+    import pytest
+
+    from algebrax.analysis import CellularSheaf, sheaf_harmonic_extension
+    from algebrax.matrix import mat_vec
+
+    # 1. 1D Path 0 - 1 - 2 - 3 with fixed boundaries 0 and 3
+    sheaf = CellularSheaf()
+    sheaf.add_edge(0, 1, dim=1, rho_u=1.0, rho_v=1.0)
+    sheaf.add_edge(1, 2, dim=1, rho_u=1.0, rho_v=1.0)
+    sheaf.add_edge(2, 3, dim=1, rho_u=1.0, rho_v=1.0)
+
+    boundary_vals = {(0, 0): 0.0, (3, 0): 3.0}
+    sol = sheaf_harmonic_extension(sheaf, boundary_vals, boundary_vertices={0, 3})
+
+    assert sol[(0, 0)] == pytest.approx(0.0, abs=1e-7)
+    assert sol[(1, 0)] == pytest.approx(1.0, abs=1e-7)
+    assert sol[(2, 0)] == pytest.approx(2.0, abs=1e-7)
+    assert sol[(3, 0)] == pytest.approx(3.0, abs=1e-7)
+
+    # Harmonicity test: (L x)_u == 0 on interior vertices 1 and 2
+    lap = sheaf.laplacian_matrix()
+    lx = mat_vec(lap, sol)
+    assert lx.get((1, 0), 0.0) == pytest.approx(0.0, abs=1e-7)
+    assert lx.get((2, 0), 0.0) == pytest.approx(0.0, abs=1e-7)
+
+    # 2. Boundary edge cases
+    all_b = sheaf_harmonic_extension(sheaf, boundary_vals, boundary_vertices={0, 1, 2, 3})
+    assert all_b == boundary_vals
+
+    no_b = sheaf_harmonic_extension(sheaf, {}, boundary_vertices=set())
+    assert all(abs(v) < 1e-12 for v in no_b.values())
+
+
+def test_cellular_sheaf_edge_cases_and_error_handling():
+    import pytest
+
+    from algebrax.analysis import CellularSheaf, sheaf_diffusion, sheaf_harmonic_extension
+
+    # Empty sheaf
+    empty = CellularSheaf()
+    assert empty.coboundary_matrix() == {}
+    assert empty.laplacian_matrix() == {}
+    assert empty.global_sections_dimension() == 0
+    assert empty.dirichlet_energy({}) == 0.0
+    assert sheaf_diffusion(empty, {}) == {}
+    assert sheaf_harmonic_extension(empty, {}, set()) == {}
+
+    # Validation errors
+    with pytest.raises(ValueError, match='positive'):
+        empty.add_vertex('u', dim=0)
+    with pytest.raises(ValueError, match='positive'):
+        empty.add_edge('u', 'v', dim=-1, rho_u=1.0, rho_v=1.0)
+    with pytest.raises(TypeError, match='Unsupported'):
+        empty.add_edge('u', 'v', dim=1, rho_u='invalid', rho_v=1.0)  # type: ignore[arg-type]
