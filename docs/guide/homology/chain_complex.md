@@ -72,3 +72,84 @@ f0 = Cochain.from_nodes({0: 1.0, 1: 4.0, 2: -2.0})
 df = Cochain(mat_vec(coboundary(sc, 0), f0), degree=1)
 print(df[(0, 1)], df[(1, 2)])  # -> 3.0, -6.0
 ```
+
+---
+
+## Cellular Sheaves & Sheaf Laplacians (`CellularSheaf`)
+
+A **Cellular Sheaf** $\mathcal{F}$ over a 1-dimensional cell complex (graph) $G = (V, E)$ generalizes scalar graph Laplacians to heterogeneous vector stalks with linear restriction maps. Every vertex $v \in V$ is assigned a vector stalk $\mathcal{F}(v) = \mathbb{R}^{d_v}$, every edge $e \in E$ is assigned an edge stalk $\mathcal{F}(e) = \mathbb{R}^{d_e}$, and each incident vertex-edge pair has a linear restriction map:
+
+$$\rho_{v \trianglelefteq e}: \mathcal{F}(v) \to \mathcal{F}(e)$$
+
+### Sheaf Coboundary Operator ($\delta_{\mathcal{F}}$)
+
+The 0-th sheaf coboundary operator $\delta_{\mathcal{F}}: C^0(G; \mathcal{F}) \to C^1(G; \mathcal{F})$ measures local disagreement across edge stalks:
+
+$$(\delta_{\mathcal{F}} x)_{e = (u, v)} = \rho_{v \trianglelefteq e} x_v - \rho_{u \trianglelefteq e} x_u$$
+
+### Sheaf Laplacian ($L_{\mathcal{F}}$) & Dirichlet Energy
+
+The Sheaf Laplacian $L_{\mathcal{F}} = \delta_{\mathcal{F}}^T \delta_{\mathcal{F}}$ is a symmetric positive semi-definite linear operator indexed natively by product keys `(vertex, dim_idx)`. The associated **Dirichlet Energy** measures total network disagreement:
+
+$$E_{\mathcal{F}}(x) = \frac{1}{2} \|\delta_{\mathcal{F}} x\|_2^2 = \frac{1}{2} \langle x, L_{\mathcal{F}} x \rangle \ge 0$$
+
+### Global Sections ($H^0(G; \mathcal{F})$)
+
+A 0-cochain $x \in C^0(G; \mathcal{F})$ is a **global section** if neighbors agree everywhere:
+
+$$\delta_{\mathcal{F}} x = 0 \iff L_{\mathcal{F}} x = 0 \iff x \in H^0(G; \mathcal{F})$$
+
+The dimension of the space of global sections is computed directly via rank-nullity:
+
+$$\dim H^0(G; \mathcal{F}) = \sum_{v \in V} d_v - \operatorname{rank}(\delta_{\mathcal{F}})$$
+
+### Python Example: Cellular Sheaves & Harmonic Extension
+
+```python
+import math
+from algebrax.analysis import (
+    CellularSheaf,
+    sheaf_diffusion,
+    sheaf_harmonic_extension,
+    sheaf_laplacian,
+)
+
+# 1. Constant Sheaf: strict generalization of graph Laplacians
+graph = {0: {1: 1.0}, 1: {0: 1.0, 2: 2.0}, 2: {1: 2.0}}
+constant_sheaf = CellularSheaf.constant(graph, stalk_dim=1)
+l_sheaf = sheaf_laplacian(constant_sheaf)
+print('Constant Sheaf global sections:', constant_sheaf.global_sections_dimension())  # -> 1
+
+# 2. Orthogonal Connection Sheaf on a 3-cycle (SO(2) rotation frames)
+# Flat holonomy: rotation angles sum to 0 -> dim H^0 = 2
+rot = lambda theta: [[math.cos(theta), -math.sin(theta)], [math.sin(theta), math.cos(theta)]]
+ident = [[1.0, 0.0], [0.0, 1.0]]
+
+sheaf_flat = CellularSheaf()
+sheaf_flat.add_edge(0, 1, dim=2, rho_u=rot(math.pi / 3), rho_v=ident)
+sheaf_flat.add_edge(1, 2, dim=2, rho_u=rot(math.pi / 6), rho_v=ident)
+sheaf_flat.add_edge(0, 2, dim=2, rho_u=rot(math.pi / 2), rho_v=ident)
+print('Flat bundle dim H^0:', sheaf_flat.global_sections_dimension())  # -> 2
+
+# Frustrated cycle (discrete Mobius bundle): holonomy = -I -> dim H^0 = 0
+sheaf_frustrated = CellularSheaf()
+sheaf_frustrated.add_edge(0, 1, dim=2, rho_u=ident, rho_v=ident)
+sheaf_frustrated.add_edge(1, 2, dim=2, rho_u=ident, rho_v=ident)
+sheaf_frustrated.add_edge(0, 2, dim=2, rho_u=rot(math.pi), rho_v=ident)
+print('Frustrated bundle dim H^0:', sheaf_frustrated.global_sections_dimension())  # -> 0
+
+# 3. Sheaf Harmonic Extension (Dirichlet Boundary Problem)
+path_sheaf = CellularSheaf()
+path_sheaf.add_edge(0, 1, dim=1, rho_u=1.0, rho_v=1.0)
+path_sheaf.add_edge(1, 2, dim=1, rho_u=1.0, rho_v=1.0)
+path_sheaf.add_edge(2, 3, dim=1, rho_u=1.0, rho_v=1.0)
+
+boundary_conditions = {(0, 0): 0.0, (3, 0): 3.0}
+harmonic_state = sheaf_harmonic_extension(
+    path_sheaf,
+    boundary_values=boundary_conditions,
+    boundary_vertices={0, 3},
+)
+print('Harmonic extension:', harmonic_state)
+# -> {(0, 0): 0.0, (3, 0): 3.0, (1, 0): 1.0, (2, 0): 2.0}
+```
