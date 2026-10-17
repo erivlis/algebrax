@@ -1,3 +1,10 @@
+## v0.11.0 (2026-10-17)
+
+### Feat
+
+- **EP-0161**: Implements CellularSheaf and related sheaf operators.
+- **EP-0160**: Implements DEC operators, Hodge decomposition, and conjugate gradient solver.
+
 ## v0.10.0 (2026-10-16)
 
 ### Feat
