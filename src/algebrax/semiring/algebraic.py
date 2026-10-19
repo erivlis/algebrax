@@ -788,7 +788,7 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
             n //= 2
         return res
 
-    def star(self, a: tuple[float, ...]) -> tuple[float, ...]:
+    def star(self, a: tuple[float, ...]) -> tuple[float, ...]:  # NOSONAR - can return order N result
         dim = self._dim
         if len(a) != dim:
             raise ValueError(f'Operand must have length {dim}')
@@ -810,7 +810,7 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
             for k in range(dim):
                 nil_sum[k] += cur_nil[k]
             cur_nil = self.mul(cur_nil, scaled_nil)
-        return tuple(val * scale for val in nil_sum)
+        return tuple(val * scale for val in nil_sum)  # order N > 1 result
 
 
 @functools.lru_cache(maxsize=4096)

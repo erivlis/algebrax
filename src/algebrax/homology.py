@@ -100,7 +100,11 @@ def _resolve_bidirectional_edge_flux(
     if mode == 'net':
         return f_uv - f_vu
     if mode == 'auto':
-        if f_uv != 0.0 and f_vu != 0.0 and math.isclose(f_uv, -f_vu, rel_tol=1e-9, abs_tol=max(tol, 1e-12)):
+        if (
+            f_uv != 0.0
+            and f_vu != 0.0  # NOSONAR - exact sentinel presence check
+            and math.isclose(f_uv, -f_vu, rel_tol=1e-9, abs_tol=max(tol, 1e-12))
+        ):
             return f_uv
         return f_uv - f_vu
     raise ValueError(f"Unknown mode '{mode}'. Expected 'auto', 'net', or 'half_skew'.")
@@ -278,7 +282,7 @@ class Cochain(Mapping[tuple[K, ...], V], Generic[K, V]):
         total: Any = 0.0
         for simplex, coeff in chain.items():
             w_val = self.get(simplex, 0.0)
-            if w_val != 0.0:
+            if w_val != 0.0:  # NOSONAR - exact zero multiplier shortcut
                 total += w_val * coeff
         return total  # type: ignore[return-value]
 
@@ -801,7 +805,7 @@ def codifferential(
     if dual_weights_k is None and dual_weights_km1 is None:
         return {r: dict(row) for r, row in d_k.items()}
 
-    res: SparseMatrix = {}
+    res = {}
     for face, row in d_k.items():
         w_km1 = float(dual_weights_km1.get(face, 1.0)) if dual_weights_km1 is not None else 1.0
         if w_km1 == 0.0:  # NOSONAR - exact zero singularity guard
@@ -810,7 +814,7 @@ def codifferential(
         for simplex, val in row.items():
             w_k = float(dual_weights_k.get(simplex, 1.0)) if dual_weights_k is not None else 1.0
             scaled = float(val) * (w_k / w_km1)
-            if scaled != 0.0:
+            if scaled != 0.0:  # NOSONAR - structural sparse zero pruning
                 scaled_row[simplex] = scaled
         if scaled_row:
             res[face] = scaled_row
