@@ -1023,6 +1023,17 @@ EdgeStalkCoord: TypeAlias = tuple[tuple[K, K], int]
 RestrictionMap: TypeAlias = Mapping[int, Mapping[int, float]] | Sequence[Sequence[float]] | float | int
 
 
+def _normalize_restriction_row(row: Any) -> dict[int, float]:
+    if isinstance(row, str):
+        raise TypeError(f'Unsupported restriction row type: {type(row)}')
+    if isinstance(row, Mapping):
+        return {int(c): float(v) for c, v in row.items() if abs(float(v)) > 1e-15}
+    if isinstance(row, Sequence):
+        return {c: float(v) for c, v in enumerate(row) if abs(float(v)) > 1e-15}
+    v = float(row)
+    return {0: v} if abs(v) > 1e-15 else {}
+
+
 def _normalize_restriction(
     rho: RestrictionMap,
 ) -> dict[int, dict[int, float]]:
@@ -1031,36 +1042,13 @@ def _normalize_restriction(
     if isinstance(rho, (int, float)):
         val = float(rho)
         return {0: {0: val}} if abs(val) > 1e-15 else {}
-    if isinstance(rho, Mapping):
-        out_map: dict[int, dict[int, float]] = {}
-        for r, row in rho.items():
-            if isinstance(row, str):
-                raise TypeError(f'Unsupported restriction row type: {type(row)}')
-            if isinstance(row, Mapping):
-                row_dict = {int(c): float(v) for c, v in row.items() if abs(float(v)) > 1e-15}
-            elif isinstance(row, Sequence):
-                row_dict = {c: float(v) for c, v in enumerate(row) if abs(float(v)) > 1e-15}
-            else:
-                v = float(row)
-                row_dict = {0: v} if abs(v) > 1e-15 else {}
-            if row_dict:
-                out_map[int(r)] = row_dict
-        return out_map
-    if isinstance(rho, Sequence):
-        out_seq: dict[int, dict[int, float]] = {}
-        for r, row in enumerate(rho):
-            if isinstance(row, str):
-                raise TypeError(f'Unsupported restriction row type: {type(row)}')
-            if isinstance(row, Mapping):
-                row_dict = {int(c): float(v) for c, v in row.items() if abs(float(v)) > 1e-15}
-            elif isinstance(row, Sequence):
-                row_dict = {c: float(v) for c, v in enumerate(row) if abs(float(v)) > 1e-15}
-            else:
-                v = float(row)
-                row_dict = {0: v} if abs(v) > 1e-15 else {}
-            if row_dict:
-                out_seq[r] = row_dict
-        return out_seq
+    if isinstance(rho, (Mapping, Sequence)):
+        items = rho.items() if isinstance(rho, Mapping) else enumerate(rho)
+        out: dict[int, dict[int, float]] = {}
+        for r, row in items:
+            if row_dict := _normalize_restriction_row(row):
+                out[int(r)] = row_dict
+        return out
     raise TypeError(f'Unsupported restriction map type: {type(rho)}')
 
 
