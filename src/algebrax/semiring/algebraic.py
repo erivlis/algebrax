@@ -210,22 +210,6 @@ class ProvenanceSemiring(MonoidAlgebraSemiring[tuple[str, ...], int]):
             zero_key=(),
         )
 
-    def mul(self, a: dict[tuple[str, ...], int], b: dict[tuple[str, ...], int]) -> dict[tuple[str, ...], int]:
-        result: dict[tuple[str, ...], int] = {}
-        if not a or not b:
-            return {}
-
-        for term1, coeff1 in a.items():
-            for term2, coeff2 in b.items():
-                new_term = tuple(sorted(term1 + term2))
-                new_coeff = coeff1 * coeff2
-                val = result.get(new_term, 0) + new_coeff
-                if val == 0:
-                    result.pop(new_term, None)
-                else:
-                    result[new_term] = val
-        return result
-
 
 class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T], Generic[K, T]):
     r"""The Quotient Monoid Algebra Semiring $R[M] / I$.
