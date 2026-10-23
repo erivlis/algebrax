@@ -614,20 +614,6 @@ class GaloisFieldSemiring(QuotientMonoidAlgebraSemiring[int, int]):
             quotient_fn=quotient_fn,
         )
 
-    def add(self, a: SparseVector[int, int], b: SparseVector[int, int]) -> SparseVector[int, int]:
-        """
-        Elementwise addition in GF(p).
-        """
-        result = dict(a)
-        p = self.p
-        for exp, coeff in b.items():
-            sum_val = (result.get(exp, 0) + coeff) % p
-            if sum_val == 0:
-                result.pop(exp, None)
-            else:
-                result[exp] = sum_val
-        return result
-
 
 class DualNumberSemiring(Semiring[tuple[float, float]]):
     r"""The Dual Number Semiring over the quotient ring $\mathbb{R}[\varepsilon]/(\varepsilon^2)$.
