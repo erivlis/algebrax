@@ -1,3 +1,12 @@
+## v0.11.1 (2026-10-24)
+
+### Refactor
+
+- Removes unused add method from GF(p) implementation
+- Removes unused multiplication method from ProvenanceSemiring
+- Simplifies power method implementations across multiple classes
+- Refactors restriction normalization by extracting row logic.
+
 ## v0.11.0 (2026-10-17)
 
 ### Feat
