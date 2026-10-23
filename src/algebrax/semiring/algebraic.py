@@ -777,16 +777,7 @@ class BinomialConvolutionSemiring(Semiring[tuple[float, ...]]):
     def power(self, a: tuple[float, ...], n: int) -> tuple[float, ...]:
         if len(a) != self._dim:
             raise ValueError(f'Operand must have length {self._dim}')
-        if n == 0:
-            return self._one
-        res = self._one
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.mul(res, base)
-            base = self.mul(base, base)
-            n //= 2
-        return res
+        return super().power(a, n)
 
     def star(self, a: tuple[float, ...]) -> tuple[float, ...]:  # NOSONAR - can return order N result
         dim = self._dim
@@ -895,18 +886,6 @@ class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], flo
         if n == 0:
             return {}
         return {k: v * n for k, v in a.items() if not math.isclose(v * n, 0.0, abs_tol=1e-15)}
-
-    def power(self, a: dict[tuple[int, ...], float], n: int) -> dict[tuple[int, ...], float]:
-        if n == 0:
-            return self.one
-        res = self.one
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.mul(res, base)
-            base = self.mul(base, base)
-            n //= 2
-        return res
 
     def star(self, a: dict[tuple[int, ...], float]) -> dict[tuple[int, ...], float]:
         zero_key = self._zero_key

@@ -152,18 +152,6 @@ class BivariateVarianceSemiring(Semiring[tuple[float, float, float, float]]):
             return 0.0, 0.0, 0.0, 0.0
         return a[0] * n, a[1] * n, a[2] * n, a[3] * n
 
-    def power(self, a: tuple[float, float, float, float], n: int) -> tuple[float, float, float, float]:
-        if n == 0:
-            return 1.0, 0.0, 0.0, 0.0
-        res = (1.0, 0.0, 0.0, 0.0)
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.mul(res, base)
-            base = self.mul(base, base)
-            n //= 2
-        return res
-
     def star(self, a: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
         raise NotImplementedError('Kleene star not implemented for BivariateVarianceSemiring')
 

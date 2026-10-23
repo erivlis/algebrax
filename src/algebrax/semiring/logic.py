@@ -186,20 +186,11 @@ class DigitalSemiring(Semiring[float | int]):
         return a
 
     def power(self, a: float | int, n: int) -> float | int:
+        if n < 0:
+            raise ValueError('power requires non-negative n')
         if n == 0:
             return float('inf')
-        if n == 1:
-            return a
-
-        # Binary exponentiation
-        res = float('inf')
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.mul(res, base)
-            base = self.mul(base, base)
-            n //= 2
-        return res
+        return a
 
     def star(self, a: float | int) -> float | int:
         raise NotImplementedError('Kleene star not implemented for DigitalSemiring')

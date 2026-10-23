@@ -52,20 +52,6 @@ class StringSemiring(Semiring[set[str]]):
             return set()
         return a
 
-    def power(self, a: set[str], n: int) -> set[str]:
-        if n == 0:
-            return {''}
-        if n == 1:
-            return a
-        res = {''}
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.mul(res, base)
-            base = self.mul(base, base)
-            n //= 2
-        return res
-
     def star(self, a: set[str]) -> set[str]:
         raise NotImplementedError('Kleene star not supported for StringSemiring')
 
