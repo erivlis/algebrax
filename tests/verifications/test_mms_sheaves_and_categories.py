@@ -62,6 +62,7 @@ pytestmark = [pytest.mark.verification, pytest.mark.axiomatic]
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.mms
 def test_mms_cellular_sheaf_so2_connection_harmonic_extension() -> None:
     """Verify via MMS that sheaf_harmonic_extension recovers an exact manufactured SO(2) twisted section."""
     # Construct a 5-vertex graph with 2D stalks and orthogonal SO(2) local frame rotations:
@@ -108,6 +109,7 @@ def test_mms_cellular_sheaf_so2_connection_harmonic_extension() -> None:
         assert math.isclose(recovered.get(coord, 0.0), expected_val, rel_tol=1e-8, abs_tol=1e-8)
 
 
+@pytest.mark.mms
 def test_mms_sheaf_harmonic_extension_vs_scipy_schur_complement_and_diffusion() -> None:
     """Verify non-zero-energy harmonic extension against SciPy Schur complement solver & diffusion monotonicity."""
     # General non-flat cellular sheaf over a 4-node diamond network with 2D vertex stalks
