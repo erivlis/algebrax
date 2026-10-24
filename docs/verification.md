@@ -22,8 +22,9 @@ Each test in `tests/verifications/` is categorized by its formal verification me
 | **`axiomatic`**      | **Property-Based Algebraic Law Testing** *(MacIver et al., 2019)*                | Uses **Hypothesis** to generate adversarial random inputs (including $\pm\infty$, boundary probabilities, and exact rationals) and verifies universal algebraic axioms (associativity, commutativity, distributivity, identity, annihilation).                    |
 | **`Exact Rational`** | **Infinite-Precision $\mathbb{Q}$ Verification**                                 | Evaluates semirings and matrix operations over Python's exact `fractions.Fraction` field, eliminating IEEE 754 floating-point rounding tolerances ($\epsilon = 0$).                                                                                               |
 | **`metamorphic`**    | **Metamorphic Invariant Relations** *(Chen et al., 1998)*                        | Verifies necessary structural conservation laws across input transformations when no external oracle exists (e.g., $(A \otimes B)^T = B^T \otimes A^T$, boundary nilpotency $\partial^2 = 0$, graph vertex permutation conjugacy $L(P A P^T) = P L(A) P^T$).      |
-| **`pit`**            | **Schwartz–Zippel Polynomial Identity Testing** *(Schwartz, 1980; Saxena, 2014)* | Defeats exponential symbolic monomial blowup by evaluating high-degree identities (such as the Jacobi identity on 14-dimensional $\mathfrak{g}_2$) at random integer coordinates in $S \subset \mathbb{Z}$, bounding false-positive error probability to $\le (d/ |S|)^k \le 10^{-16}$. |
-| **`certificates`**   | **Proof-Carrying Solver (PCS) Witnesses**                                        | Verifies the output of expensive $O(N^3)$ numerical solvers (e.g., Helmholtz–Hodge decomposition, LU, QR, SVD) via fast, independent $O(\text{nnz})$ algebraic witness checks (orthogonality, curl/divergence annihilation, exact reconstruction).                |
+| **`pit`**            | **Schwartz–Zippel Polynomial Identity Testing** *(Schwartz, 1980; Saxena, 2014)* | Defeats exponential symbolic monomial blowup by evaluating high-degree identities (such as the Jacobi identity on 14-dimensional $\mathfrak{g}_2$ and 52-dimensional $\mathfrak{f}_4$) at random integer coordinates in $S \subset \mathbb{Z}$, bounding false-positive error probability to $\le (d/ |S|)^k \le 10^{-16}$. |
+| **`certificates`**   | **Proof-Carrying Solver (PCS) Witnesses**                                        | Verifies the output of expensive $O(N^3)$ numerical solvers (e.g., Helmholtz–Hodge decomposition, LU, QR, Cholesky, SVD, CG, Fiedler) via fast, independent $O(\text{nnz})$ algebraic witness checks (orthogonality, curl/divergence annihilation, exact reconstruction). |
+| **`smt`**            | **Automated SMT / `Z3` Deductive Formal Proofs** *(de Moura & Bjørner, 2008)*    | Encodes semiring, dioid, lattice, and $2 \times 2$ matrix equations into `z3-solver` Real/Boolean ASTs and proves `check(Not(Law)) == unsat`, guaranteeing universal mathematical truth across $\mathbb{R}^n$ and $\mathbb{B}^n$. |
 
 ---
 
@@ -170,14 +171,34 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.10. Metamorphic, PIT & Certified Invariants (`algebrax.homology`, `algebrax.lie`)
+### 2.10. Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & Metamorphic Invariants (`certificates`, `pit`, `metamorphic`)
 
 | AlgebraX Structure / Function | Verification Category | Reference Oracle / Mathematical Theorem Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
+| `matrix.lu(A)` & `recompose_lu` | **Proof-Carrying Certificate (`certificates`)** | $O(\text{nnz})$ witness check: $P A = L U$, $L$ unit lower-triangular ($L_{ii}=1, L_{ij}=0$ for $j>i$), $U$ upper-triangular ($U_{ij}=0$ for $i>j$), $P^T P = I$ | `test_certificates.py::test_lu_decomposition_certificate` | $10^{-11}$ |
+| `matrix.qr(A)` & `recompose_qr` | **Proof-Carrying Certificate (`certificates`)** | $O(\text{nnz})$ witness check: $Q R = A$, $Q^T Q = I$, $R$ upper-triangular ($R_{ij}=0$ for $i>j$) | `test_certificates.py::test_qr_decomposition_certificate` | $10^{-10}$ |
+| `matrix.cholesky(A)` & `recompose_cholesky` | **Proof-Carrying Certificate (`certificates`)** | $O(\text{nnz})$ witness check: $L L^T = A$, $L$ lower-triangular ($L_{ij}=0$ for $j>i$), strict diagonal positivity $L_{ii} > 0$ | `test_certificates.py::test_cholesky_decomposition_certificate` | $10^{-11}$ |
+| `matrix.svd(A)` & `recompose_svd` | **Proof-Carrying Certificate (`certificates`)** | $O(\text{nnz})$ witness check: $U \Sigma V^T = A$, $U^T U = I$, $V^T V = I$, $\sigma_1 \ge \sigma_2 \ge \dots \ge 0$ | `test_certificates.py::test_svd_decomposition_certificate` | $10^{-7}$ |
+| `matrix.cg_solve`, `matrix.inverse`, `analysis.fiedler_vector`, `analysis.pagerank` | **Proof-Carrying Certificate (`certificates`)** | Relative residual $\|Ax - b\|_2 / \|b\|_2 \le \epsilon$, $\|A A^{-1} - I\|_\infty \le \epsilon$, eigenpair $L v_2 = \lambda_2 v_2$ with $\langle v_2, \mathbf{1} \rangle = 0, \|v_2\|_2 = 1$, & Markov simplex $\sum \pi_u = 1, \pi_u > 0$ | `test_certificates.py::test_linear_solver_and_spectral_eigenpair_certificates` | $10^{-5}$ – $10^{-11}$ |
+| `homology.helmholtz_hodge_decomposition` | **Proof-Carrying Certificate (`certificates`)** | $O(|E|)$ witness check: $\omega = \omega_{\text{exact}} + \omega_{\text{coexact}} + \omega_{\text{harmonic}}$, mutual $L^2$ orthogonality $\langle \cdot, \cdot \rangle = 0$, $d_1 \omega_{\text{exact}} = 0$, $\partial_1 \omega_{\text{coexact}} = 0$ | `test_certificates.py::test_helmholtz_hodge_decomposition_certificate` | $10^{-6}$ |
+| `LieAlgebra` ($\mathfrak{so}_3, \mathfrak{sl}_2, \mathfrak{so}_4, \mathfrak{se}_3, \mathfrak{su}_3, \mathfrak{sp}_2, \mathfrak{g}_2, \mathfrak{f}_4$) | **Schwartz–Zippel PIT (`pit`)** | Jacobi identity $[x, [y, z]] + [y, [z, x]] + [z, [x, y]] = 0$, antisymmetry $[x, y] + [y, x] = 0$, & adjoint homomorphism $[\operatorname{ad}_x, \operatorname{ad}_y](z) = \operatorname{ad}_{[x,y]}(z)$ ($|S|=1000, k=6$) | `test_pit_symbolic.py::test_pit_lie_algebra_jacobi_identity`, `test_pit_lie_bracket_antisymmetry_and_adjoint_homomorphism` | False-positive prob $\le 6.4 \times 10^{-17}$ |
+| `matrix.dot`, `trace`, `determinant` (Cayley–Hamilton Theorem) | **Schwartz–Zippel PIT + Exact $\mathbb{Q}$ (`pit`)** | Faddeev–LeVerrier characteristic polynomial $p_A(A) = A^n + c_{n-1} A^{n-1} + \dots + c_0 I = \mathbf{0}$ and $c_0 = (-1)^n \det(A)$ over exact `Fraction` $3 \times 3$ and $4 \times 4$ matrices | `test_pit_symbolic.py::test_pit_cayley_hamilton_theorem_exact_rational` | **Exact (`==`, $\epsilon = 0$)** |
+| `PolynomialSemiring(StandardSemiring(Fraction))` | **Schwartz–Zippel PIT + Exact $\mathbb{Q}$ (`pit`)** | Brahmagupta–Fibonacci two-square identity $(P^2 + Q^2)(R^2 + S^2) = (PR - QS)^2 + (PS + QR)^2$ & $(P+Q)^3$ binomial expansion in $\mathbb{Q}[x]$ | `test_pit_symbolic.py::test_pit_polynomial_ring_brahmagupta_fibonacci_identity` | **Exact (`==`, $\epsilon = 0$)** |
 | `SimplicialComplex` & `SparseChainComplex` | **Metamorphic (`metamorphic`)** | Fundamental topological chain nilpotency $\partial_{k-1} \circ \partial_k = \mathbf{0}$ | `test_metamorphic_invariants.py::test_metamorphic_simplicial_boundary_nilpotency` | $10^{-12}$ |
 | `Cochain` discrete $k$-forms | **Metamorphic (`metamorphic`)** | Alternating orientation antisymmetry $\omega(\pi(\sigma)) = \operatorname{sgn}(\pi)\omega(\sigma)$ & degenerate simplex annihilation $\omega(u, u) = 0$ | `test_metamorphic_invariants.py::test_metamorphic_cochain_orientation_antisymmetry` | **Exact (`==`)** |
-| `helmholtz_hodge_decomposition` | **Proof-Carrying Certificate (`certificates`)** | $O(|E|)$ witness check: $\omega = \omega_{\text{exact}} + \omega_{\text{coexact}} + \omega_{\text{harmonic}}$, mutual $L^2$ orthogonality $\langle \cdot, \cdot \rangle = 0$, $d_1 \omega_{\text{exact}} = 0$, $\partial_1 \omega_{\text{coexact}} = 0$ | `test_certificates.py::test_helmholtz_hodge_decomposition_certificate` | $10^{-6}$ |
-| `LieAlgebra` ($\mathfrak{so}_3, \mathfrak{sl}_2, \mathfrak{so}_4, \mathfrak{g}_2$) | **Schwartz–Zippel PIT (`pit`)** | Jacobi identity $[x, [y, z]] + [y, [z, x]] + [z, [x, y]] = 0$ & antisymmetry $[x, y] + [y, x] = 0$ over random integer coordinates ($|S| = 2 \times 10^4, k=4$) | `test_pit_symbolic.py::test_pit_lie_algebra_jacobi_identity`, `test_pit_lie_bracket_antisymmetry` | False-positive prob $\le 10^{-16}$ |
+
+---
+
+### 2.11. Automated SMT / `Z3` Deductive Formal Proofs (`smt`)
+
+| AlgebraX Structure / Semiring | Verification Category | Formal Theorem Proved via `z3.Solver` (`check(Not(Law)) == unsat`) | Test File & Function | Proof Assurance |
+|:---|:---|:---|:---|:---|
+| `TropicalSemiring` ($\min, +$) | **SMT Formal Proof (`smt`)** | Universal proof $\forall x, y, z \in \mathbb{R}$ of commutativity, associativity, idempotence, distributivity $x + \min(y, z) = \min(x+y, x+z)$, & Kleene star non-negative fixed point | `test_smt_z3_proofs.py::test_smt_z3_tropical_semiring_universal_proof` | **Deductive Proof (`unsat` over $\mathbb{R}^3$)** |
+| `ArcticSemiring` ($\max, +$) & `BottleneckSemiring` ($\max, \min$) | **SMT Formal Proof (`smt`)** | Universal proof $\forall x, y, z \in \mathbb{R}$ of arctic distributivity $x + \max(y, z) = \max(x+y, x+z)$ and bottleneck distributive lattice absorption $\max(x, \min(x, y)) = x$ | `test_smt_z3_proofs.py::test_smt_z3_arctic_and_bottleneck_semirings_universal_proof` | **Deductive Proof (`unsat` over $\mathbb{R}^3$)** |
+| `LukasiewiczSemiring` ($[0, 1]$ fuzzy logic) | **SMT Formal Proof (`smt`)** | Universal proof $\forall x, y, z \in [0, 1]$ of t-norm/t-conorm boundary closure, commutativity, associativity, identity $x \otimes 1 = x$, & annihilation $x \otimes 0 = 0$ | `test_smt_z3_proofs.py::test_smt_z3_lukasiewicz_semiring_universal_proof` | **Deductive Proof (`unsat` over $[0, 1]^3$)** |
+| `BooleanSemiring` | **SMT Formal Proof (`smt`)** | Universal proof $\forall p, q, r \in \mathbb{B}$ of all 9 semiring axioms, absorption, & De Morgan's duality laws | `test_smt_z3_proofs.py::test_smt_z3_boolean_semiring_and_de_morgan_universal_proof` | **Deductive Proof (`unsat` over $\mathbb{B}^3$)** |
+| `DualNumberSemiring` & `ExpectationSemiring` | **SMT Formal Proof (`smt`)** | Universal proof $\forall (a_0, a_1), (b_0, b_1), (c_0, c_1) \in \mathbb{R}^2$ of commutative ring associativity, distributivity, & Leibniz product rule $(ab)' = a'b + ab'$ | `test_smt_z3_proofs.py::test_smt_z3_dual_number_expectation_semiring_universal_proof` | **Deductive Proof (`unsat` over $\mathbb{R}^6$)** |
+| $2 \times 2$ `matrix.dot` & `transpose` over `TropicalSemiring` | **SMT Formal Proof (`smt`)** | Universal proof $\forall A, B, C \in \mathbb{R}^{2 \times 2}$ that $(A \otimes B) \otimes C = A \otimes (B \otimes C)$ and $(A \otimes B)^T = B^T \otimes A^T$ | `test_smt_z3_proofs.py::test_smt_z3_tropical_2x2_matrix_associativity_and_transpose_duality` | **Deductive Proof (`unsat` over $\mathbb{R}^{12}$)** |
 
 ---
 
@@ -186,13 +207,13 @@ The tables below map each `algebrax` module and function to the exact verificati
 You can run the entire verification suite or filter by verification methodology using `pytest` markers:
 
 ```bash
-# Run all verification tests (127 tests across all layers + catalog law verifier)
+# Run all verification tests (144 tests in tests/verifications/ + 35 in tests/algebrax/test_verification.py = 179 total)
 uv run pytest tests/verifications/ tests/algebrax/test_verification.py -v
 
-# Run only comparative / differential tests against NumPy & SciPy
+# Run only comparative / differential tests against NumPy, SciPy, NetworkX & SymPy
 uv run pytest tests/verifications/ -m differential -v
 
-# Run only Hypothesis axiomatic property-based tests
+# Run only Hypothesis axiomatic property-based & MMS tests
 uv run pytest tests/verifications/ -m axiomatic -v
 
 # Run only metamorphic invariant tests
@@ -203,4 +224,7 @@ uv run pytest tests/verifications/ -m pit -v
 
 # Run only proof-carrying solver certificate checks
 uv run pytest tests/verifications/ -m certificates -v
+
+# Run only automated SMT / Z3 formal mathematical proofs
+uv run pytest tests/verifications/ -m smt -v
 ```
