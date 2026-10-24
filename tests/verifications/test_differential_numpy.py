@@ -560,6 +560,52 @@ def test_differential_block_diag_vs_scipy_block_diag() -> None:
 
     np.testing.assert_allclose(_sparse_to_dense(ax_blk, 5, 5), sp_blk, rtol=1e-12, atol=1e-12)
 
+    # Matrix commutator [A, B] = AB - BA vs NumPy and Jacobi identity [[A, B], C] + [[B, C], A] + [[C, A], B] == 0
+    c_np = np.array([[-1.0, 3.0], [2.0, 0.5]])
+    d_np = np.array([[2.0, -1.0], [0.5, 4.0]])
+    c_sp = _dense_to_sparse(c_np)
+    d_sp = _dense_to_sparse(d_np)
+    comm_ax = _sparse_to_dense(ax.matrix.commutator(c_sp, d_sp), 2, 2)
+    np.testing.assert_allclose(comm_ax, c_np @ d_np - d_np @ c_np, rtol=1e-12, atol=1e-12)
+    assert ax.matrix.kronecker_delta(3, 3) == 1
+    assert ax.matrix.kronecker_delta(3, 4) == 0
+
+
+def test_differential_gelfand_and_legendre_fenchel_transforms() -> None:
+    """Verify gelfand_transform against DFT/WHT characters and legendre_fenchel convex conjugation."""
+    # 1. Gelfand transform with Fourier characters chi_k(m) = exp(-2j * pi * k * m / N) equals dft(x)
+    n = 8
+    sig = {0: 1.5, 1: -0.5, 3: 2.0, 5: -1.0, 7: 0.75}
+    fourier_chars = {k: (lambda m, freq=k: complex(np.exp(-2j * np.pi * freq * m / n))) for k in range(n)}
+    gelfand_dft = ax.transforms.gelfand_transform(sig, fourier_chars)
+    direct_dft = ax.transforms.dft(sig, n=n)
+    for k in range(n):
+        assert abs(gelfand_dft.get(k, 0j) - direct_dft.get(k, 0j)) < 1e-11
+
+    # 2. Gelfand transform with Walsh characters chi_k(m) = (-1)^popcount(k & m) equals walsh_hadamard(x)
+    walsh_chars = {k: (lambda m, freq=k: -1.0 if (freq & m).bit_count() % 2 == 1 else 1.0) for k in range(n)}
+    gelfand_wht = ax.transforms.gelfand_transform(sig, walsh_chars)
+    direct_wht = ax.transforms.walsh_hadamard(sig, n=n)
+    for k in range(n):
+        assert math.isclose(float(gelfand_wht.get(k, 0.0)), direct_wht.get(k, 0.0), rel_tol=1e-12, abs_tol=1e-12)
+
+    # 3. Legendre-Fenchel transform f*(s) = max_x (s*x - f(x)) on discrete quadratic f(x) = 0.5 * x^2:
+    # Over integer grid x in [-10, 10], for integer slope s in [-8, 8], the exact maximizer is x = s,
+    # where s*s - 0.5*s^2 = 0.5 * s^2, and Fenchel-Young inequality f(x) + f*(s) >= s*x holds everywhere!
+    quad_signal = {x: 0.5 * float(x * x) for x in range(-10, 11)}
+    f_conj: dict[int, float] = {}
+    for s in range(-8, 9):
+        val = ax.transforms.legendre_fenchel(quad_signal, slope=float(s))
+        f_conj[s] = val
+        assert math.isclose(val, 0.5 * float(s * s), rel_tol=1e-12, abs_tol=1e-12)
+        for x, fx in quad_signal.items():
+            assert fx + val >= s * x - 1e-12
+
+    # Fenchel-Moreau biconjugation f**(x) == f(x) on interior integer points x in [-6, 6]
+    for x in range(-6, 7):
+        f_biconj = ax.transforms.legendre_fenchel(f_conj, slope=float(x))
+        assert math.isclose(f_biconj, quad_signal[x], rel_tol=1e-12, abs_tol=1e-12)
+
 
 # ---------------------------------------------------------------------------
 # 8. Hypothesis Property-Based Comparative Tests vs NumPy
