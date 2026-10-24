@@ -1011,7 +1011,7 @@ def laplacian_spectrum(  # NOSONAR - cyclic Jacobi orthogonal similarity sweeps 
 
     lap = laplacian_matrix(graph, normalized='sym' if normalized else None)
     d_mat = [[lap.get(u, {}).get(v, 0.0) for v in nodes] for u in nodes]
-    raw_eigenvals, v_dense = _symmetric_jacobi_eigh(d_mat)
+    raw_eigenvals, v_dense = _symmetric_jacobi_eigh(d_mat, max_sweeps=max(100, 15 * n * (n - 1) // 2))
 
     pairs: list[tuple[float, dict[K, float]]] = []
     for i in range(n):
