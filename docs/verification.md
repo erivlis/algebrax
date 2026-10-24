@@ -144,20 +144,33 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.8. Semiring Catalog (`algebrax.semiring`, `algebrax.verification`)
+### 2.8. Semiring Catalog & Streaming Statistical Moments (`algebrax.semiring`, `algebrax.verification`)
 
 | AlgebraX Semiring / Function | Verification Category | Reference Oracle / Axioms Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
 | `StandardSemiring(Fraction)` | **Axiomatic + Exact $\mathbb{Q}$ (`axiomatic`)** | All 9 ring axioms over infinite-precision `fractions.Fraction` via Hypothesis | `test_axiomatic_properties.py::test_standard_semiring_exact_rational_axioms` | **Exact (`==`, $\epsilon = 0$)** |
-| `TropicalSemiring` $(\min, +, \infty, 0)$ | **Axiomatic (`axiomatic`)** | Commutativity, associativity, identity, $+\infty$ annihilation, distributivity via Hypothesis | `test_axiomatic_properties.py::test_tropical_semiring_axiomatic_properties` | $10^{-9}$ |
-| `ArcticSemiring` $(\max, +, -\infty, 0)$ | **Axiomatic (`axiomatic`)** | Commutativity, associativity, identity, $-\infty$ annihilation, distributivity via Hypothesis | `test_axiomatic_properties.py::test_arctic_semiring_axiomatic_properties` | $10^{-9}$ |
-| `BooleanSemiring` $(\lor, \land, \text{False}, \text{True})$ | **Axiomatic (`axiomatic`)** | Exhaustive Boolean algebra / distributive lattice laws via Hypothesis | `test_axiomatic_properties.py::test_boolean_semiring_axiomatic_properties` | **Exact (`==`)** |
-| `ViterbiSemiring` $(\max, \times, 0, 1)$ | **Axiomatic (`axiomatic`)** | Probabilistic path monoid axioms over $[0, 1]$ via Hypothesis | `test_axiomatic_properties.py::test_viterbi_semiring_axiomatic_properties` | $10^{-6}$ |
-| All 34 Catalog Semirings (`Semiring.catalog()`) | **Catalog Law Audit** | 9 semiring axioms verified across all 34 registered semirings | `tests/algebrax/test_verification.py::test_all_catalog_semirings_satisfy_laws` | $10^{-7}$ |
+| `TropicalSemiring`, `ArcticSemiring`, `BooleanSemiring`, `ViterbiSemiring`, `ReliabilitySemiring`, `LogSemiring` | **Axiomatic + Kleene Star (`axiomatic`)** | Commutativity, associativity, identity, annihilation, distributivity, & Kleene star fixed-point $a^* = \mathbb{1} \oplus a \otimes a^*$ via Hypothesis | `test_axiomatic_properties.py::test_tropical_semiring_axiomatic_properties`, `test_arctic_semiring_axiomatic_properties`, `test_boolean_semiring_axiomatic_properties`, `test_viterbi_semiring_axiomatic_properties`, `test_log_semiring_axioms_and_kleene_star` | $10^{-6}$ – $10^{-9}$ |
+| `LukasiewiczSemiring`, `BottleneckSemiring`, `MinTimesSemiring`, `KCollapsedSemiring`, `DigitalSemiring`, `ModularSemiring` | **Axiomatic (`axiomatic`)** | Full 9-axiom Hypothesis property sweeps over fuzzy $[0, 1]$, capacity, bounded counter, digit-sum, and $\mathbb{Z}/p\mathbb{Z}$ domains | `test_axiomatic_properties.py::test_fuzzy_bottleneck_mintimes_kcollapsed_digital_modular_axioms` | $10^{-7}$ – **Exact (`==`)** |
+| All 34 Catalog Semirings (`Semiring.catalog()`) | **Axiomatic + Dioid Audit (`axiomatic`)** | All 9 semiring axioms + `nsum(a, 3)`, `nsum(a, 0) = 0`, `power(a, 3)`, `power(a, 0) = 1`, & `star(0) = 1` across all 34 registered semirings | `test_axiomatic_properties.py::test_all_34_catalog_semirings_laws_and_nsum_power_consistency`, `tests/algebrax/test_verification.py::test_all_catalog_semirings_satisfy_laws` | $10^{-6}$ – $10^{-7}$ |
+| `KurtosisSemiring`, `SkewnessSemiring`, `VarianceSemiring`, `StatisticalMomentSemiring` | **Comparative + Property (`differential`)** | Associative parallel stream fold `(m(P_1) + m(P_2)) + m(P_3)` vs. `np.mean`, `np.var`, `scipy.stats.skew`, `scipy.stats.kurtosis` & independent RV convolution `m(X) * m(Y)` | `test_differential_statistical_semirings.py::test_hypothesis_streaming_moments_parallel_merge_vs_scipy_stats`, `test_binomial_convolution_independent_rv_sum_vs_exact_product_measure` | $10^{-7}$ – $10^{-12}$ |
+| `ExpectationSemiring` & `BivariateCovarianceSemiring` | **Comparative (`differential`)** | First-order expectation additivity & bivariate covariance convolution $\operatorname{Cov}(X_1+X_2, Y_1+Y_2) = \operatorname{Cov}(X_1, Y_1) + \operatorname{Cov}(X_2, Y_2)$ | `test_differential_statistical_semirings.py::test_expectation_and_bivariate_covariance_semirings_vs_numpy` | $10^{-12}$ |
+| `MultivariateMomentSemiring` (`mean_vector`, `covariance_matrix`) | **Comparative (`differential`)** | Partitioned parallel fold vs. `np.mean(X, axis=0)` and `np.cov(X, rowvar=False, ddof=0)` | `test_differential_statistical_semirings.py::test_multivariate_moment_semiring_vs_numpy_cov` | $10^{-12}$ |
 
 ---
 
-### 2.9. Metamorphic, PIT & Certified Invariants (`algebrax.homology`, `algebrax.lie`)
+### 2.9. Cellular Sheaf MMS, Categories, Lattices & Tries (`algebrax.homology`, `algebrax.category`, `algebrax.lattice`, `algebrax.trie`)
+
+| AlgebraX Structure / Function | Verification Category | Reference Oracle / Mathematical Law | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `homology.CellularSheaf` & `sheaf_harmonic_extension` ($SO(2)$ connection) | **Method of Manufactured Solutions (`axiomatic`)** | Manufactured twisted global section $x^*_v = R(\theta_v) g \in \ker \mathcal{L}_{\mathcal{F}}$ restricted to $\partial B$ is recovered on interior $V \setminus \partial B$ | `test_mms_sheaves_and_categories.py::test_mms_cellular_sheaf_so2_connection_harmonic_extension` | $10^{-8}$ |
+| `homology.sheaf_harmonic_extension` & `sheaf_diffusion` | **Comparative + MMS (`axiomatic`)** | Dense Schur complement `scipy.linalg.solve(L_II, -L_IB x_B)`, Dirichlet energy monotonicity $E(x_{t+1}) \le E(x_t)$, & $(I - \tau \mathcal{L}_{\mathcal{F}})^k x_0$ | `test_mms_sheaves_and_categories.py::test_mms_sheaf_harmonic_extension_vs_scipy_schur_complement_and_diffusion` | $10^{-8}$ – $10^{-11}$ |
+| `category.kleisli_compose` & `kan_extension_left` | **Axiomatic (`axiomatic`)** | Kleisli monad left/right identity $\eta \circ_T f = f = f \circ_T \eta$, associativity $(f \circ_T g) \circ_T h = f \circ_T (g \circ_T h)$, & Kan functoriality over `Fraction`, `Tropical`, `Boolean` | `test_mms_sheaves_and_categories.py::test_category_kleisli_monad_laws_and_kan_extension` | **Exact (`==`, $\epsilon = 0$)** |
+| `lattice.join`, `meet`, `average`, `geometric_mean`, `harmonic_mean`, `mask`, `exclude`, `exclusive`, `difference`, `symmetric_difference`, `product`, `ratio` | **Axiomatic (`axiomatic`)** | Distributive lattice idempotence, commutativity, associativity, absorption $a \lor (a \land b) = a$, distributivity, & Pythagorean inequality $H \le G \le A$ via Hypothesis | `test_mms_sheaves_and_categories.py::test_hypothesis_distributive_lattice_laws_and_means` | **Exact (`==`)** / $10^{-11}$ |
+| `trie.AlgebraicTrie` (`add`, `contract`) | **Homomorphism (`axiomatic`)** | Prefix-tree $\Phi(T_1 \oplus_{\mathcal{S}} T_2) = \Phi(T_1) \oplus_{\mathcal{S}} \Phi(T_2)$ across `StandardSemiring` & `TropicalSemiring` | `test_mms_sheaves_and_categories.py::test_algebraic_trie_semiring_homomorphism` | $10^{-12}$ / **Exact (`==`)** |
+
+---
+
+### 2.10. Metamorphic, PIT & Certified Invariants (`algebrax.homology`, `algebrax.lie`)
 
 | AlgebraX Structure / Function | Verification Category | Reference Oracle / Mathematical Theorem Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
@@ -173,7 +186,7 @@ The tables below map each `algebrax` module and function to the exact verificati
 You can run the entire verification suite or filter by verification methodology using `pytest` markers:
 
 ```bash
-# Run all verification tests (82 tests across all layers + catalog law verifier)
+# Run all verification tests (127 tests across all layers + catalog law verifier)
 uv run pytest tests/verifications/ tests/algebrax/test_verification.py -v
 
 # Run only comparative / differential tests against NumPy & SciPy
