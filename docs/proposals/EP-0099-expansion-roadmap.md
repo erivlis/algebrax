@@ -196,7 +196,7 @@ Phase 0: Architecture Roadmap (EP-0099)
   └── Phase 5: Mathematical Verification & Correctness Evidence Track (EXP-0003) 🟡 IN PROGRESS
         ├── EP-0180: Multi-Layered Verification Test Architecture (Popper/Noether/Shannon/Golem) [Final]
         ├── EP-0181: Comparative Verification — Linear Algebra, Tensors & Transforms (NumPy/SciPy) [Final]
-        ├── EP-0182: Comparative Verification — Graph Calculus, Spectral & Semirings (NetworkX/csgraph) [Draft]
+        ├── EP-0182: Comparative Verification — Graph Calculus, Spectral & Semirings (NetworkX/csgraph) [Final]
         ├── EP-0183: Comparative Verification — Symbolic Algebra, Lie, Galois & Group (SymPy) [Draft]
         ├── EP-0184: Comparative Verification — Topology, Information Theory & Automata (SciPy.stats) [Draft]
         ├── EP-0185: Axiomatic, Statistical Moment Semirings & Sheaf MMS Verification [Draft]
@@ -243,7 +243,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0164** | Root Systems & Chevalley       | Noether & Shannon | `algebrax.lie`                        | Final    | `RootSystem`, `dynkin_diagram`, `to_euclidean`, Chevalley construction         |
 | **EP-0180** | Multi-Layered Verification     | Popper & Noether  | `tests/verifications/`                | Final    | 8-layer test harness: differential, metamorphic, PIT, MMS, certified solvers   |
 | **EP-0181** | Comparative: Linalg & Tensors  | Popper & Russell  | `matrix`, `tensor`, `transforms`      | Final    | Differential tests vs NumPy (`linalg`, `fft`, `einsum`) & SciPy (`linalg`)     |
-| **EP-0182** | Comparative: Graphs & Paths    | Popper & Noether  | `analysis`, `semiring`                | Draft    | Differential tests vs NetworkX & `scipy.sparse.csgraph` (PageRank, paths)      |
+| **EP-0182** | Comparative: Graphs & Paths    | Popper & Noether  | `analysis`, `semiring`                | Final    | Differential tests vs NetworkX & `scipy.sparse.csgraph` (PageRank, paths)      |
 | **EP-0183** | Comparative: Symbolic & Lie    | Noether & Popper  | `lie`, `galois`, `clifford`, `group`  | Draft    | Exact differential tests vs SymPy (`Matrix`, `liealgebras`, `GF`) & `expm`     |
 | **EP-0184** | Comparative: Topology & Prob   | Popper & Feynman  | `homology`, `probability`, `automata` | Draft    | Differential tests vs `scipy.stats`, exact Betti/Stokes/Hodge manifolds        |
 | **EP-0185** | Axiomatic, Moments & Sheaf MMS | Popper & Russell  | `semiring`, `category`, `homology`    | Draft    | All 34 semirings PBT, streaming moments vs `scipy.stats`, sheaf MMS            |
