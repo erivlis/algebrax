@@ -209,14 +209,17 @@ The tables below map each `algebrax` module and function to the exact verificati
 You can run the entire verification suite or filter by verification methodology using `pytest` markers:
 
 ```bash
-# Run all verification tests (144 tests in tests/verifications/ + 35 in tests/algebrax/test_verification.py = 179 total)
+# Run all verification tests (148 tests in tests/verifications/ + 35 in tests/algebrax/test_verification.py = 183 total)
 uv run pytest tests/verifications/ tests/algebrax/test_verification.py -v
 
 # Run only comparative / differential tests against NumPy, SciPy, NetworkX & SymPy
 uv run pytest tests/verifications/ -m differential -v
 
-# Run only Hypothesis axiomatic property-based & MMS tests
+# Run only Hypothesis axiomatic property-based tests
 uv run pytest tests/verifications/ -m axiomatic -v
+
+# Run only Method of Manufactured Solutions (MMS) sheaf/PDE tests
+uv run pytest tests/verifications/ -m mms -v
 
 # Run only metamorphic invariant tests
 uv run pytest tests/verifications/ -m metamorphic -v
@@ -227,6 +230,6 @@ uv run pytest tests/verifications/ -m pit -v
 # Run only proof-carrying solver certificate checks
 uv run pytest tests/verifications/ -m certificates -v
 
-# Run only automated SMT / Z3 formal mathematical proofs
+# Run only automated SMT / Z3 formal mathematical proofs (-m smt or -m formal_smt)
 uv run pytest tests/verifications/ -m smt -v
 ```
