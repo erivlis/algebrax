@@ -2,7 +2,7 @@
 title: "EP-0185: Axiomatic Property, Streaming Moment & Manufactured Solution Verification Across Semirings, Categories, Lattices & Sheaves"
 description: "Extends Hypothesis property-based verification across all 34 built-in semirings, verifies streaming statistical moment semirings against SciPy batch statistics, tests Kleisli monad and lattice laws, and verifies Cellular Sheaf PDEs via the Method of Manufactured Solutions (MMS)."
 icon: lucide/layers
-status: draft
+status: final
 ---
 
 # EP-0185: Axiomatic Property, Streaming Moment & Manufactured Solution Verification Across Semirings, Categories, Lattices & Sheaves
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis & Antigravity (Council Agent)                                                                                  |
 | **Sponsor**       | The Council                                                                                                                |
 | **Delegate**      | 🔬 Karl Popper (Falsifiability), ⚖️ Emmy Noether (Symmetry), 🧩 Bertrand Russell (Consistency) & ⚡ Claude Shannon         |
-| **Status**        | Draft                                                                                                                      |
+| **Status**        | Final                                                                                                                      |
 | **Type**          | Standards Track                                                                                                            |
 | **Created**       | 2026-10-24                                                                                                                 |
-| **Updated**       | 2026-10-24                                                                                                                 |
+| **Updated**       | 2026-10-25                                                                                                                 |
 | **Replaces**      | None                                                                                                                       |
 | **Superseded-By** | None                                                                                                                       |
 
@@ -139,3 +139,4 @@ None.
 ## Change Log
 
 - **2026-10-24**: Initial draft created as Wave 2A of the Phase 5 Mathematical Verification Track.
+- **2026-10-25**: Expanded `tests/verifications/test_axiomatic_properties.py` across all 34 catalog semirings (fixing `power(zero, 0)` in `TropicalSemiring`, `ArcticSemiring`, and `LogSemiring`), created `tests/verifications/test_differential_statistical_semirings.py` and `tests/verifications/test_mms_sheaves_and_categories.py`, and updated `docs/verification.md`. Status updated to `Final`.
