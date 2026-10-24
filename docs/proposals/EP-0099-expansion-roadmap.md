@@ -184,14 +184,17 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0150: Standardized Mathematical Docstrings (Feynman/Russell) [Final]
   │     ├── EP-0151: Algebraic PageRank & Semiring Random Walks (Shannon/Noether) [Final]
   │     ├── EP-0152: Spectral Graph Theory & Graph Laplacians (Noether/Shannon/Popper) [Final]
-  │     └── EP-0153: Semiring Matrix Symmetry & Vector Primitives (Noether/Shannon/Russell) [Draft]
+  │     └── EP-0153: Semiring Matrix Symmetry & Vector Primitives (Noether/Shannon/Russell) [Final]
   │
-  └── Phase 4: Algebraic Continents & Next Frontiers (EXP-0001)  🚀 IN PROGRESS
-        ├── EP-0160: Discrete Exterior Calculus & Helmholtz-Hodge (Noether/Shannon/Feynman) [Draft]
-        ├── EP-0161: Cellular Sheaves & Network Laplacians (Russell/Steward)               [Queued]
-        ├── EP-0162: Persistent Homology & Topological Barcodes (Popper/Explorer)          [Queued]
-        ├── EP-0163: Lie Algebras, Root Systems & BCH Dynamics (Noether/Shannon/Golem)     [Final]
-        └── EP-0164: Root Systems, Weyl Groups & Chevalley Construction (Noether/Shannon)  [Draft]
+  ├─┬── Phase 4: Algebraic Continents & Next Frontiers (EXP-0001)  🚀 IN PROGRESS
+  │     ├── EP-0160: Discrete Exterior Calculus & Helmholtz-Hodge (Noether/Shannon/Feynman) [Final]
+  │     ├── EP-0161: Cellular Sheaves & Network Laplacians (Russell/Steward)               [Final]
+  │     ├── EP-0162: Persistent Homology & Topological Barcodes (Popper/Explorer)          [Draft]
+  │     ├── EP-0163: Lie Algebras, Root Systems & BCH Dynamics (Noether/Shannon/Golem)     [Final]
+  │     └── EP-0164: Root Systems, Weyl Groups & Chevalley Construction (Noether/Shannon)  [Final]
+  │
+  └── Phase 5: Mathematical Verification & Correctness Evidence Track (EXP-0003) 🟡 IN PROGRESS
+        └── EP-0180: Multi-Layered Verification Test Architecture (Popper/Noether/Shannon/Golem) [Draft]
 ```
 
 ---
@@ -232,6 +235,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0162** | Persistent Homology (TDA)     | Popper & Explorer | `algebrax.homology`                 | Draft    | Simplicial filtrations, boundary reduction over $\mathbb{Z}_2$, barcodes       |
 | **EP-0163** | Lie Algebras & BCH Dynamics   | Noether & Golem   | `algebrax.lie`                      | Final    | `LieAlgebra`, `StructureConstants`, `so3`, `sl2`, `se3`, BCH solver            |
 | **EP-0164** | Root Systems & Chevalley      | Noether & Shannon | `algebrax.lie`                      | Final    | `RootSystem`, `dynkin_diagram`, `to_euclidean`, Chevalley construction         |
+| **EP-0180** | Multi-Layered Verification    | Popper & Noether  | `tests/verifications/`              | Draft    | 8-layer test harness: differential, metamorphic, PIT, MMS, certified solvers   |
 
 ---
 
@@ -254,6 +258,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-09-10 | Eran Rivlis & Antigravity | Transitioned EP-0150 to Final; added Phase 4 roadmap integration (EP-0160 through EP-0163) and landed sparse commutator.                    |
 | 2026-09-12 | Eran Rivlis & Antigravity | Implemented EP-0164: added multi-format Dynkin diagrams (ASCII/Mermaid/SVG), Jupyter rich display, benchmarks, and updated status to Final. |
 | 2026-10-16 | Eran Rivlis & Antigravity | Added EP-0153: Semiring Matrix Symmetry, Sparse Vector Primitives & Cochain Flow Bridges.                                                   |
+| 2026-10-24 | Eran Rivlis & Jules       | Added Phase 5 and EP-0180: Multi-Layered Verification Test Architecture targeting tests/verifications/ (derived from EXP-0003).             |
 
 
 

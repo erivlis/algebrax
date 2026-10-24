@@ -1,0 +1,273 @@
+---
+title: "EP-0180: Multi-Layered Verification Test Architecture"
+description: "Establishes a dedicated, 8-layer verification test suite under tests/verifications/, generalizing tests/algebrax/test_verification.py through differential testing, property-based axiom verification, metamorphic relations, Schwartz-Zippel PIT, and certified solvers."
+icon: lucide/shield-check
+status: draft
+---
+
+# EP-0180: Multi-Layered Verification Test Architecture
+
+| Field             | Value                                                                                                                                                                                                           |
+|:------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **EP**            | 0180                                                                                                                                                                                                            |
+| **Title**         | Multi-Layered Verification Test Architecture                                                                                                                                                                   |
+| **Author**        | Eran Rivlis & Jules (The Explorer & Council Agent)                                                                                                                                                              |
+| **Sponsor**       | The Council                                                                                                                                                                                                     |
+| **Delegate**      | 🔬 Karl Popper (Falsifiability), ⚖️ Emmy Noether (Symmetry), ⚡ Claude Shannon (Efficiency), 🛡️ The Golem (Safety) & 🧭 The Explorer (Curiosity)                                                                 |
+| **Status**        | Draft                                                                                                                                                                                                           |
+| **Type**          | Standards Track                                                                                                                                                                                                 |
+| **Created**       | 2026-10-24                                                                                                                                                                                                      |
+| **Updated**       | 2026-10-24                                                                                                                                                                                                      |
+| **Replaces**      | None                                                                                                                                                                                                            |
+| **Superseded-By** | None                                                                                                                                                                                                            |
+
+---
+
+## Abstract
+
+This proposal establishes a dedicated, automated **Verification Test Architecture** housed under `tests/verifications/`, derived from research compendium [EXP-0003](../../references/explorations/EXP-0003-correctness-evidence/README.md). Generalizing the initial algebraic law verification suite in [`tests/algebrax/test_verification.py`](../../tests/algebrax/test_verification.py) (introduced in [EP-0131](EP-0131-algebraic-law-verification.md)), this proposal replaces the unwieldy and descriptive concept of "correctness evidence" as a directory label with a clean, actionable testing discipline: **Verification**. The proposal introduces an **8-layer verification harness** organized across three distinct tiers: (1) **Empirical & Metamorphic Tier** (cross-library differential testing against NumPy, SciPy, NetworkX, and GUDHI; metamorphic invariant checks; and Hypothesis property-based testing); (2) **Exact & Semi-Formal Tier** (Schwartz–Zippel randomized polynomial identity testing (PIT) to defeat monomial explosion; the Method of Manufactured Solutions (MMS) for discrete differential operators; and exact rational arithmetic validation); and (3) **Deductive & Certified Tier** (SMT/Z3 formal proofs; Lean 4 dual-specification reference models; and self-certifying solver witnesses). The suite produces structured correctness evidence artifacts without introducing heavy runtime dependencies into `src/algebrax`.
+
+---
+
+## Motivation
+
+`AlgebraX` serves as a pure-Python, zero-heavy-dependency foundational framework unifying linear algebra, semirings, graph analysis, Clifford geometric algebras, discrete exterior calculus, cellular sheaves, and simplicial homology. In foundational mathematical software, software correctness is not merely a quality goal—it is a **mathematical imperative**:
+
+1. **Semantic Clarity & Architectural Alignment:** In [EP-0131](EP-0131-algebraic-law-verification.md), AlgebraX established the public verification engine (`algebrax.verification`) and an initial test file [`tests/algebrax/test_verification.py`](../../tests/algebrax/test_verification.py) to check static semiring samples. However, as verification has expanded to include differential comparison, metamorphic symmetries, Schwartz–Zippel polynomial identity testing, and discrete calculus convergence rates, a single test file is insufficient. Organizing these tests under `tests/verifications/` provides a direct, intuitive generalization. Furthermore, naming the directory `verifications/` correctly identifies the **action and discipline** of testing, whereas "correctness evidence" represents the downstream output report/artifact generated by executing these verification suites.
+2. **The Test Oracle Problem:** For advanced discrete differential operators (e.g., discrete exterior derivative $d_k$, Hodge Laplacian $\Delta_k$, and cellular sheaf Laplacians $\mathcal{L}_{\mathcal{F}}$), analytical ground truths do not exist for arbitrary unstructured simplicial meshes or heterogeneous graph topologies.
+3. **The Monomial Explosion Barrier:** Attempting to verify high-degree symbolic identities (e.g., Jacobi identity in 14-dimensional exceptional Lie algebras, or high-grade Clifford multivector products) using standard computer algebra systems (CAS) causes exponential $\binom{n+d}{d}$ term blowup, stalling test runners.
+4. **Floating-Point Imprecision vs. Axiom Violations:** IEEE 754 floating-point operations violate pure algebraic associativity ($(a + b) + c \neq a + (b + c)$). Naive property testing on floats yields false alarms, while masking errors behind arbitrary epsilons obscures genuine implementation bugs.
+5. **Asymmetric Verification Burden:** For algorithms with $O(N^3)$ computational complexity (e.g., Helmholtz–Hodge flow decompositions, spectral graph partitionings), recomputing full solutions inside test loops is computationally expensive, whereas verifying an algebraic certificate is $O(E)$.
+
+A structured, multi-layered verification framework is needed under `tests/verifications/` to provide mathematically sound correctness evidence while keeping `src/algebrax` completely free of heavy third-party dependencies.
+
+---
+
+## Rationale
+
+The architecture of the verification layer is derived directly from **The Council Framework** (*PRINCIPLES.md*):
+
+### 1. Falsifiability (Popper)
+Every mathematical claim made by an AlgebraX class or function must be systematically falsifiable. Property-based testing via **Hypothesis** and randomized polynomial identity testing (**Schwartz–Zippel PIT**) subject algebraic axioms to aggressive randomized search across millions of generated states, actively probing boundary cases (empty matrices, infinite semiring weights, disconnected complexes, degenerate simplices).
+
+### 2. Symmetry (Noether)
+In accordance with Noether's theorem connecting symmetries to conservation laws, **Metamorphic Invariant Testing** verifies operators along their natural axes of symmetry:
+- Matrix transpose duality: $(A \otimes B)^T = B^T \otimes A^T$ (for commutative semirings).
+- Hodge star involution: $\star \star \omega = (-1)^{k(n-k)} s \omega$.
+- Simplicial boundary nilpotency: $\partial_k \circ \partial_{k+1} = \mathbf{0}$ and coboundary nilpotency $d_{k+1} \circ d_k = \mathbf{0}$.
+- Graph automorphism conjugacy: $L(P A P^T) = P L(A) P^T$.
+
+### 3. Efficiency (Shannon)
+Standard symbolic canonicalization expands expressions into $O(2^N)$ monomials. Schwartz–Zippel PIT replaces this combinatorial bottleneck with $O(N)$ black-box polynomial evaluations over random samples from a finite set $S \subset \mathbb{Z}$, bounding the probability of an accidental root to $\le (d/|S|)^k \le 10^{-15}$. Furthermore, standard CI executions cap property-based sampling to $\le 100$ examples ($< 15\text{s}$ total run), reserving deep sweeps for nightly benchmarks.
+
+### 4. Safety (The Golem)
+Mathematical operations must not silently degrade downstream precision. **Self-Certifying Solvers** emit lightweight $O(E)$ verification certificates (e.g., orthogonality residuals $\langle d\alpha, \delta\beta \rangle$, reconstruction norms $\|v - (d\alpha + \delta\beta + \gamma)\|$, and harmonicity $\|\Delta \gamma\|$), preventing corrupt states from leaking across architectural boundaries.
+
+### 5. Clarity (Feynman)
+Test failures must pinpoint the exact algebraic axiom that failed rather than raising an opaque numerical assertion error. Reusable property runners format descriptive failure cards (e.g., `"Left Distributivity violated for MinPlus semiring at a=-inf, b=0, c=inf"`).
+
+### 6. Consistency (Russell)
+Differential testing ensures isomorphism across representations: sparse nested dictionary matrices in AlgebraX must yield identical results when mapped to dense NumPy arrays, SciPy CSR matrices, or SymPy exact rationals ($f^{-1}(f(x)) = x$). The naming `tests/verifications/` maintains symmetry with `algebrax.verification` and generalizes `tests/algebrax/test_verification.py`.
+
+### 7. Harmony (The Steward)
+The verification suite achieves complete non-leakage. Application code in `src/algebrax` remains lightweight and pure-Python. All heavy numerical, symbolic, and SMT engines (NumPy, SciPy, NetworkX, GUDHI, SymPy, Z3) are isolated in `tests/verifications/` and declared as optional test-group dependencies.
+
+### 8. Curiosity (The Explorer)
+The verification layer bridges practical scientific software with formal methods, incorporating automated SMT verification (Z3) and dual-specification models in **Lean 4**.
+
+---
+
+## Specification
+
+### 1. Test Suite Directory Structure
+
+The verification harness is housed in `tests/verifications/`, decoupled from existing unit and regression tests:
+
+```text
+tests/
+├── algebrax/                         # Core unit and fast regression tests (zero heavy deps)
+│   ├── ...
+│   └── test_verification.py          # Fast catalog law smoke tests (algebrax.verification)
+└── verifications/                    # Comprehensive Multi-Layered Verification Suite
+    ├── conftest.py                   # Custom pytest markers, fixtures & skip logic
+    ├── test_axiomatic_properties.py  # Hypothesis PBT generalizing test_verification.py
+    ├── test_differential_numpy.py    # Differential tests vs NumPy & SciPy
+    ├── test_differential_networkx.py # Differential tests vs NetworkX
+    ├── test_differential_gudhi.py    # Differential tests vs GUDHI & Dionysus
+    ├── test_metamorphic_invariants.py# Metamorphic invariant relations
+    ├── test_pit_symbolic.py          # Schwartz-Zippel PIT for high-degree identities
+    ├── test_mms_discrete_calculus.py # Method of Manufactured Solutions (MMS)
+    ├── test_exact_rational.py        # Exact rational arithmetic (fractions.Fraction)
+    ├── test_smt_z3_proofs.py         # SMT / Z3 automated formal proofs
+    └── test_certificates.py          # Self-certifying solver witness checks
+```
+
+### 2. Relationship to `tests/algebrax/test_verification.py`
+
+- [`tests/algebrax/test_verification.py`](../../tests/algebrax/test_verification.py) is retained as the lightweight, in-tree smoke test for `algebrax.verification.verify_semiring_laws` that runs with zero external dependencies in $< 0.1\text{s}$.
+- `tests/verifications/test_axiomatic_properties.py` generalizes this by subjecting all semirings to randomized Hypothesis property-based testing across edge-case floats, signed infinities, and exact rational numbers.
+
+### 3. Pytest Markers & Dependency Isolation
+
+To allow developers and CI runners to execute tests with or without optional scientific libraries, `tests/verifications/conftest.py` defines dedicated markers with automatic skip-guards:
+
+```python
+# tests/verifications/conftest.py
+import pytest
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "verification: All verification suite tests")
+    config.addinivalue_line("markers", "differential: Tests requiring NumPy, SciPy, NetworkX, or GUDHI")
+    config.addinivalue_line("markers", "axiomatic: Property-based testing via Hypothesis")
+    config.addinivalue_line("markers", "metamorphic: Metamorphic relation invariance tests")
+    config.addinivalue_line("markers", "pit: Schwartz-Zippel Polynomial Identity Testing")
+    config.addinivalue_line("markers", "mms: Method of Manufactured Solutions tests")
+    config.addinivalue_line("markers", "formal_smt: Formal proofs via Z3 SMT solver")
+    config.addinivalue_line("markers", "certificates: Solver verification certificate tests")
+```
+
+When an external library (e.g., `z3`, `gudhi`, or `networkx`) is not installed, tests requiring that library are cleanly skipped with an informative diagnostic message rather than failing.
+
+### 4. Dependency Declaration (PEP 735)
+
+In `pyproject.toml`, verification dependencies are declared under a dedicated dependency group:
+
+```toml
+[dependency-groups]
+test-verification = [
+    "hypothesis>=6.100.0",
+    "numpy>=1.26.0",
+    "scipy>=1.13.0",
+    "networkx>=3.2.0",
+    "sympy>=1.12.0",
+    "z3-solver>=4.13.0",
+]
+```
+
+### 5. Specification of the 8 Verification Methodologies
+
+#### Methodology 1: Differential Cross-Library Testing (`test_differential_*.py`)
+- **Scope:** Sparse matrix operations (`dot`, `power`, `transpose`, `trace`), signal transforms (`dft`, `walsh_hadamard`), graph metrics (Laplacian, Fiedler vector, PageRank), and simplicial boundary operators.
+- **Protocol:**
+  1. Generate random sparse inputs (density $p \in [0.05, 0.5]$).
+  2. Compute result using `algebrax` sparse primitives.
+  3. Convert input to dense NumPy array or SciPy CSR matrix via `ax.matrix.to_dense()`.
+  4. Compute reference result via reference library.
+  5. Assert equivalence within condition-scaled tolerance ($\text{rtol} = 10^{-12}, \text{atol} = 10^{-12}$).
+
+#### Methodology 2: Metamorphic Invariant Testing (`test_metamorphic_invariants.py`)
+- **Scope:** Custom semirings lacking external reference implementations (`ProvenanceSemiring`, `TropicalSemiring`, `MultivariateMomentSemiring`), and high-dimensional operators.
+- **Protocol:** Verify that transformed inputs produce algebraically consistent outputs under guaranteed metamorphic relations:
+  - $(A \otimes B)^T = B^T \otimes A^T$
+  - $\mathcal{F}(\operatorname{shift}_k(x)) = \mathcal{F}(x) \odot e^{-i 2\pi k \mathbf{n} / N}$
+  - $d_{k+1}(d_k(\omega)) = \mathbf{0}$
+  - $\star \star \omega = (-1)^{k(n-k)} s \omega$
+  - $L(P A P^T) = P L(A) P^T$
+
+#### Methodology 3: Property-Based Axiomatic Verification (`test_axiomatic_properties.py`)
+- **Scope:** All 35+ semirings, finite fields $\text{GF}(p^m)$, and lattices in `algebrax`.
+- **Protocol:**
+  - Test core algebraic axioms: Associativity, Commutativity, Distributivity, Identity, and Annihilation by Zero.
+  - To eliminate floating-point non-associativity false positives, property tests run across two distinct strategies:
+    1. **Exact Mode:** Values generated over `fractions.Fraction` or integer rings (strictly testing algebraic logic).
+    2. **Conditioned Float Mode:** Values generated over floats with custom epsilon assertion guards.
+
+#### Methodology 4: Schwartz–Zippel Randomized Polynomial Identity Testing (`test_pit_symbolic.py`)
+- **Scope:** High-degree symbolic equalities and non-linear algebraic identities (e.g., Clifford rotor norm conservation $Q(R v \tilde{R}) = Q(v)$, Lie algebra Jacobi identity, and symbolic determinant expansions).
+- **Protocol:**
+  1. Formulate identity as difference $P(x_1, \dots, x_n) = \text{LHS} - \text{RHS}$.
+  2. Sample independent integers $r_i$ uniformly from finite set $S = [1, 10^6]$.
+  3. Evaluate $P(r_1, \dots, r_n)$ using exact integer/rational arithmetic.
+  4. Repeat across $k = 3$ independent trials. Under the Schwartz–Zippel Lemma, false-positive error is bounded by:
+     $$\Pr[\text{Error}] \le \left(\frac{d}{|S|}\right)^3 \le \left(\frac{10}{10^6}\right)^3 = 10^{-15}$$
+
+#### Methodology 5: Method of Manufactured Solutions (`test_mms_discrete_calculus.py`)
+- **Scope:** Discrete Exterior Calculus (`EP-0160`), discrete Hodge Laplacians, and graph diffusion.
+- **Protocol:**
+  1. Define a smooth analytical field on a 2D/3D manifold (e.g., $\phi(x, y) = \sin(2\pi x)\cos(2\pi y)$).
+  2. Derive continuous analytical gradient $\nabla \phi$ and Laplacian $\Delta \phi = -8\pi^2 \phi$.
+  3. Discretize into a sequence of planar simplicial triangulation meshes $\mathcal{K}_h$ with grid spacing $h_1 > h_2 > h_3$.
+  4. Evaluate discrete operator $\Delta_h \phi_h$.
+  5. Assert that the discrete $L_2$ error norm $\| \Delta_h \phi_h - \Pi_h(\Delta \phi) \|_{L_2}$ exhibits the theoretical second-order convergence rate:
+     $$\frac{\log(E(h_1) / E(h_2))}{\log(h_1 / h_2)} \approx 2.0 \pm 0.2$$
+
+#### Methodology 6: Exact Rational & Symbolic Verification (`test_exact_rational.py`)
+- **Scope:** Matrix inversions, determinants, and Gaussian elimination kernels.
+- **Protocol:** Evaluate computations over `fractions.Fraction` or SymPy symbols, verifying bitwise exact closed-form equivalence without floating-point round-off error.
+
+#### Methodology 7: SMT Automated Constraint Solving (`test_smt_z3_proofs.py`)
+- **Scope:** Universally quantified algebraic identities over piecewise linear or modular arithmetic (e.g., min-plus distributivity, Galois field inversions).
+- **Protocol:** Encode the negation of the algebraic specification in Z3. Assert that `solver.check() == unsat`, proving that no counterexample exists across the entire domain.
+
+#### Methodology 8: Self-Certifying Solvers (`test_certificates.py`)
+- **Scope:** $O(N^3)$ decomposition routines (Helmholtz–Hodge decomposition, matrix factorizations, spectral partitioning).
+- **Protocol:** Solvers return a `(solution, certificate)` tuple. Verifier functions validate the certificate in $O(E)$ time:
+  ```python
+  class HodgeCertificate(NamedTuple):
+      exact_potential: Cochain
+      coexact_potential: Cochain
+      harmonic_form: Cochain
+      orthogonality_residual: float
+      reconstruction_residual: float
+      harmonic_residual: float
+
+  def verify_hodge_certificate(cert: HodgeCertificate, tol: float = 1e-10) -> bool:
+      return (
+          cert.orthogonality_residual < tol and
+          cert.reconstruction_residual < tol and
+          cert.harmonic_residual < tol
+      )
+  ```
+
+---
+
+## Backwards Compatibility
+
+1. **Zero Runtime Impact:** No code inside `src/algebrax/` is modified, deprecated, or removed.
+2. **Zero Core Dependency Bloat:** All external libraries (NumPy, SciPy, NetworkX, SymPy, Z3) are isolated in `tests/verifications/` and declared exclusively under `test-verification` dependency groups.
+3. **Selective Execution:** Standard test execution (`uv run pytest tests/algebrax`) continues to execute in $< 2\text{s}$ with zero required external dependencies. The verification suite is triggered explicitly via `pytest tests/verifications/`.
+
+---
+
+## How to Teach This / Documentation Plan
+
+1. **Developer Guide (`docs/guide/verification/verification_suite.md`):** Comprehensive architectural guide detailing the 8 verification layers, command-line usage, and how to write new metamorphic and property tests.
+2. **CI Integration:** Add a dedicated GitHub Actions workflow (`.github/workflows/verification.yml`) that runs the verification suite on pull requests targeting `main`.
+3. **Telemetry & Metrics:** Add verification metrics reporting to `TELEMETRY.md` (e.g., `ai_session_axiomatic_laws_verified`, `ai_session_differential_tests_passed`).
+
+---
+
+## Reference Implementation
+
+A prototype of the verification test suite is organized across:
+- `tests/verifications/conftest.py` (fixtures and skip guards)
+- `tests/verifications/test_axiomatic_properties.py` (Hypothesis property suites)
+- `tests/verifications/test_differential_numpy.py` (NumPy matrix operations)
+- `tests/verifications/test_pit_symbolic.py` (Schwartz–Zippel PIT engine)
+- [references/explorations/EXP-0003-correctness-evidence/README.md](../../references/explorations/EXP-0003-correctness-evidence/README.md) (full architectural compendium)
+- [references/explorations/EXP-0003-correctness-evidence/sources/BIBLIOGRAPHY.md](../../references/explorations/EXP-0003-correctness-evidence/sources/BIBLIOGRAPHY.md) (scientific bibliography and source papers)
+
+---
+
+## Rejected Ideas
+
+1. **Naming Directory `tests/correctness_evidence/`:** Rejected as unwieldy and conceptually misplaced. "Correctness Evidence" describes the resulting artifact, report, or telemetry emitted by tests, whereas `tests/verifications/` correctly designates the active testing discipline and directly generalizes `tests/algebrax/test_verification.py`.
+2. **Inlining Heavy Dependencies into Core (`src/algebrax`):** Rejected. Violates the core zero-dependency architectural constraint. `AlgebraX` must remain runnable on pure Python environments without C extensions or compiled binaries.
+3. **Sole Reliance on Hypothesis with Floats:** Rejected. Floating-point non-associativity produces false failures on legitimate algebraic structures. Separating exact rational carriers from float-tolerance checks preserves mathematical truth.
+4. **Full Symbolic Monomial Expansion for High-Degree Identities:** Rejected. Monomial explosion renders full expansion intractable for systems with $> 8$ variables. Schwartz–Zippel PIT provides rigorous, probabilistic equivalence in $O(N)$ evaluation time.
+5. **Mandating Lean 4 Installation in CI:** Rejected. Requiring a Lean 4 toolchain and Mathlib4 compilation in standard GitHub Actions runners introduces excessive CI overhead ($> 15\text{min}$ build times). Lean 4 specifications are maintained as offline formal reference models, while SMT/Z3 and Hypothesis provide automated in-pipeline verification.
+
+---
+
+## Open Questions
+
+- [ ] Should `verify_hodge_certificate` and other solver verification helpers be exposed in public API `algebrax.verification` or remain test-internal?
+- [ ] What is the optimal sample budget ($N$) for Hypothesis property tests in standard PR pipelines vs. scheduled nightly runs?
+
+---
+
+## Change Log
+
+* **2026-10-24:**
+  * Initial proposal formulated from research compendium [EXP-0003](../../references/explorations/EXP-0003-correctness-evidence/README.md) and approved by Grand Council review.
+  * Refactored target directory to `tests/verifications/` to directly generalize [`tests/algebrax/test_verification.py`](../../tests/algebrax/test_verification.py) and distinguish the verification testing discipline from resulting evidence artifacts.

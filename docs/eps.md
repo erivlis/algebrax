@@ -96,3 +96,13 @@ Proposals stemming from the **Next Frontiers Exploration** ([EXP-0001](https://g
 | [EP-0163](proposals/EP-0163-lie-algebras-and-bch-dynamics.md)                      | Lie Algebras, Root Systems, and Baker–Campbell–Hausdorff Dynamics   | ⚖️ Noether, ⚡ Shannon & 🛡️ Golem               | :material-check-all: Final |
 | [EP-0164](proposals/EP-0164-root-systems-and-chevalley-bases.md)                   | Root Systems, Weyl Groups & Chevalley-Serre Simple Lie Algebras     | ⚖️ Noether, ⚡ Shannon & 🧩 Russell             | :material-check-all: Final |
 
+---
+
+## Phase 5 — Mathematical Verification & Correctness Evidence Track
+
+Proposals stemming from the **Correctness Evidence Exploration** ([EXP-0003](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0003-correctness-evidence/README.md)), establishing multi-layered verification, differential testing against canonical math libraries, metamorphic invariants, Schwartz–Zippel PIT, and certified solvers.
+
+| EP                                                                 | Title                                                   | Council Sponsor                                                    |         Status         |
+|:-------------------------------------------------------------------|:--------------------------------------------------------|:-------------------------------------------------------------------|:----------------------:|
+| [EP-0180](proposals/EP-0180-multi-layered-verification-suite.md) | Multi-Layered Verification Test Architecture            | 🔬 Popper, ⚖️ Noether, ⚡ Shannon, 🛡️ Golem & 🧭 Explorer          | :material-pencil: Draft |
+
