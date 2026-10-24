@@ -2,7 +2,7 @@
 title: "EP-0186: Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & SMT Formal Verification (Z3 Oracle)"
 description: "Establishes universal O(nnz) proof-carrying solver certificates across all decompositions and linear/spectral solvers, high-degree Schwartz–Zippel polynomial identity tests (Cayley–Hamilton, exceptional Lie algebras), and automated SMT/Z3 formal proofs."
 icon: lucide/award
-status: draft
+status: final
 ---
 
 # EP-0186: Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & SMT Formal Verification (`Z3` Oracle)
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis & Antigravity (Council Agent)                                                                      |
 | **Sponsor**       | The Council                                                                                                    |
 | **Delegate**      | 🛡️ The Golem (Safety), ⚡ Claude Shannon (Efficiency), 🔬 Karl Popper (Falsifiability) & 🧭 The Explorer       |
-| **Status**        | Draft                                                                                                          |
+| **Status**        | Final                                                                                                          |
 | **Type**          | Standards Track                                                                                                |
 | **Created**       | 2026-10-24                                                                                                     |
-| **Updated**       | 2026-10-24                                                                                                     |
+| **Updated**       | 2026-10-25                                                                                                     |
 | **Replaces**      | None                                                                                                           |
 | **Superseded-By** | None                                                                                                           |
 
