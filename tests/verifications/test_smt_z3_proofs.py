@@ -27,7 +27,7 @@ import pytest
 
 z3 = pytest.importorskip('z3')
 
-pytestmark = [pytest.mark.verification, pytest.mark.formal_smt]
+pytestmark = [pytest.mark.verification, pytest.mark.formal_smt, pytest.mark.smt]
 
 
 def _assert_unsat(negated_law: z3.BoolRef, *constraints: z3.BoolRef, description: str = '') -> None:
