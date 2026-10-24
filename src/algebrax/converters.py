@@ -541,7 +541,8 @@ def to_numpy(
     c_max = max((c for row in matrix.values() for c in row), default=0)
     h, w = shape if shape else (r_max + 1, c_max + 1)
 
-    arr = np.zeros((h, w))
+    is_complex = any(isinstance(val, complex) for row in matrix.values() for val in row.values())
+    arr = np.zeros((h, w), dtype=np.complex128 if is_complex else np.float64)
     for r, row in matrix.items():
         for c, val in row.items():
             if isinstance(r, int) and isinstance(c, int) and r < h and c < w:
