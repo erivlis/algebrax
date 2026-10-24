@@ -110,7 +110,24 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.6. Semiring Catalog (`algebrax.semiring`, `algebrax.verification`)
+### 2.6. Exact Symbolic Algebra, Lie, Galois, Clifford & Group Theory (`algebrax.lie`, `algebrax.galois`, `algebrax.clifford`, `algebrax.group`)
+
+| AlgebraX Function / Structure | Verification Category | Reference Oracle / Mathematical Law | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `matrix.academic.determinant`, `cofactor`, `adjoint`, `inverse` over `Fraction` | **Comparative + Property (`differential`)** | `sympy.Matrix` (`.det()`, `.cofactor_matrix()`, `.adjugate()`, `.inv()`) over $\mathbb{Q}$ & $A A^{-1} = I$ | `test_differential_sympy.py::test_differential_exact_fraction_matrix_determinant_adjoint_and_inverse_vs_sympy`, `test_hypothesis_exact_fraction_determinant_and_inverse_vs_sympy` | **Exact (`==`, $\epsilon = 0$)** |
+| `lie.RootSystem.from_dynkin` ($A_n, B_n, C_n, D_n, G_2, F_4, E_6, E_7, E_8$) | **Comparative (`differential`)** | `sympy.liealgebras.RootSystem` Cartan matrix, $\det C$, $|\Phi^+|$, and symmetrizing factors $d_i A_{ij} = d_j A_{ji}$ | `test_differential_sympy.py::test_differential_root_systems_and_cartan_matrices_vs_sympy` | **Exact (`==`, $\epsilon = 0$)** |
+| `lie.LieAlgebra.bch(x, y, order=1..4)` | **Comparative (`differential`)** | `scipy.linalg.expm(X) @ scipy.linalg.expm(Y)` vs. `scipy.linalg.expm(BCH(X, Y))` on $\mathfrak{so}_3, \mathfrak{sl}_2, \mathfrak{su}_2, \mathfrak{se}_3$ | `test_differential_sympy.py::test_differential_lie_bch_series_vs_scipy_expm` | $10^{-6}$ |
+| `lie.LieAlgebra.adjoint_matrix`, `killing_form`, `is_semisimple` | **Comparative (`differential`)** | $[\operatorname{ad}_X, \operatorname{ad}_Y] = \operatorname{ad}_{[X, Y]}$, $B(X,Y) = \operatorname{Tr}(\operatorname{ad}_X \operatorname{ad}_Y)$, ad-invariance $B([X,Y],Z) + B(Y,[X,Z]) = 0$, Cartan criterion | `test_differential_sympy.py::test_differential_lie_adjoint_homomorphism_and_killing_form` | $10^{-10}$ – $10^{-11}$ |
+| `galois.GaloisFieldSemiring` ($GF(2^8), GF(3^3)$) & `gf_matrix_mul` | **Comparative (`differential`)** | `sympy.Poly` over `sympy.GF(p)` mod $P(x)$, Fermat's Little Theorem $a^{p^m-1} = 1$, Frobenius $(a+b)^p = a^p + b^p$ | `test_differential_sympy.py::test_differential_galois_field_arithmetic_and_fermat_little_theorem_vs_sympy`, `test_differential_gf_matrix_mul_vs_sympy` | **Exact (`==`, $\epsilon = 0$)** |
+| `clifford.rotor_rotation(v, bivector, angle)` | **Comparative (`differential`)** | `scipy.spatial.transform.Rotation.from_rotvec` across 3D coordinate planes | `test_differential_sympy.py::test_differential_clifford_rotor_rotation_vs_scipy_rotation` | $10^{-11}$ |
+| `CliffordSemiring`, `GeneralizedCliffordSemiring`, `QuantumCliffordSemiring`, `clifford_lie_algebra` | **Comparative (`differential`)** | Spacetime $\mathcal{C}\ell(1,3,0)$ anticommutation, $\mathfrak{spin}(3) \cong \mathfrak{so}(3)$, $\omega$-braiding, & $q$-deformed braiding | `test_differential_sympy.py::test_differential_clifford_algebras_and_bivector_lie_isomorphism` | $10^{-12}$ / **Exact (`==`)** |
+| `group.compose`, `invert`, `signature` | **Comparative + Property (`differential`)** | `sympy.combinatorics.Permutation` composition, inverse, & parity homomorphism $\operatorname{sgn}(pq) = \operatorname{sgn}(p)\operatorname{sgn}(q)$ | `test_differential_sympy.py::test_hypothesis_differential_permutation_group_vs_sympy` | **Exact (`==`, $\epsilon = 0$)** |
+| `PolynomialSemiring(StandardSemiring(Fraction))` | **Comparative (`differential`)** | `sympy.Poly(..., domain='QQ')` addition, Cauchy product, and powers | `test_differential_sympy.py::test_differential_polynomial_semiring_over_fraction_vs_sympy_poly` | **Exact (`==`, $\epsilon = 0$)** |
+| `DualNumberSemiring`, `BinomialConvolutionSemiring`, `MultivariateBinomialConvolutionSemiring` | **Comparative (`differential`)** | `sympy.diff(f, x, k)` (up to 4th derivative) & `sympy.diff(g, (x, a1), (y, a2))` 2D partial derivatives | `test_differential_sympy.py::test_differential_autodiff_semirings_vs_sympy_derivatives` | $10^{-11}$ |
+
+---
+
+### 2.7. Semiring Catalog (`algebrax.semiring`, `algebrax.verification`)
 
 | AlgebraX Semiring / Function | Verification Category | Reference Oracle / Axioms Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
@@ -123,7 +140,7 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.7. Topology, Exterior Calculus & Lie Algebras (`algebrax.homology`, `algebrax.lie`)
+### 2.8. Topology, Exterior Calculus & Lie Algebras (`algebrax.homology`, `algebrax.lie`)
 
 | AlgebraX Structure / Function | Verification Category | Reference Oracle / Mathematical Theorem Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
