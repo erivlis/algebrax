@@ -127,7 +127,24 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.7. Semiring Catalog (`algebrax.semiring`, `algebrax.verification`)
+### 2.7. Topology, Information Theory, Automata & Fractal Metrics (`algebrax.homology`, `algebrax.probability`, `algebrax.automata`, `algebrax.metrics`)
+
+| AlgebraX Function / Structure | Verification Category | Reference Oracle / Mathematical Law | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `homology.SimplicialComplex.betti_numbers` & `cohomology_rank` | **Comparative (`differential`)** | `np.linalg.matrix_rank` on dense $\partial_k$, canonical manifolds ($S^1, D^2, S^2, D^3, T^2$), & Euler–Poincaré $\sum (-1)^k |K_k| = \sum (-1)^k \beta_k$ | `test_differential_topology_prob.py::test_simplicial_homology_canonical_manifolds_and_euler_poincare` | **Exact (`==`, $\epsilon = 0$)** |
+| `homology.hodge_laplacian(sc, k)` | **Comparative (`differential`)** | `scipy.linalg.eigvalsh(Delta_k)` nullity $= \beta_k$ (Discrete Hodge Theorem) & dense $\partial_k^T \partial_k + \partial_{k+1}\partial_{k+1}^T$ | `test_differential_topology_prob.py::test_discrete_hodge_theorem_vs_scipy_eigvalsh` | **Exact (`==`)** / $10^{-12}$ |
+| `homology.exterior_derivative`, `codifferential`, `hodge_star`, `Cochain` | **Comparative (`differential`)** | Discrete Stokes' Theorem $\langle d_k \omega, c_{k+1} \rangle = \langle \omega, \partial_{k+1} c_{k+1} \rangle$ & weighted adjointness $\langle d_0 \alpha, \star_1 \beta \rangle = \langle \alpha, \star_0 \delta_1 \beta \rangle$ | `test_differential_topology_prob.py::test_discrete_stokes_theorem_and_hodge_star_adjointness` | $10^{-12}$ |
+| `homology.helmholtz_hodge_decomposition` | **Comparative + Certificate (`differential`)** | $\omega = \omega_{\text{exact}} + \omega_{\text{coexact}} + \gamma$, $L^2$ orthogonality, $d_1 \omega_{\text{exact}} = 0$, $\partial_1 \omega_{\text{coexact}} = 0$, $\Delta_1 \gamma = 0$ | `test_differential_topology_prob.py::test_helmholtz_hodge_decomposition_orthogonality_and_invariants` | $10^{-7}$ |
+| `probability.entropy`, `cross_entropy`, `kl_divergence` | **Comparative + Property (`differential`)** | `scipy.stats.entropy(P)`, `scipy.stats.entropy(P, Q)`, `scipy.special.rel_entr`, & $H(P, Q) = H(P) + D_{KL}(P \| Q)$ via Hypothesis | `test_differential_topology_prob.py::test_information_theory_vs_scipy_stats` | $10^{-11}$ |
+| `probability.mutual_information` & `marginalize` | **Comparative (`differential`)** | `scipy.stats.entropy` ($I(X;Y) = H(X) + H(Y) - H(X,Y)$) & `np.sum(joint, axis=0/1)` | `test_differential_topology_prob.py::test_mutual_information_and_marginals_vs_scipy` | $10^{-11}$ – $10^{-12}$ |
+| `probability.expected_value`, `variance`, `skewness`, `kurtosis`, `mode` | **Comparative (`differential`)** | `scipy.stats.rv_discrete.stats(moments='mvsk')` | `test_differential_topology_prob.py::test_statistical_moments_vs_scipy_rv_discrete` | $10^{-11}$ – $10^{-12}$ |
+| `probability.bayes_update`, `markov_step`, `markov_steady_state` | **Comparative (`differential`)** | Sequential Bayes commutativity $B(B(P, E_1), E_2) = B(B(P, E_2), E_1)$, `np.linalg.matrix_power(P, k)`, & `scipy.linalg.eig` left Perron–Frobenius eigenvector | `test_differential_topology_prob.py::test_bayes_update_commutativity_and_markov_steady_state` | $10^{-10}$ – $10^{-12}$ |
+| `automata.dfa_step`, `nfa_step`, `simulate_dfa`, `simulate_nfa` | **Comparative (`differential`)** | Rabin–Scott powerset DFA construction, Python `re` regex oracle, & probabilistic matrix product $p_0 P_{w_1} \cdots P_{w_k}$ | `test_differential_topology_prob.py::test_automata_dfa_nfa_vs_rabin_scott_and_regex_oracle` | **Exact (`==`)** / $10^{-12}$ |
+| `metrics.density`, `sparsity`, `box_counting_dimension`, `count_elements`, `deepness`, `wideness`, `uniformness` | **Comparative (`differential`)** | `np.count_nonzero(A) / A.size`, density $+$ sparsity $= 1$, & analytical Hausdorff dimension $\ln 3 / \ln 2$ on Sierpiński gasket | `test_differential_topology_prob.py::test_metrics_density_sparsity_and_fractal_box_counting` | $10^{-12}$ |
+
+---
+
+### 2.8. Semiring Catalog (`algebrax.semiring`, `algebrax.verification`)
 
 | AlgebraX Semiring / Function | Verification Category | Reference Oracle / Axioms Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
@@ -140,7 +157,7 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.8. Topology, Exterior Calculus & Lie Algebras (`algebrax.homology`, `algebrax.lie`)
+### 2.9. Metamorphic, PIT & Certified Invariants (`algebrax.homology`, `algebrax.lie`)
 
 | AlgebraX Structure / Function | Verification Category | Reference Oracle / Mathematical Theorem Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
@@ -156,7 +173,7 @@ The tables below map each `algebrax` module and function to the exact verificati
 You can run the entire verification suite or filter by verification methodology using `pytest` markers:
 
 ```bash
-# Run all verification tests (44 tests across all layers)
+# Run all verification tests (82 tests across all layers + catalog law verifier)
 uv run pytest tests/verifications/ tests/algebrax/test_verification.py -v
 
 # Run only comparative / differential tests against NumPy & SciPy
