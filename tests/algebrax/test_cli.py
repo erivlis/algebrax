@@ -6,6 +6,8 @@ import json
 
 from algebrax.__main__ import main
 
+VERSION = '0.11.3'
+
 
 def test_cli_catalog_all(capsys):
     """Test `algebrax catalog` lists semirings."""
@@ -97,9 +99,9 @@ def test_version_attribute_and_cli():
     from algebrax.__main__ import get_version
 
     assert hasattr(ax, '__version__')
-    assert ax.__version__ == '0.11.2'
-    assert get_version() == '0.11.2'
+    assert ax.__version__ == VERSION
+    assert get_version() == VERSION
 
     # Test fallback when PackageNotFoundError is raised
     with patch('importlib.metadata.version', side_effect=importlib.metadata.PackageNotFoundError):
-        assert get_version() == '0.11.2'
+        assert get_version() == VERSION

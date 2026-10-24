@@ -7,4 +7,5 @@ update_changelog_on_bump = true
 major_version_zero = true
 version_files = [
     "src/algebrax/__init__.py:__version__",
+    "tests/algebrax/test_cli.py:VERSION",
 ]

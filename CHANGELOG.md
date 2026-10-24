@@ -1,4 +1,7 @@
-## v0.11.2 (2026-10-25)
+## Unreleased
+
+
+## v0.11.3 (2026-10-25)
 
 ### Fix
 
@@ -22,11 +25,6 @@
 
 - **EP-0161**: Implements CellularSheaf and related sheaf operators.
 - **EP-0160**: Implements DEC operators, Hodge decomposition, and conjugate gradient solver.
-
-## v0.10.0 (2026-10-16)
-
-### Feat
-
 - Implements EP-0153 Cochain carrier, semiring matrix, and vector primitives.
 
 ### Perf
@@ -81,17 +79,6 @@
 - **analysis**: Add algebraic PageRank implementation over semirings
 - **cli**: Introduce AlgebraX CLI for semiring inspection, verification, and matrix operations
 - **display**: Add `semiring_card` for Jupyter rich HTML rendering
-
-### Refactor
-
-- **semiring**: Replace `_normalize_semiring` with `Semiring.normalize` and add canonical `default` method
-- **recipes**: Replace custom PageRank logic with `ax.analysis.pagerank`
-- **recipes**: Add semiring card previews and Jupyter compatibility checks
-
-## v0.7.0 (2026-09-04)
-
-### Feat
-
 - **semiring**: Add new algebraic and statistical semirings with expanded catalog support
 - **verification**: Add support for complex number comparison and expand semiring catalog
 
@@ -102,6 +89,9 @@
 
 ### Refactor
 
+- **semiring**: Replace `_normalize_semiring` with `Semiring.normalize` and add canonical `default` method
+- **recipes**: Replace custom PageRank logic with `ax.analysis.pagerank`
+- **recipes**: Add semiring card previews and Jupyter compatibility checks
 - **recipes**: Modularize and enhance examples for cryptography, homology, and topology
 - **recipes/lab.py**: Add `BivariateVarianceSemiring` and refine variance handling
 - **financial_risk_portfolio**: Simplify variance computation using `VarianceSemiring` methods
@@ -144,21 +134,12 @@
 - **EP-0110**: Adds Simplicial Homology and Betti number computation.
 - **EP-0101**: Adds SparseChainComplex for algebraic topology.
 - **EP-0100**: Adds Quotient Monoid Algebra Semiring.
+- Adds tensor algebra module with einsum, outer product, and tensordot.
 
 ### Refactor
 
 - Renames `reciepes` directory to `recipes`.
 - Refactors lab recipes for algebrax API updates and UI enhancements.
-- Refactors DearPyGui lab with helpers and clearer recipe logic.
-
-## v0.4.0 (2026-07-31)
-
-### Feat
-
-- Adds tensor algebra module with einsum, outer product, and tensordot.
-
-### Refactor
-
 - Refactors DearPyGui lab with helpers and clearer recipe logic.
 
 ## v0.3.1 (2026-07-27)
