@@ -191,7 +191,7 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.11. Automated SMT / `Z3` Deductive Formal Proofs (`smt`)
+### 2.11. Automated SMT / `Z3` Deductive Formal Proofs (`smt` / `formal_smt`)
 
 | AlgebraX Structure / Semiring | Verification Category | Formal Theorem Proved via `z3.Solver` (`check(Not(Law)) == unsat`) | Test File & Function | Proof Assurance |
 |:---|:---|:---|:---|:---|
