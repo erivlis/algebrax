@@ -158,11 +158,11 @@ class RootSystem:
         if dynkin_type.startswith('G'):
             d_factors = [3, 1]
         elif dynkin_type.startswith('B'):
-            d_factors = [2] * (r - 1) + [1]
-        elif dynkin_type.startswith('C'):
             d_factors = [1] * (r - 1) + [2]
+        elif dynkin_type.startswith('C'):
+            d_factors = [2] * (r - 1) + [1]
         elif dynkin_type.startswith('F'):
-            d_factors = [2, 2, 1, 1]
+            d_factors = [1, 1, 2, 2]
 
         return cls(
             cartan_matrix=c_mat,
