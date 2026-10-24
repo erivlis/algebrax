@@ -70,6 +70,7 @@ test = [
     "pillow",
     "scipy",
     "sympy",
+    "z3-solver>=5.3.1.0",
 ]
 benchmark = [
     "pytest-benchmark>=4.0.0",
