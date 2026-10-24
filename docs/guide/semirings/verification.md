@@ -46,9 +46,18 @@ for axiom, passed in results.items():
 Run the law verification auditor across all 24 semirings from the terminal:
 
 ```bash
-# Verify all 24 catalog semirings
+# Verify all 34 catalog semirings
 python -m algebrax.verify
 
 # Verify a single semiring
 python -m algebrax.verify --semiring GaloisField
 ```
+
+---
+
+## Multi-Layered Verification Suite (`tests/verifications/`)
+
+Beyond semiring law auditing, `algebrax` maintains a comprehensive **Multi-Layered Verification Suite** comparing linear algebra, matrix decompositions, tensors, spectral transforms, homology, and Lie algebras against **NumPy**, **SciPy**, **Hypothesis**, **Schwartz–Zippel PIT**, and **Proof-Carrying Certificates**.
+
+See the full traceability matrix in **[Mathematical Verification & Stamp of Trust](../../verification.md)**.
+

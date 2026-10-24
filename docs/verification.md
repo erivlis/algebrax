@@ -1,0 +1,137 @@
+---
+title: Mathematical Verification & Stamp of Trust
+description: Complete traceability matrix mapping AlgebraX mathematical functions to their verification tests, methodologies, and external industry reference oracles (NumPy, SciPy, Hypothesis, PIT).
+icon: lucide/shield-check
+---
+
+# Mathematical Verification & Stamp of Trust
+
+Because `algebrax` implements foundational linear algebra, semirings, discrete exterior calculus, spectral transforms, and Lie algebras in **100% pure Python with zero required runtime dependencies**, mathematical correctness cannot be left to conventional unit tests alone.
+
+To earn a verifiable **Stamp of Trust**, `algebrax` employs a **Multi-Layered Verification Suite** housed under `tests/verifications/` (alongside the built-in law verifier in `tests/algebrax/test_verification.py`). Every mathematical claim is continuously cross-checked against external industry-standard reference engines (**NumPy**, **SciPy**, **LAPACK**, **PocketFFT**) and rigorous mathematical invariants.
+
+---
+
+## 1. Verification Methodologies & Categories
+
+Each test in `tests/verifications/` is categorized by its formal verification methodology and pytest marker:
+
+| Category / Marker    | Verification Methodology                                                         | How It Establishes Mathematical Truth                                                                                                                                                                                                                             |
+|:---------------------|:---------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **`differential`**   | **Comparative / Differential Oracle Testing** *(McKeeman, 1998)*                 | Pits `algebrax` sparse dictionary algorithms directly against battle-tested C/Fortran reference libraries (`numpy.linalg`, `scipy.linalg`, `scipy.sparse.linalg`, `numpy.fft`, `scipy.signal`) across deterministic and Hypothesis-generated inputs.              |
+| **`axiomatic`**      | **Property-Based Algebraic Law Testing** *(MacIver et al., 2019)*                | Uses **Hypothesis** to generate adversarial random inputs (including $\pm\infty$, boundary probabilities, and exact rationals) and verifies universal algebraic axioms (associativity, commutativity, distributivity, identity, annihilation).                    |
+| **`Exact Rational`** | **Infinite-Precision $\mathbb{Q}$ Verification**                                 | Evaluates semirings and matrix operations over Python's exact `fractions.Fraction` field, eliminating IEEE 754 floating-point rounding tolerances ($\epsilon = 0$).                                                                                               |
+| **`metamorphic`**    | **Metamorphic Invariant Relations** *(Chen et al., 1998)*                        | Verifies necessary structural conservation laws across input transformations when no external oracle exists (e.g., $(A \otimes B)^T = B^T \otimes A^T$, boundary nilpotency $\partial^2 = 0$, graph vertex permutation conjugacy $L(P A P^T) = P L(A) P^T$).      |
+| **`pit`**            | **Schwartz–Zippel Polynomial Identity Testing** *(Schwartz, 1980; Saxena, 2014)* | Defeats exponential symbolic monomial blowup by evaluating high-degree identities (such as the Jacobi identity on 14-dimensional $\mathfrak{g}_2$) at random integer coordinates in $S \subset \mathbb{Z}$, bounding false-positive error probability to $\le (d/ |S|)^k \le 10^{-16}$. |
+| **`certificates`**   | **Proof-Carrying Solver (PCS) Witnesses**                                        | Verifies the output of expensive $O(N^3)$ numerical solvers (e.g., Helmholtz–Hodge decomposition, LU, QR, SVD) via fast, independent $O(\text{nnz})$ algebraic witness checks (orthogonality, curl/divergence annihilation, exact reconstruction).                |
+
+---
+
+## 2. Traceability Matrix: Functionality $\to$ Verification Test
+
+The tables below map each `algebrax` module and function to the exact verification test function, verification category, external oracle or mathematical law verified, and numerical precision.
+
+### 2.1. Sparse Linear Algebra & Solvers (`algebrax.matrix`)
+
+| AlgebraX Function | Verification Category | Reference Oracle / Mathematical Law | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `ax.matrix.dot(A, B)` | **Comparative (`differential`)** | `numpy.matmul(A, B)` | `test_differential_numpy.py::test_differential_matrix_multiplication_and_addition` | $10^{-10}$ |
+| `ax.matrix.dot(A, B)` | **Comparative + Property (`differential`)** | `numpy.matmul(A, B)` over Hypothesis $4 \times 4$ matrices | `test_differential_numpy.py::test_hypothesis_differential_matmul_and_lu` | $10^{-9}$ |
+| `ax.matrix.dot(A, B, semiring)` | **Metamorphic (`metamorphic`)** | Transpose duality $(A \otimes B)^T = B^T \otimes A^T$ & scalar homogeneity $c(AB) = (cA)B$ | `test_metamorphic_invariants.py::test_metamorphic_matrix_transpose_duality`, `test_metamorphic_scalar_homogeneity` | $10^{-10}$ |
+| `ax.matrix.add(A, B)` / `subtract(A, B)` | **Comparative (`differential`)** | `numpy.add(A, B)` / `numpy.subtract(A, B)` | `test_differential_numpy.py::test_differential_matrix_multiplication_and_addition` | $10^{-12}$ |
+| `ax.matrix.transpose(A)` | **Comparative (`differential`)** | `numpy.transpose(A)` | `test_differential_numpy.py::test_differential_transpose_trace_and_frobenius` | $10^{-12}$ |
+| `ax.matrix.trace(A)` | **Comparative (`differential`)** | `numpy.trace(A)` | `test_differential_numpy.py::test_differential_transpose_trace_and_frobenius` | $10^{-12}$ |
+| `ax.matrix.frobenius_inner(A, B)` | **Comparative (`differential`)** | `numpy.sum(A * B)` ($\operatorname{Tr}(A^T B)$) | `test_differential_numpy.py::test_differential_transpose_trace_and_frobenius` | $10^{-11}$ |
+| `ax.matrix.power(A, k)` | **Comparative (`differential`)** | `numpy.linalg.matrix_power(A, k)` for $k \in \{0, 1, 2, 5\}$ | `test_differential_numpy.py::test_differential_matrix_power` | $10^{-10}$ |
+| `ax.matrix.mat_vec`, `vec_mat`, `inner`, `vec_norm`, `vec_axpy` | **Comparative (`differential`)** | `A @ x`, `x @ A`, `np.dot(x, y)`, `np.linalg.norm(x)`, $\alpha x + y$ | `test_differential_numpy.py::test_differential_mat_vec_and_vec_ops` | $10^{-11}$ |
+| `ax.matrix.block_diag([A, B])` | **Comparative (`differential`)** | `scipy.linalg.block_diag(A, B)` | `test_differential_numpy.py::test_differential_block_diag_vs_scipy_block_diag` | $10^{-12}$ |
+| `ax.matrix.inverse(A)` | **Comparative (`differential`)** | `numpy.linalg.inv(A)` | `test_differential_numpy.py::test_differential_inverse_and_determinant` | $10^{-9}$ |
+| `ax.matrix.academic.determinant(A)` | **Comparative (`differential`)** | `numpy.linalg.det(A)` & `scipy.linalg.det(A)` | `test_differential_numpy.py::test_differential_inverse_and_determinant` | $10^{-9}$ |
+| `ax.matrix.cg_solve(A, b)` | **Comparative (`differential`)** | `scipy.sparse.linalg.cg(A, b)` & `numpy.linalg.solve(A, b)` | `test_differential_numpy.py::test_differential_cg_solve_vs_scipy_cg` | $10^{-7}$ |
+| `ax.matrix.laplacian_matrix(A)` | **Metamorphic (`metamorphic`)** | Vertex permutation conjugacy $L(P A P^T) = P L(A) P^T$ | `test_metamorphic_invariants.py::test_metamorphic_graph_laplacian_permutation_conjugacy` | $10^{-10}$ |
+
+---
+
+### 2.2. Matrix Decompositions (`algebrax.matrix.decompose`)
+
+| AlgebraX Function | Verification Category | Reference Oracle / Certificate Checked | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `ax.matrix.cholesky(A)` & `recompose_cholesky` | **Comparative + Certificate (`differential`)** | `numpy.linalg.cholesky(A)` entrywise match & $L L^T = A$ | `test_differential_numpy.py::test_differential_cholesky_vs_numpy` | $10^{-9}$ |
+| `ax.matrix.lu(A)` & `recompose_lu` | **Comparative + Certificate (`differential`)** | `scipy.linalg.lu(A)` entrywise match, $P A = L U$, unit lower $L$, upper $U$ | `test_differential_numpy.py::test_differential_lu_vs_scipy_lu`, `test_hypothesis_differential_matmul_and_lu` | $10^{-9}$ |
+| `ax.matrix.qr(A)` & `recompose_qr` | **Comparative + Certificate (`differential`)** | `numpy.linalg.qr(A)` (positive $R$-diagonal gauge), $Q^T Q = I$, $Q R = A$ | `test_differential_numpy.py::test_differential_qr_vs_numpy_qr` | $10^{-8}$ |
+| `ax.matrix.svd(A)` & `recompose_svd` | **Comparative + Certificate (`differential`)** | `numpy.linalg.svd(A)` singular values $\sigma_i$, $U^T U = I$, $V^T V = I$, $U \Sigma V^T = A$ | `test_differential_numpy.py::test_differential_svd_vs_numpy_svd` | $10^{-7}$ |
+
+---
+
+### 2.3. Multidimensional Tensors & Ecosystem Bridges (`algebrax.tensor`, `algebrax.converters`)
+
+| AlgebraX Function | Verification Category | Reference Oracle / Mathematical Law | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `ax.tensor.einsum(subscripts, *T)` | **Comparative (`differential`)** | `numpy.einsum` across `'ijk,jkl->il'`, `'bij,bjk->bik'`, `'ii->'` | `test_differential_numpy.py::test_differential_tensor_einsum_vs_numpy` | $10^{-10}$ |
+| `ax.tensor.permute_tensor` & `unpermute_tensor` | **Comparative + Involution (`differential`)** | `numpy.transpose(T, axes=(2, 0, 1))` & exact inverse restoration | `test_differential_numpy.py::test_differential_tensor_permute_vs_numpy` | $10^{-12}$ |
+| `ax.converters.to_numpy` / `from_numpy` | **Comparative (`differential`)** | Lossless 2D `numpy.ndarray` isomorphism | `test_differential_numpy.py::test_differential_numpy_and_scipy_converters` | $10^{-12}$ |
+| `ax.converters.to_scipy` / `from_scipy` | **Comparative (`differential`)** | Lossless `scipy.sparse` (`csr`, `csc`, `coo`) isomorphism | `test_differential_numpy.py::test_differential_numpy_and_scipy_converters` | $10^{-12}$ |
+
+---
+
+### 2.4. Spectral & Signal Transforms (`algebrax.transforms`)
+
+| AlgebraX Function | Verification Category | Reference Oracle / Mathematical Law | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `ax.transforms.dft(x)` & `idft(X)` | **Comparative + Property (`differential`)** | `numpy.fft.fft(x)` & `numpy.fft.ifft(X)` (deterministic & Hypothesis) | `test_differential_numpy.py::test_differential_dft_idft_and_hilbert`, `test_hypothesis_differential_dft_and_wht` | $10^{-8}$ – $10^{-10}$ |
+| `ax.transforms.dft(x)` | **Metamorphic (`metamorphic`)** | Circular time-shift magnitude invariance $\|\mathcal{F}(\text{shift}(x))\| = \|\mathcal{F}(x)\|$ | `test_metamorphic_invariants.py::test_metamorphic_dft_circular_shift_invariance` | $10^{-10}$ |
+| `ax.transforms.hilbert(x)` | **Comparative (`differential`)** | `scipy.signal.hilbert(x)` analytic signal | `test_differential_numpy.py::test_differential_dft_idft_and_hilbert` | $10^{-10}$ |
+| `ax.transforms.convolve` & `deconvolve` | **Comparative + Inversion (`differential`)** | `numpy.convolve(f, g)` & spectral circular deconvolution recovery | `test_differential_numpy.py::test_differential_convolve_and_deconvolve` | $10^{-9}$ – $10^{-12}$ |
+| `ax.transforms.walsh_hadamard` & `iwalsh_hadamard` | **Comparative + Property (`differential`)** | `scipy.linalg.hadamard(8) @ x` & inverse round-trip (deterministic & Hypothesis) | `test_differential_numpy.py::test_differential_walsh_hadamard_vs_scipy_hadamard`, `test_hypothesis_differential_dft_and_wht` | $10^{-8}$ – $10^{-11}$ |
+| `ax.transforms.z_transform` & `iz_transform` | **Comparative + Homomorphism (`differential`)** | `numpy.polyval(f, 1/z)`, $\mathcal{Z}\{f * g\} = \mathcal{Z}\{f\}\mathcal{Z}\{g\}$, & contour recovery | `test_differential_numpy.py::test_differential_z_transform_and_convolution_theorem` | $10^{-9}$ – $10^{-12}$ |
+| `ax.transforms.lorentz_boost(v, beta)` | **Metamorphic / Analytical (`differential`)** | Minkowski metric invariance $t^2 - x^2 - y^2 - z^2 = \text{const}$ & $-\beta$ inversion | `test_differential_numpy.py::test_differential_lorentz_boost_minkowski_invariance` | $10^{-11}$ |
+
+---
+
+### 2.5. Semiring Catalog (`algebrax.semiring`, `algebrax.verification`)
+
+| AlgebraX Semiring / Function | Verification Category | Reference Oracle / Axioms Verified | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `StandardSemiring(Fraction)` | **Axiomatic + Exact $\mathbb{Q}$ (`axiomatic`)** | All 9 ring axioms over infinite-precision `fractions.Fraction` via Hypothesis | `test_axiomatic_properties.py::test_standard_semiring_exact_rational_axioms` | **Exact (`==`, $\epsilon = 0$)** |
+| `TropicalSemiring` $(\min, +, \infty, 0)$ | **Axiomatic (`axiomatic`)** | Commutativity, associativity, identity, $+\infty$ annihilation, distributivity via Hypothesis | `test_axiomatic_properties.py::test_tropical_semiring_axiomatic_properties` | $10^{-9}$ |
+| `ArcticSemiring` $(\max, +, -\infty, 0)$ | **Axiomatic (`axiomatic`)** | Commutativity, associativity, identity, $-\infty$ annihilation, distributivity via Hypothesis | `test_axiomatic_properties.py::test_arctic_semiring_axiomatic_properties` | $10^{-9}$ |
+| `BooleanSemiring` $(\lor, \land, \text{False}, \text{True})$ | **Axiomatic (`axiomatic`)** | Exhaustive Boolean algebra / distributive lattice laws via Hypothesis | `test_axiomatic_properties.py::test_boolean_semiring_axiomatic_properties` | **Exact (`==`)** |
+| `ViterbiSemiring` $(\max, \times, 0, 1)$ | **Axiomatic (`axiomatic`)** | Probabilistic path monoid axioms over $[0, 1]$ via Hypothesis | `test_axiomatic_properties.py::test_viterbi_semiring_axiomatic_properties` | $10^{-6}$ |
+| All 34 Catalog Semirings (`Semiring.catalog()`) | **Catalog Law Audit** | 9 semiring axioms verified across all 34 registered semirings | `tests/algebrax/test_verification.py::test_all_catalog_semirings_satisfy_laws` | $10^{-7}$ |
+
+---
+
+### 2.6. Topology, Exterior Calculus & Lie Algebras (`algebrax.homology`, `algebrax.lie`)
+
+| AlgebraX Structure / Function | Verification Category | Reference Oracle / Mathematical Theorem Verified | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `SimplicialComplex` & `SparseChainComplex` | **Metamorphic (`metamorphic`)** | Fundamental topological chain nilpotency $\partial_{k-1} \circ \partial_k = \mathbf{0}$ | `test_metamorphic_invariants.py::test_metamorphic_simplicial_boundary_nilpotency` | $10^{-12}$ |
+| `Cochain` discrete $k$-forms | **Metamorphic (`metamorphic`)** | Alternating orientation antisymmetry $\omega(\pi(\sigma)) = \operatorname{sgn}(\pi)\omega(\sigma)$ & degenerate simplex annihilation $\omega(u, u) = 0$ | `test_metamorphic_invariants.py::test_metamorphic_cochain_orientation_antisymmetry` | **Exact (`==`)** |
+| `helmholtz_hodge_decomposition` | **Proof-Carrying Certificate (`certificates`)** | $O(|E|)$ witness check: $\omega = \omega_{\text{exact}} + \omega_{\text{coexact}} + \omega_{\text{harmonic}}$, mutual $L^2$ orthogonality $\langle \cdot, \cdot \rangle = 0$, $d_1 \omega_{\text{exact}} = 0$, $\partial_1 \omega_{\text{coexact}} = 0$ | `test_certificates.py::test_helmholtz_hodge_decomposition_certificate` | $10^{-6}$ |
+| `LieAlgebra` ($\mathfrak{so}_3, \mathfrak{sl}_2, \mathfrak{so}_4, \mathfrak{g}_2$) | **Schwartz–Zippel PIT (`pit`)** | Jacobi identity $[x, [y, z]] + [y, [z, x]] + [z, [x, y]] = 0$ & antisymmetry $[x, y] + [y, x] = 0$ over random integer coordinates ($|S| = 2 \times 10^4, k=4$) | `test_pit_symbolic.py::test_pit_lie_algebra_jacobi_identity`, `test_pit_lie_bracket_antisymmetry` | False-positive prob $\le 10^{-16}$ |
+
+---
+
+## 3. Running the Verification Suite
+
+You can run the entire verification suite or filter by verification methodology using `pytest` markers:
+
+```bash
+# Run all verification tests (44 tests across all layers)
+uv run pytest tests/verifications/ tests/algebrax/test_verification.py -v
+
+# Run only comparative / differential tests against NumPy & SciPy
+uv run pytest tests/verifications/ -m differential -v
+
+# Run only Hypothesis axiomatic property-based tests
+uv run pytest tests/verifications/ -m axiomatic -v
+
+# Run only metamorphic invariant tests
+uv run pytest tests/verifications/ -m metamorphic -v
+
+# Run only Schwartz-Zippel randomized polynomial identity tests (PIT)
+uv run pytest tests/verifications/ -m pit -v
+
+# Run only proof-carrying solver certificate checks
+uv run pytest tests/verifications/ -m certificates -v
+```

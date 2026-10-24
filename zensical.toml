@@ -17,7 +17,8 @@ nav = [
     { Start = [
         "index.md",
         "concepts.md",
-        "comparison.md"
+        "comparison.md",
+        "verification.md"
     ] },
     { Guide = [
         { "Semiring Polymorphism" = [
