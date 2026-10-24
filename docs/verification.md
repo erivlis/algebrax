@@ -46,6 +46,7 @@ The tables below map each `algebrax` module and function to the exact verificati
 | `ax.matrix.power(A, k)` | **Comparative (`differential`)** | `numpy.linalg.matrix_power(A, k)` for $k \in \{0, 1, 2, 5\}$ | `test_differential_numpy.py::test_differential_matrix_power` | $10^{-10}$ |
 | `ax.matrix.mat_vec`, `vec_mat`, `inner`, `vec_norm`, `vec_axpy` | **Comparative (`differential`)** | `A @ x`, `x @ A`, `np.dot(x, y)`, `np.linalg.norm(x)`, $\alpha x + y$ | `test_differential_numpy.py::test_differential_mat_vec_and_vec_ops` | $10^{-11}$ |
 | `ax.matrix.block_diag([A, B])` | **Comparative (`differential`)** | `scipy.linalg.block_diag(A, B)` | `test_differential_numpy.py::test_differential_block_diag_vs_scipy_block_diag` | $10^{-12}$ |
+| `ax.matrix.commutator(A, B)` & `kronecker_delta(i, j)` | **Comparative (`differential`)** | `A @ B - B @ A` & $\delta_{ij}$ identity | `test_differential_numpy.py::test_differential_block_diag_vs_scipy_block_diag` | $10^{-12}$ |
 | `ax.matrix.inverse(A)` | **Comparative (`differential`)** | `numpy.linalg.inv(A)` | `test_differential_numpy.py::test_differential_inverse_and_determinant` | $10^{-9}$ |
 | `ax.matrix.academic.determinant(A)` | **Comparative (`differential`)** | `numpy.linalg.det(A)` & `scipy.linalg.det(A)` | `test_differential_numpy.py::test_differential_inverse_and_determinant` | $10^{-9}$ |
 | `ax.matrix.cg_solve(A, b)` | **Comparative (`differential`)** | `scipy.sparse.linalg.cg(A, b)` & `numpy.linalg.solve(A, b)` | `test_differential_numpy.py::test_differential_cg_solve_vs_scipy_cg` | $10^{-7}$ |
