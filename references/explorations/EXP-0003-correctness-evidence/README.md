@@ -1,145 +1,272 @@
 # EXP-0003: Correctness Evidence — Multi-Layered Verification Methodologies & Formal Proofs for AlgebraX
 
-| Field           | Value                                                                                                                                                                                                            |
-|:----------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **EXP**         | 0003                                                                                                                                                                                                             |
-| **Title**       | Correctness Evidence: Differential Testing, Property-Based Axiomatic Verification, Metamorphic Invariants, and Lean 4 Formal Proofs |
-| **Author**      | Eran Rivlis & Jules (The Explorer & Council Agent)                                                                                                                                                               |
-| **Status**      | Active                                                                                                                                                                                                           |
-| **Type**        | Architectural & Research Exploration                                                                                                                                                                             |
-| **Created**     | 2026-10-12                                                                                                                                                                                                       |
-| **Updated**     | 2026-10-12                                                                                                                                                                                                       |
-| **Related EPs** | [EP-0099](../../docs/proposals/EP-0099-expansion-roadmap.md), [EP-0110](../../docs/proposals/EP-0110-simplicial-homology.md), [EP-0111](../../docs/proposals/EP-0111-clifford-geometric-algebra.md)               |
+| Field           | Value                                                                                                                                                                                                                                                        |
+|:----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **EXP**         | 0003                                                                                                                                                                                                                                                         |
+| **Title**       | Correctness Evidence: Differential Testing, Property-Based Axiomatic Verification, Metamorphic Invariants, Schwartz–Zippel PIT, Method of Manufactured Solutions (MMS), and Lean 4 Formal Proofs                                                             |
+| **Author**      | Eran Rivlis & Jules (The Explorer & Council Agent)                                                                                                                                                                                                           |
+| **Status**      | Active                                                                                                                                                                                                                                                       |
+| **Type**        | Architectural & Research Exploration                                                                                                                                                                                                                         |
+| **Created**     | 2026-10-12                                                                                                                                                                                                                                                   |
+| **Updated**     | 2026-10-24                                                                                                                                                                                                                                                   |
+| **Related EPs** | [EP-0099](../../docs/proposals/EP-0099-expansion-roadmap.md), [EP-0110](../../docs/proposals/EP-0110-simplicial-homology.md), [EP-0153](../../docs/proposals/EP-0153-semiring-matrix-symmetry-and-vector-primitives.md), [EP-0160](../../docs/proposals/EP-0160-discrete-exterior-calculus-and-hodge-decomposition.md), [EP-0161](../../docs/proposals/EP-0161-cellular-sheaves-and-network-laplacians.md), [EP-0163](../../docs/proposals/EP-0163-lie-algebras-and-bch-dynamics.md) |
 
 ---
 
 ## 1. Abstract & Context
 
 ### 1.1 Context
-`AlgebraX` treats Python's native `dict` as a first-class sparse algebraic object, unifying linear algebra, graph algorithms, semiring computations, signal transforms, information metrics, Clifford geometric algebras, and simplicial homology under a single polymorphic pure-Python framework.
+`AlgebraX` treats Python's native `dict` as a first-class sparse algebraic object, unifying linear algebra, graph algorithms, semiring computations, signal transforms, information metrics, Clifford geometric algebras, discrete exterior calculus, cellular sheaves, and simplicial homology under a polymorphic, pure-Python framework.
 
-Because `AlgebraX` implements foundational mathematical primitives, software correctness is not merely a software engineering convenience—it is a **mathematical imperative**. A bug in a semiring multiplication or graph Laplacian matrix does not just throw a runtime exception; it silently invalidates downstream mathematical calculations, optimization bounds, or topological invariants.
+Because `AlgebraX` implements foundational mathematical primitives, software correctness is not merely a software engineering convenience—it is a **mathematical imperative**. A silent bug in a semiring multiplication, Lie bracket commutator, or Hodge Laplacian operator does not just raise an exception: it quietly corrupts downstream algebraic invariants, topological Betti numbers, convergence rates, or cryptographic matrix transformations.
 
-### 1.2 The Core Question
-**How can `AlgebraX` systematically supply mathematical correctness evidence by passing `pytest` suites?**
-Specifically:
-1. How can we verify `AlgebraX` operations by differentially comparing results against canonical, established Python math libraries (e.g., NumPy, SciPy, NetworkX, SymPy, PyTorch, mpmath)?
-2. Is formal theorem proving in **Lean 4** possible for Python code, and how can interactive theorem provers or SMT solvers be integrated into the verification pipeline?
-3. What additional methodologies (Property-Based Axiomatic Testing, Metamorphic Invariant Testing, Symbolic Verification) are required to achieve 100% mathematical correctness confidence without changing `AlgebraX` application source code?
+### 1.2 The Core Problem: The Test Oracle & Combinatorial Explosions
+1. **The Test Oracle Problem:** For advanced topological constructs (e.g., discrete Helmholtz–Hodge decompositions, cellular sheaf Laplacians, persistent homology), canonical precomputed solutions do not exist for arbitrary graph or simplicial complexes.
+2. **The Monomial Explosion Problem:** Symbolic engines attempting canonical monomial expansion of algebraic identities (e.g., Jacobi identity in 14-dimensional exceptional Lie algebras, or high-degree multivector products) suffer exponential $\binom{n+d}{d}$ term blowup, timing out standard test suites.
+3. **Continuous vs. Discrete Gap:** Operators in discrete exterior calculus and spectral graph theory approximate continuous differential operators; verifying them requires bounding discretization error rather than testing for bitwise identity.
+4. **Floating-Point Imprecision vs. Algebraic Axiom Violations:** IEEE 754 floating-point addition is non-associative ($(0.1 + 0.2) + 0.3 \ne 0.1 + (0.2 + 0.3)$). Testing algebraic axioms directly over `float` produces false alarms unless separated into exact rational domains vs. conditioned numerical bounds.
 
----
-
-## 2. The Council Framework Alignment
-
-Evaluating correctness evidence methodologies against **The Eight Pillars** (*PRINCIPLES.md*):
-
-1. **Falsifiability (Popper)**: Every mathematical claim (e.g., semiring associativity, boundary nilpotency $\partial^2 = 0$) must be empirically or formally testable against randomly generated counterexamples.
-2. **Symmetry (Noether)**: Duality relations (e.g., $(A \otimes B)^T = B^T \otimes A^T$, Hodge star duality $\star \star = \pm I$) must be preserved exactly in test invariant checks.
-3. **Efficiency (Shannon)**: The evidence suite must execute rapidly within standard `pytest` workflows, utilizing adaptive sampling in property-based tests.
-4. **Safety (The Golem)**: Prevents numerical degradation and subtle algebraic violations from reaching production code.
-5. **Clarity (Feynman)**: Test failures must pin-point the precise algebraic axiom violated (e.g., "Left Distributivity failed for TropicalSemiring on negative inf inputs").
-6. **Consistency (Russell)**: Ensures zero logical paradoxes between different representations (sparse dict vs. dense NumPy array).
-7. **Harmony (The Steward)**: Integrates seamlessly into `pytest` without modifying application source code.
-8. **Curiosity (The Explorer)**: Pushes verification beyond basic unit tests into automated theorem proving and SMT constraint satisfaction.
+### 1.3 The Core Question
+**How can `AlgebraX` systematically provide mathematically rigorous, multi-layered correctness evidence within standard `pytest` workflows without modifying core application source code?**
 
 ---
 
-## 3. Overview of Correctness Evidence Methodologies
+## 2. The Grand Council Review of EXP-0003
 
-To construct a comprehensive correctness evidence layer, we propose five complementary methodologies operating at different levels of mathematical abstraction:
+Evaluating the expanded correctness evidence architecture against **The Eight Pillars** (*PRINCIPLES.md*):
+
+### 1. Symmetry (Noether) — *Verdict: Strong Endorsement*
+* **Review:** Invariant transformations (metamorphic relations) are direct reflections of Noether’s theorem: symmetries imply conservation laws. Checking dualities ($(A \otimes B)^T = B^T \otimes A^T$), Hodge star involutions ($\star \star = (-1)^{k(n-k)} s I$), and adjoint nilpotency ($\operatorname{ad}_{[X, Y]} = [\operatorname{ad}_X, \operatorname{ad}_Y]$) tests the algebraic structure along its natural planes of symmetry.
+* **Directive:** Ensure metamorphic tests cover all duality pairings, including left vs. right semiring distributivity and cochain flow projections.
+
+### 2. Falsifiability (Popper) — *Verdict: Unanimous Approval*
+* **Review:** Karl Popper's epistemology requires that every claim be falsifiable against aggressive counterexample search. Using Hypothesis property-based testing and Schwartz–Zippel randomized polynomial identity testing (PIT) operationalizes this pillar: if a false identity is claimed, randomized sampling will falsify it with probability $1 - (d/|S|)^k \approx 1$.
+* **Directive:** Never rely on hand-picked happy paths. Parametrize generators over boundary singularities (empty matrices, infinite weights, disconnected complexes, degenerate simplices).
+
+### 3. Efficiency (Shannon) — *Verdict: Strong Endorsement with Pruning Mandate*
+* **Review:** Full symbolic monomial expansion is Shannon-inefficient ($O(2^N)$ terms). Schwartz–Zippel PIT reduces identity testing to $O(N)$ black-box polynomial evaluations.
+* **Directive:** Cap property-based Hypothesis examples to $\le 100$ runs in standard CI pipelines ($< 15\text{s}$ total runtime), reserving $10,000$-run stress tests for nightly schedules.
+
+### 4. Safety (The Golem) — *Verdict: Approved*
+* **Review:** Immutability and state containment are reinforced by verification certificates. Solvers returning witnesses (e.g., Hodge orthogonal residuals, condition numbers) allow callers to verify outputs locally without re-running expensive matrix factorizations.
+* **Directive:** Mandate that test suites isolate float comparisons using condition-number-scaled tolerances rather than arbitrary magic epsilons.
+
+### 5. Clarity (Feynman) — *Verdict: Approved*
+* **Review:** A test failure must teach the engineer *why* the failure occurred. Instead of an opaque assertion failure, property tests must report the specific algebraic axiom violated (e.g., `"Left Distributivity violated for MinPlus semiring with inputs a=-inf, b=0, c=inf"`).
+* **Directive:** Reusable property runners must format informative diagnostic failure cards.
+
+### 6. Consistency (Russell) — *Verdict: Approved*
+* **Review:** Differential testing eliminates representation dissonance. A computation performed on nested sparse dictionaries in AlgebraX must yield identical results when mapped to dense NumPy arrays, SciPy CSR matrices, or SymPy exact rationals.
+* **Directive:** Bidirectional converters (`to_dense`, `from_dense`, `to_cochain`, `to_flow`) must themselves be verified by round-trip identity tests ($f^{-1}(f(x)) = x$).
+
+### 7. Harmony (The Steward) — *Verdict: Approved*
+* **Review:** Zero application intrusion. The entire correctness evidence suite resides in `tests/correctness_evidence/` and integrates into standard `pytest`, maintaining zero heavy runtime dependencies in `src/algebrax`.
+* **Directive:** External reference libraries (NumPy, SciPy, NetworkX, GUDHI, SymPy, Z3) must remain optional dev/test dependencies managed under PEP 735 dependency groups (`--group test-evidence`).
+
+### 8. Curiosity (The Explorer) — *Verdict: Enthusiastic Endorsement*
+* **Review:** Integrating formal theorem proving (Lean 4) and SMT constraint solvers (Z3) extends the library beyond conventional software testing into verified mathematics.
+* **Directive:** Explore automated translation of pure-Python ASTs to Lean 4 inductive definitions for core semiring invariants.
+
+---
+
+## 3. Overview of the 8-Layer Correctness Evidence Architecture
+
+To achieve mathematical certainty, AlgebraX establishes **eight complementary verification methodologies** organized into three distinct tiers:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                     Pytest Correctness Evidence Layer                            │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                         │
-     ┌──────────────────┬────────────────┼────────────────┬──────────────────┐
-     ▼                  ▼                ▼                ▼                  ▼
-Methodology 1      Methodology 2    Methodology 3    Methodology 4      Methodology 5
-Differential       Lean 4 / SMT     Property-Based   Metamorphic        Exact Symbolic
-Library Testing    Formal Proofs    Axiomatic (PBT)  Invariants         SymPy Testing
-(NumPy/SciPy/NX)   (Lean4 / Z3)     (Hypothesis)     (Dual Relations)   (Exact Rational)
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        AlgebraX Multi-Layered Verification Suite                       │
+│                         (tests/verifications/ via Pytest)                              │
+└───────────────────────────────────┬────────────────────────────────────────────────────┘
+                                    │
+    ┌───────────────────────────────┼───────────────────────────────┐
+    ▼                               ▼                               ▼
+[ Tier 1: Empirical & Metamorphic ] [ Tier 2: Exact & Semi-Formal ]  [ Tier 3: Deductive & Certified ]
+  1. Cross-Library Differential       4. Schwartz–Zippel PIT (Random)  7. SMT / Z3 Proof Verification
+  2. Metamorphic Invariants (MRs)     5. Method of Manufactured Solns   8. Lean 4 Formal Dual Models
+  3. Property-Based Axiomatic (PBT)   6. Exact Symbolic & Rational      +. Self-Certifying Solvers
 ```
+
+| Layer | Methodology | Target Verification Domain | Underlying Oracle / Engine |
+|:------|:------------|:---------------------------|:---------------------------|
+| **1** | **Differential Cross-Testing** | Matrices, FFTs, Graphs, Tensors | NumPy, SciPy, NetworkX, GUDHI |
+| **2** | **Metamorphic Invariant Testing** | Symmetries, Dualities, Nilpotency | Invariant Relations ($f(T(x)) = g(f(x))$) |
+| **3** | **Property-Based Axiomatic Testing** | Semirings, Lattices, Groups, Monoids | Hypothesis Random Property Generators |
+| **4** | **Schwartz–Zippel Randomized PIT** | High-Degree Symbolic Equivalence | Black-Box Numeric Evaluation over $\mathbb{Z}_p$ |
+| **5** | **Method of Manufactured Solutions (MMS)** | Discrete Exterior Calculus, Laplacians | Exact Analytic PDE Derivatives & Rates |
+| **6** | **Exact Rational & Symbolic Testing** | Determinants, Exact Axioms | `fractions.Fraction`, SymPy Symbols |
+| **7** | **SMT Automated Proof Verification** | Bounded Universal Algebraic Proofs | Z3 Theorem Prover (`z3-solver`) |
+| **8** | **Lean 4 Dual-Specification Models** | Foundational Semiring / Complex Proofs | Lean 4 + Mathlib4 Reference Proofs |
 
 ---
 
-## 4. Detailed Methodology 1: Differential & Comparative Testing against Canonical Libraries
+## 4. Methodology 1: Differential Testing Against Canonical Math Libraries
 
-### 4.1 Concept
-Differential testing compares `AlgebraX` sparse dictionary algebraic operations against canonical, battle-tested standard libraries across identical mathematical inputs.
+Differential testing executes identical mathematical inputs across AlgebraX and trusted reference engines, asserting numerical or structural equivalence.
 
-### 4.2 Domain-by-Domain Reference Library Mapping
+### 4.1 Canonical Reference Mapping
 
 | AlgebraX Domain | Reference External Library | Mathematical Equivalence Mapping |
 |:----------------|:---------------------------|:---------------------------------|
-| `algebrax.matrix` | **NumPy** (`ndarray`), **SciPy Sparse** (`csr_matrix`) | Matrix multiplication (`dot`), transpose, power, trace, determinant, block diagonal. |
-| `algebrax.transforms` | **NumPy FFT** (`numpy.fft`), **SciPy Signal** | Discrete Fourier Transform (`dft`/`idft`), Walsh-Hadamard, Convolution, Z-transform, Hilbert transform. |
-| `algebrax.analysis` | **NetworkX** (`networkx.Graph`), **SciPy Graph** | Graph Laplacians, Forman-Ricci curvature, Fiedler vector, Eigen-centrality, PageRank, Shortest paths. |
-| `algebrax.homology` | **GUDHI**, **Dionysus 2**, **SciPy Spatial** | Simplicial complexes, Betti numbers $b_k$, boundary matrices $\partial_k$. |
+| `algebrax.matrix` | **NumPy** (`ndarray`), **SciPy Sparse** (`csr_matrix`) | Matrix multiplication (`dot`), transpose, trace, power, determinant, block diagonal. |
+| `algebrax.transforms` | **NumPy FFT** (`numpy.fft`), **SciPy Signal** | Discrete Fourier Transform (`dft`/`idft`), Walsh-Hadamard, Convolution, Hilbert transform. |
+| `algebrax.analysis` | **NetworkX** (`networkx.Graph`), **SciPy Graph** | Graph Laplacians, Forman-Ricci curvature, Fiedler vector, PageRank, Shortest paths. |
+| `algebrax.homology` | **GUDHI**, **Dionysus 2**, **SciPy Spatial** | Simplicial complexes, Betti numbers $b_k$, boundary operators $\partial_k$. |
 | `algebrax.clifford` | **clifford** (PyDy), **galgebra** (SymPy) | Geometric product, rotor rotations, multivector reverse, grade projection. |
 | `algebrax.galois` | **galois** (Python package), **SageMath** | Finite field matrix multiplication and addition over $\text{GF}(p^m)$. |
 | `algebrax.probability` | **SciPy Stats**, **scikit-learn** | Shannon entropy, KL-divergence, Mutual information, Wasserstein distance. |
 | `algebrax.tensor` | **PyTorch** (`torch.einsum`), **NumPy** (`np.einsum`) | Sparse tensor einsum contractions, outer products, tensor flattening. |
-| `algebrax.automata` | **PyCX**, **Minterpy** | DFA / NFA state transitions and sequence acceptance equivalence. |
-| `algebrax.lattice` | **SciPy Hierarchy**, **NetworkX Posets** | Join ($\vee$), Meet ($\wedge$), transitive closure, Hasse diagrams. |
-| `algebrax.group` | **SymPy Combinatorics** (`sympy.combinatorics`) | Permutation composition, signature, cycle decomposition. |
-| `algebrax.trie` | **pygtrie**, **marisa-trie** | Prefix key lookup, subtree intersection, lattice merging. |
 
-### 4.3 Conversion Layer Architecture
-Differential tests utilize bidirectional converters (`algebrax.matrix.to_dense()` / `from_dense()`) to convert sparse nested dictionary matrices to NumPy 2D arrays or SciPy CSR matrices before performing assertions:
-
+### 4.2 Differential Test Pattern
 ```python
 import numpy as np
 import pytest
 import algebrax as ax
 
 def test_differential_matrix_dot_numpy():
-    # Sparse AlgebraX Matrix
     A_ax = {0: {0: 2.0, 1: 3.0}, 1: {1: 4.0}}
     B_ax = {0: {1: 5.0}, 1: {0: 1.0, 1: 2.0}}
 
-    # AlgebraX Sparse Matrix Dot Product
     C_ax = ax.matrix.dot(A_ax, B_ax)
 
-    # Dense NumPy Reference Computation
     A_np = np.array([[2.0, 3.0], [0.0, 4.0]])
     B_np = np.array([[0.0, 5.0], [1.0, 2.0]])
     C_np = A_np @ B_np
 
-    # Convert AlgebraX sparse dict result to dense numpy array
     C_ax_dense = ax.matrix.to_dense(C_ax, shape=(2, 2))
-
-    # Assert numerical equivalence within float tolerance
     np.testing.assert_allclose(C_ax_dense, C_np, rtol=1e-12, atol=1e-12)
 ```
 
 ---
 
-## 5. Detailed Methodology 2: Lean 4 Formal Verification & Interactive Theorem Proving
+## 5. Methodology 2: Metamorphic Testing (Invariant Relations)
 
-### 5.1 Is Formal Proof Possible for Python Code?
-**Yes, but with nuance.** Direct verification of dynamic Python runtime code in Lean 4 is challenging due to dynamic typing, mutability, and interpreter overhead. However, formal mathematical verification of `AlgebraX` algorithms in Lean 4 is achievable through **three distinct architectural pipelines**:
+Metamorphic testing verifies mathematical necessary conditions without requiring an external oracle:
 
 ```
-Pipeline A: Dual Specification Model in Lean 4
-┌────────────────────────────────┐                 ┌────────────────────────────────┐
-│  Lean 4 Formal Specification   │   Isomorphism   │ Pure Functional Python Code    │
-│  (Mathlib4 Abstract Proofs)    │ ◄─────────────► │ (AlgebraX Execution Primitives) │
-└────────────────────────────────┘                 └────────────────────────────────┘
-
-Pipeline B: Python AST Extraction to Lean 4
-┌────────────────────────────────┐  AST Transpiler │ Lean 4 Inductive Definitions   │
-│ Pure Functional Python AST     │ ──────────────► │ & Automated Proof Obligations  │
-└────────────────────────────────┘                 └────────────────────────────────┘
-
-Pipeline C: SMT/Z3 Symbolic Proof Verification
-┌────────────────────────────────┐   Symbolic Exec │ Z3 / Lean 4 SMT Solver         │
-│ Python Symbolic Matrix Inputs  │ ──────────────► │ (Proves zero counterexamples)  │
-└────────────────────────────────┘                 └────────────────────────────────┘
+                        Random Mathematical Input X
+                                    │
+               ┌────────────────────┴────────────────────┐
+               ▼                                         ▼
+     Transform Input: T(X)                       Standard Input: X
+               │                                         │
+               ▼                                         ▼
+      AlgebraX Algorithm                        AlgebraX Algorithm
+      Y_transformed = f(T(X))                     Y_standard = f(X)
+               │                                         │
+               └────────────────────┬────────────────────┘
+                                    ▼
+                         Metamorphic Relation Check
+                         Verify: Y_transformed == g(Y_standard)
 ```
 
-### 5.2 Lean 4 & Mathlib4 Formalization Pipeline
-In Lean 4, semirings and matrix algebras are formalized using Mathlib's algebraic typeclasses:
+### 5.1 Catalog of Verified Relations
+1. **Transpose Dual Invariant:** $(A \otimes B)^T \equiv B^T \otimes A^T$ (for commutative semirings).
+2. **Scalar Homogeneity:** $c \otimes (A \otimes B) \equiv (c \otimes A) \otimes B$.
+3. **Graph Automorphism Conjugacy:** For permutation matrix $P$, $L(P A P^T) \equiv P L(A) P^T$.
+4. **Boundary Nilpotency:** $\partial_k \circ \partial_{k+1} \equiv \mathbf{0}$ and coboundary $d_{k+1} \circ d_k \equiv \mathbf{0}$.
+5. **Hodge Star Involution:** On $k$-forms in $n$-dimensions: $\star \star \omega \equiv (-1)^{k(n-k)} s \omega$.
+6. **DFT Circular Shift Theorem:** $\mathcal{F}(\operatorname{shift}_k(x)) \equiv \mathcal{F}(x) \odot e^{-i 2\pi k \mathbf{n} / N}$.
+
+---
+
+## 6. Methodology 3: Property-Based Axiomatic Verification (Hypothesis)
+
+Hypothesis executes randomized property-based testing over formal algebraic axioms across all 35+ semirings, lattices, and Lie algebras in `algebrax`.
+
+### 6.1 Axiom Suite
+* **Associativity:** $(a \oplus b) \oplus c = a \oplus (b \oplus c)$ and $(a \otimes b) \otimes c = a \otimes (b \otimes c)$.
+* **Commutativity:** $a \oplus b = b \oplus a$.
+* **Distributivity:** $a \otimes (b \oplus c) = (a \otimes b) \oplus (a \otimes c)$ and $(a \oplus b) \otimes c = (a \otimes c) \oplus (b \otimes c)$.
+* **Identities & Annihilation:** $a \oplus \bar{0} = a$, $a \otimes \bar{1} = a$, $a \otimes \bar{0} = \bar{0} \otimes a = \bar{0}$.
+* **Lie Jacobi Identity:** $[x, [y, z]] + [y, [z, x]] + [z, [x, y]] = \mathbf{0}$.
+
+### 6.2 Separating Floats from Pure Axioms
+To avoid false failures from floating-point non-associativity, property tests execute in two complementary modes:
+1. **Exact Rational Carriers:** Testing axioms over `fractions.Fraction` or integer rings (where associativity is exact).
+2. **Approximate Float Carriers:** Testing with scaled epsilon thresholds ($|a - b| \le \epsilon$).
+
+---
+
+## 7. Methodology 4: Schwartz–Zippel Randomized Polynomial Identity Testing (PIT)
+
+### 7.1 The Breakthrough for Symbolic Equivalence
+Testing high-dimensional symbolic identities via full monomial expansion (e.g. SymPy) suffers from combinatorial explosion ($\binom{n+d}{d}$). 
+
+Under the **Schwartz–Zippel Lemma**, an unexpanded polynomial expression $P(x_1, \dots, x_n) \equiv 0$ of total degree $d$ evaluated at random coordinates sampled uniformly from finite subset $S \subset \mathbb{F}$ satisfies:
+
+$$\Pr[P(r_1, \dots, r_n) = 0] \le \frac{d}{|S|}$$
+
+### 7.2 PIT Algorithm for AlgebraX
+1. Construct the symbolic identity as an evaluation pipeline $P = \text{LHS} - \text{RHS}$.
+2. Sample independent integers $r_i \in S = [1, 10^6]$.
+3. Evaluate using exact integer arithmetic (preventing rounding errors).
+4. Repeat across $k = 3$ independent trials. The probability of an accidental root is bounded by:
+
+$$\left(\frac{d}{|S|}\right)^3 \le \left(\frac{10}{10^6}\right)^3 = 10^{-15}$$
+
+---
+
+## 8. Methodology 5: Method of Manufactured Solutions (MMS) for Discrete Calculus
+
+### 8.1 Continuous to Discrete Convergence Order Verification
+In Discrete Exterior Calculus (`EP-0160`), Hodge Laplacians (`EP-0101`, `EP-0152`), and Cellular Sheaves (`EP-0161`), verifying implementation correctness requires verifying asymptotic convergence to continuous calculus:
+
+1. **Manufacture Smooth Potential:** Define smooth analytical continuous field $\phi(x, y) = \sin(2\pi x) \cos(2\pi y)$.
+2. **Analytic Continuous Operators:** Compute analytical gradient $\mathbf{u} = \nabla \phi$ and Laplacian $\psi = \Delta \phi = -8\pi^2 \phi$.
+3. **De Rham Discretization:** Sample 0-forms on vertex coordinates of planar triangulation meshes $\mathcal{K}_h$ of spacing $h$.
+4. **Discrete Operator Evaluation:** Compute discrete Hodge-Laplacian $\Delta_h \phi_h = (\star^{-1} d^T \star d) \phi_h$.
+5. **Asymptotic Order Assertion:** Verify that $L_2$ error $\| \Delta_h \phi_h - \Pi_h(\psi) \|_{L_2}$ decays as $O(h^2)$ across a mesh hierarchy.
+
+---
+
+## 9. Methodology 6: Exact Rational & Symbolic Verification
+
+Using Python's standard `fractions.Fraction` carrier or SymPy exact symbols, AlgebraX sparse matrices and semiring operations are evaluated without floating-point approximations:
+
+```python
+from fractions import Fraction
+import algebrax as ax
+
+def test_exact_rational_matrix_determinant():
+    A = {
+        0: {0: Fraction(1, 3), 1: Fraction(2, 5)},
+        1: {0: Fraction(3, 7), 1: Fraction(4, 9)}
+    }
+    # Determinant computed with exact rational arithmetic
+    det = ax.matrix.academic.determinant(A)
+    expected = Fraction(1, 3) * Fraction(4, 9) - Fraction(2, 5) * Fraction(3, 7)
+    assert det == expected  # Bitwise exact rational equivalence!
+```
+
+---
+
+## 10. Methodology 7: SMT Automated Constraint Verification (PyZ3)
+
+Satisfiability Modulo Theories (SMT) solvers like **Z3** prove that algebraic invariants hold for all possible bounded symbolic inputs:
+
+```python
+import pytest
+from z3 import Solver, Real, If, unsat
+
+def test_z3_formal_proof_tropical_semiring_distributivity():
+    s = Solver()
+    a, b, c = Real('a'), Real('b'), Real('c')
+
+    # Negation of Distributivity Law
+    lhs = a + If(b < c, b, c)
+    rhs = If((a + b) < (a + c), a + b, a + c)
+
+    s.add(lhs != rhs)
+    # If unsat, no counterexample exists anywhere in R -> Universal formal proof!
+    assert s.check() == unsat
+```
+
+---
+
+## 11. Methodology 8: Lean 4 Dual-Specification Models
+
+Interactive theorem proving in **Lean 4** establishes machine-checked mathematical proofs of core algorithms:
 
 ```lean
 import Mathlib.Algebra.Semiring.Basic
@@ -154,179 +281,98 @@ theorem matrix_mul_assoc {n m k l : Type*} [Fintype n] [Fintype m] [Fintype k] [
   exact Matrix.mul_assoc A B C
 ```
 
-### 5.3 Automated SMT Proof Integration via PyZ3
-For automated execution within `pytest`, SMT solvers like **Z3** can verify that `AlgebraX` semiring logic satisfies algebraic specifications for all symbolic inputs:
+---
 
-```python
-import pytest
-from z3 import Solver, Real, unsat
+## 12. Certified Computation & Proof-Carrying Solvers
 
-def test_z3_formal_proof_tropical_semiring_distributivity():
-    # Verify min-plus semiring left distributivity: a + min(b, c) == min(a + b, a + c)
-    s = Solver()
-    a, b, c = Real('a'), Real('b'), Real('c')
+For complex numerical or topological solvers, verifying a certificate is asymptotically cheaper ($O(E)$) than computing the result ($O(N^3)$):
 
-    # Negation of Distributivity Law
-    lhs = a + If(b < c, b, c)
-    rhs = If((a + b) < (a + c), a + b, a + c)
-
-    s.add(lhs != rhs)
-
-    # If unsat, no counterexample exists -> Formal proof holds universally!
-    assert s.check() == unsat
+```
+┌────────────────────────────────────────────────────────┐
+│                   Solver Execution                     │
+│  (e.g., Helmholtz-Hodge Decomposition: O(N^3) Pseudoinv)│
+└──────────────────────────┬─────────────────────────────┘
+                           │ Returns (Solution, Certificate)
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│               Certificate Verifier                     │
+│  1. Orthogonality:  <dα, δβ> == 0                      │
+│  2. Residual:       ||v - (dα + δβ + γ)|| < tol        │
+│  3. Harmonicity:    ||Δ γ|| == 0                       │
+│  Complexity:        O(E) Sparse Matrix-Vector Ops      │
+└────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 6. Detailed Methodology 3: Property-Based Axiomatic Verification (Hypothesis + Pytest)
+## 13. Pytest Verification Harness Architecture & Test Organization
 
-### 6.1 Concept
-Property-based testing generates thousands of randomized, edge-case mathematical inputs to continuously verify that algebraic axioms hold universally across all 35+ semirings in `AlgebraX`.
-
-### 6.2 Verified Axiom Inventory
-
-1. **Additive & Multiplicative Associativity**:
-   $$(a \oplus b) \oplus c = a \oplus (b \oplus c) \quad \text{and} \quad (a \otimes b) \otimes c = a \otimes (b \otimes c)$$
-2. **Additive Commutativity**:
-   $$a \oplus b = b \oplus a$$
-3. **Additive Identity ($\bar{0}$) & Multiplicative Identity ($\bar{1}$)**:
-   $$a \oplus \bar{0} = a \quad \text{and} \quad a \otimes \bar{1} = a$$
-4. **Left & Right Distributivity**:
-   $$a \otimes (b \oplus c) = (a \otimes b) \oplus (a \otimes c)$$
-5. **Annihilation by Zero ($\bar{0}$)**:
-   $$a \otimes \bar{0} = \bar{0} = \bar{0} \otimes a$$
-6. **Lattice Absorption Laws**:
-   $$a \wedge (a \vee b) = a \quad \text{and} \quad a \vee (a \wedge b) = a$$
-
-### 6.3 Automated Hypothesis Parameterization
-```python
-import pytest
-from hypothesis import given, strategies as st
-import algebrax as ax
-
-ALL_SEMIRINGS = [
-    ax.semiring.StandardSemiring(),
-    ax.semiring.TropicalSemiring(),
-    ax.semiring.ArcticSemiring(),
-    ax.semiring.BooleanSemiring(),
-    ax.semiring.ViterbiSemiring(),
-    ax.semiring.LogSemiring(),
-]
-
-@pytest.mark.parametrize("sr", ALL_SEMIRINGS)
-@given(a=st.floats(min_value=-1e2, max_value=1e2),
-       b=st.floats(min_value=-1e2, max_value=1e2),
-       c=st.floats(min_value=-1e2, max_value=1e2))
-def test_semiring_distributivity_property(sr, a, b, c):
-    # Left Distributivity: a * (b + c) == (a * b) + (a * c)
-    lhs = sr.mul(a, sr.add(b, c))
-    rhs = sr.add(sr.mul(a, b), sr.mul(a, c))
-    assert pytest.approx(lhs) == rhs
-```
-
----
-
-## 7. Detailed Methodology 4: Metamorphic Testing (Invariant Transformations)
-
-### 7.1 Concept
-Metamorphic testing verifies **Metamorphic Relations (MRs)**—mathematical necessary conditions linking inputs and transformed outputs—solving the oracle problem for complex custom semirings (`ProvenanceSemiring`, `KnotSemiring`).
-
-### 7.2 Catalog of Metamorphic Relations in AlgebraX
-
-```
-1. Transpose Dual Invariant:        dot(A, B)^T == dot(B^T, A^T)  (for commutative semirings)
-2. Scalar Homogeneity:              dot(c ⊗ A, B) == c ⊗ dot(A, B)
-3. Permutation Conjugacy:           L(P · A · P^T) == P · L(A) · P^T  (Graph Laplacian)
-4. Nilpotency of Boundary:          ∂_k ∘ ∂_{k+1} == 0  (Simplicial Homology)
-5. DFT Shift Theorem:               F(shift_k(x)) == F(x) · e^{-i 2π k / N}
-6. Legendre-Fenchel Involution:      f** == f  (Convex conjugate)
-```
-
----
-
-## 8. Detailed Methodology 5: Exact Symbolic Verification via SymPy
-
-### 8.1 Concept
-To eliminate floating-point precision issues, exact symbolic verification replaces numeric inputs with SymPy symbols ($x, y, z$). Evaluating `AlgebraX` functions over SymPy symbols yields exact algebraic expressions that are compared directly against closed-form mathematical theorems.
-
-```python
-import sympy as sp
-import algebrax as ax
-
-def test_symbolic_determinant_exact():
-    a, b, c, d = sp.symbols('a b c d')
-    M_sym = {0: {0: a, 1: b}, 1: {0: c, 1: d}}
-
-    # AlgebraX Determinant over SymPy Symbols
-    det_ax = ax.matrix.academic.determinant(M_sym)
-
-    # SymPy Reference Determinant
-    det_ref = a * d - b * c
-
-    # Exact Symbolic Simplification Asserting Zero Difference
-    assert sp.simplify(det_ax - det_ref) == 0
-```
-
----
-
-## 9. Pytest Harness Architecture & Test Suite Organization
-
-### 9.1 Dedicated Directory Structure
-The evidence suite is organized under `tests/correctness_evidence/`:
+Generalizing the algebraic law smoke tests in `tests/algebrax/test_verification.py` (EP-0131), the comprehensive multi-layered verification test suite is housed in `tests/verifications/`, decoupled from core regression unit tests:
 
 ```text
 tests/
-├── correctness_evidence/
-│   ├── conftest.py                   # Custom pytest markers & shared fixtures
-│   ├── test_differential_numpy.py    # Differential tests vs NumPy / SciPy
-│   ├── test_differential_networkx.py # Differential tests vs NetworkX
-│   ├── test_differential_clifford.py # Differential tests vs Clifford / PyDy
-│   ├── test_axiomatic_semirings.py   # Hypothesis property-based semiring tests
-│   ├── test_metamorphic_invariants.py# Metamorphic relation verification
-│   ├── test_symbolic_sympy.py        # SymPy exact symbolic tests
-│   └── test_smt_z3_proofs.py         # Formal SMT Z3 proof verification
+├── algebrax/                         # Core unit and fast regression tests (zero heavy deps)
+│   ├── ...
+│   └── test_verification.py          # Fast catalog law smoke tests (algebrax.verification)
+└── verifications/                    # Multi-Layered Verification Suite
+    ├── conftest.py                   # Custom pytest markers & fixtures
+    ├── test_axiomatic_properties.py  # Hypothesis property tests (generalizing test_verification.py)
+    ├── test_differential_numpy.py    # Differential tests vs NumPy / SciPy
+    ├── test_differential_networkx.py # Differential tests vs NetworkX
+    ├── test_differential_gudhi.py    # Differential tests vs GUDHI / Dionysus
+    ├── test_metamorphic_invariants.py# Metamorphic invariant relations
+    ├── test_pit_symbolic.py          # Schwartz-Zippel PIT tests
+    ├── test_mms_discrete_calculus.py # Method of Manufactured Solutions
+    ├── test_exact_rational.py        # Fractions / exact rational tests
+    ├── test_smt_z3_proofs.py         # Z3 formal SMT verification
+    └── test_certificates.py          # Self-certifying solver tests
 ```
 
-### 9.2 Custom Pytest Marks
-```python
-# conftest.py
-def pytest_configure(config):
-    config.addinivalue_line("markers", "evidence: Mark test as belonging to correctness evidence suite")
-    config.addinivalue_line("markers", "differential: Differential test against external reference library")
-    config.addinivalue_line("markers", "axiomatic: Property-based axiom verification via Hypothesis")
-    config.addinivalue_line("markers", "formal_smt: SMT / Z3 formal symbolic proof verification")
-```
-
-### 9.3 Executing the Evidence Suite
+### Pytest Marks
 ```bash
-# Run the entire correctness evidence suite
-uv run pytest tests/correctness_evidence/ -m evidence -v
+# Run complete verification suite
+uv run pytest tests/verifications/ -m verification -v
 
-# Run only formal SMT / property-based tests
-uv run pytest tests/correctness_evidence/ -m formal_smt -v
+# Run only fast differential & property tests
+uv run pytest tests/verifications/ -m "differential or axiomatic" -v
+
+# Run formal SMT / PIT verification
+uv run pytest tests/verifications/ -m "formal_smt or pit" -v
 ```
 
 ---
 
-## 10. Comparative Evaluation & Execution Plan
+## 14. Comparative Evaluation Matrix (8 Methodologies)
 
-| Methodology | Verification Level | Implementation Effort | Maintenance Overhead | Execution Speed |
-|:------------|:-------------------|:----------------------|:---------------------|:----------------|
-| **1. Differential Library Testing** | Empirical vs Standard | Low | Low | Very Fast (< 2s) |
-| **2. Lean 4 / SMT Formal Proofs** | Mathematical Proof | Medium-High | Low | Fast (< 3s) |
-| **3. Property Axiom Verification** | Continuous Empirical | Medium | Very Low | Moderate (~ 5s) |
-| **4. Metamorphic Invariants** | Structural Invariant | Low-Medium | Low | Very Fast (< 1s) |
-| **5. Exact Symbolic SymPy** | Closed-Form Symbolic | Low | Low | Fast (< 2s) |
+| Methodology | Verification Level | Implementation Effort | Maintenance Overhead | Execution Speed | Primary Catch |
+|:---|:---|:---|:---|:---|:---|
+| **1. Differential Cross-Testing** | Canonical Empirical | Low | Low | Very Fast (< 2s) | Behavioral mismatches, sign flips |
+| **2. Metamorphic Invariants** | Structural Invariant | Low-Medium | Low | Very Fast (< 1s) | Oracle-free transformations, dualities |
+| **3. Property Axiom (Hypothesis)** | Universal Empirical | Medium | Very Low | Moderate (~ 4s) | Edge-case boundary bugs, corner cases |
+| **4. Schwartz–Zippel PIT** | Probabilistic Exact | Medium | Very Low | Fast (< 2s) | High-degree symbolic equality without blowup |
+| **5. Method of Manufactured Solns** | Asymptotic Discretization | Medium | Low | Fast (< 3s) | Discretization errors, Laplacian scaling |
+| **6. Exact Rational & Symbolic** | Exact Mathematical | Low | Low | Fast (< 2s) | Float imprecision false alarms |
+| **7. SMT / Z3 Proofs** | Formal Proof (Bounded) | Medium-High | Low | Fast (< 3s) | Universal algebraic non-distributivity |
+| **8. Lean 4 Formal Models** | Deductive Verification | High | Low | Offline / External | True abstract structural correctness |
 
 ---
 
-## 11. Summary & Next Steps
+## 15. Summary & Downstream EP Roadmapping
 
-This exploration establishes the complete blueprint for adding a multi-layered correctness evidence suite to `AlgebraX`. Passing this `pytest` suite guarantees that `AlgebraX`'s sparse dictionary algebraic primitives adhere strictly to mathematical specifications, canonical reference outputs, and formal algebraic laws—without changing any application code.
+This exploration serves as the scientific foundation for proposing **[`EP-0180: Multi-Layered Verification Test Architecture`](../../docs/proposals/EP-0180-multi-layered-verification-suite.md)**, which establishes the formal test harness in `tests/verifications/`, dependency specifications under `test-verification`, CI pipeline stages, and certified solver protocols in `AlgebraX`.
 
-### Source References & Materials
-All reference materials, research papers, and technical specifications are compiled in:
-- [`sources/lean4_formal_verification_and_python.md`](./sources/lean4_formal_verification_and_python.md)
-- [`sources/property_based_testing_algebraic_axioms.md`](./sources/property_based_testing_algebraic_axioms.md)
-- [`sources/differential_and_metamorphic_testing.md`](./sources/differential_and_metamorphic_testing.md)
-- [`sources/pytest_evidence_harness_architecture.md`](./sources/pytest_evidence_harness_architecture.md)
+---
+
+## 16. Scientific Bibliography & Source Repository
+
+All seminal papers, technical reports, and monographs cited across this exploration are compiled and indexed in:
+
+* **[Scientific Bibliography & Source Repository](./sources/BIBLIOGRAPHY.md)**
+
+### Archived Primary Source Papers:
+1. **[Chen et al. (1998/2020) — Metamorphic Testing](./sources/papers/chen_1998_metamorphic_testing.md)** ([PDF](./sources/papers/chen_1998_metamorphic_testing.pdf) | arXiv:2002.12543)
+2. **[MacIver & Hatfield-Dodds (2019) — Hypothesis](./sources/papers/maciver_2019_hypothesis.md)** ([PDF](./sources/papers/maciver_2019_hypothesis.pdf) | JOSS 10.21105/joss.01891)
+3. **[The Mathlib Community (2019/2020) — The Lean mathematical library](./sources/papers/mathlib_2019_lean_mathematical_library.md)** ([PDF](./sources/papers/mathlib_2019_lean_mathematical_library.pdf) | arXiv:1910.09336)
+4. **[Saxena (2014) — Progress on Polynomial Identity Testing – II](./sources/papers/saxena_2014_progress_on_polynomial_identity_testing.md)** ([PDF](./sources/papers/saxena_2014_progress_on_polynomial_identity_testing.pdf) | arXiv:1401.0976)
+5. **[Salari & Knupp (2000) — Code Verification by the Method of Manufactured Solutions](./sources/papers/salari_knupp_2000_method_manufactured_solutions.md)** (Sandia SAND2000-1444 | DOI: 10.2172/759450)
+6. **[McKeeman (1998) — Differential Testing for Software](./sources/papers/mckeeman_1998_differential_testing.md)** (Digital Technical Journal 10(1): 100–107)
