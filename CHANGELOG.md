@@ -1,3 +1,12 @@
+## v0.11.2 (2026-10-25)
+
+### Fix
+
+- Update power method to return 0.0 for zero exponent
+- **converters**: Adjust array initialization to handle complex numbers in matrix
+- **roots**: Correct d_factors assignment for Dynkin types B, C, and F
+- **analysis**: Adjust max_sweeps parameter in symmetric Jacobi eigenvalue computation for improved performance
+
 ## v0.11.1 (2026-10-24)
 
 ### Refactor
