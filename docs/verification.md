@@ -88,7 +88,29 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.5. Semiring Catalog (`algebrax.semiring`, `algebrax.verification`)
+### 2.5. Graph Calculus, Spectral Theory & Path Semirings (`algebrax.analysis`, `algebrax.semiring`)
+
+| AlgebraX Function / Path Semiring | Verification Category | Reference Oracle / Mathematical Law | Test File & Function | Precision / Tolerance |
+|:---|:---|:---|:---|:---|
+| `matrix.power(I + W, n-1, TropicalSemiring)` | **Comparative + Property (`differential`)** | `scipy.sparse.csgraph.floyd_warshall` & `networkx.floyd_warshall_numpy` (all-pairs shortest paths) | `test_differential_graphs.py::test_differential_tropical_shortest_paths_vs_csgraph_and_networkx`, `test_hypothesis_differential_tropical_apsp_and_laplacian` | $10^{-11}$ – $10^{-12}$ |
+| `matrix.power(I + A, n-1, BooleanSemiring)` | **Comparative (`differential`)** | `networkx.transitive_closure(G, reflexive=True)` & `csgraph.floyd_warshall(unweighted=True)` | `test_differential_graphs.py::test_differential_boolean_transitive_closure_vs_networkx_and_csgraph` | **Exact (`==`)** |
+| `matrix.power(I + W, n-1, ArcticSemiring)` | **Comparative (`differential`)** | `networkx.dag_longest_path_length` & negated-weight `csgraph.floyd_warshall` on DAGs | `test_differential_graphs.py::test_differential_arctic_longest_path_on_dag_vs_networkx` | $10^{-12}$ |
+| `matrix.power(I + C, n-1, BottleneckSemiring)` | **Comparative (`differential`)** | `networkx.maximum_spanning_tree` unique path bottleneck capacity | `test_differential_graphs.py::test_differential_bottleneck_widest_path_vs_maximum_spanning_tree` | $10^{-12}$ |
+| `ViterbiSemiring` & `ReliabilitySemiring` closure | **Comparative (`differential`)** | Log-domain isomorphism $\exp(-\text{csgraph.floyd\_warshall}(-\ln P))$ | `test_differential_graphs.py::test_differential_viterbi_and_reliability_vs_log_csgraph` | $10^{-11}$ |
+| `LogSemiring` DAG partition function | **Comparative (`differential`)** | Resolvent $\ln((I - P)^{-1})$ via `scipy.linalg.inv` | `test_differential_graphs.py::test_differential_log_semiring_dag_partition_function_vs_scipy_inv` | $10^{-11}$ |
+| `matrix.laplacian_matrix(W, normalized=None \| 'sym' \| 'rw')` | **Comparative + Property (`differential`)** | `networkx.laplacian_matrix`, `nx.normalized_laplacian_matrix`, `csgraph.laplacian`, & $I - D^{-1}W$ | `test_differential_graphs.py::test_differential_laplacian_matrices_vs_networkx_and_csgraph`, `test_hypothesis_differential_tropical_apsp_and_laplacian` | $10^{-11}$ – $10^{-12}$ |
+| `analysis.laplacian_spectrum(W)` | **Comparative + Certificate (`differential`)** | `scipy.linalg.eigh(L)` eigenvalues, $V^T V = I$, & residual $\|L v_i - \lambda_i v_i\|_2$ | `test_differential_graphs.py::test_differential_laplacian_spectrum_vs_scipy_eigh` | $10^{-6}$ |
+| `analysis.fiedler_vector` & `algebraic_connectivity` | **Comparative (`differential`)** | `networkx.algebraic_connectivity` & `networkx.fiedler_vector` (up to $\pm 1$ sign) | `test_differential_graphs.py::test_differential_fiedler_vector_and_algebraic_connectivity_vs_networkx` | $10^{-4}$ – $10^{-5}$ |
+| `analysis.spectral_bipartition(W)` | **Comparative (`differential`)** | `networkx.cut_size`, `nx.conductance`, `nx.normalized_cut_size` | `test_differential_graphs.py::test_differential_spectral_bipartition_metrics_vs_networkx_cuts` | $10^{-12}$ |
+| `analysis.pagerank(W, damping, personalization, dangling)` | **Comparative (`differential`)** | `networkx.pagerank` (standard, dangling sinks, & personalized random walks) | `test_differential_graphs.py::test_differential_pagerank_vs_networkx` | $10^{-6}$ |
+| `analysis.eigen_centrality(W)` | **Comparative (`differential`)** | `networkx.eigenvector_centrality_numpy` | `test_differential_graphs.py::test_differential_eigen_centrality_vs_networkx` | $10^{-5}$ |
+| `analysis.gradient`, `divergence`, `laplacian` | **Comparative + Adjoint (`differential`)** | `nx.laplacian_matrix(G) @ f`, $\operatorname{div}(\operatorname{grad} f) = -2Lf$, & Green's identity $\langle \nabla f, F \rangle_E = -\langle f, \operatorname{div} F \rangle_V$ | `test_differential_graphs.py::test_differential_gradient_divergence_laplacian_and_greens_identity` | $10^{-11}$ |
+| `analysis.laplacian_smoothing` & `gaussian_kernel` | **Comparative (`differential`)** | `np.linalg.matrix_power(I - tau * L, steps) @ f` & $\exp(-D^2 / 2\sigma^2)$ | `test_differential_graphs.py::test_differential_laplacian_smoothing_and_gaussian_kernel_vs_numpy` | $10^{-11}$ – $10^{-12}$ |
+| `analysis.forman_ricci_curvature(W)` | **Comparative (`differential`)** | Exact combinatorial curvature on $C_n$ ($\mathcal{F}=0$) and $K_n$ ($\mathcal{F}=6-2n$ unaugmented, $n$ augmented) | `test_differential_graphs.py::test_differential_forman_ricci_curvature_vs_combinatorial_invariants` | $10^{-12}$ |
+
+---
+
+### 2.6. Semiring Catalog (`algebrax.semiring`, `algebrax.verification`)
 
 | AlgebraX Semiring / Function | Verification Category | Reference Oracle / Axioms Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
@@ -101,7 +123,7 @@ The tables below map each `algebrax` module and function to the exact verificati
 
 ---
 
-### 2.6. Topology, Exterior Calculus & Lie Algebras (`algebrax.homology`, `algebrax.lie`)
+### 2.7. Topology, Exterior Calculus & Lie Algebras (`algebrax.homology`, `algebrax.lie`)
 
 | AlgebraX Structure / Function | Verification Category | Reference Oracle / Mathematical Theorem Verified | Test File & Function | Precision / Tolerance |
 |:---|:---|:---|:---|:---|
