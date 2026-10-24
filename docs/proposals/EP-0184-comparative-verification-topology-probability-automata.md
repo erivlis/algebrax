@@ -2,7 +2,7 @@
 title: "EP-0184: Comparative Verification — Topology, Information Theory & Formal Languages (SciPy.stats & Reference TDA Oracles)"
 description: "Establishes comparative verification tests validating AlgebraX simplicial homology, discrete exterior calculus, information-theoretic probability divergences, fractal metrics, and finite-state automata against SciPy.stats, exact Smith/rank oracles, and canonical topological manifolds."
 icon: lucide/shapes
-status: draft
+status: final
 ---
 
 # EP-0184: Comparative Verification — Topology, Information Theory & Formal Languages (
@@ -15,10 +15,10 @@ status: draft
 | **Author**        | Eran Rivlis & Antigravity (Council Agent)                                                                          |
 | **Sponsor**       | The Council                                                                                                        |
 | **Delegate**      | 🔬 Karl Popper (Falsifiability), ⚖️ Emmy Noether (Symmetry), 💡 Richard Feynman (Clarity) & 🧭 The Explorer        |
-| **Status**        | Draft                                                                                                              |
+| **Status**        | Final                                                                                                              |
 | **Type**          | Standards Track                                                                                                    |
 | **Created**       | 2026-10-24                                                                                                         |
-| **Updated**       | 2026-10-24                                                                                                         |
+| **Updated**       | 2026-10-25                                                                                                         |
 | **Replaces**      | None                                                                                                               |
 | **Superseded-By** | None                                                                                                               |
 
@@ -135,3 +135,4 @@ None.
 ## Change Log
 
 - **2026-10-24**: Initial draft created as Wave 1D of the Phase 5 Comparative Verification series.
+- **2026-10-25**: Implemented `tests/verifications/test_differential_topology_prob.py` (10 comparative test suites covering canonical manifold homology, Discrete Hodge Theorem, Discrete Stokes' Theorem, Helmholtz–Hodge decomposition, `scipy.stats` information theory & moments, Bayes/Markov chains, DFA/NFA Rabin–Scott & regex equivalence, and Sierpiński fractal dimension) and documented in `docs/verification.md`. Status updated to `Final`.
