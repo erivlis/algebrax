@@ -51,6 +51,8 @@ class TropicalSemiring(Semiring[float]):
         return a
 
     def power(self, a: float, n: int) -> float:
+        if n == 0:
+            return 0.0
         return a * n
 
     def star(self, a: float) -> float:
@@ -104,6 +106,8 @@ class ArcticSemiring(Semiring[float]):
         return a
 
     def power(self, a: float, n: int) -> float:
+        if n == 0:
+            return 0.0
         return a * n
 
     def star(self, a: float) -> float:
