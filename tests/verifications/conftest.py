@@ -26,6 +26,7 @@ def pytest_configure(config: Any) -> None:
     config.addinivalue_line('markers', 'pit: Schwartz-Zippel Polynomial Identity Testing (probabilistic exact)')
     config.addinivalue_line('markers', 'mms: Method of Manufactured Solutions for discrete differential operators')
     config.addinivalue_line('markers', 'formal_smt: SMT / Z3 formal symbolic proof verification')
+    config.addinivalue_line('markers', 'smt: SMT / Z3 formal symbolic proof verification (alias for formal_smt)')
     config.addinivalue_line('markers', 'certificates: Self-certifying solver witness verification')
 
 
