@@ -25,14 +25,14 @@ from typing import Any
 
 import pytest
 
-from algebrax.lie import LieAlgebra, f4, g2, se_n, sl_n, so_n, sp_n, su_n
+from algebrax.lie import LieAlgebra, e6, e7, e8, f4, g2, se_n, sl_n, so_n, sp_n, su_n
 from algebrax.matrix.academic import determinant
 from algebrax.matrix.core import add, dot, mat_vec, subtract, trace
 from algebrax.semiring import PolynomialSemiring, StandardSemiring
 
 pytestmark = [pytest.mark.verification, pytest.mark.pit]
 
-SAMPLE_SPACE_BOUND = 500  # |S| = 1000; 52^2 * x*y*z <= 3.3*10^11 << 2^53 (exact IEEE 754 float64 precision)
+SAMPLE_SPACE_BOUND = 500  # |S| = 1000; 248^2 * x*y*z <= 7.6*10^12 << 2^53 (exact IEEE 754 float64 precision)
 NUM_TRIALS = 6  # (d / |S|)^6 <= (2 / 1000)^6 = 6.4*10^-17 < 10^-16
 
 
@@ -57,6 +57,9 @@ def _random_vector(dim: int, sample_space: range, rng: random.Random) -> dict[in
         (lambda: sp_n(2), 'sp(2) - Symplectic (dim 10)'),
         (lambda: g2(), 'g2 - Exceptional Lie Algebra (dim 14)'),
         (lambda: f4(), 'f4 - Exceptional Lie Algebra (dim 52)'),
+        (lambda: e6(), 'e6 - Exceptional Lie Algebra (dim 78)'),
+        (lambda: e7(), 'e7 - Exceptional Lie Algebra (dim 133)'),
+        (lambda: e8(), 'e8 - Exceptional Lie Algebra (dim 248)'),
     ],
 )
 def test_pit_lie_algebra_jacobi_identity(lie_algebra_factory: Any, name: str) -> None:
