@@ -35,7 +35,40 @@ print('Betti numbers:', betti)
 # beta_0 = 1 (1 connected component), beta_1 = 1 (1 topological loop)
 ```
 
+## Persistent Homology, Filtrations & Topological Barcodes
+
+While `SimplicialComplex.betti_numbers` evaluates homology at a single static scale, empirical point clouds and weighted networks require **Persistent Homology** across a multiscale filtration $\emptyset = K_0 \subseteq K_1 \subseteq \dots \subseteq K_m = K$.
+
+`FilteredSimplicialComplex` associates each simplex $\sigma \in K$ with a filtration birth threshold $f(\sigma) \in \mathbb{R}$ satisfying subcomplex monotonicity ($\tau \subseteq \sigma \implies f(\tau) \le f(\sigma)$) and reduces the filtered boundary matrix over $\mathbb{Z}_2$ using the Chen–Kerber clearing (twist) optimization:
+
+```python
+import math
+import algebrax as ax
+
+# 4 points on a unit square: side length 1.0, diagonal sqrt(2)
+s2 = math.sqrt(2.0)
+dist_matrix = {
+    0: {1: 1.0, 3: 1.0, 2: s2},
+    1: {0: 1.0, 2: 1.0, 3: s2},
+    2: {1: 1.0, 3: 1.0, 0: s2},
+    3: {0: 1.0, 2: 1.0, 1: s2},
+}
+
+# Build Vietoris-Rips filtration and compute persistent homology
+fsc = ax.homology.FilteredSimplicialComplex.from_vietoris_rips(dist_matrix, max_dim=2)
+intervals = fsc.persistent_homology(max_k=1)
+
+# Extract 1D loop intervals [birth, death)
+h1_bars = [iv for iv in intervals if iv.dimension == 1]
+print(h1_bars[0])  # PersistenceInterval(dimension=1, birth=1.0, death=1.4142..., ...)
+
+# Evaluate multiscale Betti curves, persistence entropy, and bottleneck distance
+curve_b1 = ax.homology.betti_curve(intervals, thresholds=[0.5, 1.2, 1.6], dimension=1)
+entropy = ax.homology.persistence_entropy(intervals)
+```
+
 ## Related Recipes & Applications
 
 * [Topological Homology & Betti Barcodes](../../recipes.md) — Simplicial verification and Betti barcodes.
 * [Topological Data Analysis](../../recipes.md) — Persistent homology over point clouds.
+
