@@ -89,16 +89,24 @@ flowchart TD
 
     subgraph P4["Phase 4 — Algebraic Continents & Next Frontiers (EXP-0001)"]
         EP0160_N["EP-0160 Discrete Exterior Calculus (DEC) ✅\n⚖️ Noether & ⚡ Shannon"]
-        EP0161_N["EP-0161 Cellular Sheaves & Laplacians 💡\n🧩 Russell & 🤝 Steward"]
-        EP0162_N["EP-0162 Persistent Homology (TDA) 💡\n🔬 Popper & 🧭 Explorer"]
+        EP0161_N["EP-0161 Cellular Sheaves & Laplacians ✅\n🧩 Russell & 🤝 Steward"]
+        EP0162_N["EP-0162 Persistent Homology (TDA) ✅\n🔬 Popper & 🧭 Explorer"]
         EP0163_N["EP-0163 Lie Algebras & BCH Dynamics ✅\n⚖️ Noether & 🛡️ Golem"]
         EP0164_N["EP-0164 Root Systems & Chevalley ✅\n⚖️ Noether & ⚡ Shannon"]
+        EP0165_N["EP-0165 Topology Namespace & Cohomology Ring ✅\n🧩 Russell & ⚖️ Noether"]
+    end
+
+    subgraph P6["Phase 6 — Pure Algebraic Hierarchy (EXP-0004)"]
+        EP0190_N["EP-0190 Magmas, Monoids, Groups & Lattices 💡\n🧩 Russell & 🔬 Popper"]
+        EP0191_N["EP-0191 Rings, Fields, Modules & Exact Solvers 💡\n⚖️ Noether & ⚡ Shannon"]
     end
 
     EP0152_N --> EP0160_N
     EP0153_N --> EP0160_N
     EP0110 --> EP0162_N
+    EP0162_N --> EP0165_N
     EP0163_N --> EP0164_N
+    CORE --> P6
 
     style CORE fill:#4a90d9,color:#fff
     style P3 fill:#2d7d46,color:#fff
@@ -186,68 +194,76 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0152: Spectral Graph Theory & Graph Laplacians (Noether/Shannon/Popper) [Final]
   │     └── EP-0153: Semiring Matrix Symmetry & Vector Primitives (Noether/Shannon/Russell) [Final]
   │
-  ├─┬── Phase 4: Algebraic Continents & Next Frontiers (EXP-0001)  🚀 IN PROGRESS
+  ├─┬── Phase 4: Algebraic Continents & Next Frontiers (EXP-0001)  ✅ COMPLETE
   │     ├── EP-0160: Discrete Exterior Calculus & Helmholtz-Hodge (Noether/Shannon/Feynman) [Final]
   │     ├── EP-0161: Cellular Sheaves & Network Laplacians (Russell/Steward)               [Final]
-  │     ├── EP-0162: Persistent Homology & Topological Barcodes (Popper/Explorer)          [Draft]
+  │     ├── EP-0162: Persistent Homology & Topological Barcodes (Popper/Explorer)          [Final]
   │     ├── EP-0163: Lie Algebras, Root Systems & BCH Dynamics (Noether/Shannon/Golem)     [Final]
-  │     └── EP-0164: Root Systems, Weyl Groups & Chevalley Construction (Noether/Shannon)  [Final]
+  │     ├── EP-0164: Root Systems, Weyl Groups & Chevalley Construction (Noether/Shannon)  [Final]
+  │     └── EP-0165: Topology Namespace & Cohomology Ring (Russell/Noether/Shannon)        [Final]
   │
-  └── Phase 5: Mathematical Verification & Correctness Evidence Track (EXP-0003) ✅ COMPLETE
-        ├── EP-0180: Multi-Layered Verification Test Architecture (Popper/Noether/Shannon/Golem) [Final]
-        ├── EP-0181: Comparative Verification — Linear Algebra, Tensors & Transforms (NumPy/SciPy) [Final]
-        ├── EP-0182: Comparative Verification — Graph Calculus, Spectral & Semirings (NetworkX/csgraph) [Final]
-        ├── EP-0183: Comparative Verification — Symbolic Algebra, Lie, Galois & Group (SymPy) [Final]
-        ├── EP-0184: Comparative Verification — Topology, Information Theory & Automata (SciPy.stats) [Final]
-        ├── EP-0185: Axiomatic, Statistical Moment Semirings & Sheaf MMS Verification [Final]
-        └── EP-0186: Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & SMT Formal (Z3) [Final]
+  ├── Phase 5: Mathematical Verification & Correctness Evidence Track (EXP-0003) ✅ COMPLETE
+  │     ├── EP-0180: Multi-Layered Verification Test Architecture (Popper/Noether/Shannon/Golem) [Final]
+  │     ├── EP-0181: Comparative Verification — Linear Algebra, Tensors & Transforms (NumPy/SciPy) [Final]
+  │     ├── EP-0182: Comparative Verification — Graph Calculus, Spectral & Semirings (NetworkX/csgraph) [Final]
+  │     ├── EP-0183: Comparative Verification — Symbolic Algebra, Lie, Galois & Group (SymPy) [Final]
+  │     ├── EP-0184: Comparative Verification — Topology, Information Theory & Automata (SciPy.stats) [Final]
+  │     ├── EP-0185: Axiomatic, Statistical Moment Semirings & Sheaf MMS Verification [Final]
+  │     └── EP-0186: Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & SMT Formal (Z3) [Final]
+  │
+  └── Phase 6: Pure Algebraic Hierarchy (EXP-0004)  🚀 IN PROGRESS
+        ├── EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices (Russell/Popper) [Draft]
+        └── EP-0191: Rings, Fields, Modules & Exact Matrix Solvers (Noether/Shannon) [Draft]
 ```
 
 ---
 
 ## Detailed Proposal Matrix
 
-| Proposal    | Title                          | Pillar            | Target Module                         | Status   | Deliverables                                                                   |
-|:------------|:-------------------------------|:------------------|:--------------------------------------|:---------|:-------------------------------------------------------------------------------|
-| **EP-0099** | Master Expansion Roadmap       | —                 | Docs                                  | Active   | `EP-0099-expansion-roadmap.md`                                                 |
-| **EP-0100** | Quotient Monoid Algebras       | Shannon           | `algebrax.semiring`                   | Final    | `QuotientMonoidAlgebraSemiring`, tests                                         |
-| **EP-0101** | Sparse Chain Complexes         | Shannon           | `algebrax.analysis`                   | Final    | `SparseChainComplex`, `hodge_laplacian`, tests                                 |
-| **EP-0110** | Simplicial Homology            | Explorer          | `algebrax.homology`                   | Final    | `SimplicialComplex`, `betti_numbers`, Lab View 21                              |
-| **EP-0111** | Clifford Geometric Algebra     | Explorer          | `algebrax.clifford`                   | Final    | `CliffordSemiring`, `rotor_rotation`, Lab View 22                              |
-| **EP-0112** | Galois Finite Fields           | Explorer          | `algebrax.galois`                     | Final    | `GaloisFieldSemiring`, `gf_matrix_mul`, Lab View 23                            |
-| **EP-0113** | Categorical Morphisms          | Explorer          | `algebrax.category`                   | Final    | `kleisli_compose`, `kan_extension`, Lab View 24                                |
-| **EP-0120** | Algebraic Web Explorer         | Feynman           | Web / Visual                          | Draft    | `site/explorer/index.html`, HTML5/Canvas studio                                |
-| **EP-0130** | API Consistency Audit          | Russell           | `algebrax.__init__`                   | Final    | Public re-exports, Semiring catalog                                            |
-| **EP-0131** | Algebraic Law Verification     | Popper            | `algebrax.verification`               | Final    | Property-based axiom tests, CLI auditor `python -m algebrax.verify`            |
-| **EP-0132** | Matrix Decompositions          | Noether           | `algebrax.decompose`                  | Final    | Sparse LU, QR, SVD, Cholesky on dict-matrices                                  |
-| **EP-0133** | Jupyter & CLI Integration      | Steward           | `algebrax.display`                    | Final    | `_repr_html_()`, `python -m algebrax inspect`                                  |
-| **EP-0134** | Semiring Namespace Refactor    | Russell           | `algebrax.semiring/`                  | Final    | Categorical sub-modules, consolidated Clifford/Galois                          |
-| **EP-0140** | API Symmetry Restoration       | Noether           | `matrix`, `transforms`, `homology`    | Final    | Recomposition helpers, inverse transforms, coboundary operator                 |
-| **EP-0141** | Taxonomy Cleanup               | Russell           | `analysis`, `tensor`, `__init__`      | Final    | Relocate `SparseChainComplex`, `permute_tensor`, clean imports                 |
-| **EP-0142** | Performance Optimizations      | Shannon           | `matrix`, `transforms`, `tensor`      | Final    | Local binding, catalog cache, twiddle precompute, backtracking                 |
-| **EP-0143** | Documentation Clarity          | Feynman           | `docs/`, docstrings                   | Final    | Freshman summaries, typo fixes, concepts.md rewrite                            |
-| **EP-0144** | Testing Hardening              | Popper            | `tests/`                              | Final    | Property-based tests, edge cases, numerical stability                          |
-| **EP-0145** | Type Safety Hardening          | Golem             | `typing`, `analysis`, `converters`    | Final    | Future annotations, semiring normalization, collision fix                      |
-| **EP-0146** | Developer Ergonomics           | Steward           | `__init__`, `converters`, `display`   | Final    | Namespace org, NumPy/SciPy bridges, Jupyter display                            |
-| **EP-0147** | Optional Loop Pragmas          | Shannon           | `benchmarks/`, core loops             | Deferred | Non-invasive `lucen` pragmas, free-threaded GIL-less scaling                   |
-| **EP-0148** | Formalized Benchmarking        | Popper            | `benchmarks/`, `.github/`             | Final    | Standardized `pytest-benchmark` suite & CodSpeed CI tracking                   |
-| **EP-0149** | Universal Binomial Moments     | Noether & Russell | `algebrax.semiring`                   | Final    | Divided power quotient ring, MultivariateMomentSemiring, decoders              |
-| **EP-0150** | Standardized Math Docstrings   | Feynman & Russell | `algebrax.semiring`, `display`        | Final    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests                |
-| **EP-0151** | Algebraic PageRank             | Shannon & Noether | `algebrax.analysis`                   | Final    | Sparse semiring contraction solver, random walk with restart, PPR              |
-| **EP-0152** | Spectral Graph Theory          | Noether & Shannon | `algebrax.analysis`                   | Final    | Graph Laplacians (unnormalized, sym, rw), Fiedler vector, cuts, smoothing      |
-| **EP-0153** | Semiring Matrix & Cochain Sym  | Noether & Shannon | `matrix`, `analysis`, `homology`      | Final    | Semiring `add`/`trace`, `vec_*` primitives, `Cochain` carrier, AMDS cleanup    |
-| **EP-0160** | Discrete Exterior Calculus     | Noether & Shannon | `algebrax.homology` / `analysis`      | Final    | $\Omega^k$ forms, exterior derivative $d$, Hodge star $\star$, Helmholtz-Hodge |
-| **EP-0161** | Cellular Sheaves & Laplacians  | Russell & Steward | `algebrax.homology`                   | Final    | `CellularSheaf`, coboundary $\delta$, sheaf Laplacian, consensus dynamics      |
-| **EP-0162** | Persistent Homology (TDA)      | Popper & Explorer | `algebrax.homology`                   | Draft    | Simplicial filtrations, boundary reduction over $\mathbb{Z}_2$, barcodes       |
-| **EP-0163** | Lie Algebras & BCH Dynamics    | Noether & Golem   | `algebrax.lie`                        | Final    | `LieAlgebra`, `StructureConstants`, `so3`, `sl2`, `se3`, BCH solver            |
-| **EP-0164** | Root Systems & Chevalley       | Noether & Shannon | `algebrax.lie`                        | Final    | `RootSystem`, `dynkin_diagram`, `to_euclidean`, Chevalley construction         |
-| **EP-0180** | Multi-Layered Verification     | Popper & Noether  | `tests/verifications/`                | Final    | 8-layer test harness: differential, metamorphic, PIT, MMS, certified solvers   |
-| **EP-0181** | Comparative: Linalg & Tensors  | Popper & Russell  | `matrix`, `tensor`, `transforms`      | Final    | Differential tests vs NumPy (`linalg`, `fft`, `einsum`) & SciPy (`linalg`)     |
-| **EP-0182** | Comparative: Graphs & Paths    | Popper & Noether  | `analysis`, `semiring`                | Final    | Differential tests vs NetworkX & `scipy.sparse.csgraph` (PageRank, paths)      |
-| **EP-0183** | Comparative: Symbolic & Lie    | Noether & Popper  | `lie`, `galois`, `clifford`, `group`  | Final    | Exact differential tests vs SymPy (`Matrix`, `liealgebras`, `GF`) & `expm`     |
-| **EP-0184** | Comparative: Topology & Prob   | Popper & Feynman  | `homology`, `probability`, `automata` | Final    | Differential tests vs `scipy.stats`, exact Betti/Stokes/Hodge manifolds        |
-| **EP-0185** | Axiomatic, Moments & Sheaf MMS | Popper & Russell  | `semiring`, `category`, `homology`    | Final    | All 34 semirings PBT, streaming moments vs `scipy.stats`, sheaf MMS            |
-| **EP-0186** | Certificates, PIT & SMT (Z3)   | Golem & Shannon   | `tests/verifications/`                | Final    | Universal $O(\text{nnz})$ solver certificates, Cayley-Hamilton PIT, Z3 proofs  |
+| Proposal    | Title                          | Pillar            | Target Module                          | Status   | Deliverables                                                                   |
+|:------------|:-------------------------------|:------------------|:---------------------------------------|:---------|:-------------------------------------------------------------------------------|
+| **EP-0099** | Master Expansion Roadmap       | —                 | Docs                                   | Active   | `EP-0099-expansion-roadmap.md`                                                 |
+| **EP-0100** | Quotient Monoid Algebras       | Shannon           | `algebrax.semiring`                    | Final    | `QuotientMonoidAlgebraSemiring`, tests                                         |
+| **EP-0101** | Sparse Chain Complexes         | Shannon           | `algebrax.analysis`                    | Final    | `SparseChainComplex`, `hodge_laplacian`, tests                                 |
+| **EP-0110** | Simplicial Homology            | Explorer          | `algebrax.homology`                    | Final    | `SimplicialComplex`, `betti_numbers`, Lab View 21                              |
+| **EP-0111** | Clifford Geometric Algebra     | Explorer          | `algebrax.clifford`                    | Final    | `CliffordSemiring`, `rotor_rotation`, Lab View 22                              |
+| **EP-0112** | Galois Finite Fields           | Explorer          | `algebrax.galois`                      | Final    | `GaloisFieldSemiring`, `gf_matrix_mul`, Lab View 23                            |
+| **EP-0113** | Categorical Morphisms          | Explorer          | `algebrax.category`                    | Final    | `kleisli_compose`, `kan_extension`, Lab View 24                                |
+| **EP-0120** | Algebraic Web Explorer         | Feynman           | Web / Visual                           | Draft    | `site/explorer/index.html`, HTML5/Canvas studio                                |
+| **EP-0130** | API Consistency Audit          | Russell           | `algebrax.__init__`                    | Final    | Public re-exports, Semiring catalog                                            |
+| **EP-0131** | Algebraic Law Verification     | Popper            | `algebrax.verification`                | Final    | Property-based axiom tests, CLI auditor `python -m algebrax.verify`            |
+| **EP-0132** | Matrix Decompositions          | Noether           | `algebrax.decompose`                   | Final    | Sparse LU, QR, SVD, Cholesky on dict-matrices                                  |
+| **EP-0133** | Jupyter & CLI Integration      | Steward           | `algebrax.display`                     | Final    | `_repr_html_()`, `python -m algebrax inspect`                                  |
+| **EP-0134** | Semiring Namespace Refactor    | Russell           | `algebrax.semiring/`                   | Final    | Categorical sub-modules, consolidated Clifford/Galois                          |
+| **EP-0140** | API Symmetry Restoration       | Noether           | `matrix`, `transforms`, `homology`     | Final    | Recomposition helpers, inverse transforms, coboundary operator                 |
+| **EP-0141** | Taxonomy Cleanup               | Russell           | `analysis`, `tensor`, `__init__`       | Final    | Relocate `SparseChainComplex`, `permute_tensor`, clean imports                 |
+| **EP-0142** | Performance Optimizations      | Shannon           | `matrix`, `transforms`, `tensor`       | Final    | Local binding, catalog cache, twiddle precompute, backtracking                 |
+| **EP-0143** | Documentation Clarity          | Feynman           | `docs/`, docstrings                    | Final    | Freshman summaries, typo fixes, concepts.md rewrite                            |
+| **EP-0144** | Testing Hardening              | Popper            | `tests/`                               | Final    | Property-based tests, edge cases, numerical stability                          |
+| **EP-0145** | Type Safety Hardening          | Golem             | `typing`, `analysis`, `converters`     | Final    | Future annotations, semiring normalization, collision fix                      |
+| **EP-0146** | Developer Ergonomics           | Steward           | `__init__`, `converters`, `display`    | Final    | Namespace org, NumPy/SciPy bridges, Jupyter display                            |
+| **EP-0147** | Optional Loop Pragmas          | Shannon           | `benchmarks/`, core loops              | Deferred | Non-invasive `lucen` pragmas, free-threaded GIL-less scaling                   |
+| **EP-0148** | Formalized Benchmarking        | Popper            | `benchmarks/`, `.github/`              | Final    | Standardized `pytest-benchmark` suite & CodSpeed CI tracking                   |
+| **EP-0149** | Universal Binomial Moments     | Noether & Russell | `algebrax.semiring`                    | Final    | Divided power quotient ring, MultivariateMomentSemiring, decoders              |
+| **EP-0150** | Standardized Math Docstrings   | Feynman & Russell | `algebrax.semiring`, `display`         | Final    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests                |
+| **EP-0151** | Algebraic PageRank             | Shannon & Noether | `algebrax.analysis`                    | Final    | Sparse semiring contraction solver, random walk with restart, PPR              |
+| **EP-0152** | Spectral Graph Theory          | Noether & Shannon | `algebrax.analysis`                    | Final    | Graph Laplacians (unnormalized, sym, rw), Fiedler vector, cuts, smoothing      |
+| **EP-0153** | Semiring Matrix & Cochain Sym  | Noether & Shannon | `matrix`, `analysis`, `homology`       | Final    | Semiring `add`/`trace`, `vec_*` primitives, `Cochain` carrier, AMDS cleanup    |
+| **EP-0160** | Discrete Exterior Calculus     | Noether & Shannon | `algebrax.homology` / `analysis`       | Final    | $\Omega^k$ forms, exterior derivative $d$, Hodge star $\star$, Helmholtz-Hodge |
+| **EP-0161** | Cellular Sheaves & Laplacians  | Russell & Steward | `algebrax.homology`                    | Final    | `CellularSheaf`, coboundary $\delta$, sheaf Laplacian, consensus dynamics      |
+| **EP-0162** | Persistent Homology (TDA)      | Popper & Explorer | `algebrax.homology`                    | Final    | Simplicial filtrations, boundary reduction over $\mathbb{Z}_2$, barcodes       |
+| **EP-0163** | Lie Algebras & BCH Dynamics    | Noether & Golem   | `algebrax.lie`                         | Final    | `LieAlgebra`, `StructureConstants`, `so3`, `sl2`, `se3`, BCH solver            |
+| **EP-0164** | Root Systems & Chevalley       | Noether & Shannon | `algebrax.lie`                         | Final    | `RootSystem`, `dynkin_diagram`, `to_euclidean`, Chevalley construction         |
+| **EP-0165** | Topology & Cohomology Ring     | Russell & Noether | `algebrax.topology`                    | Final    | Modular `topology/` package, Alexander–Whitney cup/cap, dual persistent cohom  |
+| **EP-0180** | Multi-Layered Verification     | Popper & Noether  | `tests/verifications/`                 | Final    | 8-layer test harness: differential, metamorphic, PIT, MMS, certified solvers   |
+| **EP-0181** | Comparative: Linalg & Tensors  | Popper & Russell  | `matrix`, `tensor`, `transforms`       | Final    | Differential tests vs NumPy (`linalg`, `fft`, `einsum`) & SciPy (`linalg`)     |
+| **EP-0182** | Comparative: Graphs & Paths    | Popper & Noether  | `analysis`, `semiring`                 | Final    | Differential tests vs NetworkX & `scipy.sparse.csgraph` (PageRank, paths)      |
+| **EP-0183** | Comparative: Symbolic & Lie    | Noether & Popper  | `lie`, `galois`, `clifford`, `group`   | Final    | Exact differential tests vs SymPy (`Matrix`, `liealgebras`, `GF`) & `expm`     |
+| **EP-0184** | Comparative: Topology & Prob   | Popper & Feynman  | `homology`, `probability`, `automata`  | Final    | Differential tests vs `scipy.stats`, exact Betti/Stokes/Hodge manifolds        |
+| **EP-0185** | Axiomatic, Moments & Sheaf MMS | Popper & Russell  | `semiring`, `category`, `homology`     | Final    | All 34 semirings PBT, streaming moments vs `scipy.stats`, sheaf MMS            |
+| **EP-0186** | Certificates, PIT & SMT (Z3)   | Golem & Shannon   | `tests/verifications/`                 | Final    | Universal $O(\text{nnz})$ solver certificates, Cayley-Hamilton PIT, Z3 proofs  |
+| **EP-0190** | Granular Algebraic Hierarchy   | Russell & Popper  | `algebrax.algebra`                     | Draft    | Lean 4-aligned Magma, Monoid, Group, Lattice protocols & layered PBT laws      |
+| **EP-0191** | Rings, Fields & Exact Solvers  | Noether & Shannon | `algebrax.algebra`, `matrix.decompose` | Draft    | Ring, Field, Module protocols, exact rational & Galois field matrix solvers    |
 
 ---
 
@@ -272,6 +288,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-10-16 | Eran Rivlis & Antigravity | Added EP-0153: Semiring Matrix Symmetry, Sparse Vector Primitives & Cochain Flow Bridges.                                                   |
 | 2026-10-24 | Eran Rivlis & Jules       | Added Phase 5 and EP-0180: Multi-Layered Verification Test Architecture targeting tests/verifications/ (derived from EXP-0003).             |
 | 2026-10-24 | Eran Rivlis & Antigravity | Added Phase 5 Verification Series EP-0181 through EP-0186 (Wave 1 Comparative "Stamp of Trust" Oracles & Wave 2 Intrinsic/Formal Proofs).   |
+| 2026-10-25 | Eran Rivlis & Antigravity | Completed Phase 4 (EP-0161, EP-0162, EP-0165 Final); added Phase 6 (EP-0190, EP-0191) from EXP-0004 (Lean 4 Pure Algebraic Hierarchy).      |
 
 
 
