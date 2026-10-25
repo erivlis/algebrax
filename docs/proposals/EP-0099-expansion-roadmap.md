@@ -212,8 +212,8 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     └── EP-0186: Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & SMT Formal (Z3) [Final]
   │
   └── Phase 6: Pure Algebraic Hierarchy (EXP-0004)  🚀 IN PROGRESS
-        ├── EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices (Russell/Popper) [Draft]
-        └── EP-0191: Rings, Fields, Modules & Exact Matrix Solvers (Noether/Shannon) [Draft]
+        ├── EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices (Russell/Popper) [Final]
+        └── EP-0191: Rings, Fields, Modules & Exact Matrix Solvers (Noether/Shannon) [Accepted]
 ```
 
 ---
@@ -262,8 +262,8 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0184** | Comparative: Topology & Prob   | Popper & Feynman  | `homology`, `probability`, `automata`  | Final    | Differential tests vs `scipy.stats`, exact Betti/Stokes/Hodge manifolds        |
 | **EP-0185** | Axiomatic, Moments & Sheaf MMS | Popper & Russell  | `semiring`, `category`, `homology`     | Final    | All 34 semirings PBT, streaming moments vs `scipy.stats`, sheaf MMS            |
 | **EP-0186** | Certificates, PIT & SMT (Z3)   | Golem & Shannon   | `tests/verifications/`                 | Final    | Universal $O(\text{nnz})$ solver certificates, Cayley-Hamilton PIT, Z3 proofs  |
-| **EP-0190** | Granular Algebraic Hierarchy   | Russell & Popper  | `algebrax.algebra`                     | Draft    | Lean 4-aligned Magma, Monoid, Group, Lattice protocols & layered PBT laws      |
-| **EP-0191** | Rings, Fields & Exact Solvers  | Noether & Shannon | `algebrax.algebra`, `matrix.decompose` | Draft    | Ring, Field, Module protocols, exact rational & Galois field matrix solvers    |
+| **EP-0190** | Granular Algebraic Hierarchy   | Russell & Popper  | `algebrax.algebra`                     | Final    | Lean 4-aligned Magma, Monoid, Group, Lattice protocols & layered PBT laws      |
+| **EP-0191** | Rings, Fields & Exact Solvers  | Noether & Shannon | `algebrax.algebra`, `matrix.decompose` | Accepted | Ring, Field, Module protocols, exact rational & Galois field matrix solvers    |
 
 ---
 

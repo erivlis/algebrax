@@ -129,6 +129,6 @@ super-semiring rings & fields, and exact polymorphic matrix solvers.
 
 | EP                                                                                  | Title                                                             | Council Sponsor         |         Status          |
 |:------------------------------------------------------------------------------------|:------------------------------------------------------------------|:------------------------|:-----------------------:|
-| [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices | 🧩 Russell & 🔬 Popper  | :material-pencil: Draft |
-| [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                     | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
+| [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices | 🧩 Russell & 🔬 Popper  | :material-check-all: Final |
+| [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                     | ⚖️ Noether & ⚡ Shannon | :material-check: Accepted |
 

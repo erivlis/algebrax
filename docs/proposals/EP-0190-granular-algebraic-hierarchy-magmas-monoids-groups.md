@@ -2,7 +2,7 @@
 title: "EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices"
 description: "Decompose algebraic abstractions into Lean 4 Mathlib-aligned structural protocols for magmas, semigroups, monoids, groups, and lattices."
 icon: lucide/git-fork
-status: accepted
+status: final
 ---
 
 # EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices
@@ -14,7 +14,7 @@ status: accepted
 | **Author** | Eran Rivlis & Antigravity |
 | **Sponsor** | Council Framework |
 | **Delegate** | 🧩 Russell (Taxonomy) & 🔬 Popper (Verification) |
-| **Status** | Accepted |
+| **Status** | Final |
 | **Type** | Standards Track |
 | **Created** | 2026-10-25 |
 | **Updated** | 2026-10-25 |
@@ -78,44 +78,59 @@ from typing import Protocol, TypeVar, runtime_checkable
 
 V = TypeVar('V')
 
+
 @runtime_checkable
 class Magma(Protocol[V]):
     r"""Carrier equipped with a closed binary operation $\cdot: V \times V \to V$."""
+
     def mul(self, a: V, b: V) -> V: ...
+
 
 @runtime_checkable
 class Semigroup(Magma[V], Protocol[V]):
     r"""Associative magma: $(a \cdot b) \cdot c = a \cdot (b \cdot c)$."""
+
     is_associative: bool = True
+
 
 @runtime_checkable
 class Band(Semigroup[V], Protocol[V]):
     r"""Idempotent semigroup: $a \cdot a = a$."""
+
     is_idempotent: bool = True
+
 
 @runtime_checkable
 class Monoid(Semigroup[V], Protocol[V]):
     r"""Semigroup equipped with a multiplicative identity element $\mathbf{1}$."""
+
     @property
     def one(self) -> V: ...
+
 
 @runtime_checkable
 class CommMonoid(Monoid[V], Protocol[V]):
     r"""Monoid with commutative multiplication: $a \cdot b = b \cdot a$."""
+
     is_commutative: bool = True
+
 
 @runtime_checkable
 class Group(Monoid[V], Protocol[V]):
     r"""Monoid where every element possesses a two-sided inverse $a^{-1}$."""
+
     def inv(self, a: V) -> V: ...
     def div(self, a: V, b: V) -> V:
         """Quotient a / b = a * inv(b)."""
         return self.mul(a, self.inv(b))
 
+
 @runtime_checkable
 class CommGroup(Group[V], CommMonoid[V], Protocol[V]):
     r"""Abelian group satisfying commutativity: $a \cdot b = b \cdot a$."""
+
     ...
+
 
 AbelianGroup = CommGroup  # Canonical alias
 ```
@@ -129,18 +144,22 @@ Mirroring standard additive arithmetic (`add`, `zero`, `neg`, `sub`):
 class AddMagma(Protocol[V]):
     def add(self, a: V, b: V) -> V: ...
 
+
 @runtime_checkable
 class AddSemigroup(AddMagma[V], Protocol[V]):
     is_associative: bool = True
+
 
 @runtime_checkable
 class AddMonoid(AddSemigroup[V], Protocol[V]):
     @property
     def zero(self) -> V: ...
 
+
 @runtime_checkable
 class AddCommMonoid(AddMonoid[V], Protocol[V]):
     is_commutative: bool = True
+
 
 @runtime_checkable
 class AddGroup(AddMonoid[V], Protocol[V]):
@@ -148,9 +167,9 @@ class AddGroup(AddMonoid[V], Protocol[V]):
     def sub(self, a: V, b: V) -> V:
         return self.add(a, self.neg(b))
 
+
 @runtime_checkable
-class AddCommGroup(AddGroup[V], AddCommMonoid[V], Protocol[V]):
-    ...
+class AddCommGroup(AddGroup[V], AddCommMonoid[V], Protocol[V]): ...
 ```
 
 #### Domain-Agnostic Single-Operation Protocols
@@ -161,6 +180,7 @@ For operations without arithmetic connotations (e.g. string concatenation, token
 @runtime_checkable
 class OpMagma(Protocol[V]):
     def op(self, a: V, b: V) -> V: ...
+
 
 @runtime_checkable
 class OpMonoid(OpMagma[V], Protocol[V]):
@@ -176,34 +196,45 @@ Factored categorically into dual semilattices:
 @runtime_checkable
 class JoinSemilattice(Protocol[V]):
     """Carrier equipped with an associative, commutative, idempotent join (vee)."""
+
     def join(self, a: V, b: V) -> V: ...
+
 
 @runtime_checkable
 class MeetSemilattice(Protocol[V]):
     """Carrier equipped with an associative, commutative, idempotent meet (wedge)."""
+
     def meet(self, a: V, b: V) -> V: ...
+
 
 @runtime_checkable
 class Lattice(JoinSemilattice[V], MeetSemilattice[V], Protocol[V]):
     """Lattice satisfying absorption: a wedge (a vee b) = a and a vee (a wedge b) = a."""
+
     ...
+
 
 @runtime_checkable
 class BoundedLattice(Lattice[V], Protocol[V]):
     """Lattice equipped with bottom (bot) and top (top) bounds."""
+
     @property
     def bot(self) -> V: ...
     @property
     def top(self) -> V: ...
 
+
 @runtime_checkable
 class DistributiveLattice(Lattice[V], Protocol[V]):
     """Lattice satisfying distributivity of meet over join and join over meet."""
+
     ...
+
 
 @runtime_checkable
 class BooleanAlgebra(BoundedLattice[V], DistributiveLattice[V], Protocol[V]):
     """Complemented distributive lattice: a vee not(a) = top, a wedge not(a) = bot."""
+
     def complement(self, a: V) -> V: ...
 ```
 
@@ -213,9 +244,11 @@ class BooleanAlgebra(BoundedLattice[V], DistributiveLattice[V], Protocol[V]):
 G = TypeVar('G')
 X = TypeVar('X')
 
+
 @runtime_checkable
 class GroupAction(Protocol[G, X]):
     r"""Group G acting on a set X: $g \cdot (h \cdot x) = (g h) \cdot x$ and $1 \cdot x = x$."""
+
     def gact(self, g: G, x: X) -> X: ...
 ```
 
@@ -240,6 +273,7 @@ def verify_monoid_laws(monoid: Monoid[V], samples: Sequence[V]) -> dict[str, boo
 def verify_group_laws(group: Group[V], samples: Sequence[V]) -> dict[str, bool]: ...
 def verify_lattice_laws(lattice: Lattice[V], samples: Sequence[V]) -> dict[str, bool]: ...
 def verify_boolean_algebra_laws(ba: BooleanAlgebra[V], samples: Sequence[V]) -> dict[str, bool]: ...
+
 
 # Additive duals
 def verify_add_monoid_laws(monoid: AddMonoid[V], samples: Sequence[V]) -> dict[str, bool]: ...
