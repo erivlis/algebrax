@@ -708,3 +708,102 @@ def test_persistent_homology_vietoris_rips_and_bottleneck_stability() -> None:
     d_ac = bottleneck_distance(dgm_a, dgm_c, dimension=1)
     assert math.isclose(d_ab, 0.3, rel_tol=1e-12, abs_tol=1e-12)
     assert d_ac <= d_ab + d_bc + 1e-12
+
+
+def test_cohomology_cup_cap_ring_and_dual_persistent_cohomology() -> None:
+    """Verify exact Q cup/cap products, graded Leibniz law, dual persistent cohomology, and sheaf Euler-Poincare."""
+    from fractions import Fraction
+
+    from algebrax.semiring import StandardSemiring
+    from algebrax.topology import (
+        CellularSheaf,
+        FilteredSimplicialComplex,
+        cap_product,
+        cup_product,
+        persistent_cohomology,
+        persistent_homology,
+    )
+
+    q_sr = StandardSemiring(Fraction)
+
+    # 1. Exact rational associativity, graded Leibniz rule, and Kronecker cup-cap duality on a 3-simplex
+    tet = SimplicialComplex([(0, 1, 2, 3)])
+    d1 = {r: {c: Fraction(int(v)) for c, v in row.items()} for r, row in coboundary(tet, 1).items()}
+    d2 = {r: {c: Fraction(int(v)) for c, v in row.items()} for r, row in coboundary(tet, 2).items()}
+
+    alpha = Cochain(
+        {(0, 1): Fraction(2, 3), (1, 2): Fraction(-3, 5), (0, 2): Fraction(1, 2), (2, 3): Fraction(4, 7)},
+        tol=0.0,
+    )
+    beta = Cochain(
+        {(0, 1): Fraction(1, 4), (1, 2): Fraction(5, 6), (2, 3): Fraction(-2, 3), (1, 3): Fraction(3, 8)},
+        tol=0.0,
+    )
+    gamma = Cochain({(2, 3): Fraction(7, 5), (1, 3): Fraction(-1, 3)}, tol=0.0)
+
+    # Exact associativity: (alpha cup beta) cup gamma == alpha cup (beta cup gamma)
+    ab = cup_product(alpha, beta, semiring=q_sr, tol=0.0)
+    bc = cup_product(beta, gamma, semiring=q_sr, tol=0.0)
+    assert cup_product(ab, gamma, semiring=q_sr, tol=0.0) == cup_product(alpha, bc, semiring=q_sr, tol=0.0)
+
+    # Exact graded Leibniz rule: d_2(alpha cup beta) == (d_1 alpha) cup beta - alpha cup (d_1 beta)
+    d_alpha = Cochain(mat_vec(d1, alpha, semiring=q_sr), degree=2, tol=0.0)
+    d_beta = Cochain(mat_vec(d1, beta, semiring=q_sr), degree=2, tol=0.0)
+    lhs_leibniz = Cochain(mat_vec(d2, ab, semiring=q_sr), degree=3, tol=0.0)
+    rhs_leibniz = cup_product(d_alpha, beta, semiring=q_sr, tol=0.0) - cup_product(
+        alpha, d_beta, semiring=q_sr, tol=0.0
+    )
+    assert lhs_leibniz == rhs_leibniz
+
+    # Exact Kronecker cup-cap duality: <beta, c cap alpha> == <alpha cup beta, c>
+    chain_2 = {(0, 1, 2): Fraction(3, 2), (1, 2, 3): Fraction(-5, 4), (0, 2, 3): Fraction(2, 5)}
+    capped = cap_product(chain_2, alpha, semiring=q_sr, tol=0.0)
+    lhs_pair = sum((beta.get(s, Fraction(0)) * val for s, val in capped.items()), start=Fraction(0))
+    rhs_pair = sum((ab.get(s, Fraction(0)) * val for s, val in chain_2.items()), start=Fraction(0))
+    assert lhs_pair == rhs_pair
+
+    # 2. Cohomology ring distinguishes Torus T^2 from Wedge S^2 v S^1 v S^1 despite identical Betti numbers!
+    # Both spaces have beta = {0: 1, 1: 2, 2: 1}.
+    wedge = SimplicialComplex(
+        [
+            # Hollow tetrahedron S^2 on {0, 1, 2, 3}
+            (0, 1, 2),
+            (0, 1, 3),
+            (0, 2, 3),
+            (1, 2, 3),
+            # First S^1 handle on {0, 4, 5}
+            (0, 4),
+            (4, 5),
+            (0, 5),
+            # Second S^1 handle on {0, 6, 7}
+            (0, 6),
+            (6, 7),
+            (0, 7),
+        ]
+    )
+    assert wedge.betti_numbers(max_k=2) == {0: 1, 1: 2, 2: 1}
+    # On S^2 v S^1 v S^1, the two H^1 loop cocycles live on disjoint handles without any 2-simplex spanning both
+    w_loop1 = Cochain({(4, 5): 1.0})
+    w_loop2 = Cochain({(6, 7): 1.0})
+    assert len(cup_product(w_loop1, w_loop2, complex=wedge)) == 0
+
+    # 3. Primal-Dual Persistent Homology == Persistent Cohomology & Sheaf Euler-Poincare
+    fsc = FilteredSimplicialComplex(
+        [
+            ((0, 1, 2), 1.0),
+            ((0, 1, 3), 1.5),
+            ((0, 2, 3), 2.0),
+            ((1, 2, 3), 2.5),
+            ((0, 1, 2, 3), 4.0),
+        ]
+    )
+    bars_h = persistent_homology(fsc, max_k=2)
+    bars_c, cocycles = persistent_cohomology(fsc, max_k=2)
+    assert bars_c == bars_h
+    assert len(cocycles) == len(bars_h)
+
+    sheaf = CellularSheaf()
+    sheaf.add_edge(0, 1, dim=2, rho_u=[[1.0, 0.0], [0.0, 1.0]], rho_v=[[1.0, 0.0], [0.0, 1.0]])
+    sheaf.add_edge(1, 2, dim=2, rho_u=[[1.0, 0.0], [0.0, 1.0]], rho_v=[[1.0, 0.0], [0.0, 1.0]])
+    sheaf.add_edge(0, 2, dim=2, rho_u=[[-1.0, 0.0], [0.0, -1.0]], rho_v=[[1.0, 0.0], [0.0, 1.0]])
+    assert sheaf.euler_characteristic() == sheaf.global_sections_dimension() - sheaf.first_cohomology_dimension()
