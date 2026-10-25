@@ -744,3 +744,133 @@ def test_persistence_entropy_and_bottleneck_distance():
     lower_only_vr = FilteredSimplicialComplex.from_vietoris_rips({0: {}, 2: {0: 1.5}, 5: {}}, max_dim=2)
     assert lower_only_vr[(0, 2)] == pytest.approx(1.5)
     assert (0, 5) not in lower_only_vr
+
+
+def test_topology_namespace_and_cochain_cup_cap_products():
+    import pytest
+
+    import algebrax as ax
+    from algebrax.matrix import mat_vec
+    from algebrax.semiring import TropicalSemiring
+    from algebrax.topology import (
+        Cochain,
+        SimplicialComplex,
+        cap_product,
+        coboundary,
+        cohomology,
+        cup_product,
+        dec,
+        homology,
+        persistence,
+        sheaf,
+    )
+
+    # 1. Verify unified algebrax.topology namespace and submodule exports
+    assert ax.topology.SimplicialComplex is SimplicialComplex
+    assert homology.SimplicialComplex is SimplicialComplex
+    assert cohomology.Cochain is Cochain
+    assert persistence.FilteredSimplicialComplex is ax.homology.FilteredSimplicialComplex
+    assert dec.helmholtz_hodge_decomposition is ax.homology.helmholtz_hodge_decomposition
+    assert sheaf.CellularSheaf is ax.homology.CellularSheaf
+
+    # 2. Cup product on a 3-simplex (0, 1, 2, 3): associativity and graded Leibniz rule
+    tet = SimplicialComplex([(0, 1, 2, 3)])
+    d0 = coboundary(tet, 0)
+    d1 = coboundary(tet, 1)
+    d2 = coboundary(tet, 2)
+
+    f0 = Cochain.from_nodes({0: 2.0, 1: -1.0, 2: 3.0, 3: 0.5})
+    alpha = Cochain({(0, 1): 2.0, (1, 2): 3.0, (0, 2): -1.0, (2, 3): 4.0})
+    beta = Cochain({(0, 1): 1.0, (1, 2): 2.0, (2, 3): -2.0, (1, 3): 0.5})
+    gamma = Cochain({(2, 3): 5.0})
+
+    # Syntactic sugar: alpha ^ beta == alpha.cup(beta) == cup_product(alpha, beta)
+    ab = alpha ^ beta
+    assert ab == alpha.cup(beta)
+    assert ab == cup_product(alpha, beta, complex=tet)
+    assert ab[(0, 1, 2)] == pytest.approx(2.0 * 2.0)  # alpha(0,1) * beta(1,2) = 4.0
+    assert ab[(1, 2, 3)] == pytest.approx(3.0 * (-2.0))  # alpha(1,2) * beta(2,3) = -6.0
+
+    # Associativity: (alpha ^ beta) ^ gamma == alpha ^ (beta ^ gamma)
+    lhs_assoc = (alpha ^ beta) ^ gamma
+    rhs_assoc = alpha ^ (beta ^ gamma)
+    assert lhs_assoc == rhs_assoc
+    assert lhs_assoc[(0, 1, 2, 3)] == pytest.approx(2.0 * 2.0 * 5.0)
+
+    # Semiring polymorphism over TropicalSemiring (min, +)
+    trop_cup = cup_product(alpha, beta, semiring=TropicalSemiring)
+    assert trop_cup[(0, 1, 2)] == pytest.approx(2.0 + 2.0)
+
+    # Graded Leibniz rule for p=0, q=1: d_1(f0 ^ alpha) == (d_0 f0) ^ alpha + f0 ^ (d_1 alpha)
+    df0 = Cochain(mat_vec(d0, f0), degree=1)
+    d_alpha = Cochain(mat_vec(d1, alpha), degree=2)
+    d_beta = Cochain(mat_vec(d1, beta), degree=2)
+    lhs_leibniz_01 = Cochain(mat_vec(d1, f0 ^ alpha), degree=2)
+    rhs_leibniz_01 = (df0 ^ alpha) + (f0 ^ d_alpha)
+    assert lhs_leibniz_01 == rhs_leibniz_01
+
+    # Graded Leibniz rule for p=1, q=1: d_2(alpha ^ beta) == (d_1 alpha) ^ beta - alpha ^ (d_1 beta)
+    lhs_leibniz_11 = Cochain(mat_vec(d2, alpha ^ beta), degree=3)
+    rhs_leibniz_11 = (d_alpha ^ beta) - (alpha ^ d_beta)
+    assert lhs_leibniz_11 == rhs_leibniz_11
+
+    # 3. Cap product and Kronecker cup-cap duality: <psi, c cap phi> == <phi cup psi, c>
+    chain_2 = {(0, 1, 2): 3.0, (3, 2, 1): 2.0}  # note reversed orientation on (3, 2, 1) -> sign -1
+    capped_1 = cap_product(chain_2, alpha)
+    assert beta.eval(capped_1) == pytest.approx((alpha ^ beta).eval(chain_2))
+
+    # Edge cases for cup_product and cap_product
+    assert cup_product(Cochain(), alpha) == Cochain()
+    assert cap_product({}, alpha) == {}
+    assert cap_product({(0,): 1.0, (0, 0, 1): 2.0}, alpha) == {}
+    assert alpha.__xor__('invalid') is NotImplemented  # type: ignore[arg-type]
+
+
+def test_persistent_cohomology_and_sheaf_first_cohomology():
+    import math
+
+    import pytest
+
+    from algebrax.topology import (
+        CellularSheaf,
+        FilteredSimplicialComplex,
+        persistent_cohomology,
+        persistent_homology,
+    )
+
+    # 1. Dual persistent cohomology matches persistent homology and produces valid cocycles
+    s2 = math.sqrt(2.0)
+    dist_matrix = {
+        0: {1: 1.0, 3: 1.0, 2: s2},
+        1: {0: 1.0, 2: 1.0, 3: s2},
+        2: {1: 1.0, 3: 1.0, 0: s2},
+        3: {0: 1.0, 2: 1.0, 1: s2},
+    }
+    fsc = FilteredSimplicialComplex.from_vietoris_rips(dist_matrix, max_dim=2)
+    hom_bars = persistent_homology(fsc, max_k=1)
+    cohom_bars, cocycles = fsc.persistent_cohomology(max_k=1)
+
+    assert cohom_bars == hom_bars
+    assert len(cocycles) == len(cohom_bars)
+    for iv in cohom_bars:
+        assert iv in cocycles
+        assert len(cocycles[iv]) >= 1
+
+    assert persistent_cohomology(FilteredSimplicialComplex(), max_k=1) == ([], {})
+    with pytest.raises(ValueError, match='non-negative'):
+        persistent_cohomology(fsc, max_k=-1)
+
+    # 2. CellularSheaf H^1 and Euler-Poincare conservation: chi = dim H^0 - dim H^1
+    cycle_graph = {0: {1: 1.0, 2: 1.0}, 1: {0: 1.0, 2: 1.0}, 2: {0: 1.0, 1: 1.0}}
+    sheaf_cycle = CellularSheaf.constant(cycle_graph, stalk_dim=1)
+    assert sheaf_cycle.global_sections_dimension() == 1
+    assert sheaf_cycle.first_cohomology_dimension() == 1
+    assert sheaf_cycle.euler_characteristic() == 0
+    assert (
+        sheaf_cycle.euler_characteristic()
+        == sheaf_cycle.global_sections_dimension() - sheaf_cycle.first_cohomology_dimension()
+    )
+
+    empty_sheaf = CellularSheaf()
+    assert empty_sheaf.first_cohomology_dimension() == 0
+    assert empty_sheaf.euler_characteristic() == 0
