@@ -2,7 +2,7 @@
 title: "EP-0165: Unified Topology Namespace, Cochain Ring Products & Persistent Cohomology"
 description: "Refactors monolithic homology.py into a modular algebrax.topology package and introduces the Alexander-Whitney cup/cap products, dual persistent cohomology, and first sheaf cohomology H^1."
 icon: lucide/layers
-status: draft
+status: final
 ---
 
 # EP-0165: Unified Topology Namespace, Cochain Ring Products & Persistent Cohomology
@@ -14,7 +14,7 @@ status: draft
 | **Author**   | Eran Rivlis & Antigravity (The Council)                                                                                                     |
 | **Sponsor**  | The Council                                                                                                                                 |
 | **Delegate** | 🧩 Bertrand Russell (Taxonomy), ⚖️ Emmy Noether (Duality), ⚡ Claude Shannon (Efficiency), 🤝 The Steward (Ergonomics) & 💡 Richard Feynman |
-| **Status**   | Draft                                                                                                                                       |
+| **Status**   | Final                                                                                                                                       |
 | **Type**     | Standards Track                                                                                                                             |
 | **Created**  | 2026-10-25                                                                                                                                  |
 | **Updated**  | 2026-10-25                                                                                                                                  |
@@ -142,12 +142,12 @@ src/algebrax/topology/
 
 ```python
 def cup_product(
-        alpha: Cochain[K, V] | Mapping[tuple[K, ...], V],
-        beta: Cochain[K, V] | Mapping[tuple[K, ...], V],
-        *,
-        complex: SimplicialComplex | None = None,
-        semiring: Semiring[V] | type[Semiring[V]] | None = None,
-        tol: float = 1e-14,
+    alpha: Cochain[K, V] | Mapping[tuple[K, ...], V],
+    beta: Cochain[K, V] | Mapping[tuple[K, ...], V],
+    *,
+    complex: SimplicialComplex | None = None,
+    semiring: Semiring[V] | type[Semiring[V]] | None = None,
+    tol: float = 1e-14,
 ) -> Cochain[K, V]:
     r"""Compute the Alexander-Whitney cup product $\alpha \smile \beta \in C^{p+q}(K; \mathcal{S})$.
 
@@ -159,11 +159,11 @@ def cup_product(
 
 
 def cap_product(
-        chain: Mapping[tuple[K, ...], V],
-        cochain: Cochain[K, V] | Mapping[tuple[K, ...], V],
-        *,
-        semiring: Semiring[V] | type[Semiring[V]] | None = None,
-        tol: float = 1e-14,
+    chain: Mapping[tuple[K, ...], V],
+    cochain: Cochain[K, V] | Mapping[tuple[K, ...], V],
+    *,
+    semiring: Semiring[V] | type[Semiring[V]] | None = None,
+    tol: float = 1e-14,
 ) -> dict[tuple[K, ...], V]:
     r"""Compute the Alexander-Whitney cap product $c \frown \phi \in C_{n-p}(K; \mathcal{S})$.
 
@@ -177,9 +177,9 @@ def cap_product(
 
 ```python
 def persistent_cohomology(
-        filtration: FilteredSimplicialComplex,
-        max_k: int = 2,
-        include_zero_persistence: bool = False,
+    filtration: FilteredSimplicialComplex,
+    max_k: int = 2,
+    include_zero_persistence: bool = False,
 ) -> tuple[list[PersistenceInterval], dict[PersistenceInterval, set[tuple[int, ...]]]]:
     r"""Compute persistent cohomology over $\mathbb{Z}_2$ via reverse-filtration coboundary reduction.
 
@@ -230,12 +230,12 @@ class CellularSheaf(Generic[K]):
 
 ```python
 def cup_product(
-        alpha: Cochain[K, V] | Mapping[tuple[K, ...], V],
-        beta: Cochain[K, V] | Mapping[tuple[K, ...], V],
-        *,
-        complex: SimplicialComplex | None = None,
-        semiring: Semiring[V] | type[Semiring[V]] | None = None,
-        tol: float = 1e-14,
+    alpha: Cochain[K, V] | Mapping[tuple[K, ...], V],
+    beta: Cochain[K, V] | Mapping[tuple[K, ...], V],
+    *,
+    complex: SimplicialComplex | None = None,
+    semiring: Semiring[V] | type[Semiring[V]] | None = None,
+    tol: float = 1e-14,
 ) -> Cochain[K, V]:
     s_inst = Semiring.normalize(semiring)
     c_a = alpha if isinstance(alpha, Cochain) else Cochain(alpha, tol=tol)
@@ -254,16 +254,14 @@ def cup_product(
     for s_a, val_a in c_a.items():
         pivot_v = s_a[-1]
         for s_b, val_b in beta_by_head.get(pivot_v, ()):
+            # Because s_a = (v_0 < ... < v_p) and s_b = (v_p < ... < v_{p+q}),
+            # merged = (v_0 < ... < v_{p+q}) is strictly increasing with sign +1.
             merged = s_a + s_b[1:]
-            if len(set(merged)) != p + q + 1:
-                continue
-            canon, sign = _canonicalize_simplex(merged, oriented=True)
-            if sign == 0 or (allowed is not None and canon not in allowed):
+            if allowed is not None and merged not in allowed:
                 continue
             prod = s_inst.mul(val_a, val_b)
-            if sign == -1 and isinstance(prod, (int, float, complex)):
-                prod = -prod  # type: ignore[assignment]
-            out[canon] = s_inst.add(out[canon], prod) if canon in out else prod
+            if not s_inst.is_zero(prod):
+                out[merged] = s_inst.add(out[merged], prod) if merged in out else prod
 
     return Cochain(out, degree=p + q, oriented=c_a.oriented and c_b.oriented, tol=tol)
 ```
@@ -287,10 +285,15 @@ def cup_product(
 
 ## Open Questions
 
-- [ ] Should `Cochain` also overload the `@` or `^` operator as syntactic sugar for `cup_product(a, b)`?
+- [x] Should `Cochain` also overload the `@` or `^` operator as syntactic sugar for `cup_product(a, b)`? *(Resolved:
+  Implemented both `Cochain.cup(other, ...)` and `Cochain.__xor__` (`alpha ^ beta`) as syntactic sugar for
+  `cup_product`.)*
 
 ---
 
 ## Change Log
 
-* **2026-10-25:** Initial Draft authored by Eran Rivlis & Antigravity.
+* **2026-10-25:** Initial Draft authored by Eran Rivlis & Antigravity, reviewed by the Council, and implemented across
+  `src/algebrax/topology/` (`_core`, `homology`, `cohomology`, `persistence`, `dec`, `sheaf`) and `src/algebrax/homology.py`.
+  Transitioned status to `Final`.
+

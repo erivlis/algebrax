@@ -97,7 +97,7 @@ expanding AlgebraX into discrete differential geometry, continuous symmetries, a
 | [EP-0162](proposals/EP-0162-persistent-homology-and-topological-barcodes.md)       | Persistent Homology, Simplicial Filtrations & Topological Barcodes        | 🔬 Popper, 🧭 Explorer, ⚡ Shannon & 💡 Feynman | :material-check-all: Final |
 | [EP-0163](proposals/EP-0163-lie-algebras-and-bch-dynamics.md)                      | Lie Algebras, Root Systems, and Baker–Campbell–Hausdorff Dynamics         | ⚖️ Noether, ⚡ Shannon & 🛡️ Golem               | :material-check-all: Final |
 | [EP-0164](proposals/EP-0164-root-systems-and-chevalley-bases.md)                   | Root Systems, Weyl Groups & Chevalley-Serre Simple Lie Algebras           | ⚖️ Noether, ⚡ Shannon & 🧩 Russell             | :material-check-all: Final |
-| [EP-0165](proposals/EP-0165-topology-namespace-and-cohomology-ring.md)             | Unified Topology Namespace, Cochain Ring Products & Persistent Cohomology | 🧩 Russell, ⚖️ Noether, ⚡ Shannon & 🤝 Steward |  :material-pencil: Draft   |
+| [EP-0165](proposals/EP-0165-topology-namespace-and-cohomology-ring.md)             | Unified Topology Namespace, Cochain Ring Products & Persistent Cohomology | 🧩 Russell, ⚖️ Noether, ⚡ Shannon & 🤝 Steward | :material-check-all: Final |
 
 ---
 
