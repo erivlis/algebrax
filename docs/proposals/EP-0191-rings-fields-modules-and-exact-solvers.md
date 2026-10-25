@@ -63,9 +63,11 @@ from algebrax.algebra._monoid import AddCommMonoid, Monoid
 
 V = TypeVar('V')
 
+
 @runtime_checkable
 class Semiring(AddCommMonoid[V], Monoid[V], Protocol[V]):
     r"""A mathematical Semiring $(S, \oplus, \otimes, \mathbf{0}, \mathbf{1})$."""
+
     def nsum(self, a: V, n: int) -> V: ...
     def power(self, a: V, n: int) -> V: ...
     def star(self, a: V) -> V: ...
@@ -77,22 +79,29 @@ class Semiring(AddCommMonoid[V], Monoid[V], Protocol[V]):
 from algebrax.algebra._magma import Magma
 from algebrax.algebra._group import AddCommGroup
 
+
 @runtime_checkable
 class NonAssocRing(AddCommGroup[V], Magma[V], Protocol[V]):
     r"""Ring with possibly non-associative multiplication satisfying distributivity (e.g. Lie algebras)."""
+
     ...
+
 
 @runtime_checkable
 class Ring(NonAssocRing[V], Monoid[V], Protocol[V]):
     r"""An associative unital ring $(R, +, \cdot, 0, 1)$ with additive negation."""
+
     def neg(self, a: V) -> V: ...
     def sub(self, a: V, b: V) -> V:
         return self.add(a, self.neg(b))
 
+
 @runtime_checkable
 class CommRing(Ring[V], Protocol[V]):
     r"""A ring with commutative multiplication: $a \cdot b = b \cdot a$."""
+
     is_commutative: bool = True
+
 
 CommutativeRing = CommRing
 ```
@@ -105,15 +114,19 @@ CommutativeRing = CommRing
 @runtime_checkable
 class DivisionRing(Ring[V], Protocol[V]):
     r"""A non-zero ring where every non-zero element has a multiplicative inverse."""
+
     def inv(self, a: V) -> V: ...
     def div(self, a: V, b: V) -> V:
         return self.mul(a, self.inv(b))
+
     def is_zero(self, a: V) -> bool:
         return a == self.zero
+
 
 @runtime_checkable
 class Field(DivisionRing[V], CommRing[V], Protocol[V]):
     r"""A commutative division ring $(F, +, \cdot, 0, 1, ^{-1})$ (e.g. $\mathbb{Q}, \mathbb{R}, \mathbb{C}, \mathbb{F}_p$)."""
+
     ...
 ```
 
@@ -125,29 +138,39 @@ class Field(DivisionRing[V], CommRing[V], Protocol[V]):
 R = TypeVar('R')
 M = TypeVar('M')
 
+
 @runtime_checkable
 class Semimodule(AddCommMonoid[M], Protocol[R, M]):
     r"""A commutative additive monoid M with scalar action by semiring R: $R \times M \to M$."""
+
     def smul(self, r: R, m: M) -> M: ...
+
 
 @runtime_checkable
 class Module(Semimodule[R, M], AddCommGroup[M], Protocol[R, M]):
     r"""An abelian group M with scalar action by ring R."""
+
     ...
+
 
 @runtime_checkable
 class VectorSpace(Module[R, M], Protocol[R, M]):
     r"""A module over a field R."""
+
     ...
+
 
 @runtime_checkable
 class NonAssocAlgebra(Module[R, M], NonAssocRing[M], Protocol[R, M]):
     r"""A module M that is also a non-associative ring satisfying scalar bilinearity."""
+
     ...
+
 
 @runtime_checkable
 class Algebra(NonAssocAlgebra[R, M], Ring[M], Protocol[R, M]):
     r"""An associative ring M that is also an R-module: $r \cdot (a \cdot b) = (r \cdot a) \cdot b = a \cdot (r \cdot b)$."""
+
     ...
 ```
 
@@ -166,7 +189,9 @@ In `algebrax.matrix.decompose` and `solve`:
 ```python
 class SingularMatrixError(ArithmeticError, ValueError):
     """Raised when a matrix is singular or has no unique inverse/decomposition."""
+
     pass
+
 
 def lu_decompose(
     matrix: SparseMatrix[K, V],
@@ -183,6 +208,7 @@ def lu_decompose(
     - Decoupled singularity: checks not field.is_zero(pivot), never corrupting exact fractions.
     """
     ...
+
 
 def solve_triangular(
     matrix: SparseMatrix[K, V],
