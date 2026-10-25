@@ -2,7 +2,7 @@
 title: "EP-0162: Persistent Homology, Simplicial Filtrations & Topological Barcodes"
 description: "Extends simplicial homology from static complexes to multiscale filtrations, persistence reduction over Z_2, birth-death intervals, Betti curves, and bottleneck distances."
 icon: lucide/bar-chart-horizontal
-status: draft
+status: final
 ---
 
 # EP-0162: Persistent Homology, Simplicial Filtrations & Topological Barcodes
@@ -14,10 +14,10 @@ status: draft
 | **Author**   | Eran Rivlis & Antigravity (The Explorer)                                                                                    |
 | **Sponsor**  | The Council                                                                                                                 |
 | **Delegate** | 🔬 Karl Popper (Falsifiability), 🧭 The Explorer (Curiosity), ⚡ Claude Shannon (Efficiency) & 💡 Richard Feynman (Clarity) |
-| **Status**   | Draft                                                                                                                       |
+| **Status**   | Final                                                                                                                       |
 | **Type**     | Standards Track                                                                                                             |
 | **Created**  | 2026-10-16                                                                                                                  |
-| **Updated**  | 2026-10-16                                                                                                                  |
+| **Updated**  | 2026-10-25                                                                                                                  |
 | **Replaces** | None                                                                                                                        |
 
 ---
@@ -273,11 +273,16 @@ def _reduce_filtration_columns(
 
 ## Open Questions
 
-- [ ] Should `bottleneck_distance` use a pure-Python Hopcroft–Karp bipartite matching bisection over candidate
-  distances, or also expose the 1-Wasserstein persistence distance?
+- [x] Should `bottleneck_distance` use a pure-Python Hopcroft–Karp bipartite matching bisection over candidate
+  distances, or also expose the 1-Wasserstein persistence distance? *(Resolved: Implemented exact Hopcroft–Karp
+  bisection over candidate $L_\infty$ distances on the $(m+n) \times (m+n)$ diagonal-augmented bipartite graph.)*
 
 ---
 
 ## Change Log
 
 * **2026-10-16:** Initial Draft authored by Eran Rivlis & Antigravity, completing the Phase 4 roadmap from `EXP-0001`.
+* **2026-10-25:** Implemented `PersistenceInterval`, `FilteredSimplicialComplex`, `persistent_homology` (with
+  Chen–Kerber clearing optimization), `betti_curve`, `persistence_entropy`, and `bottleneck_distance` in
+  `algebrax.homology`. Transitioned status to `Final`.
+
