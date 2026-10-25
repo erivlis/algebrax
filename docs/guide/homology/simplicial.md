@@ -65,10 +65,37 @@ print(h1_bars[0])  # PersistenceInterval(dimension=1, birth=1.0, death=1.4142...
 # Evaluate multiscale Betti curves, persistence entropy, and bottleneck distance
 curve_b1 = ax.homology.betti_curve(intervals, thresholds=[0.5, 1.2, 1.6], dimension=1)
 entropy = ax.homology.persistence_entropy(intervals)
+
+# Or compute dual persistent cohomology along with representative Z_2 cocycles
+cohom_bars, cocycles = fsc.persistent_cohomology(max_k=1)
+```
+
+## Cochain Ring Products (`cup_product` & `cap_product`)
+
+Under the unified `algebrax.topology` namespace (`homology`, `cohomology`, `persistence`, `dec`, `sheaf`), discrete $k$-forms (`Cochain`) form a **graded associative ring** via the Alexander–Whitney **cup product** ($\smile$, or `^`) and pair with homology chains via the **cap product** ($\frown$):
+
+$$(\alpha \smile \beta)(v_0, \dots, v_{p+q}) = \alpha(v_0, \dots, v_p) \otimes_{\mathcal{S}} \beta(v_p, \dots, v_{p+q})$$
+
+$$d(\alpha \smile \beta) = (d\alpha) \smile \beta + (-1)^p \, \alpha \smile (d\beta), \qquad \langle \psi, c \frown \phi \rangle = \langle \phi \smile \psi, c \rangle$$
+
+```python
+import algebrax as ax
+
+tet = ax.topology.SimplicialComplex([(0, 1, 2, 3)])
+alpha = ax.topology.Cochain({(0, 1): 2.0, (1, 2): 3.0})
+beta = ax.topology.Cochain({(1, 2): 4.0, (2, 3): -1.0})
+
+# Cup product (via ^ operator, .cup(), or cup_product)
+two_form = alpha ^ beta  # Cochain({(0, 1, 2): 8.0, (1, 2, 3): -3.0}, degree=2)
+
+# Cap product contracting a 2-chain with a 1-cochain into a 1-chain
+chain_2 = {(0, 1, 2): 5.0}
+one_chain = ax.topology.cap_product(chain_2, alpha)  # {(1, 2): 10.0}
 ```
 
 ## Related Recipes & Applications
 
 * [Topological Homology & Betti Barcodes](../../recipes.md) — Simplicial verification and Betti barcodes.
 * [Topological Data Analysis](../../recipes.md) — Persistent homology over point clouds.
+
 
