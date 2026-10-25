@@ -40,9 +40,12 @@ nav = [
             "guide/tensor/trie.md",
             "guide/tensor/einsum.md",
         ] },
-        { "Topology & Homology" = [
-            "guide/homology/simplicial.md",
-            "guide/homology/chain_complex.md",
+        { "Topology" = [
+            "guide/topology/homology.md",
+            "guide/topology/cohomology.md",
+            "guide/topology/persistence.md",
+            "guide/topology/dec.md",
+            "guide/topology/sheaf.md",
         ] },
         { "Transforms & Analysis" = [
             "guide/transforms/spectral.md",

@@ -217,8 +217,10 @@ class CellularSheaf(Generic[K]):
 
 ## How to Teach This / Documentation Plan
 
-1. **User Guide**: Update `docs/guide/homology/simplicial.md` to showcase `algebrax.topology`, the Alexander–Whitney
-   `cup_product` distinguishing $T^2$ from $S^2 \vee S^1 \vee S^1$, `cap_product` duality, and `persistent_cohomology`.
+1. **User Guide**: Restructure topology documentation under `docs/guide/topology/` into dedicated sub-domain
+   guides: `homology.md` (chain complexes & Betti numbers), `cohomology.md` (cochain ring products & cup/cap duality),
+   `persistence.md` (filtrations, barcodes & bottleneck stability), `dec.md` (DEC & Hodge decomposition), and
+   `sheaf.md` (cellular sheaves, $H^0$, $H^1$ obstructions & Euler characteristic).
 2. **Verification Matrix**: Register `cup_product` (graded Leibniz rule & associativity), `cap_product` (Kronecker
    duality $\langle \psi, c \frown \phi \rangle = \langle \phi \smile \psi, c \rangle$), `persistent_cohomology`
    (barcode parity with `persistent_homology` and cocycle condition $d\alpha = 0$), and sheaf Euler–Poincaré
