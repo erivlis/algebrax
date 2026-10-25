@@ -118,3 +118,17 @@ metamorphic invariants, Schwartz–Zippel PIT, and certified solvers.
 | [EP-0185](proposals/EP-0185-axiomatic-statistical-sheaf-mms-verification.md)           | Axiomatic Property, Streaming Moment & Manufactured Solution Verification (Semirings & Sheaves)      | 🔬 Popper, ⚖️ Noether, 🧩 Russell & ⚡ Shannon            | :material-check-all: Final |
 | [EP-0186](proposals/EP-0186-certificates-pit-and-smt-formal-verification.md)           | Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & SMT Formal Verification (`Z3` Oracle)      | 🛡️ Golem, ⚡ Shannon, 🔬 Popper & 🧭 Explorer             | :material-check-all: Final |
 
+---
+
+## Phase 6 — Pure Algebraic Hierarchy
+
+Proposals stemming from the **Pure Algebraic Hierarchy Exploration**
+([EXP-0004](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0004-pure-algebraic-hierarchy/README.md)),
+establishing Lean 4 Mathlib-aligned granular structural protocols, sub-semiring abstractions (magmas, monoids, groups, lattices),
+super-semiring rings & fields, and exact polymorphic matrix solvers.
+
+| EP                                                                                  | Title                                                             | Council Sponsor         |         Status          |
+|:------------------------------------------------------------------------------------|:------------------------------------------------------------------|:------------------------|:-----------------------:|
+| [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices | 🧩 Russell & 🔬 Popper  | :material-pencil: Draft |
+| [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                     | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
+
