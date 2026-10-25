@@ -82,6 +82,11 @@ The design aligns with the 8 Pillars of The Council Framework (`PRINCIPLES.md`):
 - **Monotonicity Enforcement**: `FilteredSimplicialComplex.add_simplex(simplex, filtration_value)` automatically
   enforces $f (\tau) \le f (\sigma)$ for all faces $\tau \subset \sigma$ by
   taking $f (\tau) = \min (f_{\text{existing}} (\tau), f (\sigma))$.
+- **Dioid & Ultrametric Semiring Duality**: Filtration construction is governed by idempotent dioid operations:
+  subcomplex face propagation is tropical addition $f(\tau) \leftarrow f(\tau) \oplus_{\text{Tropical}} f(\sigma)$,
+  lower-star filtration is arctic evaluation $f(\sigma) = \bigoplus_{v \in \sigma}^{\text{Arctic}} h(v)$, and in
+  dimension $0$, the Vietoris–Rips $H_0$ death thresholds equal the minimax ultrametric Kleene closure
+  $d_{\text{merge}}(u, v) = \min_{P: u \leadsto v} \max_{e \in P} w(e)$ (Minimum Spanning Tree edge weights).
 
 ### 3. Efficiency (Shannon)
 
@@ -268,6 +273,17 @@ def _reduce_filtration_columns(
       bitset/set symmetric difference `^=` gives an order-of-magnitude speedup over dictionary field
       arithmetic. $\mathbb{F}_p$ reduction can be added later as an optional parameter if needed for torsion detection
       (e.g. Klein bottle).
+2. **Parameterizing `PersistenceInterval` Birth & Death Over an Arbitrary `Semiring[T]`**:
+    - *Considered*: Making `PersistenceInterval` generic over `Semiring[T]` for `birth: T` and `death: T`.
+    - *Rejected*: Persistent homology has two distinct algebraic slots—the **filtration scale domain** $(T, \le)$ and
+      the **chain coefficient field** $\mathbb{F}$. An arbitrary semiring $T$ lacks both:
+        1. **A Total Order ($\le$)**: Single-interval barcodes $[b_i, d_i)$ exist if and only if the filtration is
+           1-dimensional (totally ordered), making the graded module ring $\mathbb{F}[t]$ a Principal Ideal Domain
+           (PID) by the Zomorodian–Carlsson Structure Theorem. Over partially ordered semirings (e.g., $\mathbb{R}^2$ or
+           `ParetoSemiring`), persistence becomes **multiparameter persistence** over $\mathbb{F}[t_1, t_2]$ (not a
+           PID), where interval barcodes provably do not exist.
+        2. **Metric Difference ($d - b$)**: Computing `.persistence = death - birth`, `persistence_entropy`, and
+           `bottleneck_distance` requires an ordered metric/group difference, which general semirings do not possess.
 
 ---
 
@@ -284,5 +300,6 @@ def _reduce_filtration_columns(
 * **2026-10-16:** Initial Draft authored by Eran Rivlis & Antigravity, completing the Phase 4 roadmap from `EXP-0001`.
 * **2026-10-25:** Implemented `PersistenceInterval`, `FilteredSimplicialComplex`, `persistent_homology` (with
   Chen–Kerber clearing optimization), `betti_curve`, `persistence_entropy`, and `bottleneck_distance` in
-  `algebrax.homology`. Transitioned status to `Final`.
+  `algebrax.homology`. Documented tropical/ultrametric dioid duality and rejected arbitrary semiring-typed birth/death
+  scales. Transitioned status to `Final`.
 
