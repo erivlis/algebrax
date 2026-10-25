@@ -24,6 +24,7 @@ Submodules & Domain Taxonomy
    - `trie`: `AlgebraicTrie` tensor prefix trees over semirings.
 
 2. Discrete Geometry, Topology & Fields
+   - `topology`: Unified algebraic topology (`homology`, `cohomology`, `persistence`, `dec`, `sheaf`).
    - `homology`: Simplicial complexes, boundary operators, and Betti numbers (`SimplicialComplex`, `betti_numbers`).
    - `clifford`: Clifford Geometric Algebra Cl(p,q,r) multivectors & 3D rotors (`rotor_rotation`).
    - `lie`: Continuous symmetry Lie algebras, structure constants, Killing forms & BCH dynamics (`so3`, `sl2`, `se3`).
@@ -63,6 +64,7 @@ from algebrax import (
     probability,
     semiring,
     tensor,
+    topology,
     transforms,
     trie,
     typing,
@@ -108,6 +110,7 @@ __all__ = [
     'probability',
     'semiring',
     'tensor',
+    'topology',
     'transforms',
     'trie',
     'typing',
