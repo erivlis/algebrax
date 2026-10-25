@@ -65,45 +65,51 @@ and documenting design decisions. See [EP-0000](proposals/EP-0000-process.md) fo
 Proposals derived from the [Grand Council Assessment](proposals/EP-0099-expansion-roadmap.md) —
 a comprehensive architectural audit by the 8 Pillars of the Council Framework.
 
-| EP                                                                             | Title                                                                     | Council Sponsor                                 |              Status               |
-|:-------------------------------------------------------------------------------|:--------------------------------------------------------------------------|:------------------------------------------------|:---------------------------------:|
-| [EP-0140](proposals/EP-0140-api-symmetry-restoration.md)                       | API Symmetry Restoration                                                  | ⚖️ Noether                                      |    :material-check-all: Final     |
-| [EP-0141](proposals/EP-0141-taxonomy-cleanup.md)                               | Structural Taxonomy Cleanup                                               | 🧩 Russell                                      |    :material-check-all: Final     |
-| [EP-0142](proposals/EP-0142-performance-optimizations.md)                      | Performance & Efficiency Optimizations                                    | ⚡ Shannon                                      |    :material-check-all: Final     |
-| [EP-0143](proposals/EP-0143-documentation-clarity.md)                          | Documentation Clarity & Freshman Test                                     | 💡 Feynman                                      |    :material-check-all: Final     |
-| [EP-0144](proposals/EP-0144-testing-hardening.md)                              | Testing & Falsifiability Hardening                                        | 🔬 Popper                                       |    :material-check-all: Final     |
-| [EP-0145](proposals/EP-0145-type-safety-hardening.md)                          | Type Safety & Contract Hardening                                          | 🛡️ Golem                                        |    :material-check-all: Final     |
-| [EP-0146](proposals/EP-0146-developer-ergonomics.md)                           | Developer Ergonomics & Ecosystem Bridges                                  | 🤝 Steward                                      |    :material-check-all: Final     |
-| [EP-0147](proposals/EP-0147-optional-loop-pragmas.md)                          | Optional Loop Pragmas & Concurrency                                       | ⚡ Shannon                                      | :material-clock-outline: Deferred |
-| [EP-0148](proposals/EP-0148-formalized-benchmarking.md)                        | Formalized Micro-Benchmarking & CodSpeed                                  | 🔬 Popper                                       |    :material-check-all: Final     |
-| [EP-0149](proposals/EP-0149-binomial-convolution-moment-semiring.md)           | Universal & Multivariate Binomial Convolution Moments                     | ⚖️ Noether                                      |    :material-check-all: Final     |
-| [EP-0150](proposals/EP-0150-standardized-mathematical-docstrings.md)           | Standardized Mathematical Docstrings & Algebraic Registry                 | 💡 Feynman                                      |    :material-check-all: Final     |
-| [EP-0151](proposals/EP-0151-algebraic-pagerank-semirings.md)                   | Algebraic PageRank & Semiring Random Walks with Restart                   | ⚡ Shannon                                      |    :material-check-all: Final     |
-| [EP-0152](proposals/EP-0152-spectral-graph-theory-laplacian.md)                | Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians          | ⚖️ Noether & ⚡ Shannon                         |    :material-check-all: Final     |
-| [EP-0153](proposals/EP-0153-semiring-matrix-symmetry-and-vector-primitives.md) | Semiring Matrix Symmetry, Sparse Vector Primitives & Cochain Carrier      | ⚖️ Noether, ⚡ Shannon, 🧩 Russell & 💡 Feynman |    :material-check-all: Final     |
+| EP                                                                             | Title                                                                | Council Sponsor                                 |              Status               |
+|:-------------------------------------------------------------------------------|:---------------------------------------------------------------------|:------------------------------------------------|:---------------------------------:|
+| [EP-0140](proposals/EP-0140-api-symmetry-restoration.md)                       | API Symmetry Restoration                                             | ⚖️ Noether                                      |    :material-check-all: Final     |
+| [EP-0141](proposals/EP-0141-taxonomy-cleanup.md)                               | Structural Taxonomy Cleanup                                          | 🧩 Russell                                      |    :material-check-all: Final     |
+| [EP-0142](proposals/EP-0142-performance-optimizations.md)                      | Performance & Efficiency Optimizations                               | ⚡ Shannon                                      |    :material-check-all: Final     |
+| [EP-0143](proposals/EP-0143-documentation-clarity.md)                          | Documentation Clarity & Freshman Test                                | 💡 Feynman                                      |    :material-check-all: Final     |
+| [EP-0144](proposals/EP-0144-testing-hardening.md)                              | Testing & Falsifiability Hardening                                   | 🔬 Popper                                       |    :material-check-all: Final     |
+| [EP-0145](proposals/EP-0145-type-safety-hardening.md)                          | Type Safety & Contract Hardening                                     | 🛡️ Golem                                        |    :material-check-all: Final     |
+| [EP-0146](proposals/EP-0146-developer-ergonomics.md)                           | Developer Ergonomics & Ecosystem Bridges                             | 🤝 Steward                                      |    :material-check-all: Final     |
+| [EP-0147](proposals/EP-0147-optional-loop-pragmas.md)                          | Optional Loop Pragmas & Concurrency                                  | ⚡ Shannon                                      | :material-clock-outline: Deferred |
+| [EP-0148](proposals/EP-0148-formalized-benchmarking.md)                        | Formalized Micro-Benchmarking & CodSpeed                             | 🔬 Popper                                       |    :material-check-all: Final     |
+| [EP-0149](proposals/EP-0149-binomial-convolution-moment-semiring.md)           | Universal & Multivariate Binomial Convolution Moments                | ⚖️ Noether                                      |    :material-check-all: Final     |
+| [EP-0150](proposals/EP-0150-standardized-mathematical-docstrings.md)           | Standardized Mathematical Docstrings & Algebraic Registry            | 💡 Feynman                                      |    :material-check-all: Final     |
+| [EP-0151](proposals/EP-0151-algebraic-pagerank-semirings.md)                   | Algebraic PageRank & Semiring Random Walks with Restart              | ⚡ Shannon                                      |    :material-check-all: Final     |
+| [EP-0152](proposals/EP-0152-spectral-graph-theory-laplacian.md)                | Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians     | ⚖️ Noether & ⚡ Shannon                         |    :material-check-all: Final     |
+| [EP-0153](proposals/EP-0153-semiring-matrix-symmetry-and-vector-primitives.md) | Semiring Matrix Symmetry, Sparse Vector Primitives & Cochain Carrier | ⚖️ Noether, ⚡ Shannon, 🧩 Russell & 💡 Feynman |    :material-check-all: Final     |
 
 ---
 
 ## Phase 4 — Algebraic Continents & Next Frontiers
 
-Proposals stemming from the **Next Frontiers Exploration** ([EXP-0001](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0001-algebraic-frontiers-and-missing-domains/README.md)), expanding AlgebraX into discrete differential geometry, continuous symmetries, and higher topology.
+Proposals stemming from the **Next Frontiers Exploration**
+([EXP-0001](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0001-algebraic-frontiers-and-missing-domains/README.md)),
+expanding AlgebraX into discrete differential geometry, continuous symmetries, and higher topology.
 
-| EP                                                                                 | Title                                                               | Council Sponsor                                 |           Status           |
-|:-----------------------------------------------------------------------------------|:--------------------------------------------------------------------|:------------------------------------------------|:--------------------------:|
-| [EP-0160](proposals/EP-0160-discrete-exterior-calculus-and-hodge-decomposition.md) | Discrete Exterior Calculus & Helmholtz-Hodge Flow Decomposition     | ⚖️ Noether, ⚡ Shannon & 💡 Feynman             | :material-check-all: Final |
-| [EP-0161](proposals/EP-0161-cellular-sheaves-and-network-laplacians.md)            | Cellular Sheaves, Sheaf Cohomology & Network Laplacians             | 🧩 Russell, 🤝 Steward, ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
-| [EP-0162](proposals/EP-0162-persistent-homology-and-topological-barcodes.md)       | Persistent Homology, Simplicial Filtrations & Topological Barcodes  | 🔬 Popper, 🧭 Explorer, ⚡ Shannon & 💡 Feynman | :material-check-all: Final |
-| [EP-0163](proposals/EP-0163-lie-algebras-and-bch-dynamics.md)                      | Lie Algebras, Root Systems, and Baker–Campbell–Hausdorff Dynamics   | ⚖️ Noether, ⚡ Shannon & 🛡️ Golem               | :material-check-all: Final |
-| [EP-0164](proposals/EP-0164-root-systems-and-chevalley-bases.md)                   | Root Systems, Weyl Groups & Chevalley-Serre Simple Lie Algebras     | ⚖️ Noether, ⚡ Shannon & 🧩 Russell             | :material-check-all: Final |
+| EP                                                                                 | Title                                                                     | Council Sponsor                                 |           Status           |
+|:-----------------------------------------------------------------------------------|:--------------------------------------------------------------------------|:------------------------------------------------|:--------------------------:|
+| [EP-0160](proposals/EP-0160-discrete-exterior-calculus-and-hodge-decomposition.md) | Discrete Exterior Calculus & Helmholtz-Hodge Flow Decomposition           | ⚖️ Noether, ⚡ Shannon & 💡 Feynman             | :material-check-all: Final |
+| [EP-0161](proposals/EP-0161-cellular-sheaves-and-network-laplacians.md)            | Cellular Sheaves, Sheaf Cohomology & Network Laplacians                   | 🧩 Russell, 🤝 Steward, ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
+| [EP-0162](proposals/EP-0162-persistent-homology-and-topological-barcodes.md)       | Persistent Homology, Simplicial Filtrations & Topological Barcodes        | 🔬 Popper, 🧭 Explorer, ⚡ Shannon & 💡 Feynman | :material-check-all: Final |
+| [EP-0163](proposals/EP-0163-lie-algebras-and-bch-dynamics.md)                      | Lie Algebras, Root Systems, and Baker–Campbell–Hausdorff Dynamics         | ⚖️ Noether, ⚡ Shannon & 🛡️ Golem               | :material-check-all: Final |
+| [EP-0164](proposals/EP-0164-root-systems-and-chevalley-bases.md)                   | Root Systems, Weyl Groups & Chevalley-Serre Simple Lie Algebras           | ⚖️ Noether, ⚡ Shannon & 🧩 Russell             | :material-check-all: Final |
+| [EP-0165](proposals/EP-0165-topology-namespace-and-cohomology-ring.md)             | Unified Topology Namespace, Cochain Ring Products & Persistent Cohomology | 🧩 Russell, ⚖️ Noether, ⚡ Shannon & 🤝 Steward |  :material-pencil: Draft   |
 
 ---
 
 ## Phase 5 — Mathematical Verification & Correctness Evidence Track
 
-Proposals stemming from the **Correctness Evidence Exploration** ([EXP-0003](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0003-correctness-evidence/README.md)), establishing multi-layered verification, differential testing against canonical math libraries ("Stamp of Trust"), metamorphic invariants, Schwartz–Zippel PIT, and certified solvers.
+Proposals stemming from the **Correctness Evidence Exploration**
+([EXP-0003](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0003-correctness-evidence/README.md)),
+establishing multi-layered verification, differential testing against canonical math libraries ("Stamp of Trust"),
+metamorphic invariants, Schwartz–Zippel PIT, and certified solvers.
 
-| EP                                                                                     | Title                                                                                                | Council Sponsor                                           |         Status          |
-|:---------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------|:----------------------------------------------------------|:-----------------------:|
+| EP                                                                                     | Title                                                                                                | Council Sponsor                                           |           Status           |
+|:---------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------|:----------------------------------------------------------|:--------------------------:|
 | [EP-0180](proposals/EP-0180-multi-layered-verification-suite.md)                       | Multi-Layered Verification Test Architecture                                                         | 🔬 Popper, ⚖️ Noether, ⚡ Shannon, 🛡️ Golem & 🧭 Explorer | :material-check-all: Final |
 | [EP-0181](proposals/EP-0181-comparative-verification-linalg-tensors-transforms.md)     | Comparative Verification — Linear Algebra, Tensors & Signal Processing (`NumPy` & `SciPy` Oracles)   | 🔬 Popper, 🧩 Russell, ⚡ Shannon & 🛡️ Golem              | :material-check-all: Final |
 | [EP-0182](proposals/EP-0182-comparative-verification-graphs-spectral-semirings.md)     | Comparative Verification — Graph Calculus, Spectral Theory & Path Semirings (`NetworkX` & `csgraph`) | 🔬 Popper, ⚖️ Noether, ⚡ Shannon & 🧩 Russell            | :material-check-all: Final |
