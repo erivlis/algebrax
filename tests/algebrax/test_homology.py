@@ -532,3 +532,215 @@ def test_cellular_sheaf_edge_cases_and_error_handling():
         empty.add_edge('u', 'v', dim=-1, rho_u=1.0, rho_v=1.0)
     with pytest.raises(TypeError, match='Unsupported'):
         empty.add_edge('u', 'v', dim=1, rho_u='invalid', rho_v=1.0)  # type: ignore[arg-type]
+
+
+def test_filtered_simplicial_complex_monotonicity_and_subcomplex():
+    import math
+
+    import pytest
+
+    from algebrax.homology import FilteredSimplicialComplex
+
+    # Initialize from mapping where a face has a larger filtration value than its coface
+    fsc = FilteredSimplicialComplex({(0,): 5.0, (1, 0): 2.0, (2, 1, 0): 1.5})
+
+    # Monotonicity tau subseteq sigma => f(tau) <= f(sigma) forces all faces of (0,1,2) down to <= 1.5
+    assert len(fsc) == 7  # 3 vertices + 3 edges + 1 triangle
+    assert (0, 1, 2) in fsc
+    assert (2, 1, 0) in fsc
+    assert 'not-a-tuple' not in fsc
+    assert fsc[(0,)] == pytest.approx(1.5)
+    assert fsc[(1, 0)] == pytest.approx(1.5)
+    assert fsc[(0, 1, 2)] == pytest.approx(1.5)
+    assert fsc.simplices[(0, 1)] == pytest.approx(1.5)
+
+    # Adding a face with a larger filtration value does not overwrite smaller existing value
+    fsc.add_simplex((0, 1), 9.0)
+    assert fsc[(0, 1)] == pytest.approx(1.5)
+
+    # Adding a face with a smaller filtration value updates the face
+    fsc.add_simplex((0,), 0.5)
+    assert fsc[(0,)] == pytest.approx(0.5)
+
+    # Empty or degenerate simplices are ignored; NaN raises ValueError
+    fsc.add_simplex((), 1.0)
+    fsc.add_simplex((0, 0), 1.0)
+    assert len(fsc) == 7
+    with pytest.raises(ValueError, match='NaN'):
+        fsc.add_simplex((0,), math.nan)
+
+    # Subcomplex extraction at various thresholds
+    sc_early = fsc.to_simplicial_complex(threshold=1.0)
+    assert sc_early.betti_numbers(max_k=1)[0] == 1  # only vertex (0,) at t=0.5
+    sc_full = fsc.to_simplicial_complex(threshold=2.0)
+    assert sc_full.betti_numbers(max_k=2) == {0: 1, 1: 0, 2: 0}
+
+
+def test_vietoris_rips_circle_and_clearing_optimization():
+    import math
+
+    import pytest
+
+    from algebrax.homology import FilteredSimplicialComplex, betti_curve
+
+    # 4 points on a unit square: side length 1.0, diagonal length sqrt(2)
+    s2 = math.sqrt(2.0)
+    dist_matrix = {
+        0: {1: 1.0, 3: 1.0, 2: s2},
+        1: {0: 1.0, 2: 1.0, 3: s2},
+        2: {1: 1.0, 3: 1.0},  # asymmetric omission of 0 tested via row_u/row_v fallback
+        3: {0: 1.0},
+    }
+
+    fsc = FilteredSimplicialComplex.from_vietoris_rips(dist_matrix, max_dim=2)
+    intervals = fsc.persistent_homology(max_k=1)
+
+    h0 = [iv for iv in intervals if iv.dimension == 0]
+    h1 = [iv for iv in intervals if iv.dimension == 1]
+
+    # H_0: 3 components born at 0.0 and killed at 1.0; 1 essential component [0.0, inf)
+    finite_h0 = [iv for iv in h0 if not math.isinf(iv.death)]
+    essential_h0 = [iv for iv in h0 if math.isinf(iv.death)]
+    assert len(finite_h0) == 3
+    assert all(iv.birth == pytest.approx(0.0) and iv.death == pytest.approx(1.0) for iv in finite_h0)
+    assert len(essential_h0) == 1
+    assert essential_h0[0].persistence == math.inf
+
+    # H_1: 1 square cycle born at t=1.0 and killed at t=sqrt(2) when diagonal triangles fill it
+    assert len(h1) == 1
+    assert h1[0].birth == pytest.approx(1.0)
+    assert h1[0].death == pytest.approx(s2)
+    assert h1[0].persistence == pytest.approx(s2 - 1.0)
+
+    # Fundamental Theorem check: Betti curve matches static SimplicialComplex.betti_numbers at all thresholds
+    thresholds = [0.0, 0.5, 1.0, 1.2, 1.5, 2.0]
+    b0_curve = betti_curve(intervals, thresholds, dimension=0)
+    b1_curve = betti_curve(intervals, thresholds, dimension=1)
+    for idx, t in enumerate(thresholds):
+        static_betti = fsc.to_simplicial_complex(t).betti_numbers(max_k=1)
+        assert b0_curve[idx] == static_betti[0]
+        assert b1_curve[idx] == static_betti[1]
+
+    # Edge length cutoff and max_dim=0
+    fsc_cut = FilteredSimplicialComplex.from_vietoris_rips(dist_matrix, max_dim=2, max_edge_length=1.1)
+    h1_cut = [iv for iv in fsc_cut.persistent_homology(max_k=1) if iv.dimension == 1]
+    assert len(h1_cut) == 1
+    assert math.isinf(h1_cut[0].death)
+
+    fsc_dim0 = FilteredSimplicialComplex.from_vietoris_rips(dist_matrix, max_dim=0)
+    assert len(fsc_dim0) == 4
+
+    with pytest.raises(ValueError, match='non-negative'):
+        FilteredSimplicialComplex.from_vietoris_rips(dist_matrix, max_dim=-1)
+
+
+def test_lower_star_filtration_and_h2_tetrahedron_cavity():
+    import pytest
+
+    from algebrax.homology import FilteredSimplicialComplex, SimplicialComplex, persistent_homology
+
+    # 1. Lower-star filtration on a 1D path with two valleys (0 and 2) separated by a peak (1)
+    path_sc = SimplicialComplex([(0, 1), (1, 2)])
+    heights = {0: 1.0, 1: 5.0, 2: 2.0}
+    ls_fsc = FilteredSimplicialComplex.from_lower_star(path_sc, heights)
+    ls_bars = ls_fsc.persistent_homology(max_k=1)
+
+    # Valley at v=0 (born at 1.0) is the elder component [1.0, inf);
+    # Valley at v=2 (born at 2.0) merges at pass v=1 (height 5.0) -> interval [2.0, 5.0)
+    finite_h0 = [iv for iv in ls_bars if iv.dimension == 0 and iv.death < float('inf')]
+    assert len(finite_h0) == 1
+    assert finite_h0[0].birth == pytest.approx(2.0)
+    assert finite_h0[0].death == pytest.approx(5.0)
+
+    # 2. Hollow tetrahedron boundaryborn at t=1.0, filled by 3-simplex (0,1,2,3) at t=4.0
+    tet_fsc = FilteredSimplicialComplex(
+        [
+            ((0, 1, 2), 1.0),
+            ((0, 1, 3), 1.0),
+            ((0, 2, 3), 1.0),
+            ((1, 2, 3), 1.0),
+            ((0, 1, 2, 3), 4.0),
+        ]
+    )
+    tet_bars = persistent_homology(tet_fsc, max_k=2, include_zero_persistence=False)
+    h2_bars = [iv for iv in tet_bars if iv.dimension == 2]
+    assert len(h2_bars) == 1
+    assert h2_bars[0].birth == pytest.approx(1.0)
+    assert h2_bars[0].death == pytest.approx(4.0)
+    assert h2_bars[0].death_simplex == (0, 1, 2, 3)
+
+    # Zero-persistence intervals included when requested
+    tet_bars_zero = persistent_homology(tet_fsc, max_k=2, include_zero_persistence=True)
+    assert len(tet_bars_zero) > len(tet_bars)
+
+    # Empty filtration & invalid max_k
+    assert persistent_homology(FilteredSimplicialComplex(), max_k=1) == []
+    with pytest.raises(ValueError, match='non-negative'):
+        persistent_homology(tet_fsc, max_k=-1)
+
+
+def test_persistence_entropy_and_bottleneck_distance():
+    import math
+
+    import pytest
+
+    from algebrax.homology import (
+        FilteredSimplicialComplex,
+        PersistenceInterval,
+        SimplicialComplex,
+        bottleneck_distance,
+        persistence_entropy,
+    )
+
+    iv1 = PersistenceInterval(dimension=1, birth=1.0, death=3.0, birth_simplex=(0, 1), death_simplex=(0, 1, 2))
+    iv2 = PersistenceInterval(dimension=1, birth=2.0, death=4.0, birth_simplex=(1, 2), death_simplex=(1, 2, 3))
+    iv_ess = PersistenceInterval(dimension=0, birth=0.0, death=math.inf, birth_simplex=(0,), death_simplex=None)
+
+    # Two equal finite intervals of length 2.0 -> Shannon entropy is ln(2)
+    assert persistence_entropy([iv1, iv2, iv_ess]) == pytest.approx(math.log(2.0))
+    assert persistence_entropy([iv1, iv2, iv_ess], dimension=1) == pytest.approx(math.log(2.0))
+    assert persistence_entropy([iv_ess], dimension=0) == pytest.approx(0.0)
+    assert persistence_entropy([]) == pytest.approx(0.0)
+
+    # Bottleneck distance properties
+    assert bottleneck_distance([], []) == pytest.approx(0.0)
+    assert bottleneck_distance([iv1], [iv1]) == pytest.approx(0.0)
+    # Distance to empty diagram is max((death - birth) / 2) = (3.0 - 1.0) / 2 = 1.0
+    assert bottleneck_distance([iv1], []) == pytest.approx(1.0)
+    assert bottleneck_distance([], [iv1]) == pytest.approx(1.0)
+
+    # Shifted interval: [1.0, 3.0) vs [1.2, 3.3) -> L_inf distance is max(0.2, 0.3) = 0.3
+    iv1_shifted = PersistenceInterval(dimension=1, birth=1.2, death=3.3, birth_simplex=(0, 1), death_simplex=(0, 1, 2))
+    assert bottleneck_distance([iv1], [iv1_shifted], dimension=1) == pytest.approx(0.3)
+    assert bottleneck_distance([iv1_shifted], [iv1], dimension=1) == pytest.approx(0.3)
+
+    # Unequal essential class counts -> infinite bottleneck distance
+    assert bottleneck_distance([iv_ess], []) == math.inf
+
+    # Cohen-Steiner Stability Theorem on lower-star filtrations: d_B(Dgm(f), Dgm(g)) <= ||f - g||_inf
+    sc = SimplicialComplex([(0, 1), (1, 2), (2, 3), (0, 3)])
+    f_vals = {0: 0.0, 1: 2.0, 2: 1.0, 3: 3.0}
+    g_vals = {0: 0.15, 1: 1.85, 2: 1.10, 3: 3.20}
+    linf_perturbation = max(abs(f_vals[v] - g_vals[v]) for v in f_vals)
+
+    dgm_f = FilteredSimplicialComplex.from_lower_star(sc, f_vals).persistent_homology(max_k=1)
+    dgm_g = FilteredSimplicialComplex.from_lower_star(sc, g_vals).persistent_homology(max_k=1)
+    assert bottleneck_distance(dgm_f, dgm_g) <= linf_perturbation + 1e-12
+
+    # Competing multi-interval matching exercising multi-hop Hopcroft-Karp augmenting paths
+    comp_a = [
+        PersistenceInterval(1, 0.0, 10.0, (0, 1), (0, 1, 2)),
+        PersistenceInterval(1, 1.0, 11.0, (1, 2), (1, 2, 3)),
+        PersistenceInterval(1, 2.0, 12.0, (2, 3), (2, 3, 4)),
+    ]
+    comp_b = [
+        PersistenceInterval(1, 1.2, 11.2, (0, 1), (0, 1, 2)),
+        PersistenceInterval(1, 2.2, 12.2, (1, 2), (1, 2, 3)),
+        PersistenceInterval(1, 0.2, 10.2, (2, 3), (2, 3, 4)),
+    ]
+    assert bottleneck_distance(comp_a, comp_b, dimension=1) == pytest.approx(0.2)
+
+    # Lower-triangular-only and disconnected vertex pairs in from_vietoris_rips
+    lower_only_vr = FilteredSimplicialComplex.from_vietoris_rips({0: {}, 2: {0: 1.5}, 5: {}}, max_dim=2)
+    assert lower_only_vr[(0, 2)] == pytest.approx(1.5)
+    assert (0, 5) not in lower_only_vr
