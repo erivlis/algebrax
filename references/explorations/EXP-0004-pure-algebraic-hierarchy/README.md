@@ -424,18 +424,18 @@ The Council and architectural review find this expansion:
 
 We can structure this into two targeted Enhancement Proposals:
 
-- **`EP-0170: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices`**:
+- **`EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices`**:
     - Implements `algebrax.algebra` with single-operation and order-based protocols (`Magma`, `Semigroup`, `Monoid`,
-      `Group`, `AbelianGroup`, `Semilattice`, `Lattice`, `BooleanAlgebra`).
+      `Group`, `CommGroup`, `JoinSemilattice`, `MeetSemilattice`, `Lattice`, `BooleanAlgebra`).
     - Layered property-based law verification in `algebrax.verification`.
-    - Specializes simple graph algorithms (reachability, path monoids) to their minimal algebraic signatures.
+    - Specializes graph path accumulation and reachability to minimal algebraic signatures over native sparse dictionaries.
 
-- **`EP-0171: Rings, Fields, Modules & Exact Matrix Solvers`**:
+- **`EP-0191: Rings, Fields, Modules & Exact Matrix Solvers`**:
     - Implements two-operation and two-sorted protocols (`Ring`, `CommutativeRing`, `DivisionRing`, `Field`,
       `Semimodule`, `Module`, `VectorSpace`, `Algebra`).
-    - Re-roots `Semiring` seamlessly as a sub-protocol of `AddCommMonoid` and `Monoid`.
+    - Re-roots `Semiring` seamlessly in `algebrax.algebra._semiring` as a sub-protocol of `AddCommMonoid` and `Monoid`.
     - Refactors `algebrax.matrix.decompose` and linear solvers to accept `Field[V]` and `DivisionRing[V]` for exact
-      fraction and Galois field Gaussian elimination.
+      rational and Galois field Gaussian elimination, executing directly on sparse dictionary carriers.
 
 ---
 
