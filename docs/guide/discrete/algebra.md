@@ -5,6 +5,10 @@ description: Coordinate semilattices, meet, join, permutation composition, and p
 
 # Lattices & Permutation Groups (`algebrax.lattice` & `algebrax.group`)
 
+> [!NOTE]
+> For the complete, formal algebraic type hierarchy spanning magmas, semigroups, bands, monoids, groups, and lattices
+> with Lean 4 alignment, see the [Granular Algebraic Hierarchy](../algebra/hierarchy.md) guide.
+
 AlgebraX provides discrete algebraic structures:
 
 ## Lattice Operations (`algebrax.lattice`)
