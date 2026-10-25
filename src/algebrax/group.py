@@ -9,9 +9,18 @@ invert mappings, and compute the signature (parity) of a permutation.
 from collections.abc import Mapping
 from typing import Any
 
+from algebrax.algebra._group import AbelianGroup, CommGroup, Group, GroupAction
 from algebrax.typing import K, V
 
-__all__ = ['compose', 'invert', 'signature']
+__all__ = [
+    'AbelianGroup',
+    'CommGroup',
+    'Group',
+    'GroupAction',
+    'compose',
+    'invert',
+    'signature',
+]
 
 
 def compose(m1: Mapping[K, V], m2: Mapping[V, Any]) -> dict[K, Any]:

@@ -48,6 +48,7 @@ Submodules & Domain Taxonomy
 """
 
 from algebrax import (
+    algebra,
     analysis,
     automata,
     category,
@@ -94,6 +95,7 @@ __all__ = [
     'SparseTensor',
     'SparseVector',
     '__version__',
+    'algebra',
     'analysis',
     'automata',
     'category',

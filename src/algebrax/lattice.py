@@ -23,9 +23,23 @@ Exported Functions:
 from collections.abc import Callable, Iterable, Mapping, MutableMapping
 from typing import Any
 
+from algebrax.algebra._lattice import (
+    BooleanAlgebra,
+    BoundedLattice,
+    DistributiveLattice,
+    JoinSemilattice,
+    Lattice,
+    MeetSemilattice,
+)
 from algebrax.typing import K, N, V
 
 __all__ = [
+    'BooleanAlgebra',
+    'BoundedLattice',
+    'DistributiveLattice',
+    'JoinSemilattice',
+    'Lattice',
+    'MeetSemilattice',
     'average',
     'combine',
     'difference',

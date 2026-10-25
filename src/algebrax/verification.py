@@ -16,6 +16,32 @@ from algebrax.semiring import Semiring
 
 V = TypeVar('V')
 
+__all__ = [
+    'get_semiring_samples',
+    'semiring_elements_equal',
+    'verify_add_comm_group_laws',
+    'verify_add_comm_monoid_laws',
+    'verify_add_group_laws',
+    'verify_add_magma_laws',
+    'verify_add_monoid_laws',
+    'verify_add_semigroup_laws',
+    'verify_band_laws',
+    'verify_boolean_algebra_laws',
+    'verify_bounded_lattice_laws',
+    'verify_comm_group_laws',
+    'verify_comm_monoid_laws',
+    'verify_distributive_lattice_laws',
+    'verify_group_action_laws',
+    'verify_group_laws',
+    'verify_join_semilattice_laws',
+    'verify_lattice_laws',
+    'verify_magma_laws',
+    'verify_meet_semilattice_laws',
+    'verify_monoid_laws',
+    'verify_semigroup_laws',
+    'verify_semiring_laws',
+]
+
 
 def _float_equal(a: float, b: float, tol: float) -> bool:
     if math.isinf(a) and math.isinf(b):
@@ -307,3 +333,525 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
         raise ValueError(f"Unknown semiring name '{semiring_name}'. Available: {list(catalog_map.keys())}")
 
     return catalog_map[semiring_name]
+
+
+# =============================================================================
+# EP-0190: Granular Hierarchy Law Verifiers
+# =============================================================================
+
+from algebrax.algebra import (  # noqa: E402
+    AddCommGroup,
+    AddCommMonoid,
+    AddGroup,
+    AddMagma,
+    AddMonoid,
+    AddSemigroup,
+    Band,
+    BooleanAlgebra,
+    BoundedLattice,
+    CommGroup,
+    CommMonoid,
+    DistributiveLattice,
+    Group,
+    GroupAction,
+    JoinSemilattice,
+    Lattice,
+    Magma,
+    MeetSemilattice,
+    Monoid,
+    Semigroup,
+)
+
+G = TypeVar('G')
+X = TypeVar('X')
+
+
+def _require_samples(samples: Iterable[Any], min_count: int = 3) -> list[Any]:
+    el = list(samples)
+    if len(el) < min_count:
+        raise ValueError(
+            f'Axiom verification requires at least {min_count} sample elements to test non-trivial laws, got {len(el)}.'
+        )
+    return el
+
+
+def verify_magma_laws(
+    magma: Magma[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Magma closure law: $\forall a, b \in M, \ a \cdot b \in M$."""
+    elements = _require_samples(samples)
+    mul = magma.mul
+    closure = True
+    try:
+        for a, b in itertools.product(elements, repeat=2):
+            if mul(a, b) is None:
+                closure = False
+                break
+    except Exception:
+        closure = False
+    return {'mul_closure': closure}
+
+
+def verify_semigroup_laws(
+    semigroup: Semigroup[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Semigroup laws: closure and associativity $(a \cdot b) \cdot c = a \cdot (b \cdot c)$."""
+    elements = _require_samples(samples)
+    res = verify_magma_laws(semigroup, elements, tol)
+    mul = semigroup.mul
+    assoc = True
+    for a, b, c in itertools.product(elements, repeat=3):
+        lhs = mul(mul(a, b), c)
+        rhs = mul(a, mul(b, c))
+        if not semiring_elements_equal(lhs, rhs, tol):
+            assoc = False
+            break
+    res['mul_associativity'] = assoc
+    return res
+
+
+def verify_band_laws(
+    band: Band[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Band laws: semigroup laws plus idempotence $a \cdot a = a$."""
+    elements = _require_samples(samples)
+    res = verify_semigroup_laws(band, elements, tol)
+    mul = band.mul
+    idemp = True
+    for a in elements:
+        if not semiring_elements_equal(mul(a, a), a, tol):
+            idemp = False
+            break
+    res['mul_idempotence'] = idemp
+    return res
+
+
+def verify_monoid_laws(
+    monoid: Monoid[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Monoid laws: semigroup laws plus left and right identity $\mathbf{1} \cdot a = a \cdot \mathbf{1} = a$."""
+    elements = _require_samples(samples)
+    res = verify_semigroup_laws(monoid, elements, tol)
+    one = monoid.one
+    mul = monoid.mul
+    left_id = True
+    right_id = True
+    for a in elements:
+        if not semiring_elements_equal(mul(one, a), a, tol):
+            left_id = False
+        if not semiring_elements_equal(mul(a, one), a, tol):
+            right_id = False
+    res['left_identity'] = left_id
+    res['right_identity'] = right_id
+    return res
+
+
+def verify_comm_monoid_laws(
+    monoid: CommMonoid[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Commutative Monoid laws: monoid laws plus commutativity $a \cdot b = b \cdot a$."""
+    elements = _require_samples(samples)
+    res = verify_monoid_laws(monoid, elements, tol)
+    mul = monoid.mul
+    comm = True
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(mul(a, b), mul(b, a), tol):
+            comm = False
+            break
+    res['mul_commutativity'] = comm
+    return res
+
+
+def verify_group_laws(
+    group: Group[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Group laws: monoid laws plus two-sided inverses and quotient consistency."""
+    elements = _require_samples(samples)
+    res = verify_monoid_laws(group, elements, tol)
+    one = group.one
+    mul = group.mul
+    inv = group.inv
+    div = group.div
+    left_inv = True
+    right_inv = True
+    quotient = True
+    for a in elements:
+        a_inv = inv(a)
+        if not semiring_elements_equal(mul(a_inv, a), one, tol):
+            left_inv = False
+        if not semiring_elements_equal(mul(a, a_inv), one, tol):
+            right_inv = False
+        for b in elements:
+            expected_div = mul(a, inv(b))
+            if not semiring_elements_equal(div(a, b), expected_div, tol):
+                quotient = False
+                break
+    res['left_inverse'] = left_inv
+    res['right_inverse'] = right_inv
+    res['quotient_consistency'] = quotient
+    return res
+
+
+def verify_comm_group_laws(
+    group: CommGroup[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Abelian Group laws: group laws plus commutativity."""
+    elements = _require_samples(samples)
+    res = verify_group_laws(group, elements, tol)
+    mul = group.mul
+    comm = True
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(mul(a, b), mul(b, a), tol):
+            comm = False
+            break
+    res['mul_commutativity'] = comm
+    return res
+
+
+# --- Additive Dual Verifiers ---
+
+
+def verify_add_magma_laws(
+    magma: AddMagma[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Additive Magma closure law: $\forall a, b \in M, \ a + b \in M$."""
+    elements = _require_samples(samples)
+    add = magma.add
+    closure = True
+    try:
+        for a, b in itertools.product(elements, repeat=2):
+            if add(a, b) is None:
+                closure = False
+                break
+    except Exception:
+        closure = False
+    return {'add_closure': closure}
+
+
+def verify_add_semigroup_laws(
+    semigroup: AddSemigroup[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Additive Semigroup laws: closure and associativity $(a + b) + c = a + (b + c)$."""
+    elements = _require_samples(samples)
+    res = verify_add_magma_laws(semigroup, elements, tol)
+    add = semigroup.add
+    assoc = True
+    for a, b, c in itertools.product(elements, repeat=3):
+        lhs = add(add(a, b), c)
+        rhs = add(a, add(b, c))
+        if not semiring_elements_equal(lhs, rhs, tol):
+            assoc = False
+            break
+    res['add_associativity'] = assoc
+    return res
+
+
+def verify_add_monoid_laws(
+    monoid: AddMonoid[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Additive Monoid laws: associativity plus identity $\mathbf{0} + a = a + \mathbf{0} = a$."""
+    elements = _require_samples(samples)
+    res = verify_add_semigroup_laws(monoid, elements, tol)
+    zero = monoid.zero
+    add = monoid.add
+    left_id = True
+    right_id = True
+    for a in elements:
+        if not semiring_elements_equal(add(zero, a), a, tol):
+            left_id = False
+        if not semiring_elements_equal(add(a, zero), a, tol):
+            right_id = False
+    res['left_add_identity'] = left_id
+    res['right_add_identity'] = right_id
+    return res
+
+
+def verify_add_comm_monoid_laws(
+    monoid: AddCommMonoid[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Additive Commutative Monoid laws: monoid laws plus commutativity $a + b = b + a$."""
+    elements = _require_samples(samples)
+    res = verify_add_monoid_laws(monoid, elements, tol)
+    add = monoid.add
+    comm = True
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(add(a, b), add(b, a), tol):
+            comm = False
+            break
+    res['add_commutativity'] = comm
+    return res
+
+
+def verify_add_group_laws(
+    group: AddGroup[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Additive Group laws: additive monoid laws plus negation and difference consistency."""
+    elements = _require_samples(samples)
+    res = verify_add_monoid_laws(group, elements, tol)
+    zero = group.zero
+    add = group.add
+    neg = group.neg
+    sub = group.sub
+    left_inv = True
+    right_inv = True
+    diff = True
+    for a in elements:
+        neg_a = neg(a)
+        if not semiring_elements_equal(add(neg_a, a), zero, tol):
+            left_inv = False
+        if not semiring_elements_equal(add(a, neg_a), zero, tol):
+            right_inv = False
+        for b in elements:
+            expected_sub = add(a, neg(b))
+            if not semiring_elements_equal(sub(a, b), expected_sub, tol):
+                diff = False
+                break
+    res['left_negation'] = left_inv
+    res['right_negation'] = right_inv
+    res['difference_consistency'] = diff
+    return res
+
+
+def verify_add_comm_group_laws(
+    group: AddCommGroup[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Additive Commutative Group laws: additive group laws plus commutativity."""
+    elements = _require_samples(samples)
+    res = verify_add_group_laws(group, elements, tol)
+    add = group.add
+    comm = True
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(add(a, b), add(b, a), tol):
+            comm = False
+            break
+    res['add_commutativity'] = comm
+    return res
+
+
+# --- Order & Lattice Verifiers ---
+
+
+def verify_join_semilattice_laws(
+    js: JoinSemilattice[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Join-Semilattice laws: join associativity, commutativity, and idempotence ($a \vee a = a$)."""
+    elements = _require_samples(samples)
+    join = js.join
+    assoc = True
+    comm = True
+    idemp = True
+    for a in elements:
+        if not semiring_elements_equal(join(a, a), a, tol):
+            idemp = False
+            break
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(join(a, b), join(b, a), tol):
+            comm = False
+            break
+    for a, b, c in itertools.product(elements, repeat=3):
+        if not semiring_elements_equal(join(join(a, b), c), join(a, join(b, c)), tol):
+            assoc = False
+            break
+    return {
+        'join_idempotence': idemp,
+        'join_commutativity': comm,
+        'join_associativity': assoc,
+    }
+
+
+def verify_meet_semilattice_laws(
+    ms: MeetSemilattice[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Meet-Semilattice laws: meet associativity, commutativity, and idempotence ($a \wedge a = a$)."""
+    elements = _require_samples(samples)
+    meet = ms.meet
+    assoc = True
+    comm = True
+    idemp = True
+    for a in elements:
+        if not semiring_elements_equal(meet(a, a), a, tol):
+            idemp = False
+            break
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(meet(a, b), meet(b, a), tol):
+            comm = False
+            break
+    for a, b, c in itertools.product(elements, repeat=3):
+        if not semiring_elements_equal(meet(meet(a, b), c), meet(a, meet(b, c)), tol):
+            assoc = False
+            break
+    return {
+        'meet_idempotence': idemp,
+        'meet_commutativity': comm,
+        'meet_associativity': assoc,
+    }
+
+
+def verify_lattice_laws(
+    lattice: Lattice[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Lattice laws: join/meet semilattice laws plus absorption."""
+    elements = _require_samples(samples)
+    res = {}
+    res.update(verify_join_semilattice_laws(lattice, elements, tol))
+    res.update(verify_meet_semilattice_laws(lattice, elements, tol))
+    join = lattice.join
+    meet = lattice.meet
+    absorb_1 = True
+    absorb_2 = True
+    for a, b in itertools.product(elements, repeat=2):
+        if not semiring_elements_equal(meet(a, join(a, b)), a, tol):
+            absorb_1 = False
+        if not semiring_elements_equal(join(a, meet(a, b)), a, tol):
+            absorb_2 = False
+        if not absorb_1 or not absorb_2:
+            break
+    res['absorption_meet_join'] = absorb_1
+    res['absorption_join_meet'] = absorb_2
+    return res
+
+
+def verify_bounded_lattice_laws(
+    bl: BoundedLattice[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Bounded Lattice laws: lattice laws plus bot/top bounds."""
+    elements = _require_samples(samples)
+    res = verify_lattice_laws(bl, elements, tol)
+    bot = bl.bot
+    top = bl.top
+    join = bl.join
+    meet = bl.meet
+    bot_id = True
+    top_id = True
+    for a in elements:
+        if not semiring_elements_equal(join(bot, a), a, tol):
+            bot_id = False
+        if not semiring_elements_equal(meet(top, a), a, tol):
+            top_id = False
+    res['bot_identity'] = bot_id
+    res['top_identity'] = top_id
+    return res
+
+
+def verify_distributive_lattice_laws(
+    dl: DistributiveLattice[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Distributive Lattice laws: mutual distributivity of meet and join."""
+    elements = _require_samples(samples)
+    res = verify_lattice_laws(dl, elements, tol)
+    join = dl.join
+    meet = dl.meet
+    dist_1 = True
+    dist_2 = True
+    for a, b, c in itertools.product(elements, repeat=3):
+        if not semiring_elements_equal(meet(a, join(b, c)), join(meet(a, b), meet(a, c)), tol):
+            dist_1 = False
+        if not semiring_elements_equal(join(a, meet(b, c)), meet(join(a, b), join(a, c)), tol):
+            dist_2 = False
+        if not dist_1 or not dist_2:
+            break
+    res['distributivity_meet_join'] = dist_1
+    res['distributivity_join_meet'] = dist_2
+    return res
+
+
+def verify_boolean_algebra_laws(
+    ba: BooleanAlgebra[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Boolean Algebra laws: bounded distributive lattice plus complements."""
+    elements = _require_samples(samples)
+    res = verify_bounded_lattice_laws(ba, elements, tol)
+    res.update(verify_distributive_lattice_laws(ba, elements, tol))
+    comp = ba.complement
+    join = ba.join
+    meet = ba.meet
+    top = ba.top
+    bot = ba.bot
+    comp_join = True
+    comp_meet = True
+    for a in elements:
+        not_a = comp(a)
+        if not semiring_elements_equal(join(a, not_a), top, tol):
+            comp_join = False
+        if not semiring_elements_equal(meet(a, not_a), bot, tol):
+            comp_meet = False
+    res['complement_join'] = comp_join
+    res['complement_meet'] = comp_meet
+    return res
+
+
+def verify_group_action_laws(
+    action: GroupAction[G, X],
+    group: Group[G],
+    group_samples: Iterable[G],
+    set_samples: Iterable[X],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Group Action laws: identity action $\mathbf{1} \cdot x = x$
+    and compatibility $g \cdot (h \cdot x) = (g h) \cdot x$.
+    """
+    g_elements = _require_samples(group_samples)
+    x_elements = _require_samples(set_samples)
+    gact = action.gact
+    mul = group.mul
+    one = group.one
+
+    id_act = True
+    for x in x_elements:
+        if not semiring_elements_equal(gact(one, x), x, tol):
+            id_act = False
+            break
+
+    compat = True
+    for g, h in itertools.product(g_elements, repeat=2):
+        for x in x_elements:
+            lhs = gact(g, gact(h, x))
+            rhs = gact(mul(g, h), x)
+            if not semiring_elements_equal(lhs, rhs, tol):
+                compat = False
+                break
+        if not compat:
+            break
+
+    return {
+        'action_identity': id_act,
+        'action_compatibility': compat,
+    }
