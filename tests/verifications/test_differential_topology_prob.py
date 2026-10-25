@@ -38,7 +38,11 @@ from hypothesis import strategies as st
 from algebrax.automata import dfa_step, nfa_step, simulate_dfa, simulate_nfa
 from algebrax.homology import (
     Cochain,
+    FilteredSimplicialComplex,
+    PersistenceInterval,
     SimplicialComplex,
+    betti_curve,
+    bottleneck_distance,
     coboundary,
     cochain_to_flow,
     codifferential,
@@ -48,6 +52,8 @@ from algebrax.homology import (
     helmholtz_hodge_decomposition,
     hodge_laplacian,
     hodge_star,
+    persistence_entropy,
+    persistent_homology,
 )
 from algebrax.matrix.core import mat_vec
 from algebrax.metrics import (
@@ -610,3 +616,95 @@ def test_metrics_density_sparsity_and_fractal_box_counting() -> None:
     square_points = {(x, y): 1 for x in range(64) for y in range(64)}
     dim_square = box_counting_dimension(square_points, min_box_size=1, max_box_size=32)
     assert math.isclose(dim_square, 2.0, rel_tol=1e-12, abs_tol=1e-12)
+
+
+# ---------------------------------------------------------------------------
+# 10. Persistent Homology, Vietoris-Rips Filtrations & Bottleneck Stability (EP-0162)
+# ---------------------------------------------------------------------------
+
+
+def _gf2_rank_numpy(mat: np.ndarray) -> int:
+    """Reference dense F_2 Gaussian elimination rank oracle using NumPy XOR row reduction."""
+    if mat.size == 0:
+        return 0
+    a = (np.abs(np.rint(mat)).astype(np.int64) % 2).copy()
+    m, n = a.shape
+    rank = 0
+    for col in range(n):
+        pivot_rows = np.nonzero(a[rank:, col])[0]
+        if pivot_rows.size == 0:
+            continue
+        piv = rank + int(pivot_rows[0])
+        if piv != rank:
+            a[[rank, piv]] = a[[piv, rank]]
+        below = np.nonzero(a[rank + 1 :, col])[0] + (rank + 1)
+        if below.size > 0:
+            a[below] ^= a[rank]
+        rank += 1
+        if rank == m:
+            break
+    return rank
+
+
+def test_persistent_homology_vietoris_rips_and_bottleneck_stability() -> None:
+    """Verify persistent_homology against dense F_2 boundary rank, scipy.stats.entropy, and Cohen-Steiner stability."""
+    # Regular hexagon on unit circle: side = 1.0, short chord = sqrt(3) ~= 1.73205, diameter = 2.0
+    angles = [k * math.pi / 3.0 for k in range(6)]
+    pts = [(math.cos(theta), math.sin(theta)) for theta in angles]
+    dist_mat: dict[int, dict[int, float]] = {}
+    for i in range(6):
+        dist_mat[i] = {}
+        for j in range(6):
+            if i != j:
+                dist_mat[i][j] = math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1])
+
+    fsc = FilteredSimplicialComplex.from_vietoris_rips(dist_mat, max_dim=2)
+    intervals = persistent_homology(fsc, max_k=1)
+
+    # 1. Verify H_1 barcode: 1 dominant loop born at t = 1.0 and killed at t = sqrt(3)
+    h1_bars = [iv for iv in intervals if iv.dimension == 1]
+    assert len(h1_bars) == 1
+    assert math.isclose(h1_bars[0].birth, 1.0, rel_tol=1e-12, abs_tol=1e-12)
+    assert math.isclose(h1_bars[0].death, math.sqrt(3.0), rel_tol=1e-12, abs_tol=1e-12)
+
+    # 2. Verify Betti curve against dense F_2 Gaussian elimination rank of sublevel boundary matrices
+    thresholds = [0.0, 0.5, 1.0, 1.2, 1.5, 1.8, 2.1]
+    b0_curve = betti_curve(intervals, thresholds, dimension=0)
+    b1_curve = betti_curve(intervals, thresholds, dimension=1)
+
+    for idx, t in enumerate(thresholds):
+        sub_sc = fsc.to_simplicial_complex(t)
+        n0 = len(sub_sc._simplices.get(0, set()))
+        n1 = len(sub_sc._simplices.get(1, set()))
+        r1 = _gf2_rank_numpy(_sparse_boundary_to_dense(sub_sc, 1))
+        r2 = _gf2_rank_numpy(_sparse_boundary_to_dense(sub_sc, 2))
+        assert b0_curve[idx] == n0 - r1
+        assert b1_curve[idx] == n1 - r1 - r2
+
+    # 3. Verify persistence_entropy against scipy.stats.entropy
+    synthetic_bars = [
+        PersistenceInterval(0, 0.0, 1.5, (0,), (0, 1)),
+        PersistenceInterval(0, 0.0, 3.0, (1,), (1, 2)),
+        PersistenceInterval(1, 1.0, 5.5, (0, 2), (0, 1, 2)),
+    ]
+    ent_ax = persistence_entropy(synthetic_bars)
+    ent_scipy = float(stats.entropy([1.5, 3.0, 4.5]))
+    assert math.isclose(ent_ax, ent_scipy, rel_tol=1e-12, abs_tol=1e-12)
+
+    # 4. Verify bottleneck_distance metric triangle inequality and Cohen-Steiner stability
+    dgm_a = [
+        PersistenceInterval(1, 1.0, 4.0, (0, 1), (0, 1, 2)),
+        PersistenceInterval(1, 2.0, 2.6, (1, 2), (1, 2, 3)),
+    ]
+    dgm_b = [
+        PersistenceInterval(1, 1.2, 3.7, (0, 1), (0, 1, 2)),
+        PersistenceInterval(1, 2.1, 2.5, (1, 2), (1, 2, 3)),
+    ]
+    dgm_c = [
+        PersistenceInterval(1, 0.9, 4.2, (0, 1), (0, 1, 2)),
+    ]
+    d_ab = bottleneck_distance(dgm_a, dgm_b, dimension=1)
+    d_bc = bottleneck_distance(dgm_b, dgm_c, dimension=1)
+    d_ac = bottleneck_distance(dgm_a, dgm_c, dimension=1)
+    assert math.isclose(d_ab, 0.3, rel_tol=1e-12, abs_tol=1e-12)
+    assert d_ac <= d_ab + d_bc + 1e-12
