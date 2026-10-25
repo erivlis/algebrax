@@ -116,16 +116,17 @@ To allow developers and CI runners to execute tests with or without optional sci
 # tests/verifications/conftest.py
 import pytest
 
+
 def pytest_configure(config):
-    config.addinivalue_line("markers", "verification: All verification suite tests")
-    config.addinivalue_line("markers", "differential: Tests requiring NumPy, SciPy, NetworkX, or SymPy")
-    config.addinivalue_line("markers", "axiomatic: Property-based testing via Hypothesis")
-    config.addinivalue_line("markers", "metamorphic: Metamorphic relation invariance tests")
-    config.addinivalue_line("markers", "pit: Schwartz-Zippel Polynomial Identity Testing")
-    config.addinivalue_line("markers", "mms: Method of Manufactured Solutions tests")
-    config.addinivalue_line("markers", "formal_smt: Formal proofs via Z3 SMT solver")
-    config.addinivalue_line("markers", "smt: Alias for formal_smt (Z3 SMT formal proofs)")
-    config.addinivalue_line("markers", "certificates: Solver verification certificate tests")
+    config.addinivalue_line('markers', 'verification: All verification suite tests')
+    config.addinivalue_line('markers', 'differential: Tests requiring NumPy, SciPy, NetworkX, or SymPy')
+    config.addinivalue_line('markers', 'axiomatic: Property-based testing via Hypothesis')
+    config.addinivalue_line('markers', 'metamorphic: Metamorphic relation invariance tests')
+    config.addinivalue_line('markers', 'pit: Schwartz-Zippel Polynomial Identity Testing')
+    config.addinivalue_line('markers', 'mms: Method of Manufactured Solutions tests')
+    config.addinivalue_line('markers', 'formal_smt: Formal proofs via Z3 SMT solver')
+    config.addinivalue_line('markers', 'smt: Alias for formal_smt (Z3 SMT formal proofs)')
+    config.addinivalue_line('markers', 'certificates: Solver verification certificate tests')
 ```
 
 When an external library (e.g., `z3`, `gudhi`, or `networkx`) is not installed, tests requiring that library are cleanly skipped with an informative diagnostic message rather than failing.

@@ -60,9 +60,12 @@ Testing sparse nested dictionary structures (`Dict[K, Dict[K, V]]`) requires cus
 ```python
 from hypothesis import strategies as st
 
+
 # Custom strategy for generating arbitrary sparse dictionary matrices
 @st.composite
-def sparse_matrices(draw, max_size=5, val_strategy=st.floats(allow_nan=False, allow_infinity=False, min_value=-1e5, max_value=1e5)):
+def sparse_matrices(
+    draw, max_size=5, val_strategy=st.floats(allow_nan=False, allow_infinity=False, min_value=-1e5, max_value=1e5)
+):
     rows = draw(st.integers(min_value=1, max_value=max_size))
     cols = draw(st.integers(min_value=1, max_value=max_size))
 
@@ -70,7 +73,7 @@ def sparse_matrices(draw, max_size=5, val_strategy=st.floats(allow_nan=False, al
     for r in range(rows):
         row_dict = {}
         for c in range(cols):
-            if draw(st.booleans()): # Random sparsity pattern
+            if draw(st.booleans()):  # Random sparsity pattern
                 row_dict[c] = draw(val_strategy)
         if row_dict:
             matrix[r] = row_dict
@@ -87,7 +90,8 @@ Using pytest parameterization, a single property test runner can automatically v
 import pytest
 from hypothesis import given, settings
 
-@pytest.mark.parametrize("semiring", ALL_ALGEBRAX_SEMIRINGS)
+
+@pytest.mark.parametrize('semiring', ALL_ALGEBRAX_SEMIRINGS)
 @given(a=sparse_elements(), b=sparse_elements(), c=sparse_elements())
 def test_semiring_distributivity(semiring, a, b, c):
     # Left Distributivity: a * (b + c) == (a * b) + (a * c)

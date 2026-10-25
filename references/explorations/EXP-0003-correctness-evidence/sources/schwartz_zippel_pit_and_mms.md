@@ -39,6 +39,7 @@ For $d = 10$, a single evaluation gives error $< 10^{-5}$; $k = 3$ evaluations r
 ```python
 import random
 
+
 def test_pit_clifford_rotor_norm_conservation():
     # Verify rotor sandwich rotation preserves multivector quadratic form:
     # Q(R * v * ~R) == Q(v) without full symbolic Clifford expansion

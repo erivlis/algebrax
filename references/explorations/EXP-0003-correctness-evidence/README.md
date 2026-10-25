@@ -123,6 +123,7 @@ import numpy as np
 import pytest
 import algebrax as ax
 
+
 def test_differential_matrix_dot_numpy():
     A_ax = {0: {0: 2.0, 1: 3.0}, 1: {1: 4.0}}
     B_ax = {0: {1: 5.0}, 1: {0: 1.0, 1: 2.0}}
@@ -228,11 +229,9 @@ Using Python's standard `fractions.Fraction` carrier or SymPy exact symbols, Alg
 from fractions import Fraction
 import algebrax as ax
 
+
 def test_exact_rational_matrix_determinant():
-    A = {
-        0: {0: Fraction(1, 3), 1: Fraction(2, 5)},
-        1: {0: Fraction(3, 7), 1: Fraction(4, 9)}
-    }
+    A = {0: {0: Fraction(1, 3), 1: Fraction(2, 5)}, 1: {0: Fraction(3, 7), 1: Fraction(4, 9)}}
     # Determinant computed with exact rational arithmetic
     det = ax.matrix.academic.determinant(A)
     expected = Fraction(1, 3) * Fraction(4, 9) - Fraction(2, 5) * Fraction(3, 7)
@@ -248,6 +247,7 @@ Satisfiability Modulo Theories (SMT) solvers like **Z3** prove that algebraic in
 ```python
 import pytest
 from z3 import Solver, Real, If, unsat
+
 
 def test_z3_formal_proof_tropical_semiring_distributivity():
     s = Solver()
