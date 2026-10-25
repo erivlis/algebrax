@@ -55,6 +55,7 @@ nav = [
             "guide/probability/information.md",
         ] },
         { "Discrete, Automata & Category" = [
+            "guide/algebra/hierarchy.md",
             "guide/discrete/automata.md",
             "guide/discrete/category.md",
             "guide/discrete/algebra.md",
