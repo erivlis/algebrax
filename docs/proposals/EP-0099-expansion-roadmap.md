@@ -97,6 +97,7 @@ flowchart TD
         EP0190_N["EP-0190 Magmas, Monoids, Groups & Lattices ✅\n🧩 Russell & 🔬 Popper"]
         EP0191_N["EP-0191 Rings, Fields, Modules & Exact Solvers ✅\n⚖️ Noether & ⚡ Shannon"]
         EP0192_N["EP-0192 Unifying Domain Objects 💡\n⚖️ Noether & 🧩 Russell"]
+        EP0193_N["EP-0193 Documentation Realignment 💡\n💡 Feynman & 🧩 Russell"]
     end
 
     EP0152_N --> EP0160_N
@@ -106,24 +107,24 @@ flowchart TD
     EP0163_N --> EP0164_N
     CORE --> P6
     EP0191_N --> EP0192_N
-
-    style CORE fill:#4a90d9,color:#fff
-    style P3 fill:#2d7d46,color:#fff
-    style P35 fill:#8b5cf6,color:#fff
-    style P4 fill:#d97706,color:#fff
-    style EP0100 fill:#3b82f6,color:#fff
-    style EP0101 fill:#3b82f6,color:#fff
-    style EP0110 fill:#10b981,color:#fff
-    style EP0111 fill:#10b981,color:#fff
-    style EP0112 fill:#10b981,color:#fff
-    style EP0113 fill:#10b981,color:#fff
-    style EP0149 fill:#8b5cf6,color:#fff
-    style EP0160_N fill:#f59e0b,color:#fff
-    style EP0161_N fill:#f59e0b,color:#fff
-    style EP0162_N fill:#f59e0b,color:#fff
-    style EP0163_N fill:#f59e0b,color:#fff
-    style KNOT fill:#6b7280,color:#fff
-    style SHEAF fill:#6b7280,color:#fff
+    EP0192_N --> EP0193_N
+    style CORE fill: #4a90d9, color: #fff
+    style P3 fill: #2d7d46, color: #fff
+    style P35 fill: #8b5cf6, color: #fff
+    style P4 fill: #d97706, color: #fff
+    style EP0100 fill: #3b82f6, color: #fff
+    style EP0101 fill: #3b82f6, color: #fff
+    style EP0110 fill: #10b981, color: #fff
+    style EP0111 fill: #10b981, color: #fff
+    style EP0112 fill: #10b981, color: #fff
+    style EP0113 fill: #10b981, color: #fff
+    style EP0149 fill: #8b5cf6, color: #fff
+    style EP0160_N fill: #f59e0b, color: #fff
+    style EP0161_N fill: #f59e0b, color: #fff
+    style EP0162_N fill: #f59e0b, color: #fff
+    style EP0163_N fill: #f59e0b, color: #fff
+    style KNOT fill: #6b7280, color: #fff
+    style SHEAF fill: #6b7280, color: #fff
 ```
 
 ---
@@ -213,59 +214,14 @@ Phase 0: Architecture Roadmap (EP-0099)
   └── Phase 6: Pure Algebraic Hierarchy (EXP-0004)  ⏳ IN PROGRESS
         ├── EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices (Russell/Popper) [Final]
         ├── EP-0191: Rings, Fields, Modules & Exact Matrix Solvers (Noether/Shannon) [Final]
-        └── EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Noether/Russell) [Draft]
         ├── EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Noether/Russell) [Draft]
+        └── EP-0193: Documentation Architecture Realignment with Pure Algebraic Hierarchy (Feynman/Russell) [Draft]
 ```
 
 ---
 
 ## Detailed Proposal Matrix
 
-| Proposal    | Title                          | Pillar            | Target Module                          | Status   | Deliverables                                                                   |
-|:------------|:-------------------------------|:------------------|:---------------------------------------|:---------|:-------------------------------------------------------------------------------|
-| **EP-0099** | Master Expansion Roadmap       | —                 | Docs                                   | Active   | `EP-0099-expansion-roadmap.md`                                                 |
-| **EP-0100** | Quotient Monoid Algebras       | Shannon           | `algebrax.semiring`                    | Final    | `QuotientMonoidAlgebraSemiring`, tests                                         |
-| **EP-0101** | Sparse Chain Complexes         | Shannon           | `algebrax.analysis`                    | Final    | `SparseChainComplex`, `hodge_laplacian`, tests                                 |
-| **EP-0110** | Simplicial Homology            | Explorer          | `algebrax.homology`                    | Final    | `SimplicialComplex`, `betti_numbers`, Lab View 21                              |
-| **EP-0111** | Clifford Geometric Algebra     | Explorer          | `algebrax.clifford`                    | Final    | `CliffordSemiring`, `rotor_rotation`, Lab View 22                              |
-| **EP-0112** | Galois Finite Fields           | Explorer          | `algebrax.galois`                      | Final    | `GaloisFieldSemiring`, `gf_matrix_mul`, Lab View 23                            |
-| **EP-0113** | Categorical Morphisms          | Explorer          | `algebrax.category`                    | Final    | `kleisli_compose`, `kan_extension`, Lab View 24                                |
-| **EP-0120** | Algebraic Web Explorer         | Feynman           | Web / Visual                           | Draft    | `site/explorer/index.html`, HTML5/Canvas studio                                |
-| **EP-0130** | API Consistency Audit          | Russell           | `algebrax.__init__`                    | Final    | Public re-exports, Semiring catalog                                            |
-| **EP-0131** | Algebraic Law Verification     | Popper            | `algebrax.verification`                | Final    | Property-based axiom tests, CLI auditor `python -m algebrax.verify`            |
-| **EP-0132** | Matrix Decompositions          | Noether           | `algebrax.decompose`                   | Final    | Sparse LU, QR, SVD, Cholesky on dict-matrices                                  |
-| **EP-0133** | Jupyter & CLI Integration      | Steward           | `algebrax.display`                     | Final    | `_repr_html_()`, `python -m algebrax inspect`                                  |
-| **EP-0134** | Semiring Namespace Refactor    | Russell           | `algebrax.semiring/`                   | Final    | Categorical sub-modules, consolidated Clifford/Galois                          |
-| **EP-0140** | API Symmetry Restoration       | Noether           | `matrix`, `transforms`, `homology`     | Final    | Recomposition helpers, inverse transforms, coboundary operator                 |
-| **EP-0141** | Taxonomy Cleanup               | Russell           | `analysis`, `tensor`, `__init__`       | Final    | Relocate `SparseChainComplex`, `permute_tensor`, clean imports                 |
-| **EP-0142** | Performance Optimizations      | Shannon           | `matrix`, `transforms`, `tensor`       | Final    | Local binding, catalog cache, twiddle precompute, backtracking                 |
-| **EP-0143** | Documentation Clarity          | Feynman           | `docs/`, docstrings                    | Final    | Freshman summaries, typo fixes, concepts.md rewrite                            |
-| **EP-0144** | Testing Hardening              | Popper            | `tests/`                               | Final    | Property-based tests, edge cases, numerical stability                          |
-| **EP-0145** | Type Safety Hardening          | Golem             | `typing`, `analysis`, `converters`     | Final    | Future annotations, semiring normalization, collision fix                      |
-| **EP-0146** | Developer Ergonomics           | Steward           | `__init__`, `converters`, `display`    | Final    | Namespace org, NumPy/SciPy bridges, Jupyter display                            |
-| **EP-0147** | Optional Loop Pragmas          | Shannon           | `benchmarks/`, core loops              | Deferred | Non-invasive `lucen` pragmas, free-threaded GIL-less scaling                   |
-| **EP-0148** | Formalized Benchmarking        | Popper            | `benchmarks/`, `.github/`              | Final    | Standardized `pytest-benchmark` suite & CodSpeed CI tracking                   |
-| **EP-0149** | Universal Binomial Moments     | Noether & Russell | `algebrax.semiring`                    | Final    | Divided power quotient ring, MultivariateMomentSemiring, decoders              |
-| **EP-0150** | Standardized Math Docstrings   | Feynman & Russell | `algebrax.semiring`, `display`         | Final    | Unified AMDS standard, MathJax semiring card, LaTeX repr, tests                |
-| **EP-0151** | Algebraic PageRank             | Shannon & Noether | `algebrax.analysis`                    | Final    | Sparse semiring contraction solver, random walk with restart, PPR              |
-| **EP-0152** | Spectral Graph Theory          | Noether & Shannon | `algebrax.analysis`                    | Final    | Graph Laplacians (unnormalized, sym, rw), Fiedler vector, cuts, smoothing      |
-| **EP-0153** | Semiring Matrix & Cochain Sym  | Noether & Shannon | `matrix`, `analysis`, `homology`       | Final    | Semiring `add`/`trace`, `vec_*` primitives, `Cochain` carrier, AMDS cleanup    |
-| **EP-0160** | Discrete Exterior Calculus     | Noether & Shannon | `algebrax.homology` / `analysis`       | Final    | $\Omega^k$ forms, exterior derivative $d$, Hodge star $\star$, Helmholtz-Hodge |
-| **EP-0161** | Cellular Sheaves & Laplacians  | Russell & Steward | `algebrax.homology`                    | Final    | `CellularSheaf`, coboundary $\delta$, sheaf Laplacian, consensus dynamics      |
-| **EP-0162** | Persistent Homology (TDA)      | Popper & Explorer | `algebrax.homology`                    | Final    | Simplicial filtrations, boundary reduction over $\mathbb{Z}_2$, barcodes       |
-| **EP-0163** | Lie Algebras & BCH Dynamics    | Noether & Golem   | `algebrax.lie`                         | Final    | `LieAlgebra`, `StructureConstants`, `so3`, `sl2`, `se3`, BCH solver            |
-| **EP-0164** | Root Systems & Chevalley       | Noether & Shannon | `algebrax.lie`                         | Final    | `RootSystem`, `dynkin_diagram`, `to_euclidean`, Chevalley construction         |
-| **EP-0165** | Topology & Cohomology Ring     | Russell & Noether | `algebrax.topology`                    | Final    | Modular `topology/` package, Alexander–Whitney cup/cap, dual persistent cohom  |
-| **EP-0180** | Multi-Layered Verification     | Popper & Noether  | `tests/verifications/`                 | Final    | 8-layer test harness: differential, metamorphic, PIT, MMS, certified solvers   |
-| **EP-0181** | Comparative: Linalg & Tensors  | Popper & Russell  | `matrix`, `tensor`, `transforms`       | Final    | Differential tests vs NumPy (`linalg`, `fft`, `einsum`) & SciPy (`linalg`)     |
-| **EP-0182** | Comparative: Graphs & Paths    | Popper & Noether  | `analysis`, `semiring`                 | Final    | Differential tests vs NetworkX & `scipy.sparse.csgraph` (PageRank, paths)      |
-| **EP-0183** | Comparative: Symbolic & Lie    | Noether & Popper  | `lie`, `galois`, `clifford`, `group`   | Final    | Exact differential tests vs SymPy (`Matrix`, `liealgebras`, `GF`) & `expm`     |
-| **EP-0184** | Comparative: Topology & Prob   | Popper & Feynman  | `homology`, `probability`, `automata`  | Final    | Differential tests vs `scipy.stats`, exact Betti/Stokes/Hodge manifolds        |
-| **EP-0185** | Axiomatic, Moments & Sheaf MMS | Popper & Russell  | `semiring`, `category`, `homology`     | Final    | All 34 semirings PBT, streaming moments vs `scipy.stats`, sheaf MMS            |
-| **EP-0186** | Certificates, PIT & SMT (Z3)   | Golem & Shannon   | `tests/verifications/`                 | Final    | Universal $O(\text{nnz})$ solver certificates, Cayley-Hamilton PIT, Z3 proofs  |
-| **EP-0190** | Granular Algebraic Hierarchy   | Russell & Popper  | `algebrax.algebra`                     | Final    | Lean 4-aligned Magma, Monoid, Group, Lattice protocols & layered PBT laws      |
-| **EP-0191** | Rings, Fields & Exact Solvers  | Noether & Shannon | `algebrax.algebra`, `matrix.decompose` | Final    | Ring, Field, Module protocols, exact rational & Galois field matrix solvers    |
-| **EP-0192** | Unifying Domain Objects        | Noether & Russell | `algebrax.lie`, `algebrax.semiring`    | Draft    | Bind `LieAlgebra` to `NonAssocAlgebra`, `CliffordAlgebra`, `PolynomialRing`, `DualNumberRing` |
 | Proposal    | Title                          | Pillar            | Target Module                          | Status   | Deliverables                                                                                        |
 |:------------|:-------------------------------|:------------------|:---------------------------------------|:---------|:----------------------------------------------------------------------------------------------------|
 | **EP-0099** | Master Expansion Roadmap       | —                 | Docs                                   | Active   | `EP-0099-expansion-roadmap.md`                                                                      |
@@ -311,6 +267,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0190** | Granular Algebraic Hierarchy   | Russell & Popper  | `algebrax.algebra`                     | Final    | Lean 4-aligned Magma, Monoid, Group, Lattice protocols & layered PBT laws                           |
 | **EP-0191** | Rings, Fields & Exact Solvers  | Noether & Shannon | `algebrax.algebra`, `matrix.decompose` | Final    | Ring, Field, Module protocols, exact rational & Galois field matrix solvers                         |
 | **EP-0192** | Unifying Domain Objects        | Noether & Russell | `algebrax.lie`, `algebrax.semiring`    | Draft    | Bind `LieAlgebra` to `NonAssocAlgebra`, `CliffordAlgebra`, `PolynomialAlgebra`, `DualNumberAlgebra` |
+| **EP-0193** | Documentation Architecture     | Feynman & Russell | `docs/`, `zensical.toml`               | Draft    | Realign documentation navigation and guides with pure algebraic hierarchy                           |
 
 ---
 
@@ -337,8 +294,8 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-10-24 | Eran Rivlis & Antigravity | Added Phase 5 Verification Series EP-0181 through EP-0186 (Wave 1 Comparative "Stamp of Trust" Oracles & Wave 2 Intrinsic/Formal Proofs).   |
 | 2026-10-25 | Eran Rivlis & Antigravity | Completed Phase 4 (EP-0161, EP-0162, EP-0165 Final); added Phase 6 (EP-0190, EP-0191) from EXP-0004 (Lean 4 Pure Algebraic Hierarchy).      |
 | 2026-10-27 | Eran Rivlis & Antigravity | Completed Phase 6 (EP-0190, EP-0191 Final); implemented Ring, Field, Module protocols, exact matrix solvers, and law verification.          |
-| 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Draft).                                            |
 | 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Draft).                                                           |
+| 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0193: Documentation Architecture Realignment with Pure Algebraic Hierarchy (Draft).                                                |
 
 
 

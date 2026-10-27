@@ -127,14 +127,10 @@ Proposals stemming from the **Pure Algebraic Hierarchy Exploration**
 establishing Lean 4 Mathlib-aligned granular structural protocols, sub-semiring abstractions (magmas, monoids, groups,
 lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 
-| EP                                                                                  | Title                                                             | Council Sponsor         |         Status          |
-|:------------------------------------------------------------------------------------|:------------------------------------------------------------------|:------------------------|:-----------------------:|
-| [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices | 🧩 Russell & 🔬 Popper  | :material-check-all: Final |
-| [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                     | ⚖️ Noether & ⚡ Shannon | :material-check: Accepted |
-| [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                     | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
 | EP                                                                                 | Title                                                                | Council Sponsor         |           Status           |
 |:-----------------------------------------------------------------------------------|:---------------------------------------------------------------------|:------------------------|:--------------------------:|
 | [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices    | 🧩 Russell & 🔬 Popper  | :material-check-all: Final |
 | [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                        | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
 | [EP-0192](proposals/EP-0192-unifying-domain-objects-with-algebraic-hierarchy.md)   | Unifying Domain Objects with the Pure Algebraic Hierarchy            | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
+| [EP-0193](proposals/EP-0193-documentation-architecture-realignment.md)             | Documentation Architecture Realignment with Pure Algebraic Hierarchy | 💡 Feynman & 🧩 Russell |  :material-pencil: Draft   |
 
