@@ -274,6 +274,11 @@ This exploration outlines a compelling **Phase 7: Categorical Foundations & Idea
 3. **`EP-0202: Functorial Sheaves & Categorical DEC`**:
    - Re-architect `CellularSheaf` as a formal functor from cell posets into `MatrixCategory`.
    - Formalize the coboundary operator $\delta$ as a natural transformation.
+4. **`EP-0203: Discrete Fiber Bundles, Gauge Connections & Parallel Transport`**:
+   - Introduce discrete vector and principal $G$-bundles over cell complexes.
+   - Formalize parallel transport along chains, holonomy/Wilson loops, and discrete curvature.
+   - Construct the sparse block Connection Laplacian $L_\nabla = D \otimes \mathbf{I}_d - \mathbf{A}_\rho$ for angular and pose synchronization.
+   - Extend DEC to bundle-valued forms $\Omega^k(K; E)$ with covariant exterior derivative $d_\nabla$ and twisted cohomology.
 
 ---
 
