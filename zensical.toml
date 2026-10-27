@@ -56,6 +56,7 @@ nav = [
         ] },
         { "Discrete, Automata & Category" = [
             "guide/algebra/hierarchy.md",
+            "guide/algebra/rings_and_fields.md",
             "guide/discrete/automata.md",
             "guide/discrete/category.md",
             "guide/discrete/algebra.md",
