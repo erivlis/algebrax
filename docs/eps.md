@@ -134,3 +134,17 @@ lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 | [EP-0192](proposals/EP-0192-unifying-domain-objects-with-algebraic-hierarchy.md)   | Unifying Domain Objects with the Pure Algebraic Hierarchy            | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
 | [EP-0193](proposals/EP-0193-documentation-architecture-realignment.md)             | Documentation Architecture Realignment with Pure Algebraic Hierarchy | 💡 Feynman & 🧩 Russell |  :material-pencil: Draft   |
 
+---
+
+## Phase 7 — Categorical Foundations & Morphisms
+
+Proposals stemming from the **Categorical Foundations Exploration**
+([EXP-0005](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0005-categorical-foundations-and-enriched-mechanics/README.md)),
+establishing Lean 4 Mathlib-aligned category protocols, enriched matrix categories, Lawvere metric spaces, algebraic homomorphisms, ideals, canonical quotients, and functorial cellular sheaves.
+
+| EP                                                                                      | Title                                                | Council Sponsor                    | Status                 |
+|:----------------------------------------------------------------------------------------|:-----------------------------------------------------|:-----------------------------------|:----------------------:|
+| [EP-0200](proposals/EP-0200-categorical-abstractions-and-enriched-matrices.md)          | Categorical Abstractions & Enriched Matrix Mechanics | 🧩 Russell & ⚡ Shannon            | :material-pencil: Draft |
+| [EP-0201](proposals/EP-0201-algebraic-homomorphisms-ideals-quotients.md)               | Algebraic Homomorphisms, Ideals & Canonical Quotients | ⚖️ Noether & 🧩 Russell            | :material-pencil: Draft |
+| [EP-0202](proposals/EP-0202-functorial-sheaves-and-categorical-dec.md)                 | Functorial Sheaves & Categorical DEC                 | ⚖️ Noether & 🔬 Popper             | :material-pencil: Draft |
+
