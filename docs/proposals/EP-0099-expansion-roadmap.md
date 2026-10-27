@@ -113,6 +113,15 @@ flowchart TD
         EP0209_N["EP-0209 Langlands Duality & p-Adics 💡\n⚖️ Noether & 🔬 Popper"]
     end
 
+    subgraph P8["Phase 8 — Representation Theory & Quantum Groups (EXP-0006)"]
+        EP0210_N["EP-0210 Group Reps & Characters 💡\n⚖️ Noether & 🧩 Russell"]
+        EP0211_N["EP-0211 Lie Reps & Clebsch-Gordan 💡\n⚖️ Noether & ⚡ Shannon"]
+        EP0212_N["EP-0212 Quiver Reps & Gabriel ADE 💡\n🧩 Russell & 🔬 Popper"]
+        EP0213_N["EP-0213 Induced Reps & Frobenius 💡\n🧩 Russell & ⚖️ Noether"]
+        EP0214_N["EP-0214 Invariant Theory & Molien 💡\n⚖️ Noether & ⚡ Shannon"]
+        EP0215_N["EP-0215 Quantum Groups & Yang-Baxter 💡\n⚖️ Noether & 🛡️ Golem"]
+    end
+
     EP0152_N --> EP0160_N
     EP0153_N --> EP0160_N
     EP0110 --> EP0162_N
@@ -128,6 +137,10 @@ flowchart TD
     EP0203_N --> EP0207_N
     EP0200_N --> EP0208_N
     EP0164_N --> EP0209_N
+    P7 --> P8
+    EP0201_N --> EP0210_N
+    EP0206_N --> EP0215_N
+    EP0209_N --> EP0211_N
     style CORE fill: #4a90d9, color: #fff
     style P3 fill: #2d7d46, color: #fff
     style P35 fill: #8b5cf6, color: #fff
@@ -237,17 +250,25 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Noether/Russell) [Draft]
   │     └── EP-0193: Documentation Architecture Realignment with Pure Algebraic Hierarchy (Feynman/Russell) [Draft]
   │
-  └── Phase 7: Categorical Foundations, Morphisms & Duality (EXP-0005)  ⏳ IN PROGRESS
-        ├── EP-0200: Categorical Abstractions & Enriched Matrix Mechanics (Russell/Shannon) [Draft]
-        ├── EP-0201: Algebraic Homomorphisms, Ideals & Canonical Quotients (Noether/Russell) [Draft]
-        ├── EP-0202: Functorial Sheaves & Categorical DEC (Noether/Popper) [Draft]
-        ├── EP-0203: Discrete Fiber Bundles & Gauge Connections (Noether/Shannon) [Draft]
-        ├── EP-0204: Non-Associative & Quantum Algebras (Noether/Russell) [Draft]
-        ├── EP-0205: Normed, Banach & Hilbert Spaces — Inner Products & RKHS (Shannon/Popper) [Draft]
-        ├── EP-0206: Coalgebras, Bialgebras & Hopf Algebras (Noether/Shannon) [Draft]
-        ├── EP-0207: Topological K-Theory & Characteristic Classes (Noether/Russell) [Draft]
-        ├── EP-0208: Categorical Type Theory, Coeffects & Homotopy Groupoids (Russell/Golem) [Draft]
-        └── EP-0209: Langlands Root Duality, Hecke & p-Adic Valuations (Noether/Popper) [Draft]
+  ├── Phase 7: Categorical Foundations, Morphisms & Duality (EXP-0005)  ⏳ IN PROGRESS
+  │     ├── EP-0200: Categorical Abstractions & Enriched Matrix Mechanics (Russell/Shannon) [Draft]
+  │     ├── EP-0201: Algebraic Homomorphisms, Ideals & Canonical Quotients (Noether/Russell) [Draft]
+  │     ├── EP-0202: Functorial Sheaves & Categorical DEC (Noether/Popper) [Draft]
+  │     ├── EP-0203: Discrete Fiber Bundles & Gauge Connections (Noether/Shannon) [Draft]
+  │     ├── EP-0204: Non-Associative & Quantum Algebras (Noether/Russell) [Draft]
+  │     ├── EP-0205: Normed, Banach & Hilbert Spaces — Inner Products & RKHS (Shannon/Popper) [Draft]
+  │     ├── EP-0206: Coalgebras, Bialgebras & Hopf Algebras (Noether/Shannon) [Draft]
+  │     ├── EP-0207: Topological K-Theory & Characteristic Classes (Noether/Russell) [Draft]
+  │     ├── EP-0208: Categorical Type Theory, Coeffects & Homotopy Groupoids (Russell/Golem) [Draft]
+  │     └── EP-0209: Langlands Root Duality, Hecke & p-Adic Valuations (Noether/Popper) [Draft]
+  │
+  └── Phase 8: Representation Theory, Invariant Theory & Quantum Groups (EXP-0006)  ⏳ PLANNED
+        ├── EP-0210: Group Representations, Character Tables & Schur's Lemma (Noether/Russell) [Planned]
+        ├── EP-0211: Lie Algebra Representations, Weights & Clebsch–Gordan Tensors (Noether/Shannon) [Planned]
+        ├── EP-0212: Quiver Representations, Path Algebras & Gabriel's Theorem (Russell/Popper) [Planned]
+        ├── EP-0213: Induced Representations, Mackey Theory & Frobenius Reciprocity (Russell/Noether) [Planned]
+        ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Planned]
+        └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Planned]
 ```
 
 ---
@@ -311,6 +332,12 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0207** | Topological K-Theory & Chern   | Noether & Russell | `algebrax.topology`, `algebrax.dec`      | Draft    | Universal Grothendieck group, Whitney sums ⊕, ⊗, discrete Chern character ch(E) to cohomology       |
 | **EP-0208** | Categorical Type Theory & HoTT | Russell & Golem   | `algebrax.category`, `algebrax.topology` | Draft    | Cartesian Closed Categories (CCC), Curry-Howard-Lambek, semiring coeffects, path groupoids Π₁       |
 | **EP-0209** | Langlands Duality & p-Adics    | Noether & Popper  | `algebrax.lie`, `algebrax.spectral`      | Draft    | Root coroot duality, Cartan transpose A ↦ Aᵀ, Ramanujan expander bound, p-adic tropical valuation   |
+| **EP-0210** | Group Reps & Characters        | Noether & Russell | `algebrax.rep`                           | Planned  | Group representations, character tables, Schur orthogonality, irrep multiplicity decomposition      |
+| **EP-0211** | Lie Reps & Clebsch-Gordan      | Noether & Shannon | `algebrax.lie`, `algebrax.rep`           | Planned  | Highest weights, weight spaces, quadratic Casimir operator, sparse Clebsch-Gordan 3-tensors         |
+| **EP-0212** | Quiver Reps & Gabriel's ADE    | Russell & Popper  | `algebrax.rep`, `algebrax.sheaf`         | Planned  | Quiver representations on directed graphs, path algebras, Gabriel's ADE classification theorem      |
+| **EP-0213** | Induced Reps & Frobenius       | Russell & Noether | `algebrax.rep`                           | Planned  | Subgroup induction Ind_H^G, Frobenius reciprocity adjunction Ind ⊣ Res, Mackey decomposition        |
+| **EP-0214** | Invariant Theory & Molien      | Noether & Shannon | `algebrax.rep`, `algebrax.algebra`       | Planned  | Reynolds projection operator, Molien generating series, primary/secondary polynomial invariants     |
+| **EP-0215** | Quantum Groups & Yang-Baxter   | Noether & Golem   | `algebrax.rep`, `algebrax.hopf`          | Planned  | U_q(𝔤) quantum group deformations, universal R-matrix, Yang-Baxter equation, Jones polynomials      |
 
 ---
 
@@ -340,6 +367,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Draft).                                                           |
 | 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0193: Documentation Architecture Realignment with Pure Algebraic Hierarchy (Draft).                                                |
 | 2026-10-27 | Eran Rivlis & Antigravity | Added Phase 7 (Categorical Foundations, Morphisms, Quantum Algebras & Duality): EP-0200 through EP-0209 (Draft).                            |
+| 2026-10-28 | Eran Rivlis & Antigravity | Initiated EXP-0006; added Phase 8 (Representation Theory, Invariant Theory & Quantum Groups): EP-0210 through EP-0215 (Planned).            |
 
 
 

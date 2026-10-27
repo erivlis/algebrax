@@ -156,3 +156,20 @@ homomorphisms, ideals, canonical quotients, and functorial cellular sheaves.
 | [EP-0208](proposals/EP-0208-categorical-type-theory-and-homotopy-groupoids.md)            | Categorical Type Theory & Homotopy Groupoids                    | 🧩 Russell & 🛡️ Golem   | :material-pencil: Draft |
 | [EP-0209](proposals/EP-0209-langlands-root-duality-hecke-padic-valuations.md)             | Langlands Root Duality, Hecke & p-Adic Valuations               | ⚖️ Noether & 🔬 Popper  | :material-pencil: Draft |
 
+---
+
+## Phase 8 — Representation Theory, Invariant Theory & Quantum Groups
+
+Proposals stemming from the **Representation Theory Exploration**
+([EXP-0006](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0006-representation-theory-and-quantum-symmetries/README.md)),
+establishing group representations, character tables, Schur orthogonality, Lie highest weights, Clebsch–Gordan tensors, quiver representations, and quantum groups.
+
+| EP      | Title                                                | Council Sponsor         | Status                    |
+|:--------|:-----------------------------------------------------|:------------------------|:-------------------------:|
+| EP-0210 | Group Representations, Character Tables & Schur      | ⚖️ Noether & 🧩 Russell | :material-clock-outline: Planned |
+| EP-0211 | Lie Algebra Representations & Clebsch–Gordan Tensors | ⚖️ Noether & ⚡ Shannon | :material-clock-outline: Planned |
+| EP-0212 | Quiver Representations & Gabriel's ADE Theorem       | 🧩 Russell & 🔬 Popper  | :material-clock-outline: Planned |
+| EP-0213 | Induced Representations & Frobenius Reciprocity      | 🧩 Russell & ⚖️ Noether | :material-clock-outline: Planned |
+| EP-0214 | Invariant Theory, Molien Series & Casimir Polynomials| ⚖️ Noether & ⚡ Shannon | :material-clock-outline: Planned |
+| EP-0215 | Quantum Groups, Yang–Baxter Equation & R-Matrices    | ⚖️ Noether & 🛡️ Golem   | :material-clock-outline: Planned |
+
