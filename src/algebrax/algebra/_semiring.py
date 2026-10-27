@@ -1,0 +1,227 @@
+r"""
+Semiring protocol for two-operation algebraic structures.
+
+Algebraic Signature (EP-0150 AMDS):
+    Semiring: $\langle S, +, \cdot, \mathbf{0}, \mathbf{1} \rangle$
+"""
+
+from functools import cache
+from typing import Any, Protocol, TypeVar, runtime_checkable
+
+from algebrax.algebra._monoid import AddCommMonoid, Monoid
+
+V = TypeVar('V')
+
+
+@runtime_checkable
+class Semiring(AddCommMonoid[V], Monoid[V], Protocol[V]):
+    r"""A mathematical Semiring $(S, \oplus, \otimes, \mathbf{0}, \mathbf{1})$.
+
+    Combines an additive commutative monoid $\langle S, \oplus, \mathbf{0} \rangle$
+    and a multiplicative monoid $\langle S, \otimes, \mathbf{1} \rangle$ satisfying:
+    - Distributivity: $a \otimes (b \oplus c) = (a \otimes b) \oplus (a \otimes c)$
+                      $(a \oplus b) \otimes c = (a \otimes c) \oplus (b \otimes c)$
+    - Annihilation:   $\mathbf{0} \otimes a = a \otimes \mathbf{0} = \mathbf{0}$
+    """
+
+    @property
+    def zero(self) -> V:
+        """The additive identity element (e.g., 0)."""
+        ...
+
+    @property
+    def one(self) -> V:
+        """The multiplicative identity element (e.g., 1)."""
+        ...
+
+    def add(self, a: V, b: V) -> V:
+        """The addition operation (commutative, associative)."""
+        ...
+
+    def mul(self, a: V, b: V) -> V:
+        """The multiplication operation (associative, distributes over add)."""
+        ...
+
+    def nsum(self, a: V, n: int) -> V:
+        r"""The $n$-fold sum of a value ($a \oplus a \oplus \cdots \oplus a$).
+
+        Equivalent to scalar multiplication in a module.
+        $n$ must be non-negative for semirings that are not rings.
+        """
+        if n < 0:
+            raise ValueError('nsum requires non-negative n for general semirings')
+        if n == 0:
+            return self.zero
+
+        # Binary exponentiation for addition (scalar multiplication)
+        res = self.zero
+        base = a
+        while n > 0:
+            if n % 2 == 1:
+                res = self.add(res, base)
+            base = self.add(base, base)
+            n //= 2
+        return res
+
+    def power(self, a: V, n: int) -> V:
+        r"""The $n$-th power of a value ($a \otimes a \otimes \cdots \otimes a$).
+
+        $n$ must be non-negative.
+        """
+        if n < 0:
+            raise ValueError('power requires non-negative n')
+        if n == 0:
+            return self.one
+
+        # Binary exponentiation for multiplication
+        res = self.one
+        base = a
+        while n > 0:
+            if n % 2 == 1:
+                res = self.mul(res, base)
+            base = self.mul(base, base)
+            n //= 2
+        return res
+
+    def star(self, a: V) -> V:
+        r"""The Kleene star of a value (sum of all powers).
+
+        $\operatorname{star}(a) = \mathbf{1} \oplus a \oplus a^2 \oplus \cdots$
+        """
+        ...
+
+    def _repr_latex_(self) -> str:
+        """Return LaTeX representation for rich display in Jupyter Notebooks."""
+        from algebrax.display import extract_algebraic_signature
+
+        sig = extract_algebraic_signature(self)
+        return f'$${sig}$$' if sig else ''
+
+    def _repr_html_(self) -> str:
+        """Return HTML representation for rich display in Jupyter Notebooks."""
+        from algebrax.display import semiring_card
+
+        return semiring_card(self)
+
+    @staticmethod
+    @cache
+    def registry() -> dict[str, Any]:
+        """Return a registry of all built-in semirings with parsed AMDS metadata."""
+        from algebrax.display import get_algebraic_metadata
+
+        cat = Semiring.catalog()
+        return {name: get_algebraic_metadata(cls) for name, cls in cat.items()}
+
+    @staticmethod
+    @cache
+    def catalog() -> dict[str, type['Semiring']]:
+        """Return a discoverable registry of all built-in semiring types.
+
+        Returns:
+            A dictionary mapping human-readable semiring names to their class types.
+        """
+        from algebrax.semiring.algebraic import (
+            BinomialConvolutionSemiring,
+            CliffordSemiring,
+            DualNumberSemiring,
+            GaloisFieldSemiring,
+            GeneralizedCliffordSemiring,
+            KnotSemiring,
+            MonoidAlgebraSemiring,
+            MultivariateBinomialConvolutionSemiring,
+            PolynomialSemiring,
+            ProvenanceSemiring,
+            QuantumCliffordSemiring,
+            QuotientMonoidAlgebraSemiring,
+        )
+        from algebrax.semiring.arithmetic import ModularSemiring, StandardSemiring
+        from algebrax.semiring.logic import BooleanSemiring, DigitalSemiring, LukasiewiczSemiring
+        from algebrax.semiring.optimization import (
+            ArcticSemiring,
+            BottleneckSemiring,
+            MinTimesSemiring,
+            ReliabilitySemiring,
+            TropicalSemiring,
+            ViterbiSemiring,
+        )
+        from algebrax.semiring.statistical import (
+            BivariateCovarianceSemiring,
+            BivariateVarianceSemiring,
+            ExpectationSemiring,
+            KurtosisSemiring,
+            LogSemiring,
+            MultivariateMomentSemiring,
+            SkewnessSemiring,
+            StatisticalMomentSemiring,
+            VarianceSemiring,
+        )
+        from algebrax.semiring.structures import KCollapsedSemiring, StringSemiring
+
+        return {
+            'Standard': StandardSemiring,
+            'Modular': ModularSemiring,
+            'Tropical': TropicalSemiring,
+            'Arctic': ArcticSemiring,
+            'Viterbi': ViterbiSemiring,
+            'Reliability': ReliabilitySemiring,
+            'Bottleneck': BottleneckSemiring,
+            'MinTimes': MinTimesSemiring,
+            'Boolean': BooleanSemiring,
+            'Lukasiewicz': LukasiewiczSemiring,
+            'Log': LogSemiring,
+            'Expectation': ExpectationSemiring,
+            'Variance': VarianceSemiring,
+            'BivariateVariance': BivariateVarianceSemiring,
+            'BivariateCovariance': BivariateCovarianceSemiring,
+            'Skewness': SkewnessSemiring,
+            'Kurtosis': KurtosisSemiring,
+            'StatisticalMoment': StatisticalMomentSemiring,
+            'BinomialConvolution': BinomialConvolutionSemiring,
+            'MultivariateBinomialConvolution': MultivariateBinomialConvolutionSemiring,
+            'MultivariateMoment': MultivariateMomentSemiring,
+            'DualNumber': DualNumberSemiring,
+            'String': StringSemiring,
+            'KCollapsed': KCollapsedSemiring,
+            'Digital': DigitalSemiring,
+            'MonoidAlgebra': MonoidAlgebraSemiring,
+            'Knot': KnotSemiring,
+            'Polynomial': PolynomialSemiring,
+            'Provenance': ProvenanceSemiring,
+            'QuotientMonoidAlgebra': QuotientMonoidAlgebraSemiring,
+            'Clifford': CliffordSemiring,
+            'GaloisField': GaloisFieldSemiring,
+            'GeneralizedClifford': GeneralizedCliffordSemiring,
+            'QuantumClifford': QuantumCliffordSemiring,
+        }
+
+    @classmethod
+    def default(cls) -> 'Semiring[Any]':
+        """Return the canonical default semiring instance (StandardSemiring)."""
+        from algebrax.semiring.arithmetic import StandardSemiring
+
+        return StandardSemiring()
+
+    @classmethod
+    def normalize(
+        cls,
+        s: 'Semiring[V] | type[Semiring[V]] | str | None' = None,
+    ) -> 'Semiring[V]':
+        """Normalize a semiring argument to a concrete instance.
+
+        Handles None (returns default), class types (instantiates),
+        string catalog keys (e.g. 'Tropical', 'boolean'), or existing instances.
+        """
+        if s is None:
+            return cls.default()  # type: ignore[return-value]
+
+        if isinstance(s, str):
+            cat = cls.catalog()
+            lookup = {k.lower(): v for k, v in cat.items()}
+            key = s.lower().removesuffix('semiring')
+            if key not in lookup:
+                raise KeyError(f"Unknown semiring '{s}'. Available: {list(cat.keys())}")
+            return lookup[key]()  # type: ignore[return-value]
+
+        return s() if isinstance(s, type) else s
+
+    create = normalize

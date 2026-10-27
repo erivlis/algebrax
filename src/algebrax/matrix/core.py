@@ -230,11 +230,19 @@ def dot(
     Returns:
         A new nested dictionary representing the product.
     """
-    sr = StandardSemiring() if semiring is None else Semiring.normalize(semiring)
+    if semiring is None:
+        sr = StandardSemiring()
+    elif isinstance(semiring, type):
+        sr = semiring()
+    elif hasattr(semiring, 'add') and hasattr(semiring, 'mul'):
+        sr = semiring
+    else:
+        sr = Semiring.normalize(semiring)
 
     sr_add = sr.add
     sr_mul = sr.mul
-    zero = sr.zero
+    zero = getattr(sr, 'zero', 0)
+    is_zero_fn = getattr(sr, 'is_zero', None)
 
     result = {}
     for r, row1 in m1.items():
@@ -247,7 +255,9 @@ def dot(
                         new_row[c] = sr_add(new_row[c], term)
                     else:
                         new_row[c] = term
-        if zero is not None:
+        if is_zero_fn is not None:
+            new_row = {c: v for c, v in new_row.items() if not is_zero_fn(v)}
+        elif zero is not None:
             new_row = {c: v for c, v in new_row.items() if v != zero}
         if new_row:
             result[r] = new_row

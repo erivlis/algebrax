@@ -2,7 +2,7 @@
 Optimization and path problems semirings.
 """
 
-from algebrax.semiring._base import Semiring
+from algebrax.algebra import Semiring
 
 
 class TropicalSemiring(Semiring[float]):

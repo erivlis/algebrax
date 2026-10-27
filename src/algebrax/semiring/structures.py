@@ -2,7 +2,7 @@
 Bounded structures semirings.
 """
 
-from algebrax.semiring._base import Semiring
+from algebrax.algebra import Semiring
 
 
 class StringSemiring(Semiring[set[str]]):

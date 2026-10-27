@@ -6,7 +6,7 @@ import operator
 from numbers import Number
 from typing import Generic, TypeVar
 
-from algebrax.semiring._base import Semiring
+from algebrax.algebra import Semiring
 
 T_num = TypeVar('T_num', bound=float | int | complex | Number)
 

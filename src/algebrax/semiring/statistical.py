@@ -4,7 +4,7 @@ Probability, expectation, and moment semirings.
 
 import math
 
-from algebrax.semiring._base import Semiring
+from algebrax.algebra import Semiring
 from algebrax.semiring.algebraic import (
     BinomialConvolutionSemiring,
     DualNumberSemiring,

@@ -25,20 +25,28 @@ __all__ = [
     'verify_add_magma_laws',
     'verify_add_monoid_laws',
     'verify_add_semigroup_laws',
+    'verify_algebra_laws',
     'verify_band_laws',
     'verify_boolean_algebra_laws',
     'verify_bounded_lattice_laws',
     'verify_comm_group_laws',
     'verify_comm_monoid_laws',
+    'verify_comm_ring_laws',
     'verify_distributive_lattice_laws',
+    'verify_division_ring_laws',
+    'verify_field_laws',
     'verify_group_action_laws',
     'verify_group_laws',
     'verify_join_semilattice_laws',
     'verify_lattice_laws',
     'verify_magma_laws',
     'verify_meet_semilattice_laws',
+    'verify_module_laws',
     'verify_monoid_laws',
+    'verify_non_assoc_ring_laws',
+    'verify_ring_laws',
     'verify_semigroup_laws',
+    'verify_semimodule_laws',
     'verify_semiring_laws',
 ]
 
@@ -346,23 +354,35 @@ from algebrax.algebra import (  # noqa: E402
     AddMagma,
     AddMonoid,
     AddSemigroup,
+    Algebra,
     Band,
     BooleanAlgebra,
     BoundedLattice,
     CommGroup,
     CommMonoid,
+    CommRing,
     DistributiveLattice,
+    DivisionRing,
+    Field,
     Group,
     GroupAction,
     JoinSemilattice,
     Lattice,
     Magma,
     MeetSemilattice,
+    Module,
     Monoid,
+    NonAssocAlgebra,
+    NonAssocRing,
+    Ring,
     Semigroup,
+    Semimodule,
+    VectorSpace,
 )
 
 G = TypeVar('G')
+M = TypeVar('M')
+R = TypeVar('R')
 X = TypeVar('X')
 
 
@@ -855,3 +875,280 @@ def verify_group_action_laws(
         'action_identity': id_act,
         'action_compatibility': compat,
     }
+
+
+# =============================================================================
+# EP-0191: Ring, Field, Module, and Algebra Law Verifiers
+# =============================================================================
+
+
+def verify_non_assoc_ring_laws(
+    ring: NonAssocRing[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Non-Associative Ring laws: additive abelian group plus two-sided distributivity."""
+    elements = _require_samples(samples)
+    res = verify_add_comm_group_laws(ring, elements, tol)
+    add = ring.add
+    mul = ring.mul
+
+    left_dist = True
+    right_dist = True
+    for a, b, c in itertools.product(elements, repeat=3):
+        if not semiring_elements_equal(mul(a, add(b, c)), add(mul(a, b), mul(a, c)), tol):
+            left_dist = False
+        if not semiring_elements_equal(mul(add(a, b), c), add(mul(a, c), mul(b, c)), tol):
+            right_dist = False
+        if not left_dist or not right_dist:
+            break
+
+    res['left_distributivity'] = left_dist
+    res['right_distributivity'] = right_dist
+    return res
+
+
+def verify_ring_laws(
+    ring: Ring[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Ring laws: non-associative ring laws plus associative unital monoid."""
+    elements = _require_samples(samples)
+    res = verify_non_assoc_ring_laws(ring, elements, tol)
+    res.update(verify_monoid_laws(ring, elements, tol))
+    return res
+
+
+def verify_comm_ring_laws(
+    ring: CommRing[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Commutative Ring laws: ring laws plus multiplication commutativity."""
+    elements = _require_samples(samples)
+    res = verify_ring_laws(ring, elements, tol)
+    mul = ring.mul
+    comm = True
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(mul(a, b), mul(b, a), tol):
+            comm = False
+            break
+    res['mul_commutativity'] = comm
+    return res
+
+
+def verify_division_ring_laws(
+    dring: DivisionRing[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Division Ring laws: ring laws plus two-sided inverses for non-zero elements
+    and ZeroDivisionError contract.
+    """
+    elements = _require_samples(samples)
+    res = verify_ring_laws(dring, elements, tol)
+    one = dring.one
+    mul = dring.mul
+    inv = dring.inv
+    div = dring.div
+    is_zero = dring.is_zero
+    zero = dring.zero
+
+    left_inv = True
+    right_inv = True
+    quotient = True
+
+    non_zero_elements = [x for x in elements if not is_zero(x)]
+    for a in non_zero_elements:
+        inv_a = inv(a)
+        if not semiring_elements_equal(mul(inv_a, a), one, tol):
+            left_inv = False
+        if not semiring_elements_equal(mul(a, inv_a), one, tol):
+            right_inv = False
+        for b in non_zero_elements:
+            expected_div = mul(a, inv(b))
+            if not semiring_elements_equal(div(a, b), expected_div, tol):
+                quotient = False
+                break
+
+    # Contract invariant: division by zero raises ZeroDivisionError
+    zero_div_raised = False
+    try:
+        inv(zero)
+    except ZeroDivisionError:
+        zero_div_raised = True
+    except Exception:
+        zero_div_raised = False
+
+    res['left_inverse'] = left_inv
+    res['right_inverse'] = right_inv
+    res['quotient_consistency'] = quotient
+    res['zero_division_guard'] = zero_div_raised
+    return res
+
+
+def verify_field_laws(
+    field: Field[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Field laws: division ring laws plus multiplicative commutativity."""
+    elements = _require_samples(samples)
+    res = verify_division_ring_laws(field, elements, tol)
+    mul = field.mul
+    comm = True
+    for a, b in itertools.combinations(elements, 2):
+        if not semiring_elements_equal(mul(a, b), mul(b, a), tol):
+            comm = False
+            break
+    res['mul_commutativity'] = comm
+    return res
+
+
+def verify_semimodule_laws(
+    smodule: Semimodule[R, M],
+    semiring: AddCommMonoid[R],
+    r_samples: Iterable[R],
+    m_samples: Iterable[M],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Semimodule laws: additive commutative monoid on M plus scalar distributivity."""
+    r_elements = _require_samples(r_samples)
+    m_elements = _require_samples(m_samples)
+
+    res = verify_add_comm_monoid_laws(smodule, m_elements, tol)
+    smul = smodule.smul
+    add_m = smodule.add
+    m_zero = smodule.zero
+
+    left_dist = True
+    for r in r_elements:
+        for m1, m2 in itertools.combinations(m_elements, 2):
+            lhs = smul(r, add_m(m1, m2))
+            rhs = add_m(smul(r, m1), smul(r, m2))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                left_dist = False
+                break
+        if not left_dist:
+            break
+
+    annihil_m = True
+    for r in r_elements:
+        if not semiring_elements_equal(smul(r, m_zero), m_zero, tol):
+            annihil_m = False
+            break
+
+    res['scalar_left_distributivity'] = left_dist
+    res['scalar_module_zero_annihilation'] = annihil_m
+    return res
+
+
+def verify_module_laws(
+    module: Module[R, M],
+    ring: Ring[R],
+    r_samples: Iterable[R],
+    m_samples: Iterable[M],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Module laws: abelian group on M plus ring scalar action laws."""
+    r_elements = _require_samples(r_samples)
+    m_elements = _require_samples(m_samples)
+
+    res = verify_add_comm_group_laws(module, m_elements, tol)
+    smul = module.smul
+    add_m = module.add
+    m_zero = module.zero
+    r_one = ring.one
+    r_zero = ring.zero
+    add_r = ring.add
+    mul_r = ring.mul
+
+    left_dist = True
+    for r in r_elements:
+        for m1, m2 in itertools.combinations(m_elements, 2):
+            lhs = smul(r, add_m(m1, m2))
+            rhs = add_m(smul(r, m1), smul(r, m2))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                left_dist = False
+                break
+        if not left_dist:
+            break
+
+    right_dist = True
+    for r1, r2 in itertools.combinations(r_elements, 2):
+        for m in m_elements:
+            lhs = smul(add_r(r1, r2), m)
+            rhs = add_m(smul(r1, m), smul(r2, m))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                right_dist = False
+                break
+        if not right_dist:
+            break
+
+    assoc = True
+    for r1, r2 in itertools.product(r_elements, repeat=2):
+        for m in m_elements:
+            lhs = smul(mul_r(r1, r2), m)
+            rhs = smul(r1, smul(r2, m))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                assoc = False
+                break
+        if not assoc:
+            break
+
+    id_scalar = True
+    for m in m_elements:
+        if not semiring_elements_equal(smul(r_one, m), m, tol):
+            id_scalar = False
+            break
+
+    annihil = True
+    for m in m_elements:
+        if not semiring_elements_equal(smul(r_zero, m), m_zero, tol):
+            annihil = False
+            break
+    for r in r_elements:
+        if not semiring_elements_equal(smul(r, m_zero), m_zero, tol):
+            annihil = False
+            break
+
+    res['scalar_left_distributivity'] = left_dist
+    res['scalar_right_distributivity'] = right_dist
+    res['scalar_associativity'] = assoc
+    res['scalar_identity'] = id_scalar
+    res['scalar_annihilation'] = annihil
+    return res
+
+
+def verify_algebra_laws(
+    algebra: Algebra[R, M],
+    ring: Ring[R],
+    r_samples: Iterable[R],
+    m_samples: Iterable[M],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Algebra laws: module laws + ring laws on M + scalar bilinearity."""
+    r_elements = _require_samples(r_samples)
+    m_elements = _require_samples(m_samples)
+
+    res = verify_module_laws(algebra, ring, r_elements, m_elements, tol)
+    res.update(verify_ring_laws(algebra, m_elements, tol))
+
+    smul = algebra.smul
+    mul_m = algebra.mul
+
+    bilinear = True
+    for r in r_elements:
+        for a, b in itertools.product(m_elements, repeat=2):
+            lhs = smul(r, mul_m(a, b))
+            rhs1 = mul_m(smul(r, a), b)
+            rhs2 = mul_m(a, smul(r, b))
+            if not semiring_elements_equal(lhs, rhs1, tol) or not semiring_elements_equal(lhs, rhs2, tol):
+                bilinear = False
+                break
+        if not bilinear:
+            break
+
+    res['scalar_bilinearity'] = bilinear
+    return res

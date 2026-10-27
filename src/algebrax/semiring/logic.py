@@ -2,7 +2,7 @@
 Logic and fuzzy set semirings.
 """
 
-from algebrax.semiring._base import Semiring
+from algebrax.algebra import Semiring
 
 
 class BooleanSemiring(Semiring[bool]):

@@ -9,7 +9,7 @@ import operator
 from collections.abc import Callable, Iterable
 from typing import Generic, TypeVar
 
-from algebrax.semiring._base import Semiring
+from algebrax.algebra import Semiring
 from algebrax.semiring.arithmetic import StandardSemiring
 from algebrax.typing import K, SparseVector
 
