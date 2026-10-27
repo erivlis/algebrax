@@ -230,6 +230,7 @@ class Magma(Protocol[V]):
 @runtime_checkable
 class Semigroup(Magma[V], Protocol[V]):
     """An associative magma: op(op(a, b), c) == op(a, op(b, c))."""
+
     ...
 
 
@@ -244,6 +245,7 @@ class Monoid(Semigroup[V], Protocol[V]):
 @runtime_checkable
 class CommutativeMonoid(Monoid[V], Protocol[V]):
     """A monoid whose operation is commutative: op(a, b) == op(b, a)."""
+
     ...
 
 
@@ -257,6 +259,7 @@ class Group(Monoid[V], Protocol[V]):
 @runtime_checkable
 class AbelianGroup(Group[V], CommutativeMonoid[V], Protocol[V]):
     """A commutative group."""
+
     ...
 ```
 
@@ -274,8 +277,7 @@ class AddMonoid(Protocol[V]):
 
 
 @runtime_checkable
-class AddCommMonoid(AddMonoid[V], Protocol[V]):
-    ...
+class AddCommMonoid(AddMonoid[V], Protocol[V]): ...
 
 
 @runtime_checkable
@@ -286,8 +288,7 @@ class AddGroup(AddMonoid[V], Protocol[V]):
 
 
 @runtime_checkable
-class AddCommGroup(AddGroup[V], AddCommMonoid[V], Protocol[V]):
-    ...
+class AddCommGroup(AddGroup[V], AddCommMonoid[V], Protocol[V]): ...
 ```
 
 #### Re-rooting `Semiring` into the Hierarchy
@@ -322,6 +323,7 @@ class Ring(Semiring[V], AddCommGroup[V], Protocol[V]):
 @runtime_checkable
 class CommutativeRing(Ring[V], Protocol[V]):
     """A ring with commutative multiplication: mul(a, b) == mul(b, a)."""
+
     ...
 
 
@@ -337,6 +339,7 @@ class DivisionRing(Ring[V], Protocol[V]):
 @runtime_checkable
 class Field(DivisionRing[V], CommutativeRing[V], Protocol[V]):
     """A commutative division ring (e.g. Q, R, C, GF(p))."""
+
     ...
 ```
 
@@ -357,12 +360,14 @@ class Semimodule(Protocol[R, M]):
 @runtime_checkable
 class Module(Semimodule[R, M], Protocol[R, M]):
     """An abelian group M with scalar multiplication by ring R."""
+
     ...
 
 
 @runtime_checkable
 class VectorSpace(Module[R, M], Protocol[R, M]):
     """A module over a field R."""
+
     ...
 ```
 
