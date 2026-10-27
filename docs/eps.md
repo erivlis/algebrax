@@ -124,12 +124,17 @@ metamorphic invariants, Schwartz–Zippel PIT, and certified solvers.
 
 Proposals stemming from the **Pure Algebraic Hierarchy Exploration**
 ([EXP-0004](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0004-pure-algebraic-hierarchy/README.md)),
-establishing Lean 4 Mathlib-aligned granular structural protocols, sub-semiring abstractions (magmas, monoids, groups, lattices),
-super-semiring rings & fields, and exact polymorphic matrix solvers.
+establishing Lean 4 Mathlib-aligned granular structural protocols, sub-semiring abstractions (magmas, monoids, groups,
+lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 
 | EP                                                                                  | Title                                                             | Council Sponsor         |         Status          |
 |:------------------------------------------------------------------------------------|:------------------------------------------------------------------|:------------------------|:-----------------------:|
 | [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices | 🧩 Russell & 🔬 Popper  | :material-check-all: Final |
 | [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                     | ⚖️ Noether & ⚡ Shannon | :material-check: Accepted |
 | [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                     | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
+| EP                                                                                 | Title                                                                | Council Sponsor         |           Status           |
+|:-----------------------------------------------------------------------------------|:---------------------------------------------------------------------|:------------------------|:--------------------------:|
+| [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices    | 🧩 Russell & 🔬 Popper  | :material-check-all: Final |
+| [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                        | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
+| [EP-0192](proposals/EP-0192-unifying-domain-objects-with-algebraic-hierarchy.md)   | Unifying Domain Objects with the Pure Algebraic Hierarchy            | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
 
