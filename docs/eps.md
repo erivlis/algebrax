@@ -147,4 +147,5 @@ establishing Lean 4 Mathlib-aligned category protocols, enriched matrix categori
 | [EP-0200](proposals/EP-0200-categorical-abstractions-and-enriched-matrices.md)          | Categorical Abstractions & Enriched Matrix Mechanics | 🧩 Russell & ⚡ Shannon            | :material-pencil: Draft |
 | [EP-0201](proposals/EP-0201-algebraic-homomorphisms-ideals-quotients.md)               | Algebraic Homomorphisms, Ideals & Canonical Quotients | ⚖️ Noether & 🧩 Russell            | :material-pencil: Draft |
 | [EP-0202](proposals/EP-0202-functorial-sheaves-and-categorical-dec.md)                 | Functorial Sheaves & Categorical DEC                 | ⚖️ Noether & 🔬 Popper             | :material-pencil: Draft |
+| [EP-0203](proposals/EP-0203-discrete-fiber-bundles-and-gauge-connections.md)           | Discrete Fiber Bundles & Gauge Connections           | ⚖️ Noether & ⚡ Shannon            | :material-pencil: Draft |
 

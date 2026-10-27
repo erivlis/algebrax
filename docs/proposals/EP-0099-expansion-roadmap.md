@@ -104,6 +104,7 @@ flowchart TD
         EP0200_N["EP-0200 Enriched Matrices & Lawvere 💡\n🧩 Russell & ⚡ Shannon"]
         EP0201_N["EP-0201 Homomorphisms, Ideals & Quotients 💡\n⚖️ Noether & 🧩 Russell"]
         EP0202_N["EP-0202 Functorial Sheaves & DEC 💡\n⚖️ Noether & 🔬 Popper"]
+        EP0203_N["EP-0203 Discrete Fiber Bundles & Connections 💡\n⚖️ Noether & ⚡ Shannon"]
     end
 
     EP0152_N --> EP0160_N
@@ -117,6 +118,7 @@ flowchart TD
     P6 --> P7
     EP0200_N --> EP0202_N
     EP0201_N --> EP0202_N
+    EP0202_N --> EP0203_N
     style CORE fill: #4a90d9, color: #fff
     style P3 fill: #2d7d46, color: #fff
     style P35 fill: #8b5cf6, color: #fff
@@ -229,7 +231,8 @@ Phase 0: Architecture Roadmap (EP-0099)
   └── Phase 7: Categorical Foundations & Morphisms (EXP-0005)  ⏳ IN PROGRESS
         ├── EP-0200: Categorical Abstractions & Enriched Matrix Mechanics (Russell/Shannon) [Draft]
         ├── EP-0201: Algebraic Homomorphisms, Ideals & Canonical Quotients (Noether/Russell) [Draft]
-        └── EP-0202: Functorial Sheaves & Categorical DEC (Noether/Popper) [Draft]
+        ├── EP-0202: Functorial Sheaves & Categorical DEC (Noether/Popper) [Draft]
+        └── EP-0203: Discrete Fiber Bundles & Gauge Connections (Noether/Shannon) [Draft]
 ```
 
 ---
@@ -286,6 +289,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0200** | Enriched Matrices & Lawvere    | Russell & Shannon | `algebrax.category`, `verification`    | Draft    | Category, Functor, MatrixCategory Mat(S), Lawvere metric spaces over tropical cost semiring         |
 | **EP-0201** | Homomorphisms, Ideals, Quots   | Noether & Russell | `algebrax.algebra`, `verification`     | Draft    | RingHom, LinearMap, Ideal[V], LieIdeal, QuotientRing, First Isomorphism Theorem                      |
 | **EP-0202** | Functorial Sheaves & DEC       | Noether & Popper  | `algebrax.sheaf`, `algebrax.dec`       | Draft    | Contravariant sheaf functors, coboundary natural transformations, Sheaf Laplacian, DEC unification  |
+| **EP-0203** | Discrete Fiber Bundles & Gauge | Noether & Shannon | `algebrax.topology`, `algebrax.dec`    | Draft    | Discrete vector/principal bundles, parallel transport, holonomy, Connection Laplacian, gauge tests  |
 
 ---
 
@@ -314,7 +318,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-10-27 | Eran Rivlis & Antigravity | Completed Phase 6 (EP-0190, EP-0191 Final); implemented Ring, Field, Module protocols, exact matrix solvers, and law verification.          |
 | 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Draft).                                                           |
 | 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0193: Documentation Architecture Realignment with Pure Algebraic Hierarchy (Draft).                                                |
-| 2026-10-27 | Eran Rivlis & Antigravity | Added Phase 7 in the EP-020x range (from EXP-0005): EP-0200, EP-0201, EP-0202 (Draft).                                                      |
+| 2026-10-27 | Eran Rivlis & Antigravity | Added Phase 7 in the EP-020x range (from EXP-0005): EP-0200, EP-0201, EP-0202, EP-0203 (Draft).                                             |
 
 
 
