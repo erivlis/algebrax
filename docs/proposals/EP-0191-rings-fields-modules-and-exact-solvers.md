@@ -2,7 +2,7 @@
 title: "EP-0191: Rings, Fields, Modules & Exact Matrix Solvers"
 description: "Introduce first-class Ring, Field, and Module protocols and generalize matrix solvers to exact rational and Galois arithmetic."
 icon: lucide/box
-status: accepted
+status: final
 ---
 
 # EP-0191: Rings, Fields, Modules & Exact Matrix Solvers
@@ -14,10 +14,10 @@ status: accepted
 | **Author** | Eran Rivlis & Antigravity |
 | **Sponsor** | Council Framework |
 | **Delegate** | ⚖️ Noether (Symmetry & Invariants) & ⚡ Shannon (Efficiency) |
-| **Status** | Accepted |
+| **Status** | Final |
 | **Type** | Standards Track |
 | **Created** | 2026-10-25 |
-| **Updated** | 2026-10-25 |
+| **Updated** | 2026-10-27 |
 
 ## Abstract
 
@@ -106,9 +106,9 @@ class CommRing(Ring[V], Protocol[V]):
 CommutativeRing = CommRing
 ```
 
-#### Division Ring (Skew Field) and Field (`_field.py`)
+#### Division Ring (`_ring.py`) and Field (`_field.py`)
 
-*Note*: Following Emmy Noether's guidance, `DivisionRing` inherits from `Ring`, **not** `Group`, because $\mathbf{0}$ has no multiplicative inverse. Its non-zero elements form the group of units $R^\times = R \setminus \{\mathbf{0}\}$.
+*Note*: Following Emmy Noether's guidance, `DivisionRing` is defined canonically in `_ring.py` and inherits from `Ring`, **not** `Group`, because $\mathbf{0}$ has no multiplicative inverse. Its non-zero elements form the group of units $R^\times = R \setminus \{\mathbf{0}\}$. `Field` in `_field.py` is the commutative specialization of `DivisionRing`.
 
 ```python
 @runtime_checkable

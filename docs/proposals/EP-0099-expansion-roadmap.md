@@ -97,8 +97,9 @@ flowchart TD
     end
 
     subgraph P6["Phase 6 — Pure Algebraic Hierarchy (EXP-0004)"]
-        EP0190_N["EP-0190 Magmas, Monoids, Groups & Lattices 💡\n🧩 Russell & 🔬 Popper"]
-        EP0191_N["EP-0191 Rings, Fields, Modules & Exact Solvers 💡\n⚖️ Noether & ⚡ Shannon"]
+        EP0190_N["EP-0190 Magmas, Monoids, Groups & Lattices ✅\n🧩 Russell & 🔬 Popper"]
+        EP0191_N["EP-0191 Rings, Fields, Modules & Exact Solvers ✅\n⚖️ Noether & ⚡ Shannon"]
+        EP0192_N["EP-0192 Unifying Domain Objects 💡\n⚖️ Noether & 🧩 Russell"]
     end
 
     EP0152_N --> EP0160_N
@@ -107,6 +108,7 @@ flowchart TD
     EP0162_N --> EP0165_N
     EP0163_N --> EP0164_N
     CORE --> P6
+    EP0191_N --> EP0192_N
 
     style CORE fill:#4a90d9,color:#fff
     style P3 fill:#2d7d46,color:#fff
@@ -211,9 +213,10 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0185: Axiomatic, Statistical Moment Semirings & Sheaf MMS Verification [Final]
   │     └── EP-0186: Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & SMT Formal (Z3) [Final]
   │
-  └── Phase 6: Pure Algebraic Hierarchy (EXP-0004)  🚀 IN PROGRESS
+  └── Phase 6: Pure Algebraic Hierarchy (EXP-0004)  ⏳ IN PROGRESS
         ├── EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices (Russell/Popper) [Final]
-        └── EP-0191: Rings, Fields, Modules & Exact Matrix Solvers (Noether/Shannon) [Accepted]
+        ├── EP-0191: Rings, Fields, Modules & Exact Matrix Solvers (Noether/Shannon) [Final]
+        └── EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Noether/Russell) [Draft]
 ```
 
 ---
@@ -263,7 +266,8 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0185** | Axiomatic, Moments & Sheaf MMS | Popper & Russell  | `semiring`, `category`, `homology`     | Final    | All 34 semirings PBT, streaming moments vs `scipy.stats`, sheaf MMS            |
 | **EP-0186** | Certificates, PIT & SMT (Z3)   | Golem & Shannon   | `tests/verifications/`                 | Final    | Universal $O(\text{nnz})$ solver certificates, Cayley-Hamilton PIT, Z3 proofs  |
 | **EP-0190** | Granular Algebraic Hierarchy   | Russell & Popper  | `algebrax.algebra`                     | Final    | Lean 4-aligned Magma, Monoid, Group, Lattice protocols & layered PBT laws      |
-| **EP-0191** | Rings, Fields & Exact Solvers  | Noether & Shannon | `algebrax.algebra`, `matrix.decompose` | Accepted | Ring, Field, Module protocols, exact rational & Galois field matrix solvers    |
+| **EP-0191** | Rings, Fields & Exact Solvers  | Noether & Shannon | `algebrax.algebra`, `matrix.decompose` | Final    | Ring, Field, Module protocols, exact rational & Galois field matrix solvers    |
+| **EP-0192** | Unifying Domain Objects        | Noether & Russell | `algebrax.lie`, `algebrax.semiring`    | Draft    | Bind `LieAlgebra` to `NonAssocAlgebra`, `CliffordAlgebra`, `PolynomialRing`, `DualNumberRing` |
 
 ---
 
@@ -289,6 +293,8 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-10-24 | Eran Rivlis & Jules       | Added Phase 5 and EP-0180: Multi-Layered Verification Test Architecture targeting tests/verifications/ (derived from EXP-0003).             |
 | 2026-10-24 | Eran Rivlis & Antigravity | Added Phase 5 Verification Series EP-0181 through EP-0186 (Wave 1 Comparative "Stamp of Trust" Oracles & Wave 2 Intrinsic/Formal Proofs).   |
 | 2026-10-25 | Eran Rivlis & Antigravity | Completed Phase 4 (EP-0161, EP-0162, EP-0165 Final); added Phase 6 (EP-0190, EP-0191) from EXP-0004 (Lean 4 Pure Algebraic Hierarchy).      |
+| 2026-10-27 | Eran Rivlis & Antigravity | Completed Phase 6 (EP-0190, EP-0191 Final); implemented Ring, Field, Module protocols, exact matrix solvers, and law verification.          |
+| 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Draft).                                            |
 
 
 
