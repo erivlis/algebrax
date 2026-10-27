@@ -37,7 +37,7 @@ flowchart LR
     classDef recipe fill:#312e81,stroke:#a5b4fc,stroke-width:1.5px,stroke-dasharray: 5 5,color:#f8fafc;
 
 %% Base Protocol
-    Root["<b>Semiring[V] Protocol</b><br/><i>algebrax.semiring._base</i><br/>add, mul, zero, one, power, star, nsum"]:::base
+    Root["<b>Semiring[V] Protocol</b><br/><i>algebrax.algebra._semiring</i><br/>add, mul, zero, one, power, star, nsum"]:::base
 
 %% Module: arithmetic.py
     subgraph ModArith["algebrax.semiring.arithmetic"]
