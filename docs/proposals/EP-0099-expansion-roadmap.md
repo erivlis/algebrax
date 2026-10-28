@@ -332,12 +332,12 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0207** | Topological K-Theory & Chern   | Noether & Russell | `algebrax.topology`, `algebrax.dec`      | Draft    | Universal Grothendieck group, Whitney sums ⊕, ⊗, discrete Chern character ch(E) to cohomology       |
 | **EP-0208** | Categorical Type Theory & HoTT | Russell & Golem   | `algebrax.category`, `algebrax.topology` | Draft    | Cartesian Closed Categories (CCC), Curry-Howard-Lambek, semiring coeffects, path groupoids Π₁       |
 | **EP-0209** | Langlands Duality & p-Adics    | Noether & Popper  | `algebrax.lie`, `algebrax.spectral`      | Draft    | Root coroot duality, Cartan transpose A ↦ Aᵀ, Ramanujan expander bound, p-adic tropical valuation   |
-| **EP-0210** | Group Reps & Characters        | Noether & Russell | `algebrax.rep`                           | Planned  | Group representations, character tables, Schur orthogonality, irrep multiplicity decomposition      |
-| **EP-0211** | Lie Reps & Clebsch-Gordan      | Noether & Shannon | `algebrax.lie`, `algebrax.rep`           | Planned  | Highest weights, weight spaces, quadratic Casimir operator, sparse Clebsch-Gordan 3-tensors         |
-| **EP-0212** | Quiver Reps & Gabriel's ADE    | Russell & Popper  | `algebrax.rep`, `algebrax.sheaf`         | Planned  | Quiver representations on directed graphs, path algebras, Gabriel's ADE classification theorem      |
-| **EP-0213** | Induced Reps & Frobenius       | Russell & Noether | `algebrax.rep`                           | Planned  | Subgroup induction Ind_H^G, Frobenius reciprocity adjunction Ind ⊣ Res, Mackey decomposition        |
-| **EP-0214** | Invariant Theory & Molien      | Noether & Shannon | `algebrax.rep`, `algebrax.algebra`       | Planned  | Reynolds projection operator, Molien generating series, primary/secondary polynomial invariants     |
-| **EP-0215** | Quantum Groups & Yang-Baxter   | Noether & Golem   | `algebrax.rep`, `algebrax.hopf`          | Planned  | U_q(𝔤) quantum group deformations, universal R-matrix, Yang-Baxter equation, Jones polynomials      |
+| **EP-0210** | Group Reps & Characters        | Noether & Russell | `algebrax.rep`                           | Draft    | Group representations, character tables, Schur orthogonality, irrep multiplicity decomposition      |
+| **EP-0211** | Lie Reps & Clebsch-Gordan      | Noether & Shannon | `algebrax.lie`, `algebrax.rep`           | Draft    | Highest weights, weight spaces, quadratic Casimir operator, sparse Clebsch-Gordan 3-tensors         |
+| **EP-0212** | Quiver Reps & Gabriel's ADE    | Russell & Popper  | `algebrax.rep`, `algebrax.sheaf`         | Draft    | Quiver representations on directed graphs, path algebras, Gabriel's ADE classification theorem      |
+| **EP-0213** | Induced Reps & Frobenius       | Russell & Noether | `algebrax.rep`                           | Draft    | Subgroup induction Ind_H^G, Frobenius reciprocity adjunction Ind ⊣ Res, Mackey decomposition        |
+| **EP-0214** | Invariant Theory & Molien      | Noether & Shannon | `algebrax.rep`, `algebrax.algebra`       | Draft    | Reynolds projection operator, Molien generating series, primary/secondary polynomial invariants     |
+| **EP-0215** | Quantum Groups & Yang-Baxter   | Noether & Golem   | `algebrax.rep`, `algebrax.hopf`          | Draft    | U_q(𝔤) quantum group deformations, universal R-matrix, Yang-Baxter equation, Jones polynomials      |
 
 ---
 
@@ -368,6 +368,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-10-27 | Eran Rivlis & Antigravity | Added EP-0193: Documentation Architecture Realignment with Pure Algebraic Hierarchy (Draft).                                                |
 | 2026-10-27 | Eran Rivlis & Antigravity | Added Phase 7 (Categorical Foundations, Morphisms, Quantum Algebras & Duality): EP-0200 through EP-0209 (Draft).                            |
 | 2026-10-28 | Eran Rivlis & Antigravity | Initiated EXP-0006; added Phase 8 (Representation Theory, Invariant Theory & Quantum Groups): EP-0210 through EP-0215 (Planned).            |
+| 2026-10-28 | Eran Rivlis & Antigravity | Authored Phase 8 proposals EP-0210 through EP-0215 (Draft); validated all PEP structures.                                                    |
 
 
 

@@ -166,10 +166,10 @@ establishing group representations, character tables, Schur orthogonality, Lie h
 
 | EP      | Title                                                | Council Sponsor         | Status                    |
 |:--------|:-----------------------------------------------------|:------------------------|:-------------------------:|
-| EP-0210 | Group Representations, Character Tables & Schur      | ⚖️ Noether & 🧩 Russell | :material-clock-outline: Planned |
-| EP-0211 | Lie Algebra Representations & Clebsch–Gordan Tensors | ⚖️ Noether & ⚡ Shannon | :material-clock-outline: Planned |
-| EP-0212 | Quiver Representations & Gabriel's ADE Theorem       | 🧩 Russell & 🔬 Popper  | :material-clock-outline: Planned |
-| EP-0213 | Induced Representations & Frobenius Reciprocity      | 🧩 Russell & ⚖️ Noether | :material-clock-outline: Planned |
-| EP-0214 | Invariant Theory, Molien Series & Casimir Polynomials| ⚖️ Noether & ⚡ Shannon | :material-clock-outline: Planned |
-| EP-0215 | Quantum Groups, Yang–Baxter Equation & R-Matrices    | ⚖️ Noether & 🛡️ Golem   | :material-clock-outline: Planned |
+| [EP-0210](proposals/EP-0210-group-representations-character-tables-schurs-lemma.md)        | Group Representations, Character Tables & Schur      | ⚖️ Noether & 🧩 Russell | :material-pencil: Draft |
+| [EP-0211](proposals/EP-0211-lie-algebra-representations-clebsch-gordan.md)                 | Lie Algebra Representations & Clebsch–Gordan Tensors | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
+| [EP-0212](proposals/EP-0212-quiver-representations-and-gabriels-ade-theorem.md)           | Quiver Representations & Gabriel's ADE Theorem       | 🧩 Russell & 🔬 Popper  | :material-pencil: Draft |
+| [EP-0213](proposals/EP-0213-induced-representations-and-frobenius-reciprocity.md)          | Induced Representations & Frobenius Reciprocity      | 🧩 Russell & ⚖️ Noether | :material-pencil: Draft |
+| [EP-0214](proposals/EP-0214-invariant-theory-molien-series-casimir-polynomials.md)         | Invariant Theory, Molien Series & Casimir Polynomials| ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
+| [EP-0215](proposals/EP-0215-quantum-groups-yang-baxter-braided-categories.md)             | Quantum Groups, Yang–Baxter Equation & R-Matrices    | ⚖️ Noether & 🛡️ Golem   | :material-pencil: Draft |
 
