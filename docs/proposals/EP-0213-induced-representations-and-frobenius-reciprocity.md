@@ -134,7 +134,24 @@ def induced_character(
     ...
 ```
 
-### 3. Mackey Double Coset Decomposition (`src/algebrax/rep/mackey.py`)
+### 3. Frobenius Adjunction Natural Isomorphism (`src/algebrax/rep/adjunction.py`)
+
+```python
+"""Frobenius reciprocity as a categorical adjunction Ind_H^G -| Res_H^G."""
+
+def frobenius_adjoint_transpose(
+    hom_h_w_res_v: SparseMatrix[K],
+    coset_reps: Sequence[G],
+    subgroup: Sequence[H],
+) -> SparseMatrix[K]:
+    """Isomorphism Hom_H(W, Res_H^G(V)) -> Hom_G(Ind_H^G(W), V).
+    
+    Formalizes the unit and counit of the categorical adjunction from EP-0200.
+    """
+    ...
+```
+
+### 4. Mackey Double Coset Decomposition (`src/algebrax/rep/mackey.py`)
 
 ```python
 """Mackey's double coset formula and intertwining numbers."""

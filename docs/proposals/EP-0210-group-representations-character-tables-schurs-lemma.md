@@ -159,6 +159,7 @@ class CharacterTable:
     irreps: Sequence[str]                # Irrep labels (e.g., A1, A2, E, T1)
     table: list[list[complex]]          # Matrix of character values [irrep_idx][class_idx]
     group_order: int
+    tol: float = 1e-9                    # Defensive tolerance for floating-point cyclotomic inner products
 
     def inner_product(self, chi_a: Sequence[complex], chi_b: Sequence[complex]) -> complex:
         """Compute weighted inner product (1/|G|) sum_j |C_j| chi_a(C_j) conj(chi_b(C_j))."""
@@ -168,11 +169,17 @@ class CharacterTable:
         ) / self.group_order
 
     def decompose(self, character: Sequence[complex]) -> dict[str, int]:
-        """Decompose an arbitrary reducible character into irrep multiplicities."""
+        """Decompose an arbitrary reducible character into irrep multiplicities.
+        
+        Guards against cyclotomic rounding drift (e.g. roots of unity summing to 0.99999999998).
+        """
         multiplicities = {}
         for name, chi_irrep in zip(self.irreps, self.table):
-            m = round(self.inner_product(character, chi_irrep).real)
-            if m > 0:
+            val = self.inner_product(character, chi_irrep)
+            if abs(val.imag) > self.tol * 10:
+                raise ValueError(f"Non-real multiplicity residual {val.imag} for irrep {name} (numerical instability)")
+            m = round(val.real)
+            if m > 0 and abs(val.real - m) < self.tol:
                 multiplicities[name] = m
         return multiplicities
 ```

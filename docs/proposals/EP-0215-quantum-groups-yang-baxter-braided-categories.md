@@ -162,8 +162,12 @@ def jones_polynomial_eval(braid_word: Sequence[int], num_strands: int, q: comple
 ```python
 """Property-based verification for quantum groups and Yang-Baxter equation."""
 
-def verify_yang_baxter_equation(r_matrix: SparseMatrix[complex]) -> bool:
-    """Verify R_{12} @ R_{13} @ R_{23} == R_{23} @ R_{13} @ R_{12} in V (x) V (x) V."""
+def verify_yang_baxter_equation(r_matrix: SparseMatrix[complex], dim: int = 2) -> bool:
+    """Verify R_{12} @ R_{13} @ R_{23} == R_{23} @ R_{13} @ R_{12} in V (x) V (x) V.
+    
+    Guards against dense d^3 x d^3 Kronecker allocations; embeddings are evaluated lazily
+    via unboxed sparse dictionary indexing.
+    """
     ...
 
 def verify_artin_braid_relations(b1: SparseMatrix[complex], b2: SparseMatrix[complex]) -> bool:
@@ -171,7 +175,10 @@ def verify_artin_braid_relations(b1: SparseMatrix[complex], b2: SparseMatrix[com
     ...
 
 def verify_quantum_sl2_relations(q: complex, rep: dict[str, SparseMatrix[complex]]) -> bool:
-    """Verify K E K^{-1} == q^2 E, K F K^{-1} == q^{-2} F, and [E, F] == [K - K^{-1}] / (q - q^{-1})."""
+    """Verify K E K^{-1} == q^2 E, K F K^{-1} == q^{-2} F, and [E, F] == [K - K^{-1}] / (q - q^{-1}).
+    
+    Includes defensive L'Hopital expansion guard as q -> 1 recovering the classical [E, F] = H.
+    """
     ...
 ```
 

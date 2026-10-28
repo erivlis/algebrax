@@ -171,9 +171,15 @@ def verify_polynomial_invariance(
     poly: Callable[[Sequence[float]], float],
     rep: GroupRepresentation[G, float],
     elements: Sequence[G],
-    test_point: Sequence[float],
+    dimension: int,
+    num_probes: int = 50,
+    seed: int = 42,
+    tol: float = 1e-11,
 ) -> bool:
-    """Verify poly(rho(g) x) == poly(x) for all g in G."""
+    """Verify poly(rho(g) x) == poly(x) for all g in G over randomized Gaussian probe vectors.
+    
+    Guards against false passes on accidental fixed points or symmetric sub-manifolds.
+    """
     ...
 
 def verify_molien_expansion(
