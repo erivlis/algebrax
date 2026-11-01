@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                 |
 | **Type**          | Standards Track                                                       |
 | **Created**       | 2026-10-27                                                            |
-| **Updated**       | 2026-10-27                                                            |
+| **Updated**       | 2026-11-01                                                            |
 | **Replaces**      | —                                                                     |
 | **Superseded-By** | —                                                                     |
 
@@ -27,7 +27,7 @@ status: draft
 
 This proposal establishes a structural overhaul of the AlgebraX documentation architecture, realigning all guides,
 catalogs, and conceptual documentation around the **Lean 4 Mathlib-aligned Pure Algebraic Hierarchy** introduced in
-**EP-0190**, **EP-0191**, and **EP-0192**. The current documentation reflects a legacy "semiring-first" taxonomy where
+**EP-0190**, **EP-0191**, **EP-0192**, and **EP-0194**. The current documentation reflects a legacy "semiring-first" taxonomy where
 seven dedicated modules cover semirings, while higher-order structures (Rings, Fields, Modules, Vector Spaces,
 Associative and Non-Associative Algebras) and domain entities (Lie Algebras, Clifford Geometric Algebras, DEC Cochains,
 Cellular Sheaves) are fragmented across ad-hoc buckets like `Discrete, Automata & Category` or `Transforms & Analysis`.
@@ -272,7 +272,8 @@ Every algebraic guide chapter adheres strictly to the **Feynman 4-Beat Arc**:
    A self-contained, copy-pasteable 5-line Python snippet providing immediate runnable demonstration.
 3. **Beat 3: The Protocol & Contract**:
     - The formal mathematical contract ($\LaTeX$ axioms).
-    - The Python typing signature (`Protocol[V]` or `Protocol[R, M]`) in `algebrax.algebra`.
+    - The diamond-free **Atomic Mixin Composition** (`HasZero`, `HasOne`, `HasAdd`, `HasNeg`, `HasMul`, `HasInv`, `HasScale`) and named `Protocol` signature in `algebrax.algebra` (per [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)).
+    - Canonical domain-first import paths (`from algebrax.clifford import CliffordAlgebra`, `from algebrax.algebra import PolynomialAlgebra, DualNumberAlgebra`).
     - The canonical raw dictionary carrier model (zero boxing).
     - Demystification of domain `.mul()` semantics (Lie bracket, geometric product, cup product).
 4. **Beat 4: Falsifiability, Law Verification & Counterexamples**:
@@ -295,14 +296,13 @@ Every algebraic guide chapter adheres strictly to the **Feynman 4-Beat Arc**:
     - CI will execute `pytest --markdown-docs docs/guide/` to guarantee that 100% of documentation code snippets remain
       syntax-valid and pass all assertions.
 3. **Zero Code Impact**:
-    - This EP modifies zero files in `src/algebrax/`.
+    - This EP modifies zero files in `src/algebrax/` and is sequenced to execute after [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) is finalized.
 
 ---
 
 ## How to Teach This / Documentation Plan
 
-- Landing page (`docs/index.md`) will feature a visual, interactive **Axiom Staircase** flowchart linking directly to
-  each tier.
+- Landing page (`docs/index.md`) and `docs/concepts.md` will feature the **Periodic Table of Algebraic Mixins** alongside the interactive **Axiom Staircase** flowchart linking directly to each tier.
 - Every docstring in `src/algebrax/algebra/` will cross-reference its corresponding user guide chapter.
 
 ---
@@ -339,6 +339,8 @@ Every algebraic guide chapter adheres strictly to the **Feynman 4-Beat Arc**:
 
 ## Change Log
 
+* **2026-11-01:**
+    * Integrated [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) atomic operational mixins ("Periodic Table of Algebraic Mixins") and domain-first import paths (`algebrax.clifford`, `algebrax.algebra`) into Beat 3 and `concepts.md` plan. Sequenced implementation to follow completion of EP-0194.
 * **2026-10-27:**
     * Initial Draft authored following Council consensus on EP-0192.
     * Council Review Amendments: Inverted 4-Beat Chapter Flow, Jargon Decoder, Domain Elevators, reintegration of
