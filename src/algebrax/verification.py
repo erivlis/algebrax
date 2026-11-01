@@ -39,10 +39,12 @@ __all__ = [
     'verify_group_laws',
     'verify_join_semilattice_laws',
     'verify_lattice_laws',
+    'verify_lie_algebra_laws',
     'verify_magma_laws',
     'verify_meet_semilattice_laws',
     'verify_module_laws',
     'verify_monoid_laws',
+    'verify_non_assoc_algebra_laws',
     'verify_non_assoc_ring_laws',
     'verify_ring_laws',
     'verify_semigroup_laws',
@@ -1151,4 +1153,88 @@ def verify_algebra_laws(
             break
 
     res['scalar_bilinearity'] = bilinear
+    return res
+
+
+def verify_non_assoc_algebra_laws(
+    algebra: NonAssocAlgebra[R, M],
+    ring: Ring[R],
+    r_samples: Iterable[R],
+    m_samples: Iterable[M],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Non-Associative Algebra laws:
+    - Module laws over ring R
+    - NonAssocRing laws on M (additive abelian group + two-sided distributivity)
+    - Scalar bilinearity: r * (a * b) == (r * a) * b == a * (r * b)
+    """
+    r_elements = _require_samples(r_samples)
+    m_elements = _require_samples(m_samples)
+
+    res = verify_module_laws(algebra, ring, r_elements, m_elements, tol)
+    res.update(verify_non_assoc_ring_laws(algebra, m_elements, tol))
+
+    smul = algebra.smul
+    mul_m = algebra.mul
+
+    bilinear = True
+    for r in r_elements:
+        for a, b in itertools.product(m_elements, repeat=2):
+            lhs = smul(r, mul_m(a, b))
+            rhs1 = mul_m(smul(r, a), b)
+            rhs2 = mul_m(a, smul(r, b))
+            if not semiring_elements_equal(lhs, rhs1, tol) or not semiring_elements_equal(lhs, rhs2, tol):
+                bilinear = False
+                break
+        if not bilinear:
+            break
+
+    res['scalar_bilinearity'] = bilinear
+    return res
+
+
+def verify_lie_algebra_laws(
+    lie: NonAssocAlgebra[R, M],
+    ring: Ring[R],
+    r_samples: Iterable[R],
+    m_samples: Iterable[M],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Lie Algebra axioms:
+    - NonAssocAlgebra laws (Module + distributivity + bilinearity)
+    - Skew-symmetry: [x, x] == 0 and [x, y] == -[y, x]
+    - Jacobi Identity: [x, [y, z]] + [y, [z, x]] + [z, [x, y]] == 0
+    """
+    m_elements = _require_samples(m_samples)
+    res = verify_non_assoc_algebra_laws(lie, ring, r_samples, m_elements, tol)
+
+    bracket = lie.mul
+    add = lie.add
+    neg = lie.neg
+    zero = lie.zero
+
+    # Alternating / Skew-symmetry
+    skew = True
+    for a in m_elements:
+        if not semiring_elements_equal(bracket(a, a), zero, tol):
+            skew = False
+            break
+    for a, b in itertools.combinations(m_elements, 2):
+        if not semiring_elements_equal(bracket(a, b), neg(bracket(b, a)), tol):
+            skew = False
+            break
+
+    # Jacobi identity: [x, [y, z]] + [y, [z, x]] + [z, [x, y]] == 0
+    jacobi = True
+    for a, b, c in itertools.product(m_elements, repeat=3):
+        t1 = bracket(a, bracket(b, c))
+        t2 = bracket(b, bracket(c, a))
+        t3 = bracket(c, bracket(a, b))
+        j_sum = add(add(t1, t2), t3)
+        if not semiring_elements_equal(j_sum, zero, tol):
+            jacobi = False
+            break
+
+    res['bracket_alternating'] = skew
+    res['jacobi_identity'] = jacobi
     return res

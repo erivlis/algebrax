@@ -4,14 +4,14 @@ Standard arithmetic semirings.
 
 import operator
 from numbers import Number
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from algebrax.algebra import Semiring
 
 T_num = TypeVar('T_num', bound=float | int | complex | Number)
 
 
-class StandardSemiring(Semiring[T_num], Generic[T_num]):
+class StandardSemiring(Semiring[T_num]):
     r"""The standard arithmetic semiring (unital ring) over numbers.
 
     Algebraic Signature:

@@ -14,7 +14,7 @@ Classes:
 
 from collections import defaultdict
 from collections.abc import Iterable, MutableMapping
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from algebrax.semiring import Semiring, StandardSemiring
 
@@ -22,7 +22,7 @@ V = TypeVar('V')
 K = TypeVar('K')
 
 
-class AlgebraicTrie(MutableMapping[tuple[K, ...], V], Generic[K, V]):
+class AlgebraicTrie(MutableMapping[tuple[K, ...], V]):
     r"""Prefix tree accumulator indexed over monoid sequences with semiring node values.
 
     Algebraic Signature:

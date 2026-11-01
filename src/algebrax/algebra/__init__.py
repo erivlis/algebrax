@@ -2,6 +2,11 @@
 Unified algebraic hierarchy — Lean 4 Mathlib-aligned protocols for abstract algebra.
 """
 
+from algebrax.algebra._dual import (
+    DualNumberAlgebra,
+    DualNumberRing,
+    DualNumberSemiring,
+)
 from algebrax.algebra._field import (
     Field,
     ModularField,
@@ -58,6 +63,15 @@ from algebrax.algebra._monoid import (
     OpCommMonoid,
     OpMonoid,
 )
+from algebrax.algebra._monoid_algebra import (
+    MonoidAlgebraSemiring,
+    QuotientMonoidAlgebraSemiring,
+)
+from algebrax.algebra._polynomial import (
+    PolynomialAlgebra,
+    PolynomialRing,
+    PolynomialSemiring,
+)
 from algebrax.algebra._ring import (
     CommRing,
     CommutativeRing,
@@ -86,6 +100,9 @@ __all__ = [
     'CommutativeRing',
     'DistributiveLattice',
     'DivisionRing',
+    'DualNumberAlgebra',
+    'DualNumberRing',
+    'DualNumberSemiring',
     'Field',
     'Group',
     'GroupAction',
@@ -96,13 +113,18 @@ __all__ = [
     'ModularField',
     'Module',
     'Monoid',
+    'MonoidAlgebraSemiring',
     'NonAssocAlgebra',
     'NonAssocRing',
     'OpCommMonoid',
     'OpMagma',
     'OpMonoid',
     'OpSemigroup',
+    'PolynomialAlgebra',
+    'PolynomialRing',
+    'PolynomialSemiring',
     'Quasigroup',
+    'QuotientMonoidAlgebraSemiring',
     'Ring',
     'Semigroup',
     'Semimodule',

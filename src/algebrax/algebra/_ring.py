@@ -76,7 +76,6 @@ AbelianRing = CommRing
 CommutativeRing = CommRing  # Canonical alias
 
 
-
 @runtime_checkable
 class DivisionRing(Ring[V], Protocol[V]):
     r"""A unital ring where every non-zero element has a two-sided multiplicative inverse.
@@ -118,4 +117,3 @@ __all__ = [
     'NonAssocRing',
     'Ring',
 ]
-

@@ -7,9 +7,9 @@ Algebraic Signatures (EP-0150 AMDS):
 
 import math
 from fractions import Fraction
-from typing import Generic, Protocol, TypeVar, runtime_checkable
+from typing import Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._ring import CommRing, DivisionRing, Ring
+from algebrax.algebra._ring import CommRing, DivisionRing
 
 V = TypeVar('V')
 
@@ -37,7 +37,7 @@ class Field(DivisionRing[V], CommRing[V], Protocol[V]):
 # =============================================================================
 
 
-class StandardField(Field[V], Generic[V]):
+class StandardField(Field[V]):
     r"""Typeclass implementation of `Field` for standard numeric types.
 
     Supports `float`, `Fraction`, `complex`, and arbitrary floating-point/exact types.
@@ -87,6 +87,12 @@ class StandardField(Field[V], Generic[V]):
         if self.is_zero(b):
             raise ZeroDivisionError('Cannot divide by field zero element.')
         return a / b  # type: ignore[operator]
+
+
+IntegerField = Field[int]
+RationalField = Field[Fraction]
+RealField = Field[float]
+ComplexField = Field[complex]
 
 
 class ModularField(Field[int]):

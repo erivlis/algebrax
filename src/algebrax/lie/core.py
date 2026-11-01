@@ -14,7 +14,18 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TypeAlias
 
-from algebrax.matrix import commutator, frobenius_inner, inverse, mat_vec, vec_add, vec_axpy, vec_clean, vec_norm
+from algebrax.algebra import NonAssocAlgebra
+from algebrax.matrix import (
+    commutator,
+    frobenius_inner,
+    inverse,
+    mat_vec,
+    vec_add,
+    vec_axpy,
+    vec_clean,
+    vec_norm,
+    vec_scale,
+)
 from algebrax.tensor import einsum
 from algebrax.typing import SparseMatrix, SparseVector
 
@@ -110,7 +121,7 @@ class StructureConstants:
         return all(abs(val) <= tol for val in jacobi_sum.values())
 
 
-class LieAlgebra:
+class LieAlgebra(NonAssocAlgebra[float | complex, LieElement]):
     r"""Finite-dimensional Lie algebra equipped with an alternating bilinear bracket.
 
     Algebraic Signature:
@@ -231,6 +242,52 @@ class LieAlgebra:
             if abs(val) > 1e-14:
                 res[idx] = res.get(idx, 0.0) + val
         return res
+
+    @property
+    def zero(self) -> LieElement:
+        """The additive zero vector (empty sparse dictionary)."""
+        return {}
+
+    def add(
+        self,
+        a: Sequence[float | complex] | dict[int | str, float | complex],
+        b: Sequence[float | complex] | dict[int | str, float | complex],
+    ) -> LieElement:
+        """Vector addition: a + b."""
+        return vec_clean(vec_add(self._normalize_element(a), self._normalize_element(b)))
+
+    def neg(
+        self,
+        a: Sequence[float | complex] | dict[int | str, float | complex],
+    ) -> LieElement:
+        """Additive inverse (negation): -a."""
+        return vec_clean(vec_scale(self._normalize_element(a), -1.0))
+
+    def sub(
+        self,
+        a: Sequence[float | complex] | dict[int | str, float | complex],
+        b: Sequence[float | complex] | dict[int | str, float | complex],
+    ) -> LieElement:
+        """Vector difference: a - b (single-pass axpy, avoiding double normalization)."""
+        norm_a = self._normalize_element(a)
+        norm_b = self._normalize_element(b)
+        return vec_clean(vec_axpy(-1.0, norm_b, norm_a))
+
+    def smul(
+        self,
+        r: float | complex,
+        m: Sequence[float | complex] | dict[int | str, float | complex],
+    ) -> LieElement:
+        """Scalar multiplication: r * m."""
+        return vec_clean(vec_scale(self._normalize_element(m), r))
+
+    def mul(
+        self,
+        a: Sequence[float | complex] | dict[int | str, float | complex],
+        b: Sequence[float | complex] | dict[int | str, float | complex],
+    ) -> LieElement:
+        """Non-associative bilinear product [a, b]. Alias for self.bracket(a, b)."""
+        return self.bracket(a, b)
 
     def bracket(
         self,

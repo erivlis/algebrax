@@ -21,6 +21,7 @@ from __future__ import annotations
 from algebrax.topology import cohomology, dec, homology, persistence, sheaf
 from algebrax.topology.cohomology import (
     Cochain,
+    CochainAlgebra,
     DiscreteForm,
     canonicalize_form,
     cap_product,
@@ -64,6 +65,7 @@ from algebrax.topology.sheaf import (
 __all__ = [
     'CellularSheaf',
     'Cochain',
+    'CochainAlgebra',
     'DiscreteForm',
     'EdgeStalkCoord',
     'FilteredSimplicialComplex',

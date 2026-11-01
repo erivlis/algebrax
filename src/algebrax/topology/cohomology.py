@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Iterator, Mapping
-from typing import Any, Generic, Literal, TypeAlias
+from typing import Any, Literal, TypeAlias
 
+from algebrax.algebra import Algebra, Ring
 from algebrax.semiring import Semiring
 from algebrax.topology._core import _canonicalize_simplex, _is_non_zero, _matrix_rank
 from algebrax.topology.homology import SimplicialComplex, SparseChainComplex
@@ -13,6 +14,7 @@ from algebrax.typing import K, SparseMatrix, SparseVector, V
 
 __all__ = [
     'Cochain',
+    'CochainAlgebra',
     'DiscreteForm',
     'canonicalize_form',
     'cap_product',
@@ -45,7 +47,7 @@ def _resolve_bidirectional_edge_flux(
     raise ValueError(f"Unknown mode '{mode}'. Expected 'auto', 'net', or 'half_skew'.")
 
 
-class Cochain(Mapping[tuple[K, ...], V], Generic[K, V]):
+class Cochain(Mapping[tuple[K, ...], V]):
     r"""Alternating discrete differential k-form / cochain over oriented simplices.
 
     Algebraic Signature:
@@ -572,3 +574,43 @@ def cap_product(
             out[back] = s_inst.add(out[back], prod) if back in out else prod
 
     return {s: v for s, v in out.items() if v != s_inst.zero and _is_non_zero(v, tol)}
+
+
+class CochainAlgebra(Algebra[V, Cochain[K, V]]):
+    r"""Associative differential graded algebra of simplicial cochains under the
+    Alexander-Whitney cup product $\smile$.
+    """
+
+    def __init__(self, complex: SimplicialComplex, coefficient_ring: Ring[V]):
+        self._complex = complex
+        self._ring = coefficient_ring
+
+    @property
+    def zero(self) -> Cochain[K, V]:
+        """The additive zero cochain."""
+        return Cochain({})
+
+    @property
+    def one(self) -> Cochain[K, V]:
+        """Canonical 0-cochain assigning 1_R to every 0-simplex (vertex) in K_0."""
+        return Cochain({(v,): self._ring.one for v in self._complex.vertices})
+
+    def add(self, a: Cochain[K, V], b: Cochain[K, V]) -> Cochain[K, V]:
+        """Cochain addition: a + b."""
+        return a + b
+
+    def neg(self, a: Cochain[K, V]) -> Cochain[K, V]:
+        """Cochain negation: -a."""
+        return -a
+
+    def sub(self, a: Cochain[K, V], b: Cochain[K, V]) -> Cochain[K, V]:
+        """Cochain subtraction: a - b."""
+        return a - b
+
+    def smul(self, r: V, m: Cochain[K, V]) -> Cochain[K, V]:
+        """Scalar scaling: r * m."""
+        return m * r
+
+    def mul(self, a: Cochain[K, V], b: Cochain[K, V]) -> Cochain[K, V]:
+        r"""Alexander-Whitney cup product: a \smile b."""
+        return cup_product(a, b)

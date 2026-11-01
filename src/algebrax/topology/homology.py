@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from itertools import combinations
+from typing import Any
 
 from algebrax.semiring import Semiring
 from algebrax.topology._core import _matrix_rank
@@ -213,3 +214,8 @@ class SimplicialComplex(SparseChainComplex):
             betti[k] = max(num_k - rank_dk - rank_dk1, 0)
 
         return betti
+
+    @property
+    def vertices(self) -> set[Any]:
+        """Return the set of 0-simplex vertex labels in the complex."""
+        return {s[0] for s in self._simplices.get(0, set())}

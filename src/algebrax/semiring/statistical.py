@@ -4,12 +4,13 @@ Probability, expectation, and moment semirings.
 
 import math
 
-from algebrax.algebra import Semiring
+from algebrax.algebra import DualNumberAlgebra, Semiring
 from algebrax.semiring.algebraic import (
     BinomialConvolutionSemiring,
-    DualNumberSemiring,
     MultivariateBinomialConvolutionSemiring,
 )
+
+DualNumberSemiring = DualNumberAlgebra
 
 
 class LogSemiring(Semiring[float]):
@@ -78,7 +79,7 @@ class LogSemiring(Semiring[float]):
         return -math.log1p(-math.exp(a))
 
 
-class ExpectationSemiring(DualNumberSemiring):
+class ExpectationSemiring(DualNumberAlgebra):
     r"""The First-Order Expectation Semiring (Eisner, 2002).
 
     Algebraic Signature:

@@ -2,19 +2,24 @@
 Semiring namespace — all classes available from algebrax.semiring.
 """
 
-from algebrax.algebra import Semiring
+from algebrax.algebra._dual import DualNumberAlgebra, DualNumberRing, DualNumberSemiring
+from algebrax.algebra._polynomial import PolynomialAlgebra, PolynomialRing, PolynomialSemiring
+from algebrax.algebra._semiring import Semiring
+from algebrax.clifford import (
+    CliffordAlgebra,
+    CliffordSemiring,
+    GeneralizedCliffordAlgebra,
+    GeneralizedCliffordSemiring,
+    QuantumCliffordAlgebra,
+    QuantumCliffordSemiring,
+)
 from algebrax.semiring.algebraic import (
     BinomialConvolutionSemiring,
-    CliffordSemiring,
-    DualNumberSemiring,
     GaloisFieldSemiring,
-    GeneralizedCliffordSemiring,
     KnotSemiring,
     MonoidAlgebraSemiring,
     MultivariateBinomialConvolutionSemiring,
-    PolynomialSemiring,
     ProvenanceSemiring,
-    QuantumCliffordSemiring,
     QuotientMonoidAlgebraSemiring,
 )
 from algebrax.semiring.arithmetic import ModularSemiring, StandardSemiring
@@ -47,8 +52,11 @@ __all__ = [
     'BivariateVarianceSemiring',
     'BooleanSemiring',
     'BottleneckSemiring',
+    'CliffordAlgebra',
     'CliffordSemiring',
     'DigitalSemiring',
+    'DualNumberAlgebra',
+    'DualNumberRing',
     'DualNumberSemiring',
     'ExpectationSemiring',
     'GaloisFieldSemiring',
@@ -63,6 +71,8 @@ __all__ = [
     'MonoidAlgebraSemiring',
     'MultivariateBinomialConvolutionSemiring',
     'MultivariateMomentSemiring',
+    'PolynomialAlgebra',
+    'PolynomialRing',
     'PolynomialSemiring',
     'ProvenanceSemiring',
     'QuantumCliffordSemiring',
