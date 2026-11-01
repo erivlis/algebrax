@@ -31,7 +31,7 @@ This proposal establishes a rigorous, Lean 4 Mathlib-aligned category-theoretic 
 
 ## Motivation
 
-AlgebraX introduced `algebrax.category` in Phase 2 ([EP-0113](EP-0113-categorical-morphisms-and-kleisli.md)) to support Kleisli composition and Kan extensions. However, the implementation remained skeletal:
+AlgebraX introduced `algebrax.category` in Phase 2 ([EP-0113](EP-0113-categorical-kleisli.md)) to support Kleisli composition and Kan extensions. However, the implementation remained skeletal:
 - `kleisli_compose(f, g, semiring)` is a 1-line wrapper around `dot(f, g, semiring)`.
 - `kan_extension_left(p, f, semiring)` is a 1-line wrapper around `dot(f, p, semiring)`.
 

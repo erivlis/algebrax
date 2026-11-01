@@ -48,7 +48,7 @@ All representations adhere strictly to the Shannon zero-bloat principle: represe
 
 Groups describe symmetries, but in quantum mechanics, crystallography, computer vision, and chemistry, symmetries act on physical states, wavefunctions, molecules, and vector fields. 
 
-1. **Bridging Abstract Algebra to Linear Algebra**: AlgebraX has robust group axioms ([`EP-0190`](EP-0190-pure-algebraic-hierarchy.md)) and high-performance sparse matrix routines, but lacks a formal bridge connecting a group element $g$ to its matrix action $\rho(g) \in \mathrm{GL}(V)$.
+1. **Bridging Abstract Algebra to Linear Algebra**: AlgebraX has robust group axioms ([`EP-0190`](EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md)) and high-performance sparse matrix routines, but lacks a formal bridge connecting a group element $g$ to its matrix action $\rho(g) \in \mathrm{GL}(V)$.
 2. **Harmonic Analysis on Finite Groups**: Fourier analysis on finite groups (such as Diaconis's work on card shuffling or spectral graph theory on Cayley graphs) is fundamentally representation theory. The character table is the discrete Fourier transform matrix for class functions.
 3. **Symmetry Reduction in Sparse Solvers**: In PDEs, finite element analysis, and molecular dynamics, exploiting group symmetries decomposes an $N \times N$ matrix into independent $d_i \times d_i$ block diagonal subproblems, reducing computational complexity by orders of magnitude.
 

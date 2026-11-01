@@ -64,7 +64,7 @@ Invariant theory—founded by Cayley, Sylvester, Gordan, and Hilbert—is the hi
 - **🔬 Popper (Falsifiable Invariants)**:
   Every generated invariant $f(\mathbf{x})$ is subjected to empirical falsification: evaluating $|f(\rho(g) \mathbf{x}) - f(\mathbf{x})| < 10^{-12}$ for randomized probe vectors $\mathbf{x} \in \mathbb{R}^n$ and all $g \in G$.
 - **🧩 Russell (Graded Algebra Taxonomy)**:
-  Correctly models $K[V]^G$ as a graded sub-algebra of the polynomial algebra $K[x_1, \dots, x_n]$ ([`EP-0192`](EP-0192-unifying-domain-objects.md)).
+  Correctly models $K[V]^G$ as a graded sub-algebra of the polynomial algebra $K[x_1, \dots, x_n]$ ([`EP-0192`](EP-0192-unifying-domain-objects-with-algebraic-hierarchy.md)).
 - **💡 Feynman (Freshman Test & Intuitive Demystification)**:
   *"If you spin a square on a table, $x^2 + y^2$ doesn't change, and $x^4 + y^4$ doesn't change. Molien's series is a magic cash register that tells you exactly how many such unbreakable formulas exist at each power!"*
 

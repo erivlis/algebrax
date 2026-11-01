@@ -7,19 +7,19 @@ status: draft
 
 # EP-0202: Functorial Sheaves & Categorical DEC
 
-| Field        | Value                                                              |
-|:-------------|:-------------------------------------------------------------------|
-| **EP**       | 0202                                                               |
-| **Title**    | Functorial Sheaves & Categorical DEC                               |
-| **Author**   | Eran Rivlis <eran@rivlis.info>, Antigravity                        |
-| **Sponsor**  | Core Maintainers                                                   |
-| **Delegate** | ⚖️ Noether (Topological Invariants) & 🔬 Popper (Cohomological Nilpotency) |
-| **Status**   | Draft                                                              |
-| **Type**     | Standards Track                                                    |
-| **Created**  | 2026-10-27                                                         |
-| **Updated**  | 2026-10-27                                                         |
-| **Replaces** | —                                                                  |
-| **Superseded-By** | —                                                             |
+| Field             | Value                                                                      |
+|:------------------|:---------------------------------------------------------------------------|
+| **EP**            | 0202                                                                       |
+| **Title**         | Functorial Sheaves & Categorical DEC                                       |
+| **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                |
+| **Sponsor**       | Core Maintainers                                                           |
+| **Delegate**      | ⚖️ Noether (Topological Invariants) & 🔬 Popper (Cohomological Nilpotency) |
+| **Status**        | Draft                                                                      |
+| **Type**          | Standards Track                                                            |
+| **Created**       | 2026-10-27                                                                 |
+| **Updated**       | 2026-10-27                                                                 |
+| **Replaces**      | —                                                                          |
+| **Superseded-By** | —                                                                          |
 
 ---
 
@@ -38,7 +38,7 @@ All implementations maintain raw sparse dictionary matrices (`dict[K, dict[V, S]
 
 ## Motivation
 
-In Phase 4, AlgebraX introduced `CellularSheaf` ([EP-0131](EP-0131-cellular-sheaves-and-cohomology.md)) and Discrete Exterior Calculus ([EP-0132](EP-0132-discrete-exterior-calculus-and-pdes.md)). While computationally functional, they currently exist as isolated silos:
+In Phase 4, AlgebraX introduced `CellularSheaf` ([EP-0161](EP-0161-cellular-sheaves-and-network-laplacians.md)) and Discrete Exterior Calculus ([EP-0160](EP-0160-discrete-exterior-calculus-and-hodge-decomposition.md)). While computationally functional, they currently exist as isolated silos:
 - `CellularSheaf` uses procedural dictionary lookups for stalks and restrictions, with no link to `algebrax.category`.
 - `algebrax.dec` calculates simplicial boundary operators $\partial_k$ and Hodge Laplacians $\Delta_k$ independently of sheaf structures.
 - There is no formal realization that **Discrete Exterior Calculus is simply the special case of cellular sheaf theory with constant rank-1 stalks** $\mathcal{F}(\sigma) \cong \mathbb{R}$.
