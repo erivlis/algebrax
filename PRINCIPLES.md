@@ -40,6 +40,12 @@ Evaluate every decision against these eight pillars:
     * **Inquiry:** Ask questions that expand the context.
     * **Growth:** Stagnation is entropy. Iterate or die.
 
+9. **Empiricism (Bacon):**
+    * **Evidence First:** All knowledge begins with observable, verifiable evidence from reality.
+    * **Measurement over Assumption:** Use tools and instruments rather than guessing or inferring objective facts.
+    * **Source Authority:** Distinguish between system-provided truth and session-derived interpretations.
+    * **Verification Cascade:** System Truth → Tool Verification → Agent Inference (in priority order).
+
 ## Architectural Heuristics
 
 ### Mode vs. Type
