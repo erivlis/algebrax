@@ -120,6 +120,7 @@ A set $S$ with two operations, Addition ($\oplus$) and Multiplication ($\otimes$
 **Examples in Library** (`algebrax.semiring`):
 
 Semirings are organized into categorical sub-modules under `algebrax.semiring`:
+
 * **`arithmetic`**: `StandardSemiring` over real numbers $(\mathbb{R}, +, \times)$ or complex amplitudes $(\mathbb{C}, +, \times)$ (quantum path integrals, discrete wave interference).
 * **`optimization`**: `TropicalSemiring` $(\mathbb{R} \cup \{\infty\}, \min, +)$, `ArcticSemiring`, `ViterbiSemiring`, `ReliabilitySemiring`, `BottleneckSemiring`, `MinTimesSemiring`. Shortest path and capacity algorithms.
 * **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations.
