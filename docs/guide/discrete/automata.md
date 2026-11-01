@@ -64,6 +64,10 @@ class GrammarSemiring(ax.semiring.Semiring[Set[str]]):
                     res.update(rules[(lhs, rhs)])
         return res
 
+    def star(self, a: Set[str]) -> Set[str]:
+        # Kleene star closure: 1 | a
+        return self.one | a
+
 
 # Sentence: "I love Python"
 sentence = ['I', 'love', 'Python']

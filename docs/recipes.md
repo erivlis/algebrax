@@ -181,7 +181,7 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
-### Simplicial Homology & Topological Betti Barcodes (EP-0110)
+### Simplicial Homology & Topological Betti Barcodes
 * **Files**: [`topological_homology_betti.py`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_homology_betti.py) | [`topological_homology_betti.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_homology_betti.ipynb)
 * **Run**: `uv run recipes/topological_homology_betti.py`
 * **Components**: `homology.SimplicialComplex`, `homology.betti_numbers`, `analysis.SparseChainComplex`
@@ -189,7 +189,7 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
-### Clifford Geometric Algebra & 3D Rotor Rotations (EP-0111)
+### Clifford Geometric Algebra & 3D Rotor Rotations
 * **Files**: [`clifford_rotor_kinematics.py`](https://github.com/erivlis/algebrax/blob/main/recipes/clifford_rotor_kinematics.py) | [`clifford_rotor_kinematics.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/clifford_rotor_kinematics.ipynb)
 * **Run**: `uv run recipes/clifford_rotor_kinematics.py`
 * **Components**: `clifford.CliffordSemiring`, `clifford.rotor_rotation`, `semiring.QuotientMonoidAlgebraSemiring`
@@ -197,7 +197,7 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
-### Galois Finite Fields & Cryptographic Arithmetic (EP-0112)
+### Galois Finite Fields & Cryptographic Arithmetic
 * **Files**: [`galois_field_cryptography.py`](https://github.com/erivlis/algebrax/blob/main/recipes/galois_field_cryptography.py) | [`galois_field_cryptography.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/galois_field_cryptography.ipynb)
 * **Run**: `uv run recipes/galois_field_cryptography.py`
 * **Components**: `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `semiring.QuotientMonoidAlgebraSemiring`
@@ -205,7 +205,7 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
-### Categorical Morphisms & Kleisli Monadic Composition (EP-0113)
+### Categorical Morphisms & Kleisli Monadic Composition
 * **Files**: [`categorical_kleisli_monads.py`](https://github.com/erivlis/algebrax/blob/main/recipes/categorical_kleisli_monads.py) | [`categorical_kleisli_monads.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/categorical_kleisli_monads.ipynb)
 * **Run**: `uv run recipes/categorical_kleisli_monads.py`
 * **Components**: `category.kleisli_compose`, `semiring.ViterbiSemiring`, `semiring.TropicalSemiring`
@@ -289,7 +289,7 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 * **Files**: [`spectral_graph_clustering.py`](https://github.com/erivlis/algebrax/blob/main/recipes/spectral_graph_clustering.py) | [`spectral_graph_clustering.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/spectral_graph_clustering.ipynb)
 * **Run**: `uv run recipes/spectral_graph_clustering.py`
 * **Components**: `matrix.core.laplacian_matrix`, `analysis.fiedler_vector`, `analysis.spectral_bipartition`, `analysis.laplacian_smoothing`, `analysis.laplacian_spectrum`
-* **Summary**: Formulates graph manifold clustering and diffusion smoothing via Spectral Graph Theory (EP-0152). Computes discrete combinatorial Laplacians ($L = D - W$), solves algebraic connectivity $\lambda_2$ and the Fiedler eigenvector $\mathbf{v}_2$ via Rayleigh-Quotient CG, partitions communities bounding Cheeger conductance, low-pass filters spatial node noise via Dirichlet energy minimization, and audits semiring factory ergonomics (`Semiring.default()`, `Semiring.normalize()`, `Semiring.create()`).
+* **Summary**: Formulates graph manifold clustering and diffusion smoothing via Spectral Graph Theory. Computes discrete combinatorial Laplacians ($L = D - W$), solves algebraic connectivity $\lambda_2$ and the Fiedler eigenvector $\mathbf{v}_2$ via Rayleigh-Quotient CG, partitions communities bounding Cheeger conductance, low-pass filters spatial node noise via Dirichlet energy minimization, and audits semiring factory ergonomics (`Semiring.default()`, `Semiring.normalize()`, `Semiring.create()`).
 
 ### Rubik's Cube Permutation Group & Commutator Solver
 * **Files**: [`rubiks_cube_group_solver.py`](https://github.com/erivlis/algebrax/blob/main/recipes/rubiks_cube_group_solver.py) | [`rubiks_cube_group_solver.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/rubiks_cube_group_solver.ipynb)

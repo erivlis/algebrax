@@ -57,7 +57,7 @@ graph = {
 # Standard Linear Matrix Multiplication (+, *)
 linear_mult = ax.matrix.dot(graph, graph, semiring=ax.semiring.StandardSemiring())
 print('Linear Multiplication (0->2):', linear_mult[0][2])
-# Output: 30.0 (path combination weight)
+# Output: 6.0 (2.0 * 3.0)
 
 # Tropical Shortest Path (min, +)
 shortest_path = ax.matrix.dot(graph, graph, semiring=ax.semiring.TropicalSemiring())
@@ -80,11 +80,9 @@ print('Symbolic Derivation Polynomial:', provenance_mult[0][2])
 
 Explore the documentation sections:
 
-* 💡 [**Core Concepts**](concepts.md): Learn the mathematical foundations of Monoids, Groups, Semirings, and Lattices.
+* 💡 [**Core Concepts & Periodic Table of Mixins**](concepts.md): Learn the mathematical foundations of Atomic Mixins, Magmas, Monoids, Groups, Lattices, Semirings, Rings, Fields, Modules, and Algebras.
 * ⚖️ [**Library Comparison**](comparison.md): Feature matrix and trade-off analysis comparing AlgebraX vs SciPy, NumPy,
   Pandas, NetworkX, and SymPy.
-* 📖 [**User Guide**](guide/semirings/index.md): Comprehensive reference for all built-in semirings, sparse matrices,
-  tensors, simplicial complexes, discrete calculus, and spectral transforms.
+* 📖 [**User Guide**](guide/index.md): Deductive 7-tier guide from single-operation Magmas and Monoids to Semirings, Rings, Exact Field Solvers, Clifford & Lie Algebras, and Topological Sheaves.
 * 🍳 [**Use Cases & Recipes**](recipes.md): Executable real-world scripts, Jupyter notebooks, and the interactive
   DearPyGui laboratory.
-* 📜 [**Enhancement Proposals (EPs)**](eps.md): Architectural designs, roadmap, and technical specs.

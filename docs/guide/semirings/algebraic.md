@@ -5,6 +5,14 @@ description: Monoid algebras, polynomial rings, provenance, knots, quotient ring
 
 # Monoid & Extension Algebras (`algebrax.semiring.algebraic`)
 
+> [!TIP]
+> **Pure Algebraic Hierarchy Guides**
+> When the base coefficient structure is a `Ring` or `Field`, these monoid and quotient constructions satisfy the full `CommRing`, `Algebra`, and `Field` protocols (`from algebrax.algebra import PolynomialAlgebra, DualNumberAlgebra, QuotientMonoidAlgebraSemiring` and `from algebrax.clifford import CliffordAlgebra`). See the dedicated deductive guides:
+>
+> - [**Polynomials, Dual Numbers & Quotient Algebras**](../algebra/polynomials_and_quotients.md) (Tier 3)
+> - [**Clifford Geometric Algebra & Rotors**](../algebra/clifford_geometric_algebra.md) (Tier 4)
+> - [**Rings, Commutative Rings & Fields (`GF(p^m)`)**](../algebra/rings_and_fields.md) (Tier 3)
+
 The algebraic semirings implement formal linear combinations $R[M]$ over monoids, universal polynomial quotients,
 multivector Clifford algebras, and finite Galois fields.
 
@@ -16,7 +24,7 @@ The **Monoid Algebra Semiring** $R[M]$ (or Group Algebra $R[G]$) provides the fo
 formal linear combinations $\sum_{m \in M} a_m m$ over an arbitrary monoid $M$ and coefficient semiring $R$.
 
 It serves as the parent abstraction for several specialized algebraic structures in `algebrax`, including
-the [Polynomial Semiring] ($R[x]$) and the [Knot Semiring]
+the [Polynomial Semiring](#the-polynomial-semiring) ($R[x]$) and the [Knot Semiring](#the-knot-semiring)
 ($R[\text{Knots}]$).
 
 ## Mathematical Definition

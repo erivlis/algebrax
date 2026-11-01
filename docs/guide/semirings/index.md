@@ -1,6 +1,6 @@
 ---
 title: Semiring Taxonomy
-description: Comprehensive directory and interactive dependency graph of all 27 semirings in AlgebraX.
+description: Comprehensive directory and interactive dependency graph of all 34 semirings in AlgebraX.
 ---
 
 # Semiring Architecture & Mathematical Taxonomy
@@ -340,26 +340,27 @@ To ensure safe, uniform semiring lifecycle management across algorithms and reci
 ```python
 from algebrax.semiring import Semiring, TropicalSemiring
 
-# 1. Canonical default semiring (StandardSemiring over float or custom dtype)
+# 1. Canonical default semiring (StandardSemiring over float)
 s_default = Semiring.default()  # StandardSemiring[float]
-s_complex = Semiring.default(dtype=complex)  # StandardSemiring[complex]
 
 # 2. Normalize optional semiring parameters in library functions and algorithms
-s1 = Semiring.normalize(None)  # Resolves to StandardSemiring[float]
-s2 = Semiring.normalize(None, default=TropicalSemiring())  # Resolves to TropicalSemiring
-s3 = Semiring.normalize(TropicalSemiring())  # Returns TropicalSemiring as-is
+s1 = Semiring.normalize(None)  # Resolves to default StandardSemiring[float]
+s2 = Semiring.normalize('tropical')  # Resolves string alias to TropicalSemiring
+s3 = Semiring.normalize(TropicalSemiring)  # Instantiates class type to TropicalSemiring()
+s4 = Semiring.normalize(TropicalSemiring())  # Returns existing instance as-is
 
 # 3. Convenience alias
-s4 = Semiring.create('tropical') if False else Semiring.create()
+s5 = Semiring.create('tropical')
 ```
 
 ### Factory Methods Reference
 
 | Method | Signature | Description |
 |:-------|:----------|:------------|
-| `Semiring.default(dtype=float)` | `(dtype: type[T] = float) -> StandardSemiring[T]` | Instantiates the canonical standard addition/multiplication semiring for the requested carrier type. |
-| `Semiring.normalize(semiring, default)` | `(semiring: Semiring[V] \| None = None, default: Semiring[V] \| None = None) -> Semiring[V]` | Safely coerces an optional semiring parameter into an active `Semiring` instance, falling back to `default` or `Semiring.default()`. |
-| `Semiring.create(semiring, default)` | `(semiring=None, default=None)` | Direct alias to `Semiring.normalize` for uniform factory instantiation. |
+| `Semiring.default()` | `() -> Semiring[Any]` | Instantiates the canonical standard addition/multiplication semiring (`StandardSemiring[float]`). |
+| `Semiring.normalize(s)` | `(s: Semiring[V] \| type[Semiring[V]] \| str \| None = None) -> Semiring[V]` | Safely coerces an optional semiring parameter into an active `Semiring` instance, resolving `None` to `default()`, class types via `s()`, or string aliases from `catalog()`. |
+| `Semiring.create(s)` | `(s = None) -> Semiring[V]` | Direct classmethod alias to `Semiring.normalize` for uniform factory instantiation. |
+
 
 ---
 

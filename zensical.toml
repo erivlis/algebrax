@@ -21,46 +21,55 @@ nav = [
         "verification.md"
     ] },
     { Guide = [
-        { "Semiring Polymorphism" = [
+        { "Overview & Navigation" = [
+            "guide/index.md",
+        ] },
+        { "1. Single-Operation Structures" = [
+            "guide/algebra/magmas_and_monoids.md",
+            "guide/algebra/groups_and_symmetries.md",
+        ] },
+        { "2. Two-Operation Systems" = [
+            "guide/algebra/lattices_and_order.md",
+            "guide/algebra/semirings_overview.md",
             "guide/semirings/index.md",
             "guide/semirings/arithmetic.md",
             "guide/semirings/optimization.md",
-            "guide/semirings/logic.md",
             "guide/semirings/statistical.md",
+            "guide/semirings/logic.md",
             "guide/semirings/algebraic.md",
             "guide/semirings/verification.md",
         ] },
-        { "Sparse Linear Algebra" = [
-            "guide/matrix/core.md",
-            "guide/matrix/academic.md",
-            "guide/matrix/decompositions.md",
-            "guide/matrix/benchmarks.md",
+        { "3. Additive Inverses (Rings & Fields)" = [
+            "guide/algebra/rings_and_fields.md",
+            "guide/algebra/polynomials_and_quotients.md",
+            "guide/algebra/exact_matrix_solvers.md",
         ] },
-        { "Tensors & Multi-Indices" = [
+        { "4. Two-Sorted Systems (Modules, Algebras & Tensors)" = [
+            "guide/algebra/modules_and_vector_spaces.md",
+            "guide/algebra/clifford_geometric_algebra.md",
+            "guide/algebra/lie_algebras.md",
             "guide/tensor/trie.md",
             "guide/tensor/einsum.md",
         ] },
-        { "Topology" = [
+        { "5. Discrete Geometry & Topology" = [
             "guide/topology/homology.md",
             "guide/topology/cohomology.md",
             "guide/topology/persistence.md",
             "guide/topology/dec.md",
             "guide/topology/sheaf.md",
         ] },
-        { "Transforms & Analysis" = [
+        { "6. Categories, Automata & Dynamics" = [
+            "guide/discrete/category.md",
+            "guide/discrete/automata.md",
+            "guide/probability/information.md",
             "guide/transforms/spectral.md",
             "guide/analysis/discrete_calculus.md",
         ] },
-        { "Probability & Information" = [
-            "guide/probability/information.md",
-        ] },
-        { "Discrete, Automata & Category" = [
-            "guide/algebra/hierarchy.md",
-            "guide/algebra/rings_and_fields.md",
-            "guide/discrete/automata.md",
-            "guide/discrete/category.md",
-            "guide/discrete/algebra.md",
-            "guide/discrete/lie_algebras.md",
+        { "7. Ecosystem Bridges & Decompositions" = [
+            "guide/matrix/core.md",
+            "guide/matrix/decompositions.md",
+            "guide/matrix/benchmarks.md",
+            "guide/matrix/academic.md",
         ] },
     ] },
     { Recipes = [

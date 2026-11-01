@@ -1,4 +1,9 @@
-# Algebraic Trie
+---
+title: Algebraic Trie
+description: Generalized prefix trees behaving as sparse tensors over arbitrary semirings.
+---
+
+# Algebraic Trie (`algebrax.trie.AlgebraicTrie`)
 
 The `AlgebraicTrie` is a generalization of a Trie (Prefix Tree) that behaves as a Sparse Tensor over a Semiring.
 

@@ -74,7 +74,23 @@ print(tropical_cup)
 # Cochain({(0, 1, 2): 6.0, (1, 2, 3): 2.0}, degree=2)
 ```
 
+### The Cohomology Ring as an `Algebra` Protocol Conformance
+
+In `algebrax.topology`, **`CochainAlgebra`** equips the cochain space with the Alexander–Whitney cup product, directly conforming to `algebrax.algebra.Algebra[float, Cochain]`:
+
+```python
+from algebrax.algebra import Algebra, StandardField
+from algebrax.topology import CochainAlgebra, SimplicialComplex
+
+sc = SimplicialComplex([(0, 1, 2), (1, 2, 3)])
+f = StandardField(float)
+cochain_ring = CochainAlgebra(complex=sc, coefficient_ring=f)
+
+assert isinstance(cochain_ring, Algebra)
+```
+
 ---
+
 
 ## Alexander–Whitney Cap Product (`cap_product`)
 

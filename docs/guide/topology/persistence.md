@@ -84,7 +84,8 @@ assert dist == 0.0
 
 ---
 
-## Related Sections & Proposals
+## Related Guides
 
-* [`EP-0162`: Persistent Homology, Simplicial Filtrations & Topological Barcodes](../../proposals/EP-0162-persistent-homology-and-topological-barcodes.md)
-* [`EP-0165`: Unified Topology Namespace, Cochain Ring Products & Persistent Cohomology](../../proposals/EP-0165-topology-namespace-and-cohomology-ring.md)
+* [Simplicial Homology & Boundary Operators](homology.md)
+* [Simplicial Cohomology & Cup Product Ring](cohomology.md)
+* [Exact Sparse Matrix Solvers (`ModularField(2)`)](../algebra/exact_matrix_solvers.md)

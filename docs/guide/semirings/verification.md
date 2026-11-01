@@ -1,6 +1,6 @@
 ---
 title: Algebraic Law Verification Engine
-description: Property-based testing and automated verification of semiring axioms across 24 built-in semirings.
+description: Property-based testing and automated verification of semiring axioms across 34 built-in semirings.
 ---
 
 # Algebraic Law Verification Engine
@@ -43,7 +43,7 @@ for axiom, passed in results.items():
 
 ## CLI Audit Command
 
-Run the law verification auditor across all 24 semirings from the terminal:
+Run the law verification auditor across all 34 semirings from the terminal:
 
 ```bash
 # Verify all 34 catalog semirings

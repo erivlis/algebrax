@@ -19,9 +19,41 @@ concepts helps clarify why certain operations are grouped together and how they 
 
 ---
 
+## The Periodic Table of Algebraic Mixins (`algebrax.algebra`)
+
+Every algebraic protocol in `algebrax.algebra` is assembled from **16 purely orthogonal atomic operational mixins**. Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
+
+$$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Closure / Bounds } ({}^*, \vee, \wedge, \bot, \top, \neg)$$
+
+| Cluster             | Atomic Mixin                 | Required Member(s)     | Default Helper(s)    | Mathematical Symbol                             |
+|:--------------------|:-----------------------------|:-----------------------|:---------------------|:------------------------------------------------|
+| **External Action** | `HasScale[R, M]` (`HasSMul`) | `smul(r, m) -> M`      | `scale(r, m) -> M`   | $\cdot_s: R \times M \to M$                     |
+| **Additive**        | `HasZero[V]`                 | `zero -> V`            | —                    | $\mathbf{0} \in V$                              |
+|                     | `HasZeroPred[V]`             | —                      | `is_zero(a) -> bool` | $\operatorname{is\_zero}: V \to \{\top, \bot\}$ |
+|                     | `HasAdd[V]`                  | `add(a, b) -> V`       | —                    | $+: V \times V \to V$                           |
+|                     | `HasNeg[V]`                  | `neg(a) -> V`          | `sub(a, b) -> V`     | $-: V \to V$                                    |
+| **Multiplicative**  | `HasOne[V]`                  | `one -> V`             | —                    | $\mathbf{1} \in V$                              |
+|                     | `HasMul[V]`                  | `mul(a, b) -> V`       | —                    | $\cdot: V \times V \to V$                       |
+|                     | `HasInv[V]`                  | `inv(a) -> V`          | `div(a, b) -> V`     | ${}^{-1}: V \setminus \{\mathbf{0}\} \to V$     |
+| **Closure**         | `HasStar[V]`                 | `star(a) -> V`         | —                    | ${}^*: V \to V$                                 |
+| **Order / Lattice** | `HasJoin[V]`                 | `join(a, b) -> V`      | —                    | $\vee: V \times V \to V$                        |
+|                     | `HasMeet[V]`                 | `meet(a, b) -> V`      | —                    | $\wedge: V \times V \to V$                      |
+|                     | `HasBounds[V]`               | `bot -> V`, `top -> V` | —                    | $\bot, \top \in V$                              |
+|                     | `HasComplement[V]`           | `complement(a) -> V`   | —                    | $\neg: V \to V$                                 |
+| **Domain-Agnostic** | `HasIdentity[V]`             | `identity -> V`        | —                    | $e \in V$                                       |
+|                     | `HasOp[V]`                   | `op(a, b) -> V`        | —                    | $\circ: V \times V \to V$                       |
+| **Non-Associative** | `HasBracket[V]`              | `bracket(a, b) -> V`   | —                    | $[\cdot, \cdot]: V \times V \to V$              |
+
+> [!NOTE]
+> **Subclassing vs. Structural Duck-Typing (The Golem Safety Contract)**
+> When subclassing `HasZeroPred`, `HasNeg`, `HasInv`, or `HasScale`, Python inherits their default helper implementations (`is_zero`, `sub`, `div`, `scale`). However, when using purely structural duck-typing without inheriting from the mixins, Python's `@runtime_checkable` `isinstance(obj, Protocol)` requires that **all** protocol attributes be present on the instance or class.
+
+
+---
+
 ## Algebraic Structures
 
-Hierarchy of Structures (Ordered by Complexity)
+Hierarchy of Structures (Ordered by Complexity — see the [Deductive User Guide](guide/index.md) for interactive tutorials)
 
 ### 1. Monoid $(M, \cdot)$
 
@@ -44,7 +76,7 @@ A Monoid where every element has an **Inverse**.
 
 **Example in Library**:
 
-* **Permutations** (`algebra.group`): The set of bijective mappings forms a group under composition.
+* **Permutations** (`algebrax.group`): The set of bijective mappings forms a group under composition.
     * Operation: `compose(f, g)`
     * Inverse: `invert(f)`
     * Identity: `{k: k}`
@@ -149,18 +181,18 @@ An associative algebra equipped with a quadratic form or root-of-unity commutati
 The `algebrax.analysis` and `algebrax.homology` modules implement concepts from DEC and Topological Homology on graphs
 and $k$-dimensional simplicial complexes.
 
-| Concept                       | Mathematical Object                        | Library Type / Function | Example / Application                        |
-|:------------------------------|:-------------------------------------------|:------------------------|:---------------------------------------------|
-| **0-form**                    | Scalar Field (on nodes)                    | `SparseVector`          | Temperature at each city                     |
-| **1-form**                    | Vector Field (on edges)                    | `SparseMatrix`          | Traffic flow between cities                  |
-| **Gradient ($d_0$)**          | $d_0: \Omega^0 \to \Omega^1$               | `gradient()`            | Difference in temp between cities            |
-| **Divergence ($d_0^*$)**      | $d_0^*: \Omega^1 \to \Omega^0$             | `divergence()`          | Net traffic flow out of a city               |
-| **Laplacian ($\Delta$)**      | $\Delta = d^* d$                           | `laplacian()`           | Heat diffusion rate                          |
-| **$k$-Simplex**               | $k$-dim face $(v_0, \dots, v_k)$           | `SimplicialComplex`     | Triangles, tetrahedra, cliques               |
-| **Boundary ($D_k$)**          | $D_k: C_k \to C_{k-1}$                     | `boundary_matrix()`     | Face boundary alternating sums               |
-| **Nilpotency**                | $D_{k-1} \circ D_k = \mathbf{0}$           | `verify_nilpotency()`   | Fundamental homology boundary law            |
-| **Hodge-Laplacian**           | $\Delta_k = D_{k+1} D_{k+1}^T + D_k^T D_k$ | `hodge_laplacian()`     | $k$-form diffusion & harmonic forms          |
-| **Betti Numbers ($\beta_k$)** | $\dim(\ker D_k) - \text{rank}(D_{k+1})$    | `betti_numbers()`       | Hole count ($\beta_0$ comp, $\beta_1$ loops) |
+| Concept                       | Mathematical Object                        | Library Type / Function     | Example / Application                        |
+|:------------------------------|:-------------------------------------------|:----------------------------|:---------------------------------------------|
+| **0-form**                    | Scalar Field (on nodes)                    | `SparseVector`              | Temperature at each city                     |
+| **1-form**                    | Vector Field (on edges)                    | `SparseMatrix`              | Traffic flow between cities                  |
+| **Gradient ($d_0$)**          | $d_0: \Omega^0 \to \Omega^1$               | `gradient()`                | Difference in temp between cities            |
+| **Divergence ($d_0^*$)**      | $d_0^*: \Omega^1 \to \Omega^0$             | `divergence()`              | Net traffic flow out of a city               |
+| **Laplacian ($\Delta$)**      | $\Delta = d^* d$                           | `laplacian()`               | Heat diffusion rate                          |
+| **$k$-Simplex**               | $k$-dim face $(v_0, \dots, v_k)$           | `SimplicialComplex`         | Triangles, tetrahedra, cliques               |
+| **Boundary ($D_k$)**          | $D_k: C_k \to C_{k-1}$                     | `sc.boundary_matrix(k)`     | Face boundary alternating sums               |
+| **Nilpotency**                | $D_{k-1} \circ D_k = \mathbf{0}$           | `sc.verify_nilpotency(k)`   | Fundamental homology boundary law            |
+| **Hodge-Laplacian**           | $\Delta_k = D_{k+1} D_{k+1}^T + D_k^T D_k$ | `hodge_laplacian(sc, k)`    | $k$-form diffusion & harmonic forms          |
+| **Betti Numbers ($\beta_k$)** | $\dim(\ker D_k) - \text{rank}(D_{k+1})$    | `sc.betti_numbers(max_k)`   | Hole count ($\beta_0$ comp, $\beta_1$ loops) |
 
 ---
 
@@ -169,7 +201,7 @@ and $k$-dimensional simplicial complexes.
 The `algebrax.clifford` module implements **Clifford Geometric Algebra** over `QuotientMonoidAlgebraSemiring`.
 Multivectors unify scalars, vectors, bivectors, and pseudoscalars into a single sparse mapping `{blade_tuple: coeff}`.
 
-* **Geometric Product**: $A B = A \cdot B + A \wedge B$ (computed via `geometric_product()`).
+* **Geometric Product**: $A B = A \cdot B + A \wedge B$ (computed via `cl.mul(A, B)` on `CliffordAlgebra`).
 * **Canonical Blade Reduction**: $\mathbf{e}_i \mathbf{e}_j = -\mathbf{e}_j \mathbf{e}_i$ and $\mathbf{e}_i^2 = +1$
   ($i \le p$), $-1$ ($p < i \le p+q$), $0$ ($i > p+q$).
 * **Rotor Sandwiching ($v' = R v R^\dagger$)**: Smooth 3D spatial rotations $R = \exp (-\theta/2 \mathbf{B})$ via
@@ -217,20 +249,20 @@ Type**.
 
 *Input: Sparse Vectors/Matrices (representing physical systems or geometric transformations)*
 
-| Function             | Type       | Meaning                                        |
-|:---------------------|:-----------|:-----------------------------------------------|
-| `add`                | Structural | Element-wise addition ($A + B$).               |
-| `dot`                | Structural | Matrix Multiplication ($A \cdot B$).           |
-| `mat_vec`, `vec_mat` | Structural | Matrix-Vector multiplication (Transformation). |
-| `transpose`          | Structural | Flips rows and columns ($A^T$).                |
-| `inverse`            | Structural | Finds $A^{-1}$ such that $A \cdot A^{-1} = I$. |
-| `power`              | Structural | Matrix exponentiation ($A^k$).                 |
-| `adjoint`            | Structural | Transpose of cofactor matrix.                  |
-| `cofactor`           | Structural | Matrix of cofactors.                           |
-| `inner`              | Metric     | Dot product of two vectors (Similarity).       |
-| `determinant`        | Metric     | Volume scaling factor of the transformation.   |
-| `trace`              | Metric     | Sum of diagonal elements (Invariant).          |
-| `kronecker_delta`    | Generator  | Creates an Identity Matrix ($I$).              |
+| Function             | Type       | Meaning                                          |
+|:---------------------|:-----------|:-------------------------------------------------|
+| `add`                | Structural | Element-wise addition ($A + B$).                 |
+| `dot`                | Structural | Matrix Multiplication ($A \cdot B$).             |
+| `mat_vec`, `vec_mat` | Structural | Matrix-Vector multiplication (Transformation).   |
+| `transpose`          | Structural | Flips rows and columns ($A^T$).                  |
+| `inv`                | Structural | Matrix inverse $A^{-1}$ (`algebrax.matrix.inv`). |
+| `power`              | Structural | Matrix exponentiation ($A^k$).                   |
+| `adjoint`            | Structural | Transpose of cofactor matrix.                    |
+| `cofactor`           | Structural | Matrix of cofactors.                             |
+| `inner`              | Metric     | Dot product of two vectors (Similarity).         |
+| `det`                | Metric     | Matrix determinant (`algebrax.matrix.det`).      |
+| `trace`              | Metric     | Sum of diagonal elements (Invariant).            |
+| `kronecker_delta`    | Generator  | Creates an Identity Matrix ($I$).                |
 
 ### 2. Lattice & Set Theory (Fuzzy Logic)
 

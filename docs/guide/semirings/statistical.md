@@ -68,7 +68,7 @@ In statistics, the **Moment Generating Function (MGF)** $M_X(\epsilon) = \mathbb
 
 $$(\mathbf{u} \otimes \mathbf{v})_k = \sum_{j=0}^k \binom{k}{j} u_j \cdot v_{k-j}$$
 
-[`StatisticalMomentSemiring(order=K)`](file:///C:/dev/erivlis/algebrax/src/algebrax/semiring/statistical.py) computes all raw moments up to order $K$ with precomputed, cached Pascal triangle binomial coefficients.
+`StatisticalMomentSemiring(order=K)` computes all raw moments up to order $K$ with precomputed, cached Pascal triangle binomial coefficients.
 
 ```python
 import algebrax as ax
@@ -132,7 +132,7 @@ print(f'Total Mass: {p}, E[X]: {r / p}, E[Y]: {s / p}, E[XY]: {t / p}')
 
 ## 5. Universal Multivariate Joint Moments & Covariance Matrices
 
-For $d \ge 2$ features and total polynomial degree $K$, [`MultivariateMomentSemiring(num_vars=d, order=K)`](file:///C:/dev/erivlis/algebrax/src/algebrax/semiring/statistical.py) computes the entire joint distribution, returning the **$d$-dimensional Mean Vector** and **$d \times d$ Covariance Matrix $\boldsymbol{\Sigma}$**:
+For $d \ge 2$ features and total polynomial degree $K$, `MultivariateMomentSemiring(num_vars=d, order=K)` computes the entire joint distribution, returning the **$d$-dimensional Mean Vector** and **$d \times d$ Covariance Matrix $\boldsymbol{\Sigma}$**:
 
 $$(\mathbf{u} \otimes \mathbf{v})_{\boldsymbol{\alpha}} = \sum_{\mathbf{0} \le \boldsymbol{\beta} \le \boldsymbol{\alpha}} \left( \prod_{i=1}^d \binom{\alpha_i}{\beta_i} \right) u_{\boldsymbol{\beta}} \cdot v_{\boldsymbol{\alpha} - \boldsymbol{\beta}}$$
 

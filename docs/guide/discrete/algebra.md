@@ -1,30 +1,15 @@
 ---
 title: Lattices & Permutation Groups
-description: Coordinate semilattices, meet, join, permutation composition, and parity signatures.
+description: Redirects to the deductive guides for Groups & Symmetries and Lattices & Order.
 ---
+
+<meta http-equiv="refresh" content="0; url=../../algebra/groups_and_symmetries/" />
 
 # Lattices & Permutation Groups (`algebrax.lattice` & `algebrax.group`)
 
-> [!NOTE]
-> For the complete, formal algebraic type hierarchy spanning magmas, semigroups, bands, monoids, groups, and lattices
-> with Lean 4 alignment, see the [Granular Algebraic Hierarchy](../algebra/hierarchy.md) guide.
-
-AlgebraX provides discrete algebraic structures:
-
-## Lattice Operations (`algebrax.lattice`)
-
-* **`join(a, b)`**: Least Upper Bound (LUB) supremum $a \vee b$.
-* **`meet(a, b)`**: Greatest Lower Bound (GLB) infimum $a \wedge b$.
-* **`combine(a, b, op)`**: Element-wise vector and coordinate map reduction.
-
-## Permutation Groups ($S_n$) (`algebrax.group`)
-
-* **`compose(p1, p2)`**: Function composition of permutations $(\pi_2 \circ \pi_1)(x) = \pi_2(\pi_1(x))$.
-* **`signature(p)`**: Permutation parity signature $\operatorname{sgn}(\pi) \in \{+1, -1\}$.
-* **`inverse(p)`**: Group inverse permutation $\pi^{-1}$.
-
-## Related Recipes & Applications
-
-* [Distributed Vector Clocks](../../recipes.md) — Join-semilattice synchronization.
-* [Algebraic Knot Theory](../../recipes.md) — Artin braid permutations and parity signatures via `group.compose` and `group.signature`.
-* [Vibration Structural Analysis](../../recipes.md) — Rotor permutation symmetries via `group.compose`.
+> [!IMPORTANT]
+> **Documentation Realigned**
+> This chapter has been split into two dedicated guides in the pure algebraic hierarchy:
+>
+> - [**Groups, Symmetries & Reversible Actions**](../algebra/groups_and_symmetries.md) — Permutation composition, inversion, parity signatures (`algebrax.group`), and group protocols (`Group`, `AddGroup`).
+> - [**Lattices, Semilattices & Boolean Algebras**](../algebra/lattices_and_order.md) — Coordinate semilattices, `join`, `meet`, `combine` (`algebrax.lattice`), and lattice protocols (`Lattice`, `BooleanAlgebra`).
