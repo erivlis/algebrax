@@ -2,27 +2,40 @@ r"""
 Field protocol and implementations for algebraic structures with multiplicative division.
 
 Algebraic Signatures (EP-0150 AMDS):
-    Field: $\langle F, +, \cdot, \mathbf{0}, \mathbf{1}, -, ^{-1} \rangle$ with $a \cdot b = b \cdot a$
+    Field: $\langle V, \mathbf{0}, \operatorname{is\_zero}, +, -, \mathbf{1}, \cdot, ^{-1} \rangle$
+           with $a \cdot b = b \cdot a$
 """
 
 import math
 from fractions import Fraction
 from typing import Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._ring import CommRing, DivisionRing
+from algebrax.algebra._mixins import HasAdd, HasInv, HasMul, HasNeg, HasOne, HasZero, HasZeroPred
 
 V = TypeVar('V')
 
 
 @runtime_checkable
-class Field(DivisionRing[V], CommRing[V], Protocol[V]):
-    r"""A commutative division ring $\langle F, +, \cdot, \mathbf{0}, \mathbf{1}, -, ^{-1} \rangle$.
+class Field(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], HasInv[V], Protocol):
+    r"""A commutative division ring where every non-zero element has a multiplicative inverse.
 
-    Combines an additive abelian group $\langle F, +, \mathbf{0}, - \rangle$
-    and a multiplicative abelian group on non-zero elements $\langle F^\times, \cdot, \mathbf{1}, ^{-1} \rangle$.
+    Combines an additive abelian group $\langle V, \mathbf{0}, +, - \rangle$
+    and a multiplicative abelian group on non-zero elements $\langle V^\times, \mathbf{1}, \cdot, ^{-1} \rangle$.
 
     Algebraic Signature:
-        $\langle F, +, \cdot, \mathbf{0}, \mathbf{1}, -, ^{-1} \rangle$ with $a \cdot b = b \cdot a$
+        $\langle V, \mathbf{0}, \operatorname{is\_zero}, +, -, \mathbf{1}, \cdot, ^{-1} \rangle$
+        with $a \cdot b = b \cdot a$
+
+    Operations:
+        - `zero`: Additive neutral element (`HasZero[V]`).
+        - `is_zero(a)`: Test whether $a == \mathbf{0}$ (`HasZeroPred[V]`).
+        - `add(a, b)`: Commutative, associative addition (`HasAdd[V]`).
+        - `neg(a)`: Additive inverse $-a$ (`HasNeg[V]`).
+        - `sub(a, b)`: Derived difference $a - b = a + (-b)$ (`HasNeg[V]`).
+        - `one`: Multiplicative identity element (`HasOne[V]`).
+        - `mul(a, b)`: Commutative, associative multiplication (`HasMul[V]`).
+        - `inv(a)`: Multiplicative inverse $a^{-1}$ for $a \ne \mathbf{0}$ (`HasInv[V]`).
+        - `div(a, b)`: Derived quotient $a \cdot b^{-1}$ for $b \ne \mathbf{0}$ (`HasInv[V]`).
 
     Applications:
         Rational arithmetic ($\mathbb{Q}$), real analysis ($\mathbb{R}$), complex calculus ($\mathbb{C}$),
@@ -148,8 +161,11 @@ class ModularField(Field[int]):
 
 
 __all__ = [
-    'DivisionRing',
+    'ComplexField',
     'Field',
+    'IntegerField',
     'ModularField',
+    'RationalField',
+    'RealField',
     'StandardField',
 ]

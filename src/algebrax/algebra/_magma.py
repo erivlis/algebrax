@@ -1,49 +1,55 @@
 r"""
 Magma and Semigroup protocols for single-operation algebraic structures.
 
-Algebraic Signatures (EP-0150 AMDS):
-    Magma:            $\langle M, \cdot \rangle$
-    Semigroup:        $\langle S, \cdot \rangle$ with $(a \cdot b) \cdot c = a \cdot (b \cdot c)$
-    Band:             $\langle B, \cdot \rangle$ with $a \cdot a = a$
-    Additive Magma:   $\langle M, + \rangle$
-    Additive Semigroup: $\langle S, + \rangle$
-    Operation Magma:  $\langle M, \operatorname{op} \rangle$
+Algebraic Signatures:
+    Magma:              $\langle V, \cdot \rangle$
+    Semigroup:          $\langle V, \cdot \rangle$ with $(a \cdot b) \cdot c = a \cdot (b \cdot c)$
+    Band:               $\langle V, \cdot \rangle$ with $a \cdot a = a$
+    Quasigroup:         $\langle V, \cdot, \backslash, / \rangle$
+    Additive Magma:     $\langle V, + \rangle$
+    Additive Semigroup: $\langle V, + \rangle$ with $(a + b) + c = a + (b + c)$
+    Operation Magma:    $\langle V, \operatorname{op} \rangle$
 """
 
 from typing import Protocol, TypeVar, runtime_checkable
+
+from algebrax.algebra._mixins import HasAdd, HasMul, HasOp
 
 V = TypeVar('V')
 
 
 @runtime_checkable
-class Magma(Protocol[V]):
-    r"""Carrier set equipped with a single closed binary operation $\cdot: V \times V \to V$.
+class Magma(HasMul[V], Protocol):
+    r"""Carrier set equipped with a single closed binary multiplication $\cdot: V \times V \to V$.
 
     Algebraic Signature:
-        $\langle M, \cdot \rangle, \quad \cdot: M \times M \to M$
+        $\langle V, \cdot \rangle$
 
     Carrier:
         Arbitrary unboxed carrier $V$.
 
     Operations:
-        - `mul(a, b)`: Binary composition yielding another element in $V$.
+        - `mul(a, b)`: Binary multiplication (`HasMul[V]`).
 
     Properties:
-        - Closure: $\forall a, b \in M, \ a \cdot b \in M$.
+        - Closure: $\forall a, b \in V, \ a \cdot b \in V$.
 
     Applications:
         Non-associative algebras, Cayley tables, loop quasigroups, rock-paper-scissors game dynamics.
     """
 
-    def mul(self, a: V, b: V) -> V: ...
+    ...
 
 
 @runtime_checkable
-class Semigroup(Magma[V], Protocol[V]):
+class Semigroup(HasMul[V], Protocol):
     r"""An associative magma satisfying $(a \cdot b) \cdot c = a \cdot (b \cdot c)$.
 
     Algebraic Signature:
-        $\langle S, \cdot \rangle$ with associativity
+        $\langle V, \cdot \rangle$ with $(a \cdot b) \cdot c = a \cdot (b \cdot c)$
+
+    Operations:
+        - `mul(a, b)`: Associative binary multiplication (`HasMul[V]`).
 
     Properties:
         - Associativity: $(a \cdot b) \cdot c = a \cdot (b \cdot c)$.
@@ -56,14 +62,18 @@ class Semigroup(Magma[V], Protocol[V]):
 
 
 @runtime_checkable
-class Band(Semigroup[V], Protocol[V]):
+class Band(HasMul[V], Protocol):
     r"""An idempotent semigroup satisfying $a \cdot a = a$.
 
     Algebraic Signature:
-        $\langle B, \cdot \rangle$ with $a^2 = a$
+        $\langle V, \cdot \rangle$ with $a \cdot a = a$
+
+    Operations:
+        - `mul(a, b)`: Associative, idempotent binary multiplication (`HasMul[V]`).
 
     Properties:
-        - Idempotence: $\forall a \in B, \ a \cdot a = a$.
+        - Associativity: $(a \cdot b) \cdot c = a \cdot (b \cdot c)$.
+        - Idempotence: $\forall a \in V, \ a \cdot a = a$.
 
     Applications:
         Projection algebras, idempotent routing caches, transitive reduction kernels.
@@ -73,11 +83,16 @@ class Band(Semigroup[V], Protocol[V]):
 
 
 @runtime_checkable
-class Quasigroup(Magma[V], Protocol[V]):
+class Quasigroup(HasMul[V], Protocol):
     r"""A magma with unique left and right division: $a \cdot x = b$ and $y \cdot a = b$.
 
     Algebraic Signature:
-        $\langle Q, \cdot, /, \backslash \rangle$
+        $\langle V, \cdot, \backslash, / \rangle$
+
+    Operations:
+        - `mul(a, b)`: Binary multiplication (`HasMul[V]`).
+        - `ldiv(a, b)`: Left division $a \backslash b$ (unique $x$ such that $a \cdot x = b$).
+        - `rdiv(a, b)`: Right division $a / b$ (unique $y$ such that $y \cdot a = b$).
     """
 
     def ldiv(self, a: V, b: V) -> V:
@@ -93,19 +108,29 @@ class Quasigroup(Magma[V], Protocol[V]):
 
 
 @runtime_checkable
-class AddMagma(Protocol[V]):
+class AddMagma(HasAdd[V], Protocol):
     r"""Carrier set equipped with a closed additive binary operation $+: V \times V \to V$.
 
     Algebraic Signature:
-        $\langle M, + \rangle, \quad +: M \times M \to M$
+        $\langle V, + \rangle$
+
+    Operations:
+        - `add(a, b)`: Binary addition (`HasAdd[V]`).
     """
 
-    def add(self, a: V, b: V) -> V: ...
+    ...
 
 
 @runtime_checkable
-class AddSemigroup(AddMagma[V], Protocol[V]):
-    r"""An associative additive magma: $(a + b) + c = a + (b + c)$."""
+class AddSemigroup(HasAdd[V], Protocol):
+    r"""An associative additive magma satisfying $(a + b) + c = a + (b + c)$.
+
+    Algebraic Signature:
+        $\langle V, + \rangle$ with $(a + b) + c = a + (b + c)$
+
+    Operations:
+        - `add(a, b)`: Associative binary addition (`HasAdd[V]`).
+    """
 
     ...
 
@@ -114,14 +139,29 @@ class AddSemigroup(AddMagma[V], Protocol[V]):
 
 
 @runtime_checkable
-class OpMagma(Protocol[V]):
-    r"""Domain-agnostic magma equipped with an arbitrary binary operation `op(a, b)`."""
+class OpMagma(HasOp[V], Protocol):
+    r"""Domain-agnostic magma equipped with an arbitrary binary operation `op(a, b)`.
 
-    def op(self, a: V, b: V) -> V: ...
+    Algebraic Signature:
+        $\langle V, \operatorname{op} \rangle$
+
+    Operations:
+        - `op(a, b)`: Binary composition (`HasOp[V]`).
+    """
+
+    ...
 
 
 @runtime_checkable
-class OpSemigroup(OpMagma[V], Protocol[V]):
-    r"""Domain-agnostic associative semigroup: `op(op(a, b), c) == op(a, op(b, c))`."""
+class OpSemigroup(HasOp[V], Protocol):
+    r"""Domain-agnostic associative semigroup satisfying `op(op(a, b), c) == op(a, op(b, c))`.
+
+    Algebraic Signature:
+        $\langle V, \operatorname{op} \rangle$
+        with $\operatorname{op}(\operatorname{op}(a, b), c) = \operatorname{op}(a, \operatorname{op}(b, c))$
+
+    Operations:
+        - `op(a, b)`: Associative binary composition (`HasOp[V]`).
+    """
 
     ...

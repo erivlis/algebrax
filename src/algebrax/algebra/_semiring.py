@@ -2,45 +2,39 @@ r"""
 Semiring protocol for two-operation algebraic structures.
 
 Algebraic Signature (EP-0150 AMDS):
-    Semiring: $\langle S, +, \cdot, \mathbf{0}, \mathbf{1} \rangle$
+    Semiring: $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$
 """
 
 from functools import cache
 from typing import Any, Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._monoid import AddCommMonoid, Monoid
+from algebrax.algebra._helpers import nsum as _nsum
+from algebrax.algebra._helpers import power as _power
+from algebrax.algebra._mixins import HasAdd, HasMul, HasOne, HasStar, HasZero
 
 V = TypeVar('V')
 
 
 @runtime_checkable
-class Semiring(AddCommMonoid[V], Monoid[V], Protocol[V]):
-    r"""A mathematical Semiring $(S, \oplus, \otimes, \mathbf{0}, \mathbf{1})$.
+class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol):
+    r"""A mathematical Semiring $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$.
 
-    Combines an additive commutative monoid $\langle S, \oplus, \mathbf{0} \rangle$
-    and a multiplicative monoid $\langle S, \otimes, \mathbf{1} \rangle$ satisfying:
-    - Distributivity: $a \otimes (b \oplus c) = (a \otimes b) \oplus (a \otimes c)$
-                      $(a \oplus b) \otimes c = (a \otimes c) \oplus (b \otimes c)$
-    - Annihilation:   $\mathbf{0} \otimes a = a \otimes \mathbf{0} = \mathbf{0}$
+    Combines an additive commutative monoid $\langle V, \mathbf{0}, + \rangle$
+    and a multiplicative monoid $\langle V, \mathbf{1}, \cdot \rangle$ equipped with Kleene closure $a^*$, satisfying:
+    - Distributivity: $a \cdot (b + c) = (a \cdot b) + (a \cdot c)$
+                      $(a + b) \cdot c = (a \cdot c) + (b \cdot c)$
+    - Annihilation:   $\mathbf{0} \cdot a = a \cdot \mathbf{0} = \mathbf{0}$
+
+    Algebraic Signature:
+        $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$
+
+    Operations:
+        - `zero`: Additive neutral element (`HasZero[V]`).
+        - `add(a, b)`: Commutative, associative addition (`HasAdd[V]`).
+        - `one`: Multiplicative identity element (`HasOne[V]`).
+        - `mul(a, b)`: Associative multiplication (`HasMul[V]`).
+        - `star(a)`: Kleene closure $\mathbf{1} + a + a^2 + \cdots$ (`HasStar[V]`).
     """
-
-    @property
-    def zero(self) -> V:
-        """The additive identity element (e.g., 0)."""
-        ...
-
-    @property
-    def one(self) -> V:
-        """The multiplicative identity element (e.g., 1)."""
-        ...
-
-    def add(self, a: V, b: V) -> V:
-        """The addition operation (commutative, associative)."""
-        ...
-
-    def mul(self, a: V, b: V) -> V:
-        """The multiplication operation (associative, distributes over add)."""
-        ...
 
     def nsum(self, a: V, n: int) -> V:
         r"""The $n$-fold sum of a value ($a \oplus a \oplus \cdots \oplus a$).
@@ -48,47 +42,14 @@ class Semiring(AddCommMonoid[V], Monoid[V], Protocol[V]):
         Equivalent to scalar multiplication in a module.
         $n$ must be non-negative for semirings that are not rings.
         """
-        if n < 0:
-            raise ValueError('nsum requires non-negative n for general semirings')
-        if n == 0:
-            return self.zero
-
-        # Binary exponentiation for addition (scalar multiplication)
-        res = self.zero
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.add(res, base)
-            base = self.add(base, base)
-            n //= 2
-        return res
+        return _nsum(self, a, n)
 
     def power(self, a: V, n: int) -> V:
         r"""The $n$-th power of a value ($a \otimes a \otimes \cdots \otimes a$).
 
         $n$ must be non-negative.
         """
-        if n < 0:
-            raise ValueError('power requires non-negative n')
-        if n == 0:
-            return self.one
-
-        # Binary exponentiation for multiplication
-        res = self.one
-        base = a
-        while n > 0:
-            if n % 2 == 1:
-                res = self.mul(res, base)
-            base = self.mul(base, base)
-            n //= 2
-        return res
-
-    def star(self, a: V) -> V:
-        r"""The Kleene star of a value (sum of all powers).
-
-        $\operatorname{star}(a) = \mathbf{1} \oplus a \oplus a^2 \oplus \cdots$
-        """
-        ...
+        return _power(self, a, n)
 
     def _repr_latex_(self) -> str:
         """Return LaTeX representation for rich display in Jupyter Notebooks."""

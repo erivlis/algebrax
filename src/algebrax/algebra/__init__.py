@@ -8,8 +8,12 @@ from algebrax.algebra._dual import (
     DualNumberSemiring,
 )
 from algebrax.algebra._field import (
+    ComplexField,
     Field,
+    IntegerField,
     ModularField,
+    RationalField,
+    RealField,
     StandardField,
 )
 from algebrax.algebra._group import (
@@ -47,6 +51,25 @@ from algebrax.algebra._magma import (
     Quasigroup,
     Semigroup,
 )
+from algebrax.algebra._mixins import (
+    HasAdd,
+    HasBounds,
+    HasBracket,
+    HasComplement,
+    HasIdentity,
+    HasInv,
+    HasJoin,
+    HasMeet,
+    HasMul,
+    HasNeg,
+    HasOne,
+    HasOp,
+    HasScale,
+    HasSMul,
+    HasStar,
+    HasZero,
+    HasZeroPred,
+)
 from algebrax.algebra._module import (
     Algebra,
     Module,
@@ -73,6 +96,7 @@ from algebrax.algebra._polynomial import (
     PolynomialSemiring,
 )
 from algebrax.algebra._ring import (
+    AbelianRing,
     CommRing,
     CommutativeRing,
     DivisionRing,
@@ -83,6 +107,7 @@ from algebrax.algebra._semiring import Semiring
 
 __all__ = [
     'AbelianGroup',
+    'AbelianRing',
     'AddCommGroup',
     'AddCommMonoid',
     'AddGroup',
@@ -98,6 +123,7 @@ __all__ = [
     'CommRing',
     'CommutativeMonoid',
     'CommutativeRing',
+    'ComplexField',
     'DistributiveLattice',
     'DivisionRing',
     'DualNumberAlgebra',
@@ -106,6 +132,24 @@ __all__ = [
     'Field',
     'Group',
     'GroupAction',
+    'HasAdd',
+    'HasBounds',
+    'HasBracket',
+    'HasComplement',
+    'HasIdentity',
+    'HasInv',
+    'HasJoin',
+    'HasMeet',
+    'HasMul',
+    'HasNeg',
+    'HasOne',
+    'HasOp',
+    'HasSMul',
+    'HasScale',
+    'HasStar',
+    'HasZero',
+    'HasZeroPred',
+    'IntegerField',
     'JoinSemilattice',
     'Lattice',
     'Magma',
@@ -125,6 +169,8 @@ __all__ = [
     'PolynomialSemiring',
     'Quasigroup',
     'QuotientMonoidAlgebraSemiring',
+    'RationalField',
+    'RealField',
     'Ring',
     'Semigroup',
     'Semimodule',
