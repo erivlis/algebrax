@@ -2,7 +2,7 @@
 title: "EP-0194: Atomic Algebraic Mixins & Diamond-Free Protocol Composition"
 description: "Refactor the algebraic protocol hierarchy from deep diamond inheritance chains into orthogonal atomic operational mixins composed into flat named algebraic protocols."
 icon: lucide/layers
-status: accepted
+status: final
 ---
 
 # EP-0194: Atomic Algebraic Mixins & Diamond-Free Protocol Composition
@@ -14,7 +14,7 @@ status: accepted
 | **Author** | Eran Rivlis <eran@rivlis.info>, Antigravity |
 | **Sponsor** | Council Framework |
 | **Delegate** | 🧩 Russell (Taxonomy & Type Theory) & ⚖️ Noether (Algebraic Invariants) |
-| **Status** | Accepted |
+| **Status** | Final |
 | **Type** | Standards Track |
 | **Created** | 2026-11-01 |
 | **Updated** | 2026-11-01 |
@@ -96,16 +96,16 @@ class HasZero(Protocol[V]):
 
 
 @runtime_checkable
-class HasZeroPred(HasZero[V], Protocol):
-    r"""Additive neutral element $\mathbf{0}$ equipped with a zero-divisor predicate `is_zero(a)`.
+class HasZeroPred(Protocol[V]):
+    r"""Zero-divisor predicate `is_zero(a)` testing whether an element equals $\mathbf{0}$.
 
     Algebraic Signature:
-        $\langle V, \mathbf{0}, \operatorname{is\_zero} \rangle$
+        $\langle V, \operatorname{is\_zero} \rangle$
     """
 
     def is_zero(self, a: V) -> bool:
         """Return True if element is the additive zero."""
-        return a == self.zero
+        return a == self.zero  # type: ignore[attr-defined]
 
 
 @runtime_checkable
@@ -132,18 +132,18 @@ class HasAdd(Protocol[V]):
 
 
 @runtime_checkable
-class HasNeg(HasAdd[V], Protocol):
+class HasNeg(Protocol[V]):
     r"""Additive inverse $-: V \to V$ and derived subtraction $a - b = a + (-b)$.
 
     Algebraic Signature:
-        $\langle V, +, - \rangle$
+        $\langle V, - \rangle$
     """
 
     def neg(self, a: V) -> V: ...
 
     def sub(self, a: V, b: V) -> V:
         """Difference a - b = a + neg(b)."""
-        return self.add(a, self.neg(b))
+        return self.add(a, self.neg(b))  # type: ignore[attr-defined]
 
 
 @runtime_checkable
@@ -158,18 +158,18 @@ class HasMul(Protocol[V]):
 
 
 @runtime_checkable
-class HasInv(HasMul[V], Protocol):
+class HasInv(Protocol[V]):
     r"""Multiplicative inverse $^{-1}: V \to V$ and derived quotient $a / b = a \cdot b^{-1}$.
 
     Algebraic Signature:
-        $\langle V, \cdot, ^{-1} \rangle$
+        $\langle V, ^{-1} \rangle$
     """
 
     def inv(self, a: V) -> V: ...
 
     def div(self, a: V, b: V) -> V:
         """Quotient a / b = a * inv(b)."""
-        return self.mul(a, self.inv(b))
+        return self.mul(a, self.inv(b))  # type: ignore[attr-defined]
 
 
 @runtime_checkable
@@ -283,11 +283,8 @@ class HasBracket(Protocol[V]):
 ```
 
 > [!IMPORTANT]
-> **The Derived-Generator Mixin Rule**:
-> - `HasNeg[V]` subclasses `HasAdd[V]` so `sub(a, b)` can invoke `self.add(a, self.neg(b))`; any protocol using `HasNeg[V]` omits `HasAdd[V]` from its direct base tuple.
-> - `HasInv[V]` subclasses `HasMul[V]` so `div(a, b)` can invoke `self.mul(a, self.inv(b))`; any protocol using `HasInv[V]` omits `HasMul[V]` from its direct base tuple.
-> - `HasZeroPred[V]` subclasses `HasZero[V]` so `is_zero(a)` can compare `a == self.zero`; `DivisionRing` and `Field` use `HasZeroPred[V]` in place of `HasZero[V]`.
-> This guarantees that every mixin appears **at most once** in any protocol's MRO.
+> **Purely Orthogonal Mixins (Zero Mixin-to-Mixin Inheritance)**:
+> Every `Has*` mixin in `_mixins.py` inherits **directly and exclusively** from `Protocol`. Neither `HasNeg`, `HasInv`, nor `HasZeroPred` inherits from `HasAdd`, `HasMul`, or `HasZero`. Consequently, every Named Protocol explicitly lists all of its constituent operational mixins in its class declaration (e.g., `Group(HasOne[V], HasMul[V], HasInv[V], Protocol)`), making every class header 100% self-documenting and mathematically transparent while guaranteeing zero diamond inheritance by construction.
 
 ---
 
@@ -295,31 +292,31 @@ class HasBracket(Protocol[V]):
 
 Every named algebraic protocol is composed directly from the orthogonal mixins in `_mixins.py` with **zero imports between named protocol modules**:
 
-| Named Protocol | Flat Mixin Composition | Algebraic Signature |
+| Named Protocol | Flat Mixin Composition | Mixin-Aligned Algebraic Signature |
 | :--- | :--- | :--- |
-| **`Magma[V]`** / **`Semigroup[V]`** / **`Band[V]`** | `(HasMul[V], Protocol)` | $\langle M, \cdot \rangle$ |
-| **`Quasigroup[V]`** | `(HasMul[V], Protocol)` (+ `ldiv`, `rdiv`) | $\langle Q, \cdot, /, \backslash \rangle$ |
-| **`AddMagma[V]`** / **`AddSemigroup[V]`** | `(HasAdd[V], Protocol)` | $\langle M, + \rangle$ |
-| **`OpMagma[V]`** / **`OpSemigroup[V]`** | `(HasOp[V], Protocol)` | $\langle M, \operatorname{op} \rangle$ |
-| **`Monoid[V]`** / **`CommMonoid[V]`** | `(HasOne[V], HasMul[V], Protocol)` | $\langle M, \cdot, \mathbf{1} \rangle$ |
-| **`AddMonoid[V]`** / **`AddCommMonoid[V]`** | `(HasZero[V], HasAdd[V], Protocol)` | $\langle M, +, \mathbf{0} \rangle$ |
-| **`OpMonoid[V]`** / **`OpCommMonoid[V]`** | `(HasIdentity[V], HasOp[V], Protocol)` | $\langle M, \operatorname{op}, \operatorname{identity} \rangle$ |
-| **`Group[V]`** / **`CommGroup[V]`** | `(HasOne[V], HasInv[V], Protocol)` | $\langle G, \cdot, \mathbf{1}, ^{-1} \rangle$ |
-| **`AddGroup[V]`** / **`AddCommGroup[V]`** | `(HasZero[V], HasNeg[V], Protocol)` | $\langle G, +, \mathbf{0}, - \rangle$ |
-| **`GroupAction[G, X]`** | `(Protocol[G, X])` (+ `gact`) | $\cdot: G \times X \to X$ |
-| **`Semiring[V]`** | `(HasZero[V], HasOne[V], HasAdd[V], HasMul[V], HasStar[V], Protocol)` | $\langle S, +, \cdot, ^*, \mathbf{0}, \mathbf{1} \rangle$ |
-| **`NonAssocRing[V]`** | `(HasZero[V], HasNeg[V], HasMul[V], Protocol)` | $\langle R, +, \cdot, \mathbf{0}, - \rangle$ |
-| **`Ring[V]`** / **`CommRing[V]`** | `(HasZero[V], HasOne[V], HasNeg[V], HasMul[V], Protocol)` | $\langle R, +, \cdot, \mathbf{0}, \mathbf{1}, - \rangle$ |
-| **`DivisionRing[V]`** / **`Field[V]`** | `(HasZeroPred[V], HasOne[V], HasNeg[V], HasInv[V], Protocol)` | $\langle F, +, \cdot, \mathbf{0}, \mathbf{1}, -, ^{-1} \rangle$ |
-| **`Semimodule[R, M]`** | `(HasScale[R, M], HasZero[M], HasAdd[M], Protocol[R, M])` | $\langle M, R, +, \mathbf{0}, \cdot \rangle$ |
-| **`Module[R, M]`** / **`VectorSpace[R, M]`** | `(HasScale[R, M], HasZero[M], HasNeg[M], Protocol[R, M])` | $\langle M, R, +, \mathbf{0}, -, \cdot \rangle$ |
-| **`NonAssocAlgebra[R, M]`** | `(HasScale[R, M], HasZero[M], HasNeg[M], HasMul[M], Protocol[R, M])` | $\langle A, R, +, \mathbf{0}, -, \cdot, \times \rangle$ |
-| **`Algebra[R, M]`** | `(HasScale[R, M], HasZero[M], HasOne[M], HasNeg[M], HasMul[M], Protocol[R, M])` | $\langle A, R, +, \mathbf{0}, -, \cdot, \times, \mathbf{1} \rangle$ |
-| **`JoinSemilattice[V]`** | `(HasJoin[V], Protocol)` | $\langle L, \vee \rangle$ |
-| **`MeetSemilattice[V]`** | `(HasMeet[V], Protocol)` | $\langle L, \wedge \rangle$ |
-| **`Lattice[V]`** / **`DistributiveLattice[V]`** | `(HasJoin[V], HasMeet[V], Protocol)` | $\langle L, \vee, \wedge \rangle$ |
-| **`BoundedLattice[V]`** | `(HasJoin[V], HasMeet[V], HasBounds[V], Protocol)` | $\langle L, \vee, \wedge, \bot, \top \rangle$ |
-| **`BooleanAlgebra[V]`** | `(HasJoin[V], HasMeet[V], HasBounds[V], HasComplement[V], Protocol)` | $\langle B, \vee, \wedge, \neg, \bot, \top \rangle$ |
+| **`Magma[V]`** / **`Semigroup[V]`** / **`Band[V]`** | `(HasMul[V], Protocol)` | $\langle V, \cdot \rangle$ |
+| **`Quasigroup[V]`** | `(HasMul[V], Protocol)` (+ `ldiv`, `rdiv`) | $\langle V, \cdot, \backslash, / \rangle$ |
+| **`AddMagma[V]`** / **`AddSemigroup[V]`** | `(HasAdd[V], Protocol)` | $\langle V, + \rangle$ |
+| **`OpMagma[V]`** / **`OpSemigroup[V]`** | `(HasOp[V], Protocol)` | $\langle V, \operatorname{op} \rangle$ |
+| **`Monoid[V]`** / **`CommMonoid[V]`** | `(HasOne[V], HasMul[V], Protocol)` | $\langle V, \mathbf{1}, \cdot \rangle$ |
+| **`AddMonoid[V]`** / **`AddCommMonoid[V]`** | `(HasZero[V], HasAdd[V], Protocol)` | $\langle V, \mathbf{0}, + \rangle$ |
+| **`OpMonoid[V]`** / **`OpCommMonoid[V]`** | `(HasIdentity[V], HasOp[V], Protocol)` | $\langle V, \operatorname{identity}, \operatorname{op} \rangle$ |
+| **`Group[V]`** / **`CommGroup[V]`** | `(HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ |
+| **`AddGroup[V]`** / **`AddCommGroup[V]`** | `(HasZero[V], HasAdd[V], HasNeg[V], Protocol)` | $\langle V, \mathbf{0}, +, - \rangle$ |
+| **`GroupAction[G, X]`** | `(Protocol[G, X])` (+ `gact`) | $\langle G, X, \operatorname{gact} \rangle$ |
+| **`Semiring[V]`** | `(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ |
+| **`NonAssocRing[V]`** | `(HasZero[V], HasAdd[V], HasNeg[V], HasMul[V], Protocol)` | $\langle V, \mathbf{0}, +, -, \cdot \rangle$ |
+| **`Ring[V]`** / **`CommRing[V]`** | `(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol)` | $\langle V, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
+| **`DivisionRing[V]`** / **`Field[V]`** | `(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{0}, \operatorname{is\_zero}, +, -, \mathbf{1}, \cdot, ^{-1} \rangle$ |
+| **`Semimodule[R, M]`** | `(HasScale[R, M], HasZero[M], HasAdd[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, + \rangle$ |
+| **`Module[R, M]`** / **`VectorSpace[R, M]`** | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, - \rangle$ |
+| **`NonAssocAlgebra[R, M]`** | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, -, \cdot \rangle$ |
+| **`Algebra[R, M]`** | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasOne[M], HasMul[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
+| **`JoinSemilattice[V]`** | `(HasJoin[V], Protocol)` | $\langle V, \vee \rangle$ |
+| **`MeetSemilattice[V]`** | `(HasMeet[V], Protocol)` | $\langle V, \wedge \rangle$ |
+| **`Lattice[V]`** / **`DistributiveLattice[V]`** | `(HasJoin[V], HasMeet[V], Protocol)` | $\langle V, \vee, \wedge \rangle$ |
+| **`BoundedLattice[V]`** | `(HasJoin[V], HasMeet[V], HasBounds[V], Protocol)` | $\langle V, \vee, \wedge, \bot, \top \rangle$ |
+| **`BooleanAlgebra[V]`** | `(HasJoin[V], HasMeet[V], HasBounds[V], HasComplement[V], Protocol)` | $\langle V, \vee, \wedge, \bot, \top, \neg \rangle$ |
 
 > [!CAUTION]
 > **Two-Sorted Generic Parameter Order (`[R, M]`)**:
@@ -330,11 +327,13 @@ Every named algebraic protocol is composed directly from the orthogonal mixins i
 ### 3. Verification of Diamond-Free MRO & `_helpers.py` Delegation
 
 1. **Zero Duplicate MRO Paths**:
-   Every protocol in `algebrax.algebra` has a strictly linear, non-overlapping set of protocol bases:
+   Every protocol in `algebrax.algebra` has a strictly flat, depth-2 MRO of orthogonal mixins ordered by **Additive cluster $\to$ Multiplicative cluster $\to$ Closure/Bounds**:
+   - **`Group.mro()`**:
+     `[Group, HasOne, HasMul, HasInv, Protocol, Generic, object]`
    - **`Algebra.mro()`**:
-     `[Algebra, HasScale, HasZero, HasOne, HasNeg, HasAdd, HasMul, Protocol, Generic, object]`
+     `[Algebra, HasScale, HasZero, HasAdd, HasNeg, HasOne, HasMul, Protocol, Generic, object]`
    - **`Field.mro()`**:
-     `[Field, HasZeroPred, HasZero, HasOne, HasNeg, HasAdd, HasInv, HasMul, Protocol, Generic, object]`
+     `[Field, HasZero, HasZeroPred, HasAdd, HasNeg, HasOne, HasMul, HasInv, Protocol, Generic, object]`
    - **`BooleanAlgebra.mro()`**:
      `[BooleanAlgebra, HasJoin, HasMeet, HasBounds, HasComplement, Protocol, Generic, object]`
 
@@ -421,9 +420,8 @@ Implementation targets `src/algebrax/algebra/` and `tests/algebrax/test_type_saf
 
 ## Open Questions
 
-- [x] Should `HasNeg` inherit `HasAdd` so `sub(a, b)` has a default implementation? (**Resolved: Yes—and any protocol including `HasNeg` omits `HasAdd` from its direct base tuple so `HasAdd` appears exactly once in the MRO**).
-- [x] Should `HasInv` inherit `HasMul` so `div(a, b)` has a default implementation? (**Resolved: Yes—and any protocol including `HasInv` omits `HasMul` from its direct base tuple**).
-- [x] How should `DivisionRing.is_zero` and `Field.is_zero` be shared without polluting `HasZero`? (**Resolved: Via `HasZeroPred(HasZero[V], Protocol)` used by `DivisionRing` and `Field`**).
+- [x] Should `HasNeg`, `HasInv`, and `HasZeroPred` inherit from `HasAdd`, `HasMul`, and `HasZero` or remain purely orthogonal? (**Resolved: Purely orthogonal—each inherits directly from `Protocol[V]` so every named protocol explicitly lists all of its operational mixins in its class declaration, e.g. `Group(HasOne[V], HasMul[V], HasInv[V], Protocol)`**).
+- [x] How should `DivisionRing.is_zero` and `Field.is_zero` be shared without polluting `HasZero`? (**Resolved: Via `HasZeroPred(Protocol[V])` used alongside `HasZero[V]` in `DivisionRing` and `Field`**).
 - [x] How should `(R, M)` generic type parameter ordering be preserved on two-sorted protocols? (**Resolved: Place `HasScale[R, M]` first in the base tuple and explicitly subscript `Protocol[R, M]`**).
 
 ## Change Log

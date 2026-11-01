@@ -286,6 +286,27 @@ Every algebraic guide chapter adheres strictly to the **Feynman 4-Beat Arc**:
 
 ---
 
+### 6. Mixin-Aligned AMDS Signature Standard (1-to-1 Code-to-Math Isomorphism)
+
+All algebraic protocol docstrings and guide chapters must adhere to the **Mixin-Aligned Algebraic Mathematical Docstring Standard (AMDS 2.0)** established in [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md):
+
+1. **Cluster Ordering Rule**:
+   Both the Python mixin base tuple and the LaTeX `Algebraic Signature:` tuple follow the canonical cluster order:
+   $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Closure / Bounds } ({}^*, \vee, \wedge, \bot, \top, \neg)$$
+2. **Strict 1-to-1 Symbol Correspondence**:
+   Every `Has*` mixin in the class header maps in exact left-to-right order to its mathematical symbol in the `Algebraic Signature:` tuple and its bullet in `Operations:`:
+   - `Monoid(HasOne[V], HasMul[V], Protocol)` $\longleftrightarrow \langle V, \mathbf{1}, \cdot \rangle$
+   - `Group(HasOne[V], HasMul[V], HasInv[V], Protocol)` $\longleftrightarrow \langle V, \mathbf{1}, \cdot, {}^{-1} \rangle$
+   - `AddGroup(HasZero[V], HasAdd[V], HasNeg[V], Protocol)` $\longleftrightarrow \langle V, \mathbf{0}, +, - \rangle$
+   - `Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol)` $\longleftrightarrow \langle V, \mathbf{0}, +, \mathbf{1}, \cdot, {}^* \rangle$
+   - `Ring(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol)` $\longleftrightarrow \langle V, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$
+   - `Field(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], HasInv[V], Protocol)` $\longleftrightarrow \langle V, \mathbf{0}, \operatorname{is\_zero}, +, -, \mathbf{1}, \cdot, {}^{-1} \rangle$
+   - `Module(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], Protocol[R, M])` $\longleftrightarrow \langle R, M, \cdot_s, \mathbf{0}, +, - \rangle$
+   - `Algebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasOne[M], HasMul[M], Protocol[R, M])` $\longleftrightarrow \langle R, M, \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$
+   - `BooleanAlgebra(HasJoin[V], HasMeet[V], HasBounds[V], HasComplement[V], Protocol)` $\longleftrightarrow \langle V, \vee, \wedge, \bot, \top, \neg \rangle$
+
+---
+
 ## Backwards Compatibility & Verification
 
 1. **URL Redirects / Aliases**:
