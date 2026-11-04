@@ -127,8 +127,6 @@ class HasScale(Protocol[R, M]):
     def smul(self, r: R, m: M) -> M: ...
 
 
-HasSMul = HasScale  # Canonical Mathlib-aligned alias matching .smul()
-
 
 @runtime_checkable
 class HasStar(Protocol[V]):

@@ -18,14 +18,13 @@ Submodules & Domain Taxonomy
 
 1. Core Foundations & Data Structures
    - `matrix`: Core linear algebra (`add`, `dot`, `power`, `transpose`) & academic invariants (`determinant`).
-   - `matrix.decompose`: Matrix factorizations (`lu`, `qr`, `svd`, `cholesky`).
-   - `semiring`: 24 polymorphic semirings (Arithmetic, Optimization, Logic, Statistical, Algebraic).
+   - `matrix.decompose`: Matrix factorizations (`lu_decompose`, `qr`, `svd`, `cholesky`).
+   - `semiring`: 33 polymorphic semirings and algebras (Arithmetic, Optimization, Logic, Statistical, Algebraic).
    - `tensor`: Sparse multidimensional tensor contractions (`einsum`, `permute_tensor`).
    - `trie`: `AlgebraicTrie` tensor prefix trees over semirings.
 
 2. Discrete Geometry, Topology & Fields
    - `topology`: Unified algebraic topology (`homology`, `cohomology`, `persistence`, `dec`, `sheaf`).
-   - `homology`: Simplicial complexes, boundary operators, and Betti numbers (`SimplicialComplex`, `betti_numbers`).
    - `clifford`: Clifford Geometric Algebra Cl(p,q,r) multivectors & 3D rotors (`rotor_rotation`).
    - `lie`: Continuous symmetry Lie algebras, structure constants, Killing forms & BCH dynamics (`so3`, `sl2`, `se3`).
    - `galois`: Finite field matrix arithmetic GF(p^m) (`GaloisFieldSemiring`, `gf_matrix_mul`).
@@ -57,7 +56,6 @@ from algebrax import (
     display,
     galois,
     group,
-    homology,
     lattice,
     lie,
     matrix,
@@ -104,7 +102,6 @@ __all__ = [
     'display',
     'galois',
     'group',
-    'homology',
     'lattice',
     'lie',
     'matrix',

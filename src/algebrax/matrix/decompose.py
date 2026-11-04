@@ -210,8 +210,6 @@ def lu_decompose(  # noqa: C901
     return p_res, l_sparse, u_sparse
 
 
-lu = lu_decompose  # Canonical alias
-
 
 def qr(matrix: SparseMatrix) -> tuple[SparseMatrix, SparseMatrix]:
     """

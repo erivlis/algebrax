@@ -4,8 +4,6 @@ Unified algebraic hierarchy — Lean 4 Mathlib-aligned protocols for abstract al
 
 from algebrax.algebra._dual import (
     DualNumberAlgebra,
-    DualNumberRing,
-    DualNumberSemiring,
 )
 from algebrax.algebra._field import (
     ComplexField,
@@ -17,7 +15,6 @@ from algebrax.algebra._field import (
     StandardField,
 )
 from algebrax.algebra._group import (
-    AbelianGroup,
     AddCommGroup,
     AddGroup,
     CommGroup,
@@ -65,7 +62,6 @@ from algebrax.algebra._mixins import (
     HasOne,
     HasOp,
     HasScale,
-    HasSMul,
     HasStar,
     HasZero,
     HasZeroPred,
@@ -81,7 +77,6 @@ from algebrax.algebra._monoid import (
     AddCommMonoid,
     AddMonoid,
     CommMonoid,
-    CommutativeMonoid,
     Monoid,
     OpCommMonoid,
     OpMonoid,
@@ -92,13 +87,9 @@ from algebrax.algebra._monoid_algebra import (
 )
 from algebrax.algebra._polynomial import (
     PolynomialAlgebra,
-    PolynomialRing,
-    PolynomialSemiring,
 )
 from algebrax.algebra._ring import (
-    AbelianRing,
     CommRing,
-    CommutativeRing,
     DivisionRing,
     NonAssocRing,
     Ring,
@@ -106,8 +97,6 @@ from algebrax.algebra._ring import (
 from algebrax.algebra._semiring import Semiring
 
 __all__ = [
-    'AbelianGroup',
-    'AbelianRing',
     'AddCommGroup',
     'AddCommMonoid',
     'AddGroup',
@@ -121,14 +110,10 @@ __all__ = [
     'CommGroup',
     'CommMonoid',
     'CommRing',
-    'CommutativeMonoid',
-    'CommutativeRing',
     'ComplexField',
     'DistributiveLattice',
     'DivisionRing',
     'DualNumberAlgebra',
-    'DualNumberRing',
-    'DualNumberSemiring',
     'Field',
     'Group',
     'GroupAction',
@@ -144,7 +129,6 @@ __all__ = [
     'HasNeg',
     'HasOne',
     'HasOp',
-    'HasSMul',
     'HasScale',
     'HasStar',
     'HasZero',
@@ -165,8 +149,6 @@ __all__ = [
     'OpMonoid',
     'OpSemigroup',
     'PolynomialAlgebra',
-    'PolynomialRing',
-    'PolynomialSemiring',
     'Quasigroup',
     'QuotientMonoidAlgebraSemiring',
     'RationalField',

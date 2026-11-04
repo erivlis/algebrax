@@ -81,18 +81,20 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol
         Returns:
             A dictionary mapping human-readable semiring names to their class types.
         """
+        from algebrax.algebra._dual import DualNumberAlgebra
+        from algebrax.algebra._polynomial import PolynomialAlgebra
+        from algebrax.clifford import (
+            CliffordAlgebra,
+            GeneralizedCliffordAlgebra,
+            QuantumCliffordAlgebra,
+        )
         from algebrax.semiring.algebraic import (
             BinomialConvolutionSemiring,
-            CliffordSemiring,
-            DualNumberSemiring,
             GaloisFieldSemiring,
-            GeneralizedCliffordSemiring,
             KnotSemiring,
             MonoidAlgebraSemiring,
             MultivariateBinomialConvolutionSemiring,
-            PolynomialSemiring,
             ProvenanceSemiring,
-            QuantumCliffordSemiring,
             QuotientMonoidAlgebraSemiring,
         )
         from algebrax.semiring.arithmetic import ModularSemiring, StandardSemiring
@@ -106,7 +108,6 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol
             ViterbiSemiring,
         )
         from algebrax.semiring.statistical import (
-            BivariateCovarianceSemiring,
             BivariateVarianceSemiring,
             ExpectationSemiring,
             KurtosisSemiring,
@@ -133,26 +134,25 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol
             'Expectation': ExpectationSemiring,
             'Variance': VarianceSemiring,
             'BivariateVariance': BivariateVarianceSemiring,
-            'BivariateCovariance': BivariateCovarianceSemiring,
             'Skewness': SkewnessSemiring,
             'Kurtosis': KurtosisSemiring,
             'StatisticalMoment': StatisticalMomentSemiring,
             'BinomialConvolution': BinomialConvolutionSemiring,
             'MultivariateBinomialConvolution': MultivariateBinomialConvolutionSemiring,
             'MultivariateMoment': MultivariateMomentSemiring,
-            'DualNumber': DualNumberSemiring,
+            'DualNumber': DualNumberAlgebra,
             'String': StringSemiring,
             'KCollapsed': KCollapsedSemiring,
             'Digital': DigitalSemiring,
             'MonoidAlgebra': MonoidAlgebraSemiring,
             'Knot': KnotSemiring,
-            'Polynomial': PolynomialSemiring,
+            'Polynomial': PolynomialAlgebra,
             'Provenance': ProvenanceSemiring,
             'QuotientMonoidAlgebra': QuotientMonoidAlgebraSemiring,
-            'Clifford': CliffordSemiring,
+            'Clifford': CliffordAlgebra,
             'GaloisField': GaloisFieldSemiring,
-            'GeneralizedClifford': GeneralizedCliffordSemiring,
-            'QuantumClifford': QuantumCliffordSemiring,
+            'GeneralizedClifford': GeneralizedCliffordAlgebra,
+            'QuantumClifford': QuantumCliffordAlgebra,
         }
 
     @classmethod

@@ -86,9 +86,6 @@ class CommRing(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol)
     ...
 
 
-AbelianRing = CommRing
-CommutativeRing = CommRing  # Canonical alias
-
 
 @runtime_checkable
 class DivisionRing(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], HasInv[V], Protocol):
@@ -120,9 +117,7 @@ class DivisionRing(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], 
 
 
 __all__ = [
-    'AbelianRing',
     'CommRing',
-    'CommutativeRing',
     'DivisionRing',
     'NonAssocRing',
     'Ring',

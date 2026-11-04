@@ -58,8 +58,6 @@ class CommMonoid(HasOne[V], HasMul[V], Protocol):
     ...
 
 
-CommutativeMonoid = CommMonoid  # Canonical alias
-
 
 # --- Additive Dual Branch ---
 

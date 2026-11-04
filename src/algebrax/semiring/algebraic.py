@@ -371,41 +371,20 @@ class MultivariateBinomialConvolutionSemiring(Semiring[dict[tuple[int, ...], flo
         return {k: v * scale for k, v in res.items() if not math.isclose(v * scale, 0.0, abs_tol=1e-15)}
 
 
-# Canonical backwards-compatible dynamic re-exports from their primary domains
+# Dynamic re-exports of domain algebras from their primary modules
 def __getattr__(name: str) -> Any:
-    if name in ('PolynomialAlgebra', 'PolynomialRing', 'PolynomialSemiring'):
-        from algebrax.algebra._polynomial import (
-            PolynomialAlgebra,
-            PolynomialRing,
-            PolynomialSemiring,
-        )
+    if name == 'PolynomialAlgebra':
+        from algebrax.algebra._polynomial import PolynomialAlgebra
 
-        mapping = {
-            'PolynomialAlgebra': PolynomialAlgebra,
-            'PolynomialRing': PolynomialRing,
-            'PolynomialSemiring': PolynomialSemiring,
-        }
-        return mapping[name]
-    if name in ('DualNumberAlgebra', 'DualNumberRing', 'DualNumberSemiring'):
-        from algebrax.algebra._dual import (
-            DualNumberAlgebra,
-            DualNumberRing,
-            DualNumberSemiring,
-        )
+        return PolynomialAlgebra
+    if name == 'DualNumberAlgebra':
+        from algebrax.algebra._dual import DualNumberAlgebra
 
-        mapping = {
-            'DualNumberAlgebra': DualNumberAlgebra,
-            'DualNumberRing': DualNumberRing,
-            'DualNumberSemiring': DualNumberSemiring,
-        }
-        return mapping[name]
+        return DualNumberAlgebra
     if name in (
         'CliffordAlgebra',
-        'CliffordSemiring',
         'GeneralizedCliffordAlgebra',
-        'GeneralizedCliffordSemiring',
         'QuantumCliffordAlgebra',
-        'QuantumCliffordSemiring',
     ):
         import algebrax.clifford as cliff
 

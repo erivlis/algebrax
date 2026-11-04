@@ -11,7 +11,7 @@ import itertools
 from collections.abc import Sequence
 
 from algebrax.lie.core import LieAlgebra, StructureConstants
-from algebrax.semiring.algebraic import CliffordSemiring
+from algebrax.semiring.algebraic import CliffordAlgebra
 from algebrax.typing import SparseMatrix
 
 
@@ -219,7 +219,7 @@ def se_n(n: int, names: Sequence[str] | None = None) -> LieAlgebra:
 
 
 def clifford_lie_algebra(
-    clifford_or_p: CliffordSemiring | int,
+    clifford_or_p: CliffordAlgebra | int,
     q: int = 0,
     r: int = 0,
 ) -> LieAlgebra:
@@ -229,11 +229,11 @@ def clifford_lie_algebra(
         $\langle \bigwedge^2 V, [\cdot, \cdot] \rangle$
         $[B_1, B_2] = \frac{1}{2} (B_1 B_2 - B_2 B_1), \quad \dim = \binom{n}{2}$
     """
-    if isinstance(clifford_or_p, CliffordSemiring):
+    if isinstance(clifford_or_p, CliffordAlgebra):
         cs = clifford_or_p
         total_dim = cs.p + cs.q + cs.r
     else:
-        cs = CliffordSemiring(p=clifford_or_p, q=q, r=r)
+        cs = CliffordAlgebra(p=clifford_or_p, q=q, r=r)
         total_dim = clifford_or_p + q + r
 
     bivectors = list(itertools.combinations(range(total_dim), 2))

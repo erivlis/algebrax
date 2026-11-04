@@ -75,13 +75,6 @@ class DualNumberAlgebra(Semiring[tuple[float, float]]):
         """Scalar scaling: r * (u, v) = (r*u, r*v)."""
         return r * m[0], r * m[1]
 
-
-# Canonical aliases
-DualNumberRing = DualNumberAlgebra
-DualNumberSemiring = DualNumberAlgebra
-
 __all__ = [
     'DualNumberAlgebra',
-    'DualNumberRing',
-    'DualNumberSemiring',
 ]

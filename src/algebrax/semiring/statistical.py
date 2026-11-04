@@ -10,8 +10,6 @@ from algebrax.semiring.algebraic import (
     MultivariateBinomialConvolutionSemiring,
 )
 
-DualNumberSemiring = DualNumberAlgebra
-
 
 class LogSemiring(Semiring[float]):
     r"""The Log-Sum-Exp semiring over the extended real numbers.
@@ -158,8 +156,6 @@ class BivariateVarianceSemiring(Semiring[tuple[float, float, float, float]]):
     def star(self, a: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
         raise NotImplementedError('Kleene star not implemented for BivariateVarianceSemiring')
 
-
-BivariateCovarianceSemiring = BivariateVarianceSemiring
 
 
 class StatisticalMomentSemiring(BinomialConvolutionSemiring):

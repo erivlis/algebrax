@@ -9,11 +9,10 @@ invert mappings, and compute the signature (parity) of a permutation.
 from collections.abc import Mapping
 from typing import Any
 
-from algebrax.algebra._group import AbelianGroup, CommGroup, Group, GroupAction
+from algebrax.algebra._group import CommGroup, Group, GroupAction
 from algebrax.typing import K, V
 
 __all__ = [
-    'AbelianGroup',
     'CommGroup',
     'Group',
     'GroupAction',

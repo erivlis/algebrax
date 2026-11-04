@@ -12,7 +12,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from typing import Literal
 
-from algebrax.homology import (
+from algebrax.topology import (
     CellularSheaf,
     Cochain,
     DiscreteForm,

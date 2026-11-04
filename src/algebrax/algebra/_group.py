@@ -64,8 +64,6 @@ class CommGroup(HasOne[V], HasMul[V], HasInv[V], Protocol):
     ...
 
 
-AbelianGroup = CommGroup  # Canonical alias
-
 
 # --- Additive Dual Branch ---
 

@@ -63,13 +63,6 @@ class PolynomialAlgebra(MonoidAlgebraSemiring[int, T]):
             return {}
         return {deg: mul_fn(r, c) for deg, c in m.items() if mul_fn(r, c) != zero}
 
-
-# Canonical aliases
-PolynomialRing = PolynomialAlgebra
-PolynomialSemiring = PolynomialAlgebra
-
 __all__ = [
     'PolynomialAlgebra',
-    'PolynomialRing',
-    'PolynomialSemiring',
 ]

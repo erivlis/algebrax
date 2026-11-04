@@ -22,11 +22,8 @@ from algebrax.typing import SparseVector
 
 __all__ = [
     'CliffordAlgebra',
-    'CliffordSemiring',
     'GeneralizedCliffordAlgebra',
-    'GeneralizedCliffordSemiring',
     'QuantumCliffordAlgebra',
-    'QuantumCliffordSemiring',
     'gca_product',
     'geometric_product',
     'quantum_clifford_product',
@@ -144,9 +141,6 @@ class CliffordAlgebra(QuotientMonoidAlgebraSemiring[tuple[int, ...], float]):
         return {k: r * v for k, v in m.items() if abs(r * v) > 1e-14}
 
 
-# Canonical alias
-CliffordSemiring = CliffordAlgebra
-
 
 def _gca_blade_mul(
     k1: tuple[int, ...],
@@ -240,9 +234,6 @@ class GeneralizedCliffordAlgebra(QuotientMonoidAlgebraSemiring[tuple[int, ...], 
         )
 
 
-# Canonical alias
-GeneralizedCliffordSemiring = GeneralizedCliffordAlgebra
-
 
 def _quantum_clifford_blade_mul(
     k1: tuple[int, ...],
@@ -334,9 +325,6 @@ class QuantumCliffordAlgebra(QuotientMonoidAlgebraSemiring[tuple[int, ...], comp
             quotient_fn=quotient_fn,
         )
 
-
-# Canonical alias
-QuantumCliffordSemiring = QuantumCliffordAlgebra
 
 
 def gca_product(
