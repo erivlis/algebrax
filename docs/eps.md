@@ -127,13 +127,15 @@ Proposals stemming from the **Pure Algebraic Hierarchy Exploration**
 establishing Lean 4 Mathlib-aligned granular structural protocols, sub-semiring abstractions (magmas, monoids, groups,
 lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 
-| EP                                                                                 | Title                                                                | Council Sponsor         |           Status           |
-|:-----------------------------------------------------------------------------------|:---------------------------------------------------------------------|:------------------------|:--------------------------:|
-| [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices    | 🧩 Russell & 🔬 Popper  | :material-check-all: Final |
-| [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                        | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
-| [EP-0192](proposals/EP-0192-unifying-domain-objects-with-algebraic-hierarchy.md)   | Unifying Domain Objects with the Pure Algebraic Hierarchy            | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
-| [EP-0193](proposals/EP-0193-documentation-architecture-realignment.md)             | Documentation Architecture Realignment with Pure Algebraic Hierarchy | 💡 Feynman & 🧩 Russell | :material-check-all: Final |
-| [EP-0194](proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)   | Atomic Algebraic Mixins & Diamond-Free Protocol Composition          | 🧩 Russell & ⚖️ Noether | :material-check-all: Final |
+| EP                                                                                 | Title                                                                         | Council Sponsor         |           Status           |
+|:-----------------------------------------------------------------------------------|:------------------------------------------------------------------------------|:------------------------|:--------------------------:|
+| [EP-0190](proposals/EP-0190-granular-algebraic-hierarchy-magmas-monoids-groups.md) | Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices             | 🧩 Russell & 🔬 Popper  | :material-check-all: Final |
+| [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                                 | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
+| [EP-0192](proposals/EP-0192-unifying-domain-objects-with-algebraic-hierarchy.md)   | Unifying Domain Objects with the Pure Algebraic Hierarchy                     | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
+| [EP-0193](proposals/EP-0193-documentation-architecture-realignment.md)             | Documentation Architecture Realignment with Pure Algebraic Hierarchy          | 💡 Feynman & 🧩 Russell | :material-check-all: Final |
+| [EP-0194](proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)   | Atomic Algebraic Mixins & Diamond-Free Protocol Composition                   | 🧩 Russell & ⚖️ Noether | :material-check-all: Final |
+| [EP-0195](proposals/EP-0195-canonical-core-consolidation.md)                       | Canonical Core Consolidation & Deprecation Purge                              | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
+| [EP-0196](proposals/EP-0196-peripheral-ecosystem-realignment.md)                   | Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides) | 🎨 Feynman & ⏱️ Shannon  |  :material-pencil: Draft   |
 
 ---
 
@@ -163,14 +165,15 @@ homomorphisms, ideals, canonical quotients, and functorial cellular sheaves.
 
 Proposals stemming from the **Representation Theory Exploration**
 ([EXP-0006](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0006-representation-theory-and-quantum-symmetries/README.md)),
-establishing group representations, character tables, Schur orthogonality, Lie highest weights, Clebsch–Gordan tensors, quiver representations, and quantum groups.
+establishing group representations, character tables, Schur orthogonality, Lie highest weights, Clebsch–Gordan tensors,
+quiver representations, and quantum groups.
 
-| EP      | Title                                                | Council Sponsor         | Status                    |
-|:--------|:-----------------------------------------------------|:------------------------|:-------------------------:|
-| [EP-0210](proposals/EP-0210-group-representations-character-tables-schurs-lemma.md)        | Group Representations, Character Tables & Schur      | ⚖️ Noether & 🧩 Russell | :material-pencil: Draft |
-| [EP-0211](proposals/EP-0211-lie-algebra-representations-clebsch-gordan.md)                 | Lie Algebra Representations & Clebsch–Gordan Tensors | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
-| [EP-0212](proposals/EP-0212-quiver-representations-and-gabriels-ade-theorem.md)           | Quiver Representations & Gabriel's ADE Theorem       | 🧩 Russell & 🔬 Popper  | :material-pencil: Draft |
-| [EP-0213](proposals/EP-0213-induced-representations-and-frobenius-reciprocity.md)          | Induced Representations & Frobenius Reciprocity      | 🧩 Russell & ⚖️ Noether | :material-pencil: Draft |
-| [EP-0214](proposals/EP-0214-invariant-theory-molien-series-casimir-polynomials.md)         | Invariant Theory, Molien Series & Casimir Polynomials| ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
-| [EP-0215](proposals/EP-0215-quantum-groups-yang-baxter-braided-categories.md)             | Quantum Groups, Yang–Baxter Equation & R-Matrices    | ⚖️ Noether & 🛡️ Golem   | :material-pencil: Draft |
+| EP                                                                                  | Title                                                 | Council Sponsor         |         Status          |
+|:------------------------------------------------------------------------------------|:------------------------------------------------------|:------------------------|:-----------------------:|
+| [EP-0210](proposals/EP-0210-group-representations-character-tables-schurs-lemma.md) | Group Representations, Character Tables & Schur       | ⚖️ Noether & 🧩 Russell | :material-pencil: Draft |
+| [EP-0211](proposals/EP-0211-lie-algebra-representations-clebsch-gordan.md)          | Lie Algebra Representations & Clebsch–Gordan Tensors  | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
+| [EP-0212](proposals/EP-0212-quiver-representations-and-gabriels-ade-theorem.md)     | Quiver Representations & Gabriel's ADE Theorem        | 🧩 Russell & 🔬 Popper  | :material-pencil: Draft |
+| [EP-0213](proposals/EP-0213-induced-representations-and-frobenius-reciprocity.md)   | Induced Representations & Frobenius Reciprocity       | 🧩 Russell & ⚖️ Noether | :material-pencil: Draft |
+| [EP-0214](proposals/EP-0214-invariant-theory-molien-series-casimir-polynomials.md)  | Invariant Theory, Molien Series & Casimir Polynomials | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
+| [EP-0215](proposals/EP-0215-quantum-groups-yang-baxter-braided-categories.md)       | Quantum Groups, Yang–Baxter Equation & R-Matrices     | ⚖️ Noether & 🛡️ Golem   | :material-pencil: Draft |
 
