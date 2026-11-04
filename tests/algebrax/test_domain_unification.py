@@ -29,13 +29,8 @@ from algebrax.lie import so_n
 from algebrax.lie.core import LieAlgebra
 from algebrax.semiring import (
     CliffordAlgebra,
-    CliffordSemiring,
     DualNumberAlgebra,
-    DualNumberRing,
-    DualNumberSemiring,
     PolynomialAlgebra,
-    PolynomialRing,
-    PolynomialSemiring,
     StandardSemiring,
 )
 from algebrax.topology import Cochain, CochainAlgebra, SimplicialComplex
@@ -110,8 +105,6 @@ def test_clifford_algebra_protocol_conformance() -> None:
     cl = CliffordAlgebra(3, 0, 0)
     assert isinstance(cl, Algebra)
     assert isinstance(cl, Ring)
-    assert isinstance(cl, CliffordSemiring)
-    assert CliffordSemiring is CliffordAlgebra
 
     # Arithmetic
     a = {(1,): 2.0, (1, 2): 3.0}
@@ -152,8 +145,6 @@ def test_polynomial_algebra_protocol_conformance() -> None:
     assert isinstance(p_alg, CommRing)
     assert isinstance(p_alg, Ring)
     assert isinstance(p_alg, Algebra)
-    assert PolynomialRing is PolynomialAlgebra
-    assert PolynomialSemiring is PolynomialAlgebra
 
     p1 = {0: 1.0, 1: 2.0}  # 1 + 2x
     p2 = {1: 3.0, 2: 4.0}  # 3x + 4x^2
@@ -176,8 +167,6 @@ def test_dual_number_algebra_protocol_conformance() -> None:
     assert isinstance(d_alg, CommRing)
     assert isinstance(d_alg, Ring)
     assert isinstance(d_alg, Algebra)
-    assert DualNumberRing is DualNumberAlgebra
-    assert DualNumberSemiring is DualNumberAlgebra
 
     d1 = (2.0, 3.0)
     d2 = (1.0, -1.0)

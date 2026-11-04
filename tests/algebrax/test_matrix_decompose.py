@@ -9,7 +9,7 @@ import pytest
 from algebrax.matrix import dot, transpose
 from algebrax.matrix.decompose import (
     cholesky,
-    lu,
+    lu_decompose,
     qr,
     recompose_cholesky,
     recompose_lu,
@@ -60,7 +60,7 @@ def test_lu_decomposition():
         '1': {'0': 3.0, '1': 8.0, '2': 14.0},
         '2': {'0': 2.0, '1': 6.0, '2': 13.0},
     }
-    p_mat, l_mat, u_mat = lu(a_mat)
+    p_mat, l_mat, u_mat = lu_decompose(a_mat)
     pa = dot(p_mat, a_mat)
     lu_prod = dot(l_mat, u_mat)
 
@@ -119,7 +119,7 @@ def test_recompose_cholesky():
 def test_recompose_lu():
     """Verify A == recompose_lu(P, L, U)."""
     a = {0: {0: 2.0, 1: 1.0}, 1: {0: 4.0, 1: 3.0}}
-    p, l_factor, u_factor = lu(a)
+    p, l_factor, u_factor = lu_decompose(a)
     recomposed = recompose_lu(p, l_factor, u_factor)
     assert is_matrix_close(a, recomposed)
 

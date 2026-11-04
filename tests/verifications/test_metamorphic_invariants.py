@@ -13,7 +13,7 @@ from typing import Any
 import pytest
 
 import algebrax as ax
-from algebrax.homology import Cochain, SimplicialComplex, SparseChainComplex
+from algebrax.topology import Cochain, SimplicialComplex, SparseChainComplex
 from algebrax.semiring import (
     ArcticSemiring,
     BooleanSemiring,

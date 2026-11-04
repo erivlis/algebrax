@@ -26,13 +26,13 @@ import algebrax as ax
 from algebrax.matrix.academic import PerformanceWarning
 from algebrax.semiring import (
     BinomialConvolutionSemiring,
-    CliffordSemiring,
-    DualNumberSemiring,
+    CliffordAlgebra,
+    DualNumberAlgebra,
     GaloisFieldSemiring,
-    GeneralizedCliffordSemiring,
+    GeneralizedCliffordAlgebra,
     MultivariateBinomialConvolutionSemiring,
-    PolynomialSemiring,
-    QuantumCliffordSemiring,
+    PolynomialAlgebra,
+    QuantumCliffordAlgebra,
     StandardSemiring,
 )
 from algebrax.typing import SparseMatrix
@@ -436,7 +436,7 @@ def test_differential_clifford_algebras_and_bivector_lie_isomorphism() -> None:
     """Verify Clifford Cl(p,q,r), GeneralizedClifford, QuantumClifford, and Spin(3) ~= so(3) isomorphism."""
     # 1. Minkowski Spacetime Algebra Cl(1, 3, 0) with 1-indexed generators:
     # e_1^2 = +1, e_2^2 = e_3^2 = e_4^2 = -1, and e_i e_j + e_j e_i = 0 for i != j
-    cl_spacetime = CliffordSemiring(p=1, q=3, r=0)
+    cl_spacetime = CliffordAlgebra(p=1, q=3, r=0)
     expected_sq = {1: 1.0, 2: -1.0, 3: -1.0, 4: -1.0}
     for i in range(1, 5):
         ei = {(i,): 1.0}
@@ -453,7 +453,7 @@ def test_differential_clifford_algebras_and_bivector_lie_isomorphism() -> None:
     assert spin3.structure_constants.verify_jacobi()
 
     # 3. Generalized Clifford Algebra C_3^(2): e_0^3 = 1, e_1^3 = 1, e_0 e_1 = omega e_1 e_0
-    gca = GeneralizedCliffordSemiring(n_order=3, num_generators=2)
+    gca = GeneralizedCliffordAlgebra(n_order=3, num_generators=2)
     g0 = {(1, 0): 1.0 + 0j}
     g1 = {(0, 1): 1.0 + 0j}
     assert gca.power(g0, 3) == gca.one
@@ -465,7 +465,7 @@ def test_differential_clifford_algebras_and_bivector_lie_isomorphism() -> None:
 
     # 4. Quantum Clifford Algebra Cl_q(2): e_1 * e_0 = -q * (e_0 * e_1)
     q_param = 0.6 + 0.8j
-    q_sr = QuantumCliffordSemiring(q=q_param, num_generators=2)
+    q_sr = QuantumCliffordAlgebra(q=q_param, num_generators=2)
     q_01 = ax.clifford.quantum_clifford_product(g0, g1, q=q_param, num_generators=2)
     q_10 = ax.clifford.quantum_clifford_product(g1, g0, q=q_param, num_generators=2)
     assert cmath_isclose(q_10[(1, 1)], -q_param * q_01[(1, 1)])
@@ -530,9 +530,9 @@ def test_hypothesis_differential_permutation_group_vs_sympy(
 @pytest.mark.verification
 @pytest.mark.differential
 def test_differential_polynomial_semiring_over_fraction_vs_sympy_poly() -> None:
-    """Verify PolynomialSemiring over exact Fraction matches sympy.Poly over Q[x] with zero error."""
+    """Verify PolynomialAlgebra over exact Fraction matches sympy.Poly over Q[x] with zero error."""
     x = sp.Symbol('x')
-    poly_sr = PolynomialSemiring(StandardSemiring(Fraction))
+    poly_sr = PolynomialAlgebra(StandardSemiring(Fraction))
 
     p = {0: Fraction(1, 2), 2: Fraction(-3, 4), 4: Fraction(5, 3)}
     q = {1: Fraction(2, 5), 2: Fraction(3, 4), 3: Fraction(-1, 2)}
@@ -560,10 +560,10 @@ def test_differential_polynomial_semiring_over_fraction_vs_sympy_poly() -> None:
 @pytest.mark.verification
 @pytest.mark.differential
 def test_differential_autodiff_semirings_vs_sympy_derivatives() -> None:
-    """Verify DualNumberSemiring, BinomialConvolutionSemiring, and MultivariateBinomialConvolution vs sympy.diff."""
+    """Verify DualNumberAlgebra, BinomialConvolutionSemiring, and MultivariateBinomialConvolution vs sympy.diff."""
     x, y = sp.symbols('x y')
 
-    # 1. 1D Higher-Order Autodiff via BinomialConvolutionSemiring(order=4) and DualNumberSemiring
+    # 1. 1D Higher-Order Autodiff via BinomialConvolutionSemiring(order=4) and DualNumberAlgebra
     # Evaluate f(x) = (2 + x)^3 * (1 - 2x)^2 + 3 * (2 + x)^2 at x0 = 1.25
     f_sym = (2 + x) ** 3 * (1 - 2 * x) ** 2 + 3 * (2 + x) ** 2
     x0 = 1.25
@@ -589,8 +589,8 @@ def test_differential_autodiff_semirings_vs_sympy_derivatives() -> None:
         deriv_sp = float(sp.diff(f_sym, x, k).subs(x, x0))
         assert math.isclose(f_jets[k], deriv_sp, rel_tol=1e-11, abs_tol=1e-11)
 
-    # Also verify DualNumberSemiring matches 0th and 1st derivatives
-    dual_sr = DualNumberSemiring()
+    # Also verify DualNumberAlgebra matches 0th and 1st derivatives
+    dual_sr = DualNumberAlgebra()
     x_dual = (x0, 1.0)
     d_two_plus_x = dual_sr.add((2.0, 0.0), x_dual)
     d_one_minus_2x = dual_sr.add((1.0, 0.0), dual_sr.mul((-2.0, 0.0), x_dual))

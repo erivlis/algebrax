@@ -16,7 +16,6 @@ import pytest
 from algebrax.algebra import (
     Algebra,
     CommRing,
-    CommutativeRing,
     DivisionRing,
     Field,
     ModularField,
@@ -33,7 +32,6 @@ from algebrax.matrix import (
     det,
     dot,
     inv,
-    lu,
     lu_decompose,
     recompose_lu,
     solve,
@@ -133,7 +131,6 @@ def test_structural_protocols():
     assert isinstance(z_ring, NonAssocRing)
     assert isinstance(z_ring, Ring)
     assert isinstance(z_ring, CommRing)
-    assert isinstance(z_ring, CommutativeRing)
 
     lie = LieAlgebra3D()
     assert isinstance(lie, NonAssocRing)

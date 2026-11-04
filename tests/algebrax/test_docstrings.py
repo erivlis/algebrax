@@ -16,9 +16,9 @@ from algebrax.display import (
     get_algebraic_metadata,
     semiring_card,
 )
-from algebrax.homology import SimplicialComplex, SparseChainComplex
 from algebrax.lie import LieAlgebra, RootSystem, StructureConstants
 from algebrax.semiring import Semiring, TropicalSemiring
+from algebrax.topology import SimplicialComplex, SparseChainComplex
 from algebrax.trie import AlgebraicTrie
 
 

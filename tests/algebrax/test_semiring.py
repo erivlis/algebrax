@@ -9,7 +9,7 @@ from algebrax.semiring import (
     KnotSemiring,
     LogSemiring,
     MonoidAlgebraSemiring,
-    PolynomialSemiring,
+    PolynomialAlgebra,
     ProvenanceSemiring,
     ReliabilitySemiring,
     StandardSemiring,
@@ -176,7 +176,7 @@ def test_reliability_semiring():
 
 
 def test_polynomial_semiring():
-    poly_semiring = PolynomialSemiring(StandardSemiring[int]())
+    poly_semiring = PolynomialAlgebra(StandardSemiring[int]())
 
     # P1(x) = 1 + 2x  -> {0: 1, 1: 2}
     # P2(x) = 3 + 4x  -> {0: 3, 1: 4}
@@ -230,7 +230,7 @@ def test_provenance_semiring():
 
 
 def test_monoid_algebra_nsum():
-    poly = PolynomialSemiring(StandardSemiring[int]())
+    poly = PolynomialAlgebra(StandardSemiring[int]())
     p = {0: 1, 1: 2}
     assert poly.nsum(p, 0) == {}
     assert poly.nsum(p, 3) == {0: 3, 1: 6}
@@ -248,7 +248,7 @@ def test_top_level_reexports_completeness():
         'display',
         'galois',
         'group',
-        'homology',
+        'topology',
         'lattice',
         'matrix',
         'metrics',
@@ -354,7 +354,7 @@ def test_all_specialized_semirings_coverage():
         ArcticSemiring,
         BivariateVarianceSemiring,
         DigitalSemiring,
-        DualNumberSemiring,
+        DualNumberAlgebra,
         ExpectationSemiring,
         KCollapsedSemiring,
         LukasiewiczSemiring,
@@ -436,7 +436,7 @@ def test_all_specialized_semirings_coverage():
     with pytest.raises(NotImplementedError):
         str_s.star({'a'})
 
-    dual_s = DualNumberSemiring()
+    dual_s = DualNumberAlgebra()
     assert dual_s.zero == (0.0, 0.0)
     assert dual_s.one == (1.0, 0.0)
     assert dual_s.add((1.0, 2.0), (3.0, 4.0)) == (4.0, 6.0)
@@ -540,10 +540,10 @@ def test_semiring_edge_branches():
 
 
 def test_semiring_branch_coverage():
-    from algebrax.semiring import ArcticSemiring, PolynomialSemiring, ProvenanceSemiring, StandardSemiring
+    from algebrax.semiring import ArcticSemiring, PolynomialAlgebra, ProvenanceSemiring, StandardSemiring
 
     assert ArcticSemiring().one == 0.0
-    poly = PolynomialSemiring(StandardSemiring(int))
+    poly = PolynomialAlgebra(StandardSemiring(int))
     assert poly.nsum({0: 0}, 2) == {}
 
     prov = ProvenanceSemiring()

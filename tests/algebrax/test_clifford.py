@@ -2,9 +2,9 @@ import cmath
 import math
 
 from algebrax.clifford import (
-    CliffordSemiring,
-    GeneralizedCliffordSemiring,
-    QuantumCliffordSemiring,
+    CliffordAlgebra,
+    GeneralizedCliffordAlgebra,
+    QuantumCliffordAlgebra,
     gca_product,
     geometric_product,
     quantum_clifford_product,
@@ -19,7 +19,7 @@ def test_clifford_blade_multiplication_cl30():
     - e1 * e2 = e12, e2 * e1 = -e12
     - (e1 + e2)^2 = e1^2 + e1 e2 + e2 e1 + e2^2 = 2.0
     """
-    cs = CliffordSemiring(p=3, q=0, r=0)
+    cs = CliffordAlgebra(p=3, q=0, r=0)
 
     # v = e1 + e2 => {(1,): 1.0, (2,): 1.0}
     v = {(1,): 1.0, (2,): 1.0}
@@ -47,7 +47,7 @@ def test_generalized_clifford_clock_and_shift():
     - e1^3 = 1, e2^3 = 1
     - Multiplicative identity one = {(0, 0): 1.0}
     """
-    gca = GeneralizedCliffordSemiring(n_order=3, num_generators=2)
+    gca = GeneralizedCliffordAlgebra(n_order=3, num_generators=2)
     e1 = {(1, 0): 1.0 + 0j}
     e2 = {(0, 1): 1.0 + 0j}
 
@@ -77,7 +77,7 @@ def test_quantum_clifford_q_deformation():
     - e2 * e1 = -q * e1 * e2
     - When q = 1, recovers standard anticommutation e2 * e1 = -e1 * e2
     """
-    qc = QuantumCliffordSemiring(q=0.5, num_generators=2)
+    qc = QuantumCliffordAlgebra(q=0.5, num_generators=2)
     e1 = {(1, 0): 1.0 + 0j}
     e2 = {(0, 1): 1.0 + 0j}
 

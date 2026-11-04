@@ -2,7 +2,7 @@
 Tests for SimplicialComplex and Betti Numbers.
 """
 
-from algebrax.homology import SimplicialComplex, SparseChainComplex, coboundary, cohomology_rank
+from algebrax.topology import SimplicialComplex, SparseChainComplex, coboundary, cohomology_rank
 
 
 def test_betti_numbers_single_triangle():
@@ -97,7 +97,7 @@ def test_triangle_chain_complex_nilpotency_and_laplacian():
 def test_cochain_orientation_and_degenerate_simplices():
     import pytest
 
-    from algebrax.homology import Cochain
+    from algebrax.topology import Cochain
 
     # 1-cochain initialized with uncanonical orientation and degenerate edge
     omega = Cochain({(1, 0): 5.0, (1, 2): -3.0, (2, 2): 99.0})
@@ -141,7 +141,7 @@ def test_cochain_orientation_and_degenerate_simplices():
 def test_cochain_arithmetic_and_eval():
     import pytest
 
-    from algebrax.homology import Cochain
+    from algebrax.topology import Cochain
 
     w1 = Cochain({(0, 1): 2.0, (1, 2): 3.0})
     w2 = Cochain({(1, 0): -1.0, (1, 2): -3.0, (0, 2): 4.0})  # (0, 1): +1.0
@@ -172,7 +172,7 @@ def test_cochain_bridges_and_coboundary_equivalence():
     import pytest
 
     from algebrax.analysis import cochain_to_flow, flow_to_cochain, gradient
-    from algebrax.homology import Cochain, SimplicialComplex, coboundary
+    from algebrax.topology import Cochain, SimplicialComplex, coboundary
     from algebrax.matrix import mat_vec
 
     # 1. Node bridge round-trip (0-cochain <-> SparseVector)
@@ -228,7 +228,7 @@ def test_dec_operators_and_hodge_star():
         hodge_laplacian,
         hodge_star,
     )
-    from algebrax.homology import SimplicialComplex
+    from algebrax.topology import SimplicialComplex
     from algebrax.matrix import dot
 
     sc = SimplicialComplex([(0, 1, 2)])
@@ -274,7 +274,7 @@ def test_helmholtz_hodge_decomposition_topologies():
         exterior_derivative,
         helmholtz_hodge_decomposition,
     )
-    from algebrax.homology import SimplicialComplex
+    from algebrax.topology import SimplicialComplex
     from algebrax.matrix import inner, mat_vec
 
     # 1. Acyclic Tree (0 - 1 - 2): every flow is purely exact (coexact = 0, harmonic = 0)
@@ -539,7 +539,7 @@ def test_filtered_simplicial_complex_monotonicity_and_subcomplex():
 
     import pytest
 
-    from algebrax.homology import FilteredSimplicialComplex
+    from algebrax.topology import FilteredSimplicialComplex
 
     # Initialize from mapping where a face has a larger filtration value than its coface
     fsc = FilteredSimplicialComplex({(0,): 5.0, (1, 0): 2.0, (2, 1, 0): 1.5})
@@ -581,7 +581,7 @@ def test_vietoris_rips_circle_and_clearing_optimization():
 
     import pytest
 
-    from algebrax.homology import FilteredSimplicialComplex, betti_curve
+    from algebrax.topology import FilteredSimplicialComplex, betti_curve
 
     # 4 points on a unit square: side length 1.0, diagonal length sqrt(2)
     s2 = math.sqrt(2.0)
@@ -637,7 +637,7 @@ def test_vietoris_rips_circle_and_clearing_optimization():
 def test_lower_star_filtration_and_h2_tetrahedron_cavity():
     import pytest
 
-    from algebrax.homology import FilteredSimplicialComplex, SimplicialComplex, persistent_homology
+    from algebrax.topology import FilteredSimplicialComplex, SimplicialComplex, persistent_homology
 
     # 1. Lower-star filtration on a 1D path with two valleys (0 and 2) separated by a peak (1)
     path_sc = SimplicialComplex([(0, 1), (1, 2)])
@@ -684,7 +684,7 @@ def test_persistence_entropy_and_bottleneck_distance():
 
     import pytest
 
-    from algebrax.homology import (
+    from algebrax.topology import (
         FilteredSimplicialComplex,
         PersistenceInterval,
         SimplicialComplex,
@@ -769,9 +769,9 @@ def test_topology_namespace_and_cochain_cup_cap_products():
     assert ax.topology.SimplicialComplex is SimplicialComplex
     assert homology.SimplicialComplex is SimplicialComplex
     assert cohomology.Cochain is Cochain
-    assert persistence.FilteredSimplicialComplex is ax.homology.FilteredSimplicialComplex
-    assert dec.helmholtz_hodge_decomposition is ax.homology.helmholtz_hodge_decomposition
-    assert sheaf.CellularSheaf is ax.homology.CellularSheaf
+    assert persistence.FilteredSimplicialComplex is ax.topology.FilteredSimplicialComplex
+    assert dec.helmholtz_hodge_decomposition is ax.topology.helmholtz_hodge_decomposition
+    assert sheaf.CellularSheaf is ax.topology.CellularSheaf
 
     # 2. Cup product on a 3-simplex (0, 1, 2, 3): associativity and graded Leibniz rule
     tet = SimplicialComplex([(0, 1, 2, 3)])

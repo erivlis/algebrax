@@ -11,7 +11,7 @@ from algebrax.automata import dfa_step, nfa_step, simulate_dfa, simulate_nfa
 from algebrax.matrix.academic import determinant, inverse
 from algebrax.matrix.decompose import (
     cholesky,
-    lu,
+    lu_decompose,
     qr,
     recompose_cholesky,
     recompose_lu,
@@ -24,7 +24,7 @@ from algebrax.trie import AlgebraicTrie
 
 def test_empty_matrix_decompositions():
     """Verify decompose and recompose functions handle empty matrix {} gracefully."""
-    p, l_mat, u = lu({})
+    p, l_mat, u = lu_decompose({})
     assert p == {}
     assert l_mat == {}
     assert u == {}
@@ -56,7 +56,7 @@ def test_one_by_one_matrix_decompositions():
     """Verify 1x1 matrix factorizations across all decomposition methods."""
     mat = {0: {0: 4.0}}
 
-    p, l_mat, u = lu(mat)
+    p, l_mat, u = lu_decompose(mat)
     rec_lu = recompose_lu(p, l_mat, u)
     assert rec_lu[0][0] == pytest.approx(4.0)
 

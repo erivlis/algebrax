@@ -19,7 +19,7 @@ def test_submodule_qualified_namespaces():
     res = ax.matrix.dot(m1, m2, semiring=ax.semiring.StandardSemiring())
     assert res == {0: {0: 6.0}}
 
-    assert hasattr(ax, 'homology')
+    assert hasattr(ax, 'topology')
     assert hasattr(ax, 'category')
     assert hasattr(ax, 'display')
 

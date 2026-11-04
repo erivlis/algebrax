@@ -8,7 +8,7 @@ import pytest
 
 from algebrax.automata import dfa_step, nfa_step, simulate_dfa, simulate_nfa
 from algebrax.matrix.core import dot, power
-from algebrax.matrix.decompose import lu, qr, recompose_lu, recompose_qr, recompose_svd, svd
+from algebrax.matrix.decompose import lu_decompose, qr, recompose_lu, recompose_qr, recompose_svd, svd
 from algebrax.semiring import BooleanSemiring, TropicalSemiring
 
 
@@ -23,7 +23,7 @@ def test_hilbert_matrix_decompositions():
         h_mat = create_hilbert_matrix(dim)
 
         # LU
-        p, l_mat, u = lu(h_mat)
+        p, l_mat, u = lu_decompose(h_mat)
         rec_lu = recompose_lu(p, l_mat, u)
         for i in range(dim):
             for j in range(dim):

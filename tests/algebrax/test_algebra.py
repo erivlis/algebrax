@@ -13,7 +13,6 @@ from typing import Any
 import pytest
 
 from algebrax.algebra import (
-    AbelianGroup,
     AddCommGroup,
     AddCommMonoid,
     AddGroup,
@@ -218,7 +217,6 @@ def test_multiplicative_protocols_runtime_checkable():
     assert isinstance(grp, Monoid)
     assert isinstance(grp, Group)
     assert isinstance(grp, CommGroup)
-    assert isinstance(grp, AbelianGroup)
 
     perm_grp = PermutationGroup()
     assert isinstance(perm_grp, Group)

@@ -12,7 +12,7 @@ bounding the false-positive error probability to under $10^{-16}$ (Schwartz 1980
   and Bracket Antisymmetry $[x, y] + [y, x] = 0$.
 - **PIT 3**: **Cayley-Hamilton Theorem** $p_A(A) = A^n + c_{n-1} A^{n-1} + \dots + c_0 I = \mathbf{0}$
   verified over exact `fractions.Fraction` $3 \times 3$ and $4 \times 4$ matrices (Faddeev-LeVerrier trace recurrence).
-- **PIT 4**: Multivariate Polynomial Ring (`MultivariateBinomialConvolutionSemiring`) and `PolynomialSemiring`
+- **PIT 4**: Multivariate Polynomial Ring (`MultivariateBinomialConvolutionSemiring`) and `PolynomialAlgebra`
   Brahmagupta-Fibonacci / Euler Four-Square / Binomial Identities over random rational evaluations.
 """
 
@@ -28,7 +28,7 @@ import pytest
 from algebrax.lie import LieAlgebra, e6, e7, e8, f4, g2, se_n, sl_n, so_n, sp_n, su_n
 from algebrax.matrix.academic import determinant
 from algebrax.matrix.core import add, dot, mat_vec, subtract, trace
-from algebrax.semiring import PolynomialSemiring, StandardSemiring
+from algebrax.semiring import PolynomialAlgebra, StandardSemiring
 
 pytestmark = [pytest.mark.verification, pytest.mark.pit]
 
@@ -192,7 +192,7 @@ def test_pit_cayley_hamilton_theorem_exact_rational() -> None:
 def test_pit_polynomial_ring_brahmagupta_fibonacci_identity() -> None:
     """Verify (P^2 + Q^2)(R^2 + S^2) == (PR - QS)^2 + (PS + QR)^2 in Q[x] via PIT."""
     sr_q = StandardSemiring(Fraction)
-    poly_sr = PolynomialSemiring(sr_q)
+    poly_sr = PolynomialAlgebra(sr_q)
     rng = random.Random(161803)
 
     def _rand_poly(deg: int) -> dict[int, Fraction]:

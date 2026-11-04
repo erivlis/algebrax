@@ -36,7 +36,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from algebrax.automata import dfa_step, nfa_step, simulate_dfa, simulate_nfa
-from algebrax.homology import (
+from algebrax.topology import (
     Cochain,
     FilteredSimplicialComplex,
     PersistenceInterval,

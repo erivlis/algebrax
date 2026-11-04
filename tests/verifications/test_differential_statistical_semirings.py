@@ -9,7 +9,7 @@ Implements EP-0185:
     discrete distributions: $\mathbb{E}[X + Y] = \mathbb{E}[X] + \mathbb{E}[Y]$,
     $\operatorname{Var}(X + Y) = \operatorname{Var}(X) + \operatorname{Var}(Y)$, and third/fourth cumulant additivity.
 - `ExpectationSemiring` first-order expectation tracking on weighted DAGs.
-- `BivariateVarianceSemiring` / `BivariateCovarianceSemiring` vs `np.cov(X, Y, ddof=0)`.
+- `BivariateVarianceSemiring` vs `np.cov(X, Y, ddof=0)`.
 - `MultivariateMomentSemiring` (`mean_vector`, `covariance_matrix`) vs `np.mean(X, axis=0)` and
   `np.cov(X, rowvar=False, ddof=0)`.
 """
@@ -26,7 +26,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from algebrax.semiring import (
-    BivariateCovarianceSemiring,
+    BivariateVarianceSemiring,
     ExpectationSemiring,
     KurtosisSemiring,
     MultivariateMomentSemiring,
@@ -165,12 +165,12 @@ def test_binomial_convolution_independent_rv_sum_vs_exact_product_measure() -> N
 
 
 def test_expectation_and_bivariate_covariance_semirings_vs_numpy() -> None:
-    """Verify ExpectationSemiring and BivariateCovarianceSemiring against NumPy mean and covariance."""
+    """Verify ExpectationSemiring and BivariateVarianceSemiring against NumPy mean and covariance."""
     exp_sr = ExpectationSemiring()
-    cov_sr = BivariateCovarianceSemiring()
+    cov_sr = BivariateVarianceSemiring()
 
     # Independent bivariate random variables (X_1, Y_1) and (X_2, Y_2)
-    # In BivariateCovarianceSemiring, a single outcome (x, y) with weight p is encoded as (p, p*x, p*y, p*x*y)
+    # In BivariateVarianceSemiring, a single outcome (x, y) with weight p is encoded as (p, p*x, p*y, p*x*y)
     samples_1 = [(-1.0, 2.0, 0.3), (0.5, -1.0, 0.5), (3.0, 4.0, 0.2)]
     samples_2 = [(2.0, 1.0, 0.4), (-2.0, 3.0, 0.6)]
 
@@ -184,7 +184,7 @@ def test_expectation_and_bivariate_covariance_semirings_vs_numpy() -> None:
     assert math.isclose(e_sum[0], 1.0, rel_tol=1e-12)
     assert math.isclose(e_sum[1], mean_x1 + mean_x2, rel_tol=1e-12)
 
-    # Check BivariateCovarianceSemiring on (X_1 + X_2, Y_1 + Y_2)
+    # Check BivariateVarianceSemiring on (X_1 + X_2, Y_1 + Y_2)
     b1 = functools.reduce(cov_sr.add, ((p, p * x, p * y, p * x * y) for x, y, p in samples_1), cov_sr.zero)
     b2 = functools.reduce(cov_sr.add, ((q, q * x, q * y, q * x * y) for x, y, q in samples_2), cov_sr.zero)
     b_prod = cov_sr.mul(b1, b2)

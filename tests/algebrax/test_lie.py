@@ -37,8 +37,8 @@ from algebrax.lie import (
     su_n,
     u_n,
 )
+from algebrax.clifford import CliffordAlgebra
 from algebrax.matrix import commutator, mat_vec
-from algebrax.semiring.algebraic import CliffordSemiring
 
 
 def test_structure_constants_jacobi_and_antisymmetry():
@@ -142,8 +142,8 @@ def test_clifford_bivector_lie_algebra():
     assert c31.structure_constants.verify_antisymmetry()
     assert c31.is_semisimple()
 
-    # Via CliffordSemiring instance
-    cs = CliffordSemiring(p=2, q=0)
+    # Via CliffordAlgebra instance
+    cs = CliffordAlgebra(p=2, q=0)
     c20 = clifford_lie_algebra(cs)
     assert c20.dim == 1  # 1 bivector in 2D (so(2))
     assert c20.structure_constants.verify_jacobi()

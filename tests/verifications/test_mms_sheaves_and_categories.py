@@ -35,7 +35,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from algebrax.category import kan_extension_left, kleisli_compose
-from algebrax.homology import CellularSheaf, sheaf_diffusion, sheaf_harmonic_extension, sheaf_laplacian
+from algebrax.topology import CellularSheaf, sheaf_diffusion, sheaf_harmonic_extension, sheaf_laplacian
 from algebrax.lattice import (
     average,
     difference,

@@ -67,7 +67,6 @@ def test_atomic_mixin_exports():
         'HasMul',
         'HasInv',
         'HasScale',
-        'HasSMul',
         'HasStar',
         'HasJoin',
         'HasMeet',
@@ -80,7 +79,6 @@ def test_atomic_mixin_exports():
     for name in expected_mixins:
         cls = getattr(alg, name)
         assert getattr(cls, '_is_protocol', False), f'{name} must be a Protocol'
-    assert alg.HasSMul is alg.HasScale
 
 
 def test_diamond_free_protocol_inheritance():
@@ -124,7 +122,6 @@ def test_two_sorted_protocol_parameter_order():
 def test_structural_protocol_attrs_lattice():
     """Verify __protocol_attrs__ forms a strict subset lattice across the algebraic hierarchy."""
     from algebrax.algebra import (
-        AbelianGroup,
         AddCommGroup,
         AddCommMonoid,
         AddGroup,
@@ -137,8 +134,6 @@ def test_structural_protocol_attrs_lattice():
         CommGroup,
         CommMonoid,
         CommRing,
-        CommutativeMonoid,
-        CommutativeRing,
         DistributiveLattice,
         DivisionRing,
         Field,
@@ -177,9 +172,9 @@ def test_structural_protocol_attrs_lattice():
     assert attrs(Magma) == {'mul'}
     assert attrs(Magma) == attrs(Semigroup)
     assert attrs(Semigroup) < attrs(Monoid) == {'one', 'mul'}
-    assert attrs(Monoid) == attrs(CommMonoid) == attrs(CommutativeMonoid)
+    assert attrs(Monoid) == attrs(CommMonoid)
     assert attrs(Monoid) < attrs(Group) == {'one', 'mul', 'inv', 'div'}
-    assert attrs(Group) == attrs(CommGroup) == attrs(AbelianGroup)
+    assert attrs(Group) == attrs(CommGroup)
 
     # Abstract OpMagma/OpMonoid chain
     assert attrs(OpMagma) == {'op'}
@@ -190,7 +185,7 @@ def test_structural_protocol_attrs_lattice():
     # Ring & Field chain
     assert attrs(AddCommGroup) < attrs(NonAssocRing) == {'zero', 'add', 'neg', 'sub', 'mul'}
     assert attrs(NonAssocRing) < attrs(Ring) == {'zero', 'one', 'add', 'neg', 'sub', 'mul'}
-    assert attrs(Ring) == attrs(CommRing) == attrs(CommutativeRing)
+    assert attrs(Ring) == attrs(CommRing)
     assert attrs(Ring) < attrs(DivisionRing) == {
         'zero',
         'is_zero',

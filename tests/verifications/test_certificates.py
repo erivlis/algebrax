@@ -27,11 +27,11 @@ import pytest
 
 import algebrax as ax
 from algebrax.analysis import algebraic_connectivity, fiedler_vector, pagerank
-from algebrax.homology import Cochain, SimplicialComplex, helmholtz_hodge_decomposition, hodge_laplacian
+from algebrax.topology import Cochain, SimplicialComplex, helmholtz_hodge_decomposition, hodge_laplacian
 from algebrax.matrix.core import cg_solve, dot, inverse, laplacian_matrix, mat_vec, subtract, transpose, vec_norm
 from algebrax.matrix.decompose import (
     cholesky,
-    lu,
+    lu_decompose,
     qr,
     recompose_cholesky,
     recompose_lu,
@@ -75,7 +75,7 @@ def test_lu_decomposition_certificate() -> None:
         2: {0: 8.0, 1: 7.0, 2: 9.0, 3: 5.0},
         3: {0: 6.0, 1: 7.0, 2: 9.0, 3: 8.0},
     }
-    p_mat, l_mat, u_mat = lu(a_mat)
+    p_mat, l_mat, u_mat = lu_decompose(a_mat)
 
     # Certificate 1: Permutation orthogonality P^T @ P == I
     pt_p = dot(transpose(p_mat), p_mat)

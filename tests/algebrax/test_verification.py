@@ -1,12 +1,11 @@
 """
-Tests for the Algebraic Law Verification Engine and CLI Auditor (`algebrax.verify`).
+Tests for the Algebraic Law Verification Engine (`algebrax.verification`).
 """
 
 from __future__ import annotations
 
 import pytest
 
-from algebrax import verify as verify_cli
 from algebrax.semiring import Semiring
 from algebrax.verification import (
     get_semiring_samples,
@@ -69,37 +68,3 @@ def test_verify_semiring_laws_detects_broken_semiring() -> None:
     broken = BrokenSemiring()
     res = verify_semiring_laws(broken, [0.0, 1.0, 2.0, 3.0])
     assert all(not passed for passed in res.values()), f'Expected all 9 axioms to fail, got: {res}'
-
-
-def test_verify_cli_main_success_and_error(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    """Verify the CLI auditor (`python -m algebrax.verify`) for single semiring, all semirings, and failure cases."""
-    # 1. Single valid semiring
-    monkeypatch.setattr('sys.argv', ['algebrax.verify', '--semiring', 'Tropical'])
-    assert verify_cli.main() == 0
-    out_single = capsys.readouterr().out
-    assert '[PASSED] Tropical' in out_single
-    assert '1/1 semirings verified successfully' in out_single
-
-    # 2. All semirings
-    monkeypatch.setattr('sys.argv', ['algebrax.verify', '--semiring', 'all'])
-    assert verify_cli.main() == 0
-    out_all = capsys.readouterr().out
-    assert '34/34 semirings verified successfully' in out_all
-
-    # 3. Unknown semiring returns exit code 1
-    monkeypatch.setattr('sys.argv', ['algebrax.verify', '--semiring', 'UnknownBogus'])
-    assert verify_cli.main() == 1
-    out_err = capsys.readouterr().out
-    assert 'ERROR:' in out_err
-
-    # 4. Simulated axiom failure prints FAILED details and returns exit code 1
-    monkeypatch.setattr(
-        verify_cli,
-        'verify_semiring_laws',
-        lambda _sr, _samples: {'add_commutativity': False, 'add_associativity': True},
-    )
-    monkeypatch.setattr('sys.argv', ['algebrax.verify', '--semiring', 'Tropical'])
-    assert verify_cli.main() == 1
-    out_fail = capsys.readouterr().out
-    assert '[FAILED] Tropical' in out_fail
-    assert '-> FAILED: add_commutativity' in out_fail

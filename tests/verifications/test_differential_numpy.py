@@ -245,13 +245,13 @@ def test_differential_cholesky_vs_numpy() -> None:
 
 
 def test_differential_lu_vs_scipy_lu() -> None:
-    """Verify ax.matrix.lu against scipy.linalg.lu and P @ A == L @ U certificate."""
+    """Verify ax.matrix.lu_decompose against scipy.linalg.lu and P @ A == L @ U certificate."""
     rng = np.random.default_rng(202)
     n = 5
     a_dense = rng.standard_normal((n, n)) + 2.0 * np.eye(n)
     a_sparse = _dense_to_sparse(a_dense)
 
-    p_ax, l_ax, u_ax = ax.matrix.lu(a_sparse)
+    p_ax, l_ax, u_ax = ax.matrix.lu_decompose(a_sparse)
     p_dense = _sparse_to_dense(p_ax, n)
     l_dense = _sparse_to_dense(l_ax, n)
     u_dense = _sparse_to_dense(u_ax, n)
@@ -623,7 +623,7 @@ def test_hypothesis_differential_matmul_and_lu(
     mat_a_list: list[list[float]],
     mat_b_list: list[list[float]],
 ) -> None:
-    """Property-test ax.matrix.dot and ax.matrix.lu against NumPy/SciPy across randomized 4x4 matrices."""
+    """Property-test ax.matrix.dot and ax.matrix.lu_decompose against NumPy/SciPy across randomized 4x4 matrices."""
     a_np = np.array(mat_a_list, dtype=np.float64)
     b_np = np.array(mat_b_list, dtype=np.float64)
 
@@ -637,7 +637,7 @@ def test_hypothesis_differential_matmul_and_lu(
     # 2. LU factorization certificate on diagonally dominant shift A_dd = A + 100 * I
     a_dd = a_np + 100.0 * np.eye(4)
     a_dd_sp = _dense_to_sparse(a_dd)
-    p_ax, l_ax, u_ax = ax.matrix.lu(a_dd_sp)
+    p_ax, l_ax, u_ax = ax.matrix.lu_decompose(a_dd_sp)
     recomp = _sparse_to_dense(ax.matrix.recompose_lu(p_ax, l_ax, u_ax), 4)
     np.testing.assert_allclose(recomp, a_dd, rtol=1e-8, atol=1e-8)
 
