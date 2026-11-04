@@ -53,7 +53,7 @@
 #    while eliminating divergence noise ($\omega_{\text{exact}} \to 0$).
 
 # %%
-from algebrax.homology import SimplicialComplex, helmholtz_hodge_decomposition
+from algebrax.topology import SimplicialComplex, helmholtz_hodge_decomposition
 from algebrax.matrix.core import add, dot, mat_vec, transpose
 from algebrax.typing import SparseMatrix
 
@@ -334,7 +334,7 @@ print(
 # ## Step 6: Helmholtz-Hodge Decomposition Audit
 #
 # We mathematically audit the quality of the flow before and after TNN processing using
-# `algebrax.homology.helmholtz_hodge_decomposition`.
+# `algebrax.topology.helmholtz_hodge_decomposition`.
 #
 # - **Exact Component ($\omega_{\text{exact}} = d_0 \alpha$)**: Gradient / irrotational flow (noise artifacts).
 # - **Coexact Component ($\omega_{\text{coexact}} = \delta_2 \beta$)**: Solenoidal / divergence-free rotational flow.

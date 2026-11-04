@@ -43,7 +43,7 @@ def compute_geometric_magnitude(
     r: int = 0,
 ) -> float:
     """Calculate geometric multivector magnitude |v| = sqrt(scalar(v * v^rev))."""
-    cs = ax.clifford.CliffordSemiring(p=p, q=q, r=r)
+    cs = ax.clifford.CliffordAlgebra(p=p, q=q, r=r)
     v_sq = cs.mul(v, v)
     norm_sq = v_sq.get((), 0.0)
     return math.sqrt(max(0.0, norm_sq))

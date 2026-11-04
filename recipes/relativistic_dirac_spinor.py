@@ -28,7 +28,7 @@
 #    timelike 4-vector directly representing particle probability density and velocity flow.
 #
 # In this recipe, we implement relativistic Dirac spinors directly on top of AlgebraX's native
-# `CliffordSemiring(p=1, q=3)`.
+# `CliffordAlgebra(p=1, q=3)`.
 #
 # ---
 #
@@ -69,15 +69,15 @@ from functools import cache
 from typing import Any
 
 import algebrax as ax
-from algebrax.semiring.algebraic import CliffordSemiring
+from algebrax.semiring import CliffordAlgebra
 from algebrax.typing import SparseVector
 
 
 # %%
 @cache
-def get_sta_semiring() -> CliffordSemiring:
-    """Returns the Spacetime Algebra Cl(1, 3) CliffordSemiring with signature (+ - - -)."""
-    return CliffordSemiring(p=1, q=3, r=0)
+def get_sta_semiring() -> CliffordAlgebra:
+    """Returns the Spacetime Algebra Cl(1, 3) CliffordAlgebra with signature (+ - - -)."""
+    return CliffordAlgebra(p=1, q=3, r=0)
 
 
 def create_dirac_basis() -> dict[str, dict[tuple[int, ...], float]]:

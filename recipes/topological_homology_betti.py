@@ -52,7 +52,7 @@ def evaluate_simplicial_complex(
     max_k: int = 2,
 ) -> dict[str, Any]:
     """Compute simplicial homology, Betti numbers, and boundary nilpotency."""
-    sc = ax.homology.SimplicialComplex(simplices)
+    sc = ax.topology.SimplicialComplex(simplices)
     betti = sc.betti_numbers(max_k=max_k)
     nilpotency = sc.verify_nilpotency(1) if max_k >= 1 else True
     return {
