@@ -55,10 +55,6 @@ assert fx == (4.0, 5.0)
 | `PolynomialAlgebra[T]` | `dict[int, T]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle R, R[x], \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
 | `DualNumberAlgebra` | `tuple[float, float]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle \mathbb{R}, \mathbb{R}[\varepsilon]/(\varepsilon^2), \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
 
-> [!NOTE]
-> **Backwards-Compatible Semiring Aliases**:
-> `PolynomialRing` and `PolynomialSemiring` are aliases for `PolynomialAlgebra`, and `DualNumberRing` and `DualNumberSemiring` are aliases for `DualNumberAlgebra`. All are importable from both `algebrax.algebra` and `algebrax.semiring`.
-
 ### Quotient Monoid Algebra Example: Constructing $\mathbb{C} \cong \mathbb{R}[x] / (x^2 + 1)$
 
 ```python

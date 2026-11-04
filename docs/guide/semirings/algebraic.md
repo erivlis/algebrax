@@ -74,7 +74,7 @@ print(res)
 
 `MonoidAlgebraSemiring` forms the theoretical foundation for specialized semirings in `algebrax`:
 
-1. **[PolynomialSemiring] ($R[x]$):**
+1. **[PolynomialAlgebra] ($R[x]$):**
    Monoid algebra over non-negative integer exponents $M = (\mathbb{N}_0, +)$ with `key_op = lambda x, y: x + y` and
    `zero_key = 0`.
 2. **[KnotSemiring] ($R[\text{Knots}]$):**
@@ -170,7 +170,7 @@ It finds wide applications in discrete signal processing (as FIR filters), codin
 
 ## Implementation in `algebrax`
 
-`PolynomialSemiring` inherits from `MonoidAlgebraSemiring[int, T]`.
+`PolynomialAlgebra` inherits from `MonoidAlgebraSemiring[int, T]`.
 
 ### Example: Polynomials over Integers
 
@@ -180,8 +180,8 @@ import algebrax as ax
 # 1. Define the coefficient semiring (integers)
 int_semiring = ax.semiring.StandardSemiring(int)
 
-# 2. Initialize the ax.semiring.PolynomialSemiring (R[x])
-poly_semiring = ax.semiring.PolynomialSemiring(int_semiring)
+# 2. Initialize the ax.semiring.PolynomialAlgebra (R[x])
+poly_semiring = ax.semiring.PolynomialAlgebra(int_semiring)
 
 # p1(x) = 1 + 2x
 p1 = {0: 1, 1: 2}
@@ -353,7 +353,7 @@ The generic nature of the `KnotSemiring` allows it to model various algebraic st
 
 # Clifford Geometric Algebra Cl (p, q, r)
 
-The **`CliffordSemiring`** in `algebrax.clifford` implements Clifford Geometric Algebra $Cl (p, q, r)$ over
+The **`CliffordAlgebra`** in `algebrax.clifford` implements Clifford Geometric Algebra $Cl (p, q, r)$ over
 `QuotientMonoidAlgebraSemiring`. Multivectors unify scalars, vectors, bivectors, and pseudoscalars into a single sparse
 dictionary representation `{blade_tuple: coeff}`.
 
@@ -373,8 +373,8 @@ dictionary representation `{blade_tuple: coeff}`.
 import math
 import algebrax as ax
 
-# Instantiate Cl(3, 0) ax.semiring.Semiring
-cs = ax.clifford.CliffordSemiring(p=3, q=0, r=0)
+# Instantiate Cl(3, 0)
+cs = ax.clifford.CliffordAlgebra(p=3, q=0, r=0)
 
 # Define 3D Vector v = 3 e1 + 4 e2
 v = {(1,): 3.0, (2,): 4.0}
@@ -394,7 +394,7 @@ print(f"Rotated Vector v': e1={v_rot.get((1,), 0.0):.2f}, e2={v_rot.get((2,), 0.
 
 ## Generalized Clifford Algebras (GCAs / Clock-and-Shift)
 
-The **`GeneralizedCliffordSemiring`** implements order-$n$ cyclic root-of-unity Clifford algebras $C_n^{ (m)}$:
+The **`GeneralizedCliffordAlgebra`** implements order-$n$ cyclic root-of-unity Clifford algebras $C_n^{ (m)}$:
 
 - **Commutation Relation**: $\mathbf{e}_j \mathbf{e}_k = \omega \mathbf{e}_k \mathbf{e}_j$ ($j < k$)
   where $\omega = \exp\left (\frac{2\pi i}{n}\right)$.
@@ -406,7 +406,7 @@ import cmath
 import algebrax as ax
 
 # Instantiate order n=3 GCA over m=2 generators
-gca = ax.clifford.GeneralizedCliffordSemiring(n_order=3, num_generators=2)
+gca = ax.clifford.GeneralizedCliffordAlgebra(n_order=3, num_generators=2)
 
 e1 = {(1, 0): 1.0 + 0j}
 e2 = {(0, 1): 1.0 + 0j}
@@ -424,7 +424,7 @@ print('e1 * e2 == omega * e2 * e1:', cmath.isclose(e1_e2[(1, 1)] / e2_e1[(1, 1)]
 
 ## $q$-Deformed Quantum Clifford Algebras
 
-The **`QuantumCliffordSemiring`** implements continuous $q$-deformed braided Clifford algebras $Cl_q (m)$:
+The **`QuantumCliffordAlgebra`** implements continuous $q$-deformed braided Clifford algebras $Cl_q (m)$:
 
 - **Braided Relation**: $\mathbf{e}_j \mathbf{e}_k = -q \mathbf{e}_k \mathbf{e}_j$ ($j < k$).
 - **Quadratic Signature**: $\mathbf{e}_j^2 = \alpha_j \mathbf{1}$.
@@ -433,7 +433,7 @@ The **`QuantumCliffordSemiring`** implements continuous $q$-deformed braided Cli
 import algebrax as ax
 
 # Instantiate q=0.5 quantum Clifford algebra
-qc = ax.clifford.QuantumCliffordSemiring(q=0.5, num_generators=2)
+qc = ax.clifford.QuantumCliffordAlgebra(q=0.5, num_generators=2)
 
 e1 = {(1, 0): 1.0 + 0j}
 e2 = {(0, 1): 1.0 + 0j}
@@ -492,5 +492,5 @@ print('Transformed AES State:', out_state)
 ## Related Recipes & Applications
 
 * [Algebraic Knot Theory](../../recipes.md) — Connected sums and Jones polynomials via `KnotSemiring`.
-* [Relativistic Dirac Spinors](../../recipes.md) — Spacetime physics via `CliffordSemiring(p=1, q=3)`.
+* [Relativistic Dirac Spinors](../../recipes.md) — Spacetime physics via `CliffordAlgebra(p=1, q=3)`.
 * [Galois Finite Field Cryptography](../../recipes.md) — AES MixColumns via `GaloisFieldSemiring`.

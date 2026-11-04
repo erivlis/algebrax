@@ -2,7 +2,7 @@
 title: "EP-0196: Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides)"
 description: "Align benchmarks, recipe notebooks, GUI lab, and user documentation with canonical alias-free interfaces established in EP-0195."
 icon: lucide/refresh-cw
-status: draft
+status: final
 ---
 
 # EP-0196: Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides)
@@ -14,7 +14,7 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                   |
 | **Sponsor**       | Council Framework                                                             |
 | **Delegate**      | 🎨 Feynman (Pedagogy & Didactic Clarity), ⏱️ Shannon (Efficiency)              |
-| **Status**        | Draft                                                                         |
+| **Status**        | Final                                                                         |
 | **Type**          | Standards Track                                                               |
 | **Created**       | 2026-11-04                                                                    |
 | **Updated**       | 2026-11-04                                                                    |
@@ -112,3 +112,4 @@ implementations.
 ## Change Log
 
 - **2026-11-04**: Draft authored following EXP-0007 Council consensus.
+- **2026-11-04**: Implemented and verified: all benchmarks, recipes, notebooks, and user guides updated to pure canonical names; clean test, benchmark, and Zensical builds. Marked as Final.

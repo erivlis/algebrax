@@ -43,14 +43,14 @@ for axiom, passed in results.items():
 
 ## CLI Audit Command
 
-Run the law verification auditor across all 34 semirings from the terminal:
+Run the law verification auditor across all 33 semirings from the terminal:
 
 ```bash
-# Verify all 34 catalog semirings
-python -m algebrax.verify
+# Verify all 33 catalog semirings
+python -m algebrax.verification
 
 # Verify a single semiring
-python -m algebrax.verify --semiring GaloisField
+python -m algebrax.verification --semiring GaloisField
 ```
 
 ---

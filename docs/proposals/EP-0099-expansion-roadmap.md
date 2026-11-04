@@ -99,8 +99,8 @@ flowchart TD
         EP0192_N["EP-0192 Unifying Domain Objects ✅\n⚖️ Noether & 🧩 Russell"]
         EP0193_N["EP-0193 Documentation Realignment ✅\n💡 Feynman & 🧩 Russell"]
         EP0194_N["EP-0194 Atomic Algebraic Mixins ✅\n🧩 Russell & ⚖️ Noether"]
-        EP0195_N["EP-0195 Canonical Core Consolidation 💡\n🧩 Russell & ✂️ Shannon"]
-        EP0196_N["EP-0196 Peripheral Realignment 💡\n🎨 Feynman & ⏱️ Shannon"]
+        EP0195_N["EP-0195 Canonical Core Consolidation ✅\n🧩 Russell & ✂️ Shannon"]
+        EP0196_N["EP-0196 Peripheral Realignment ✅\n🎨 Feynman & ⏱️ Shannon"]
     end
 
     subgraph P7["Phase 7 — Categorical Foundations, Morphisms & Duality (EXP-0005)"]
@@ -250,14 +250,14 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0185: Axiomatic, Statistical Moment Semirings & Sheaf MMS Verification [Final]
   │     └── EP-0186: Proof-Carrying Solver Certificates, Schwartz–Zippel PIT & SMT Formal (Z3) [Final]
   │
-  ├── Phase 6: Pure Algebraic Hierarchy (EXP-0004 & EXP-0007)  ⏳ IN PROGRESS
+  ├── Phase 6: Pure Algebraic Hierarchy (EXP-0004 & EXP-0007)  ✅ COMPLETE
   │     ├── EP-0190: Granular Algebraic Hierarchy — Magmas, Monoids, Groups & Lattices (Russell/Popper) [Final]
   │     ├── EP-0191: Rings, Fields, Modules & Exact Matrix Solvers (Noether/Shannon) [Final]
   │     ├── EP-0192: Unifying Domain Objects with the Pure Algebraic Hierarchy (Noether/Russell) [Final]
   │     ├── EP-0193: Documentation Architecture Realignment with Pure Algebraic Hierarchy (Feynman/Russell) [Final]
   │     ├── EP-0194: Atomic Algebraic Mixins & Diamond-Free Protocol Composition (Russell/Noether) [Final]
-  │     ├── EP-0195: Canonical Core Consolidation & Verification Suite Alignment (Russell/Shannon) [Draft]
-  │     └── EP-0196: Peripheral Ecosystem Realignment — Benchmarks, Recipes & Guides (Feynman/Shannon) [Draft]
+  │     ├── EP-0195: Canonical Core Consolidation & Verification Suite Alignment (Russell/Shannon) [Final]
+  │     └── EP-0196: Peripheral Ecosystem Realignment — Benchmarks, Recipes & Guides (Feynman/Shannon) [Final]
   │
   ├── Phase 7: Categorical Foundations, Morphisms & Duality (EXP-0005)  ⏳ IN PROGRESS
   │     ├── EP-0200: Categorical Abstractions & Enriched Matrix Mechanics (Russell/Shannon) [Draft]
@@ -331,8 +331,8 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0192** | Unifying Domain Objects        | Noether & Russell | `algebrax.algebra`, `algebrax.clifford`  | Final    | Bind `LieAlgebra` to `NonAssocAlgebra`, `CliffordAlgebra`, `PolynomialAlgebra`, `DualNumberAlgebra`, `CochainAlgebra`                      |
 | **EP-0193** | Documentation Architecture     | Feynman & Russell | `docs/`, `zensical.toml`                 | Final    | Realign documentation navigation and guides with pure algebraic hierarchy                                                                  |
 | **EP-0194** | Atomic Algebraic Mixins        | Russell & Noether | `algebrax.algebra`                       | Final    | Atomic operational mixins (`HasZero`, `HasOne`, `HasAdd`, `HasNeg`, `HasMul`, `HasInv`, `HasScale`) and flat diamond-free protocol bundles |
-| **EP-0195** | Canonical Core Consolidation   | Russell & Shannon | `src/algebrax`, `tests/`                 | Draft    | Zero-alias purge across core engine, delete duplicate facades, align all 622 tests                                                          |
-| **EP-0196** | Peripheral Realignment         | Feynman & Shannon | `benchmarks/`, `recipes/`                | Draft    | Realogn benchmarks, Jupyter recipe notebooks, GUI lab.py, and build validation                                                             |
+| **EP-0195** | Canonical Core Consolidation   | Russell & Shannon | `src/algebrax`, `tests/`                 | Final    | Zero-alias purge across core engine, delete duplicate facades, align all 622 tests                                                          |
+| **EP-0196** | Peripheral Realignment         | Feynman & Shannon | `benchmarks/`, `recipes/`                | Final    | Realogn benchmarks, Jupyter recipe notebooks, GUI lab.py, and build validation                                                             |
 | **EP-0200** | Enriched Matrices & Lawvere    | Russell & Shannon | `algebrax.category`, `verification`      | Draft    | Category, Functor, MatrixCategory Mat(S), Lawvere metric spaces over tropical cost semiring                                                |
 | **EP-0201** | Homomorphisms, Ideals, Quots   | Noether & Russell | `algebrax.algebra`, `verification`       | Draft    | RingHom, LinearMap, Ideal[V], LieIdeal, QuotientRing, First Isomorphism Theorem                                                            |
 | **EP-0202** | Functorial Sheaves & DEC       | Noether & Popper  | `algebrax.sheaf`, `algebrax.dec`         | Draft    | Contravariant sheaf functors, coboundary natural transformations, Sheaf Laplacian, DEC unification                                         |

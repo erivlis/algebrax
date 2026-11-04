@@ -125,7 +125,7 @@ This document provides a comparative analysis of `algebrax` against low-level li
       heat smoothing directly over sparse dictionary representations without converting to NumPy dense arrays.
     * **Multidimensional Structures**: `algebrax` extends naturally from matrices to high-dimensional sparse tensors
       (`ax.tensor.einsum`), tries (`AlgebraicTrie`), simplicial chain complexes (`SimplicialComplex`), and multivectors
-      (`CliffordSemiring`).
+      (`CliffordAlgebra`).
 * **When to use `networkx`**: Traditional graph visualization and standard graph algorithm suites.
 * **When to use `algebrax`**: Unified matrix-semiring graph computing, spectral manifold clustering, topological data
   analysis (Betti numbers), and algebraic state machine simulations.

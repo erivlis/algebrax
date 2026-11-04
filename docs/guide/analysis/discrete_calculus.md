@@ -134,7 +134,7 @@ Every edge flow $\omega \in C^1(K; \mathbb{R})$ on a simplicial complex $K$ deco
 
 ```python
 from algebrax.analysis import helmholtz_hodge_decomposition
-from algebrax.homology import SimplicialComplex
+from algebrax.topology import SimplicialComplex
 
 # Complex with a filled triangle (0, 1, 2) and a hollow loop (1, 2)-(2, 3)-(1, 3)
 sc = SimplicialComplex([(0, 1, 2), (1, 3), (2, 3)])

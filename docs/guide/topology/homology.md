@@ -5,7 +5,7 @@ description: Simplicial complexes, sparse chain complexes, boundary nilpotency, 
 
 # Homology & Chain Complexes (`algebrax.topology.homology`)
 
-`algebrax.topology.homology` (re-exported at the top level of `algebrax.topology` and `algebrax.homology`) formalizes sequence spaces $C_k(K; R)$ and sparse boundary operators $\partial_k: C_k \to C_{k-1}$ over abstract simplicial complexes and general chain complexes.
+`algebrax.topology.homology` (re-exported at the top level of `algebrax.topology`) formalizes sequence spaces $C_k(K; R)$ and sparse boundary operators $\partial_k: C_k \to C_{k-1}$ over abstract simplicial complexes and general chain complexes.
 
 ---
 

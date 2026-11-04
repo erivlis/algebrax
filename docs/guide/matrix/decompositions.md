@@ -40,7 +40,7 @@ A = {
     '1': {'0': 3.0, '1': 8.0, '2': 14.0},
     '2': {'0': 2.0, '1': 6.0, '2': 13.0},
 }
-P, L, U = ax.matrix.lu(A)
+P, L, U = ax.matrix.lu_decompose(A)
 print('P @ A == L @ U:', ax.matrix.dot(P, A) == ax.matrix.dot(L, U))
 
 # 3. QR Decomposition

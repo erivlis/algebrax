@@ -27,7 +27,7 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 
 | Cluster             | Atomic Mixin                 | Required Member(s)     | Default Helper(s)    | Mathematical Symbol                             |
 |:--------------------|:-----------------------------|:-----------------------|:---------------------|:------------------------------------------------|
-| **External Action** | `HasScale[R, M]` (`HasSMul`) | `smul(r, m) -> M`      | `scale(r, m) -> M`   | $\cdot_s: R \times M \to M$                     |
+| **External Action** | `HasScale[R, M]`             | `smul(r, m) -> M`      | `scale(r, m) -> M`   | $\cdot_s: R \times M \to M$                     |
 | **Additive**        | `HasZero[V]`                 | `zero -> V`            | —                    | $\mathbf{0} \in V$                              |
 |                     | `HasZeroPred[V]`             | —                      | `is_zero(a) -> bool` | $\operatorname{is\_zero}: V \to \{\top, \bot\}$ |
 |                     | `HasAdd[V]`                  | `add(a, b) -> V`       | —                    | $+: V \times V \to V$                           |
@@ -103,7 +103,7 @@ A **Groupoid** generalizes a Group to multi-state systems. It can be defined as 
 
 * **Group vs Groupoid**: A Group is a Groupoid with *only one object* (all elements are everywhere composable).
 * **Patch Theory (Darcs VCS)**: Repository states are objects; diff patches $P: \text{State}_1 \to \text{State}_2$ are groupoid morphisms. Every patch has a formal inverse $P^{-1}$, and patches compose along valid execution paths.
-* **Topological Fundamental Groupoid $\Pi_1(X)$**: Continuous path transformations in point clouds and simplicial complexes (`algebrax.homology`).
+* **Topological Fundamental Groupoid $\Pi_1(X)$**: Continuous path transformations in point clouds and simplicial complexes (`algebrax.topology`).
 * **Permutations** (`algebrax.group`): Full permutations form a single-object groupoid (a Group), while partial bijection transformations form a multi-object groupoid.
 
 ### 5. Semiring $(S, \oplus, \otimes)$
@@ -126,7 +126,7 @@ Semirings are organized into categorical sub-modules under `algebrax.semiring`:
 * **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations.
 * **`statistical`**: `LogSemiring`, `ExpectationSemiring`, `VarianceSemiring`, `SkewnessSemiring`, `KurtosisSemiring`, `StatisticalMomentSemiring`, `BivariateVarianceSemiring`, `MultivariateMomentSemiring`. Probabilistic inference, higher-order statistical moments, multivariate covariance matrices.
 * **`structures`**: `StringSemiring`, `KCollapsedSemiring`. Formal path languages, bounded counting.
-* **`algebraic`**: `DualNumberSemiring`, `BinomialConvolutionSemiring`, `MultivariateBinomialConvolutionSemiring`, `MonoidAlgebraSemiring`, `PolynomialSemiring`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordSemiring` ($Cl(p,q,r)$ geometric algebras and Spacetime Dirac spinors), `GeneralizedCliffordSemiring`, `QuantumCliffordSemiring`, `GaloisFieldSemiring`. Free & quotient monoid algebras, divided power polynomial rings, skein modules, Clifford multivectors, finite fields.
+* **`algebraic`**: `DualNumberAlgebra`, `BinomialConvolutionSemiring`, `MultivariateBinomialConvolutionSemiring`, `MonoidAlgebraSemiring`, `PolynomialAlgebra`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordAlgebra` ($Cl(p,q,r)$ geometric algebras and Spacetime Dirac spinors), `GeneralizedCliffordAlgebra`, `QuantumCliffordAlgebra`, `GaloisFieldSemiring`. Free & quotient monoid algebras, divided power polynomial rings, skein modules, Clifford multivectors, finite fields.
 
 ### 6. Ring $(R, +, \cdot)$
 
@@ -179,7 +179,7 @@ An associative algebra equipped with a quadratic form or root-of-unity commutati
 
 ## Discrete Exterior Calculus (DEC) & Simplicial Homology
 
-The `algebrax.analysis` and `algebrax.homology` modules implement concepts from DEC and Topological Homology on graphs
+The `algebrax.analysis` and `algebrax.topology` modules implement concepts from DEC and Topological Homology on graphs
 and $k$-dimensional simplicial complexes.
 
 | Concept                       | Mathematical Object                        | Library Type / Function     | Example / Application                        |

@@ -10,7 +10,7 @@ Statistical and probabilistic modeling on graphs, sequence models (HMMs, WFSTs),
 **AlgebraX** provides a unified family of statistical and moment semirings in `algebrax.semiring`:
 
 1. **`LogSemiring`**: $(\mathbb{R} \cup \{-\infty\}, \text{LogSumExp}, +, -\infty, 0)$ for underflow-free partition function summation.
-2. **`DualNumberSemiring`**: $\mathbb{R}[\epsilon]/(\epsilon^2)$ for 1st-order forward-mode automatic differentiation and expectations.
+2. **`DualNumberAlgebra`**: $\mathbb{R}[\epsilon]/(\epsilon^2)$ for 1st-order forward-mode automatic differentiation and expectations.
 3. **`BinomialConvolutionSemiring(order=K)`**: Universal 1D divided power quotient algebra $\mathbb{R}[\epsilon]/(\epsilon^{K+1})$ for Taylor jets and polynomial moments up to arbitrary order $K$.
 4. **`StatisticalMomentSemiring(order=K)`**: 1D moment semiring equipped with statistical decoders (`.mean()`, `.variance()`, `.skewness()`, `.kurtosis()`, `.central_moments()`).
 5. **Standard 1D Specializations**:
@@ -18,7 +18,7 @@ Statistical and probabilistic modeling on graphs, sequence models (HMMs, WFSTs),
    - `VarianceSemiring` ($K=2$, carrier 3-tuple $(p, m_1, m_2)$)
    - `SkewnessSemiring` ($K=3$, carrier 4-tuple $(p, m_1, m_2, m_3)$)
    - `KurtosisSemiring` ($K=4$, carrier 5-tuple $(p, m_1, m_2, m_3, m_4)$)
-6. **`BivariateVarianceSemiring`** *(or `BivariateCovarianceSemiring`)*: Bivariate expectation semiring $\mathbb{R}[\epsilon_1, \epsilon_2]/(\epsilon_1^2, \epsilon_2^2)$ (carrier 4-tuple $(p, r, s, t)$) for 2-feature cross-covariance (Li & Eisner, 2009).
+6. **`BivariateVarianceSemiring`**: Bivariate expectation semiring $\mathbb{R}[\epsilon_1, \epsilon_2]/(\epsilon_1^2, \epsilon_2^2)$ (carrier 4-tuple $(p, r, s, t)$) for 2-feature cross-covariance (Li & Eisner, 2009).
 7. **`MultivariateMomentSemiring(num_vars=d, order=K)`**: Universal multi-index joint distribution engine for full $d \times d$ **Covariance Matrix $\boldsymbol{\Sigma}$** and **Hessian Matrix $\mathbf{H}$** path propagation.
 
 ---

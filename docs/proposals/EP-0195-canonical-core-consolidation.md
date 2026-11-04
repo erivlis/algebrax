@@ -2,7 +2,7 @@
 title: "EP-0195: Canonical Core Consolidation & Verification Suite Alignment"
 description: "Purge all backward-compatibility aliases, re-export shims, and legacy facades from the core algebraic engine and align all test suites with canonical Lean 4 Mathlib naming."
 icon: lucide/shield-check
-status: draft
+status: final
 ---
 
 # EP-0195: Canonical Core Consolidation & Verification Suite Alignment
@@ -14,7 +14,7 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                       |
 | **Sponsor**       | Council Framework                                                                 |
 | **Delegate**      | 🧩 Russell (Taxonomy & Rigor), ✂️ Shannon (Parsimony), 🧪 Popper (Falsifiability) |
-| **Status**        | Draft                                                                             |
+| **Status**        | Final                                                                             |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-11-04                                                                        |
 | **Updated**       | 2026-11-04                                                                        |
@@ -145,3 +145,4 @@ way to import and use every mathematical construct.
 ## Change Log
 
 - **2026-11-04**: Draft authored following EXP-0007 Council consensus.
+- **2026-11-04**: Implemented and verified: all 14 legacy aliases and facades purged from `src/algebrax/`, test suite aligned, 619 tests passing. Marked as Final.

@@ -56,7 +56,7 @@ Groups extend monoids with the `HasInv[V]` (multiplicative) or `HasNeg[V]` (addi
 | Named Protocol | Mixin Composition | Algebraic Signature | Key Operations |
 |:---------------|:------------------|:--------------------|:---------------|
 | `Group[V]` | `(HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ | `one`, `mul`, `inv`, `div` |
-| `CommGroup[V]` / `AbelianGroup[V]` | `(HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ | Commutative group ($a \cdot b = b \cdot a$) |
+| `CommGroup[V]` | `(HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ | Commutative group ($a \cdot b = b \cdot a$) |
 | `AddGroup[V]` | `(HasZero[V], HasAdd[V], HasNeg[V], Protocol)` | $\langle V, \mathbf{0}, +, - \rangle$ | `zero`, `add`, `neg`, `sub` |
 | `AddCommGroup[V]` | `(HasZero[V], HasAdd[V], HasNeg[V], Protocol)` | $\langle V, \mathbf{0}, +, - \rangle$ | Additive abelian group ($a + b = b + a$) |
 | `GroupAction[G, X]` | `(Protocol[G, X])` | $\langle G, X, \operatorname{gact} \rangle$ | Left group action $g \cdot (h \cdot x) = (gh) \cdot x$ |

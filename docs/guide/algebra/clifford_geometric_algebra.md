@@ -38,7 +38,7 @@ assert math.isclose(v_rot[(2,)], 3.0, abs_tol=1e-9)
 
 ## 3. Atomic Mixins & Protocol Contract
 
-`CliffordAlgebra`, `GeneralizedCliffordAlgebra`, and `QuantumCliffordAlgebra` live canonically in `algebrax.clifford` and satisfy `Algebra`, `Ring`, `Module`, and `Semiring` (`CliffordSemiring`, `GeneralizedCliffordSemiring`, and `QuantumCliffordSemiring` are backwards-compatible aliases):
+`CliffordAlgebra`, `GeneralizedCliffordAlgebra`, and `QuantumCliffordAlgebra` live canonically in `algebrax.clifford` and satisfy `Algebra`, `Ring`, `Module`, and `Semiring`:
 
 | Class (`algebrax.clifford`) | Generator Relation | Metric Signature | Primary Applications |
 |:----------------------------|:-------------------|:-----------------|:---------------------|

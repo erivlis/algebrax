@@ -78,17 +78,17 @@ flowchart LR
 
 %% Module: algebraic.py
     subgraph ModAlg["algebrax.semiring.algebraic"]
-        DualNum["<b>DualNumberSemiring</b><br/>tuple[float, float]"]:::alg
+        DualNum["<b>DualNumberAlgebra</b><br/>tuple[float, float]"]:::alg
         BinomialConv["<b>BinomialConvolutionSemiring[K]</b><br/>Divided Power Ring R[ε]/(ε^{K+1})"]:::alg
         MultiBinomialConv["<b>MultivariateBinomialConvolutionSemiring[d, K]</b><br/>Multi-Index Total Degree Quotient Ring"]:::alg
         MonoidAlg["<b>MonoidAlgebraSemiring[K, T]</b><br/>Sparse dict[K, T] convolution"]:::alg
-        Polynomial["<b>PolynomialSemiring[T]</b><br/>Subclass of MonoidAlgebra"]:::alg
+        Polynomial["<b>PolynomialAlgebra[T]</b><br/>Subclass of MonoidAlgebra"]:::alg
         Provenance["<b>ProvenanceSemiring</b><br/>Subclass of MonoidAlgebra"]:::alg
         Knot["<b>KnotSemiring</b><br/>Subclass of MonoidAlgebra"]:::alg
         QuotientAlg["<b>QuotientMonoidAlgebraSemiring</b><br/>Subclass with quotient_fn reduction"]:::quote
-        Clifford["<b>CliffordSemiring</b><br/>Quotient factory: Cl(p, q, r)"]:::quote
-        GCA["<b>GeneralizedCliffordSemiring</b><br/>Quotient factory: C_n^(m)"]:::quote
-        QuantumClifford["<b>QuantumCliffordSemiring</b><br/>Quotient factory: Cl_q(m)"]:::quote
+        Clifford["<b>CliffordAlgebra</b><br/>Quotient factory: Cl(p, q, r)"]:::quote
+        GCA["<b>GeneralizedCliffordAlgebra</b><br/>Quotient factory: C_n^(m)"]:::quote
+        QuantumClifford["<b>QuantumCliffordAlgebra</b><br/>Quotient factory: Cl_q(m)"]:::quote
         GaloisField["<b>GaloisFieldSemiring</b><br/>Quotient factory: GF(p^m)"]:::quote
     end
 
@@ -160,7 +160,7 @@ flowchart LR
     click String "logic.md" "StringSemiring Tutorial"
     click KCollapsed "logic.md" "KCollapsedSemiring Tutorial"
     click Log "statistical.md" "LogSemiring Tutorial"
-    click DualNum "algebraic.md" "DualNumberSemiring Tutorial"
+    click DualNum "algebraic.md" "DualNumberAlgebra Tutorial"
     click Expectation "statistical.md" "ExpectationSemiring Tutorial"
     click Variance "statistical.md" "VarianceSemiring Tutorial"
     click BivarVariance "statistical.md" "BivariateVarianceSemiring Tutorial"
@@ -171,13 +171,13 @@ flowchart LR
     click MultiBinomialConv "algebraic.md" "MultivariateBinomialConvolutionSemiring Tutorial"
     click MultiMoment "statistical.md" "MultivariateMomentSemiring Tutorial"
     click MonoidAlg "algebraic.md" "MonoidAlgebraSemiring Tutorial"
-    click Polynomial "algebraic.md" "PolynomialSemiring Tutorial"
+    click Polynomial "algebraic.md" "PolynomialAlgebra Tutorial"
     click Provenance "algebraic.md" "ProvenanceSemiring Tutorial"
     click Knot "algebraic.md" "KnotSemiring Tutorial"
     click QuotientAlg "algebraic.md" "QuotientMonoidAlgebraSemiring Tutorial"
-    click Clifford "algebraic.md" "CliffordSemiring Tutorial"
-    click GCA "algebraic.md#generalized-clifford-algebras-gcas-clock-and-shift" "GeneralizedCliffordSemiring Tutorial"
-    click QuantumClifford "algebraic.md#q-deformed-quantum-clifford-algebras" "QuantumCliffordSemiring Tutorial"
+    click Clifford "algebraic.md" "CliffordAlgebra Tutorial"
+    click GCA "algebraic.md#generalized-clifford-algebras-gcas-clock-and-shift" "GeneralizedCliffordAlgebra Tutorial"
+    click QuantumClifford "algebraic.md#q-deformed-quantum-clifford-algebras" "QuantumCliffordAlgebra Tutorial"
     click GaloisField "algebraic.md" "GaloisFieldSemiring Tutorial"
     click Interval "../../recipes.md" "IntervalSemiring in Recipes"
     click Grammar "../../recipes.md" "GrammarSemiring in Recipes"
@@ -284,7 +284,7 @@ flowchart LR
 | **Maslov Tropical Dequantization**   | $\lim_{\hbar \to 0} \hbar \ln\left(e^{a/\hbar} + e^{b/\hbar}\right) = \max(a, b)$                   | The semi-classical limit translating statistical mechanics (partition functions) into idempotent tropical geometry (optimal paths). | `LogSemiring` $\to$ `ArcticSemiring` (Max-Plus).                                                    |
 | **Logarithmic Isomorphisms**         | $\phi(x) = e^{-x}: (\mathbb{R} \cup \{\infty\}, \min, +) \xrightarrow{\cong} ([0, 1], \max, \cdot)$ | Exact bijective homomorphic maps between additive shortest paths and multiplicative probabilities.                                  | `TropicalSemiring` $\leftrightarrow$ `ViterbiSemiring`.                                             |
 | **Continuous & Language Embeddings** | $\{0, 1\} \hookrightarrow [0, 1]$<br/>$\{0, 1\} \hookrightarrow \mathcal{P}(\Sigma^*)$              | Embedding two-valued discrete logic into continuous fuzzy intervals or non-commutative formal language powersets.                   | `BooleanSemiring` $\to$ `LukasiewiczSemiring`, `StringSemiring`.                                    |
-| **Higher-Order Jet Lifts**           | $T\mathbb{R} \to T^{(K)}\mathbb{R} \cong \mathbb{R}[\epsilon] / (\epsilon^{K+1})$                   | Expanding 1st-order tangent bundle expectations to variance, skewness, kurtosis, and multivariate covariance tensors.               | `DualNumberSemiring` $\to$ `VarianceSemiring` $\to$ `MultivariateMomentSemiring`.                   |
+| **Higher-Order Jet Lifts**           | $T\mathbb{R} \to T^{(K)}\mathbb{R} \cong \mathbb{R}[\epsilon] / (\epsilon^{K+1})$                   | Expanding 1st-order tangent bundle expectations to variance, skewness, kurtosis, and multivariate covariance tensors.               | `DualNumberAlgebra` $\to$ `VarianceSemiring` $\to$ `MultivariateMomentSemiring`.                   |
 
 ---
 
@@ -309,21 +309,21 @@ flowchart LR
 | **Statistical**                   | [`ExpectationSemiring`](statistical.md)                                                         | $\mathbb{R}_{\ge 0} \times \mathbb{R}$             |                        Elementwise                         | $(p_1 p_2, p_1 v_2 + p_2 v_1)$ |              $(0, 0), (1, 0)$               | Expected Values, Loss Accumulation                                              |
 |                                   | [`VarianceSemiring`](statistical.md)                                                            | $\mathbb{R}^3$                                     |                          Moments                           |        Binomial Convol.        |                 Zero / Unit                 | 2nd Raw & Central Moments, Univariate Variance                                  |
 |                                   | [`SkewnessSemiring`](statistical.md)                                                            | $\mathbb{R}^4$                                     |                          Moments                           |        Binomial Convol.        |                 Zero / Unit                 | Third Central Moments, Asymmetry / Skewness Risk                                |
-|                                   | [`KurtosisSemiring`](statistical.md)                                                            | $\mathbb{R}^5$                                     |                          Moments                           |        Binomial Convol.        |                 Zero / Unit                 | Fourth Central Moments, Fat-Tail Kurtosis Risk                                  |
+|                                   | [`KurtosisSemiring`](statistical.md)                                                            | $\mathbb{R5}$                                     |                          Moments                           |        Binomial Convol.        |                 Zero / Unit                 | Fourth Central Moments, Fat-Tail Kurtosis Risk                                  |
 |                                   | [`StatisticalMomentSemiring`](statistical.md)                                                   | $\mathbb{R}^{K+1}$                                 |                       Componentwise                        |        Binomial Convol.        |                 Zero / Unit                 | Universal 1D Moments, Full Statistical Metric Decoders                          |
 |                                   | [`BivariateVarianceSemiring`](statistical.md)                                                   | $\mathbb{R}^4$                                     |                          Moments                           |          Composition           |                 Zero / Unit                 | Bivariate Cross-Covariance (Li & Eisner)                                        |
 |                                   | [`MultivariateMomentSemiring`](statistical.md)                                                  | $\text{Sparse } \mathbb{R}^{\binom{d+K}{K}}$       |                      Sparse Poly $+$                       |     Multi-Binomial Convol.     |                 Zero / Unit                 | Multivariate Mean Vectors, $d \times d$ Covariance Matrix $\boldsymbol{\Sigma}$ |
 | **Algebraic**                     | [`BinomialConvolutionSemiring`](statistical.md)                                                 | $\mathbb{R}[\epsilon]/(\epsilon^{K+1})$            |                       Componentwise                        |        Binomial Convol.        |          $(0,\dots), (1,0,\dots)$           | Universal Divided Power Quotient Algebra                                        |
 |                                   | [`MultivariateBinomialConvolutionSemiring`](statistical.md)                                     | $\mathbb{R}[\boldsymbol{\epsilon}]/\langle |\boldsymbol{\beta}|=K+1\rangle$ | Componentwise $+$ | Multi-Binomial Convol. | $\emptyset, \{(0,\dots): 1.0\}$ | Multi-Index Total Degree Quotient Ring |
-|                                   | [`DualNumberSemiring`](statistical.md)                                                          | $\mathbb{R}[\epsilon]/\epsilon^2$                  |                    $(u+v, u\x27+v\x27)$                    |     $(uv, uv\x27+u\x27v)$      |              $(0, 0), (1, 0)$               | Forward-Mode Automatic Differentiation                                          |
+|                                   | [`DualNumberAlgebra`](algebraic.md)                                                              | $\mathbb{R}[\epsilon]/\epsilon^2$                  |                    $(u+v, u\x27+v\x27)$                    |     $(uv, uv\x27+u\x27v)$      |              $(0, 0), (1, 0)$               | Forward-Mode Automatic Differentiation                                          |
 |                                   | [`MonoidAlgebraSemiring`](algebraic.md)                                                    | $R[M]$                                             |                         Linear Sum                         |          Convolution           |       $\emptyset, \{e: \mathbf{1}\}$        | Group Rings, Signal Transforms                                                  |
-|                                   | [`PolynomialSemiring`](algebraic.md)                                                           | $R[x]$                                             |                       Polynomial $+$                       |         Cauchy Product         |       $\emptyset, \{0: \mathbf{1}\}$        | Generating Functions, Control Theory                                            |
+|                                   | [`PolynomialAlgebra`](algebraic.md)                                                              | $R[x]$                                             |                       Polynomial $+$                       |         Cauchy Product         |       $\emptyset, \{0: \mathbf{1}\}$        | Generating Functions, Control Theory                                            |
 |                                   | [`ProvenanceSemiring`](algebraic.md)                                                           | $\mathbb{N}[X]$                                    |                          Poly $+$                          |          Poly $\cdot$          |           $\emptyset, \{(): 1\}$            | Database Provenance, Parsing Derivation Trees                                   |
 |                                   | [`KnotSemiring`](algebraic.md)                                                                       | $\mathbb{Z}[A, A^{-1}]$                            |                          Poly $+$                          |          Poly $\cdot$          |    $\emptyset, \{\text{\x27U\x27}: 1\}$     | Topological Knot Invariants (Kauffman Bracket)                                  |
 |                                   | [`QuotientMonoidAlgebraSemiring`](algebraic.md)                                   | $R[M] / \mathcal{I}$                               |                         Linear Sum                         |        Quotient Convol.        |       $\emptyset, \{e: \mathbf{1}\}$        | Universal Quotient Ring Framework                                               |
-|                                   | [`CliffordSemiring`](algebraic.md)                                                               | $Cl(p, q, r)$                                      |                         Blade $+$                          |        Geometric Prod.         |          $\emptyset, \{(): 1.0\}$           | 3D/4D Rotors, Spacetime Physics, Dirac Spinors                                  |
-|                                   | [`GeneralizedCliffordSemiring`](algebraic.md#generalized-clifford-algebras-gcas-clock-and-shift) | $C_n^{(m)}$                                        |                         Blade $+$                          |        Clock-and-Shift         |       $\emptyset, \{(0,\dots): 1.0\}$       | Discrete Weyl Quantization, Root-of-Unity Algebras                              |
-|                                   | [`QuantumCliffordSemiring`](algebraic.md#q-deformed-quantum-clifford-algebras)                   | $Cl_q(m)$                                          |                         Blade $+$                          |       $q$-Braided Prod.        |       $\emptyset, \{(0,\dots): 1.0\}$       | Quantum Groups, Braided Tensor Geometry                                         |
+|                                   | [`CliffordAlgebra`](algebraic.md)                                                                | $Cl(p, q, r)$                                      |                         Blade $+$                          |        Geometric Prod.         |          $\emptyset, \{(): 1.0\}$           | 3D/4D Rotors, Spacetime Physics, Dirac Spinors                                  |
+|                                   | [`GeneralizedCliffordAlgebra`](algebraic.md#generalized-clifford-algebras-gcas-clock-and-shift)   | $C_n^{(m)}$                                        |                         Blade $+$                          |        Clock-and-Shift         |       $\emptyset, \{(0,\dots): 1.0\}$       | Discrete Weyl Quantization, Root-of-Unity Algebras                              |
+|                                   | [`QuantumCliffordAlgebra`](algebraic.md#q-deformed-quantum-clifford-algebras)                     | $Cl_q(m)$                                          |                         Blade $+$                          |       $q$-Braided Prod.        |       $\emptyset, \{(0,\dots): 1.0\}$       | Quantum Groups, Braided Tensor Geometry                                         |
 |                                   | [`GaloisFieldSemiring`](algebraic.md)                                                              | $GF(p^m)$                                          |                      Poly $+ \bmod p$                      |    Poly $\cdot \bmod P(x)$     |            $\emptyset, \{0: 1\}$            | Finite Field Cryptography, AES S-Box                                            |
 | **Recipe Extensions** *(Applied)* | [`MatrixSemiring`](../../recipes.md) | $\mathbb{R}^{d \times d}$ (Matrices) | Elementwise $\min$ | Matrix Mul ($A B$) | $\infty \cdot \mathbf{J}, \mathbf{I}_d$ | Vector Bundles, Parallel Transport, Gauge Kinematics |
 |                                   | [`IntervalSemiring`](../../recipes.md)                                                                                       | $[\underline{x}, \overline{x}] \subset \mathbb{R}$ | $[\underline{a}+\underline{b}, \overline{a}+\overline{b}]$ |       Interval $\times$        |              $[0, 0], [1, 1]$               | Bounded Uncertainty Analysis, Robust Control                                    |

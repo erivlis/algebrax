@@ -5,7 +5,7 @@ description: Exterior derivative, codifferential, metric Hodge star, Hodge k-Lap
 
 # Discrete Exterior Calculus & Hodge Theory (`algebrax.topology.dec`)
 
-`algebrax.topology.dec` (also exported in `algebrax.topology`, `algebrax.homology`, and `algebrax.analysis`) implements Discrete Exterior Calculus (DEC) and Hodge theory on weighted simplicial complexes.
+`algebrax.topology.dec` (also exported in `algebrax.topology` and `algebrax.analysis`) implements Discrete Exterior Calculus (DEC) and Hodge theory on weighted simplicial complexes.
 
 ---
 
