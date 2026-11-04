@@ -96,7 +96,7 @@ def test_benchmark_matrix_inverse(benchmark):
 def test_benchmark_matrix_lu(benchmark, size: int):
     m_a = symmetric_positive_definite(size, seed=1)
 
-    result = benchmark(ax.matrix.lu, m_a)
+    result = benchmark(ax.matrix.lu_decompose, m_a)
     assert result is not None
 
 

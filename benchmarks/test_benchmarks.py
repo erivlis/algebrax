@@ -199,7 +199,7 @@ def test_benchmark_transforms_convolve(benchmark, density: float):
 
 @pytest.mark.benchmark(group='homology-betti')
 def test_benchmark_homology_betti(benchmark):
-    sc = ax.homology.SimplicialComplex([(0, 1), (1, 2), (2, 0)])
+    sc = ax.topology.SimplicialComplex([(0, 1), (1, 2), (2, 0)])
 
     result = benchmark(sc.betti_numbers, max_k=1)
     assert result == {0: 1, 1: 1}
