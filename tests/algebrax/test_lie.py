@@ -18,6 +18,7 @@ import warnings
 import pytest
 
 import algebrax as ax
+from algebrax.clifford import CliffordAlgebra
 from algebrax.lie import (
     ConvergenceWarning,
     LieAlgebra,
@@ -37,7 +38,6 @@ from algebrax.lie import (
     su_n,
     u_n,
 )
-from algebrax.clifford import CliffordAlgebra
 from algebrax.matrix import commutator, mat_vec
 
 

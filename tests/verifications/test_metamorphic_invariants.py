@@ -13,13 +13,13 @@ from typing import Any
 import pytest
 
 import algebrax as ax
-from algebrax.topology import Cochain, SimplicialComplex, SparseChainComplex
 from algebrax.semiring import (
     ArcticSemiring,
     BooleanSemiring,
     StandardSemiring,
     TropicalSemiring,
 )
+from algebrax.topology import Cochain, SimplicialComplex, SparseChainComplex
 from algebrax.verification import semiring_elements_equal
 
 pytestmark = [pytest.mark.verification, pytest.mark.metamorphic]

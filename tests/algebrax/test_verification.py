@@ -74,6 +74,7 @@ def test_granular_verifiers_falsify_broken_structures() -> None:
     """Verify that every granular hierarchy verifier detects broken algebraic axioms."""
     from algebrax.verification import (
         verify_add_comm_group_laws,
+        verify_algebra_laws,
         verify_band_laws,
         verify_boolean_algebra_laws,
         verify_comm_group_laws,
@@ -84,7 +85,6 @@ def test_granular_verifiers_falsify_broken_structures() -> None:
         verify_lie_algebra_laws,
         verify_magma_laws,
         verify_semimodule_laws,
-        verify_algebra_laws,
     )
 
     class BrokenStructure:

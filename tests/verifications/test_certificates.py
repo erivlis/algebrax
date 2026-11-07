@@ -27,7 +27,6 @@ import pytest
 
 import algebrax as ax
 from algebrax.analysis import algebraic_connectivity, fiedler_vector, pagerank
-from algebrax.topology import Cochain, SimplicialComplex, helmholtz_hodge_decomposition, hodge_laplacian
 from algebrax.matrix.core import cg_solve, dot, inverse, laplacian_matrix, mat_vec, subtract, transpose, vec_norm
 from algebrax.matrix.decompose import (
     cholesky,
@@ -39,6 +38,7 @@ from algebrax.matrix.decompose import (
     recompose_svd,
     svd,
 )
+from algebrax.topology import Cochain, SimplicialComplex, helmholtz_hodge_decomposition, hodge_laplacian
 from algebrax.verification import semiring_elements_equal
 
 pytestmark = [pytest.mark.verification, pytest.mark.certificates]

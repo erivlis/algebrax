@@ -35,7 +35,6 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from algebrax.category import kan_extension_left, kleisli_compose
-from algebrax.topology import CellularSheaf, sheaf_diffusion, sheaf_harmonic_extension, sheaf_laplacian
 from algebrax.lattice import (
     average,
     difference,
@@ -52,6 +51,7 @@ from algebrax.lattice import (
 )
 from algebrax.matrix.core import mat_vec
 from algebrax.semiring import BooleanSemiring, StandardSemiring, TropicalSemiring
+from algebrax.topology import CellularSheaf, sheaf_diffusion, sheaf_harmonic_extension, sheaf_laplacian
 from algebrax.trie import AlgebraicTrie
 
 pytestmark = [pytest.mark.verification, pytest.mark.axiomatic]

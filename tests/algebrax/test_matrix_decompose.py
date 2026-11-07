@@ -8,6 +8,7 @@ import pytest
 
 from algebrax.matrix import dot, transpose
 from algebrax.matrix.decompose import (
+    SingularMatrixError,
     cholesky,
     det,
     inv,
@@ -17,7 +18,6 @@ from algebrax.matrix.decompose import (
     recompose_lu,
     recompose_qr,
     recompose_svd,
-    SingularMatrixError,
     solve,
     solve_triangular,
     svd,
@@ -148,6 +148,7 @@ def test_recompose_svd():
 def test_solve_triangular_float_and_field():
     """Verify solve_triangular over float and ModularField, including upper/lower and singular cases."""
     from fractions import Fraction
+
     from algebrax.algebra import ModularField, StandardField
 
     # Empty

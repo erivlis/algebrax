@@ -36,25 +36,6 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from algebrax.automata import dfa_step, nfa_step, simulate_dfa, simulate_nfa
-from algebrax.topology import (
-    Cochain,
-    FilteredSimplicialComplex,
-    PersistenceInterval,
-    SimplicialComplex,
-    betti_curve,
-    bottleneck_distance,
-    coboundary,
-    cochain_to_flow,
-    codifferential,
-    cohomology_rank,
-    exterior_derivative,
-    flow_to_cochain,
-    helmholtz_hodge_decomposition,
-    hodge_laplacian,
-    hodge_star,
-    persistence_entropy,
-    persistent_homology,
-)
 from algebrax.matrix.core import mat_vec
 from algebrax.metrics import (
     box_counting_dimension,
@@ -81,6 +62,25 @@ from algebrax.probability import (
     normalize,
     skewness,
     variance,
+)
+from algebrax.topology import (
+    Cochain,
+    FilteredSimplicialComplex,
+    PersistenceInterval,
+    SimplicialComplex,
+    betti_curve,
+    bottleneck_distance,
+    coboundary,
+    cochain_to_flow,
+    codifferential,
+    cohomology_rank,
+    exterior_derivative,
+    flow_to_cochain,
+    helmholtz_hodge_decomposition,
+    hodge_laplacian,
+    hodge_star,
+    persistence_entropy,
+    persistent_homology,
 )
 
 # ---------------------------------------------------------------------------

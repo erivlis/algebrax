@@ -172,8 +172,8 @@ def test_cochain_bridges_and_coboundary_equivalence():
     import pytest
 
     from algebrax.analysis import cochain_to_flow, flow_to_cochain, gradient
-    from algebrax.topology import Cochain, SimplicialComplex, coboundary
     from algebrax.matrix import mat_vec
+    from algebrax.topology import Cochain, SimplicialComplex, coboundary
 
     # 1. Node bridge round-trip (0-cochain <-> SparseVector)
     potential = {0: 1.0, 1: 4.0, 2: -2.0}
@@ -228,8 +228,8 @@ def test_dec_operators_and_hodge_star():
         hodge_laplacian,
         hodge_star,
     )
-    from algebrax.topology import SimplicialComplex
     from algebrax.matrix import dot
+    from algebrax.topology import SimplicialComplex
 
     sc = SimplicialComplex([(0, 1, 2)])
     d0 = exterior_derivative(sc, 0)
@@ -274,8 +274,8 @@ def test_helmholtz_hodge_decomposition_topologies():
         exterior_derivative,
         helmholtz_hodge_decomposition,
     )
-    from algebrax.topology import SimplicialComplex
     from algebrax.matrix import inner, mat_vec
+    from algebrax.topology import SimplicialComplex
 
     # 1. Acyclic Tree (0 - 1 - 2): every flow is purely exact (coexact = 0, harmonic = 0)
     tree = SimplicialComplex([(0, 1), (1, 2)])

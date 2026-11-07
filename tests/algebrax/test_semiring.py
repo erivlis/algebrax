@@ -797,6 +797,7 @@ def test_moment_semirings_validation_and_errors():
 def test_algebraic_dynamic_getattr_and_protocol_defaults():
     """Cover semiring.algebraic.__getattr__, HasZeroPred.is_zero, PolynomialAlgebra.neg, and StandardField.is_zero."""
     from fractions import Fraction
+
     import algebrax.semiring.algebraic as alg_mod
     from algebrax.algebra import HasZeroPred, PolynomialAlgebra, StandardField
     from algebrax.semiring.algebraic import _gf_poly_mod
