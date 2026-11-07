@@ -39,7 +39,6 @@ def cmd_catalog(args: argparse.Namespace) -> int:
             'Expectation',
             'Variance',
             'BivariateVariance',
-            'BivariateCovariance',
             'Skewness',
             'Kurtosis',
             'StatisticalMoment',
