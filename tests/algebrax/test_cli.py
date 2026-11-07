@@ -105,3 +105,47 @@ def test_version_attribute_and_cli():
     # Test fallback when PackageNotFoundError is raised
     with patch('importlib.metadata.version', side_effect=importlib.metadata.PackageNotFoundError):
         assert get_version() == VERSION
+
+
+def test_cli_verify_all_and_errors(capsys, tmp_path, monkeypatch):
+    """Test `algebrax verify --all`, invalid semiring, stdin inspect, and help fallback."""
+    import io
+
+    # 1. No args -> prints help and returns 0
+    assert main([]) == 0
+    captured = capsys.readouterr()
+    assert 'usage: algebrax' in captured.out
+
+    # 2. verify --all
+    assert main(['verify', '--all']) == 0
+    captured = capsys.readouterr()
+    assert 'StandardSemiring' in captured.out
+    assert 'TropicalSemiring' in captured.out
+
+    # 3. verify with unknown semiring -> returns 1
+    assert main(['verify', '--semiring', 'UnknownSemiringXYZ']) == 1
+    captured = capsys.readouterr()
+    assert 'Error loading semiring' in captured.err
+
+    # 4. inspect from stdin ('-') with negative integer keys and non-dict row
+    stdin_json = json.dumps({'-1': {'0': 5.0}, '2': 9.0})
+    monkeypatch.setattr('sys.stdin', io.StringIO(stdin_json))
+    assert main(['inspect', '-']) == 0
+    captured = capsys.readouterr()
+    assert 'Row -1: {0: 5.0}' in captured.out
+    assert 'Row 2: 9.0' in captured.out
+
+    # 5. inspect with non-dict JSON root -> returns 1
+    bad_file = tmp_path / 'bad.json'
+    bad_file.write_text('[1, 2, 3]', encoding='utf-8')
+    assert main(['inspect', str(bad_file)]) == 1
+    captured = capsys.readouterr()
+    assert 'must contain a JSON object' in captured.err
+
+    # 6. inspect with unknown semiring -> returns 1
+    good_file = tmp_path / 'good.json'
+    good_file.write_text('{"0": {"1": 1.0}}', encoding='utf-8')
+    assert main(['inspect', str(good_file), '--semiring', 'NoSuchSemiring']) == 1
+    captured = capsys.readouterr()
+    assert 'Unknown semiring' in captured.err
+

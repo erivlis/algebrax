@@ -770,3 +770,72 @@ def test_moment_semirings_validation_and_errors():
 
     with pytest.raises(ValueError, match='Operands must have length 2'):
         b1.mul((1.0,), (1.0, 2.0))
+
+    with pytest.raises(ValueError, match='Operand must have length 2'):
+        b1.nsum((1.0,), 2)
+
+    with pytest.raises(ValueError, match='Operand must have length 2'):
+        b1.power((1.0,), 2)
+
+    with pytest.raises(ValueError, match='Operand must have length 2'):
+        b1.star((1.0,))
+
+    assert b1.star((1.5, 1.0)) == (float('inf'), float('inf'))
+
+    # Dimension checks in MultivariateBinomialConvolutionSemiring
+    mb = MultivariateBinomialConvolutionSemiring(num_vars=2, order=2)
+    with pytest.raises(ValueError, match='dimension does not match'):
+        mb.add({(0, 0): 1.0}, {(0,): 1.0})
+    with pytest.raises(ValueError, match='dimension does not match'):
+        mb.mul({(0,): 1.0}, {(0, 0): 1.0})
+    with pytest.raises(ValueError, match='dimension does not match'):
+        mb.mul({(0, 0): 1.0}, {(0,): 1.0})
+
+    assert mb.star({(0, 0): 1.5}) == {(0, 0): float('inf')}
+
+
+def test_algebraic_dynamic_getattr_and_protocol_defaults():
+    """Cover semiring.algebraic.__getattr__, HasZeroPred.is_zero, PolynomialAlgebra.neg, and StandardField.is_zero."""
+    from fractions import Fraction
+    import algebrax.semiring.algebraic as alg_mod
+    from algebrax.algebra import HasZeroPred, PolynomialAlgebra, StandardField
+    from algebrax.semiring.algebraic import _gf_poly_mod
+
+    # 1. Dynamic re-exports on algebrax.semiring.algebraic
+    assert alg_mod.PolynomialAlgebra is PolynomialAlgebra
+    assert alg_mod.DualNumberAlgebra is not None
+    assert alg_mod.CliffordAlgebra is not None
+    assert alg_mod.GeneralizedCliffordAlgebra is not None
+    assert alg_mod.QuantumCliffordAlgebra is not None
+    with pytest.raises(AttributeError):
+        _ = alg_mod.NonExistentAttribute
+
+    # 2. _gf_poly_mod zero coefficient branch
+    assert _gf_poly_mod(3, 0, p=2) == []
+
+    # 3. PolynomialAlgebra.neg when coeff_semiring has explicit neg method
+    f_std = StandardField(float)
+    poly_f = PolynomialAlgebra(f_std)  # type: ignore[arg-type]
+    assert poly_f.neg({0: 2.0, 1: -3.0}) == {0: -2.0, 1: 3.0}
+
+    # 4. StandardField.is_zero across float, complex, Fraction, and int
+    assert f_std.is_zero(0.0)
+    assert not f_std.is_zero(1.0)
+    f_complex = StandardField(complex)
+    assert f_complex.is_zero(0j)
+    assert not f_complex.is_zero(1 + 1j)
+    f_frac = StandardField(Fraction)
+    assert f_frac.is_zero(Fraction(0))
+    assert not f_frac.is_zero(Fraction(1, 3))
+    f_int = StandardField(int)
+    assert f_int.is_zero(0)
+    assert not f_int.is_zero(5)
+
+    # 5. HasZeroPred default is_zero implementation
+    class CustomZero(HasZeroPred[int]):
+        zero = 0
+
+    cz = CustomZero()
+    assert cz.is_zero(0) is True
+    assert cz.is_zero(3) is False
+

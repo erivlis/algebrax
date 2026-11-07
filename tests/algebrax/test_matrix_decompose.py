@@ -9,12 +9,17 @@ import pytest
 from algebrax.matrix import dot, transpose
 from algebrax.matrix.decompose import (
     cholesky,
+    det,
+    inv,
     lu_decompose,
     qr,
     recompose_cholesky,
     recompose_lu,
     recompose_qr,
     recompose_svd,
+    SingularMatrixError,
+    solve,
+    solve_triangular,
     svd,
 )
 
@@ -138,3 +143,146 @@ def test_recompose_svd():
     u, s, v_t = svd(a)
     recomposed = recompose_svd(u, s, v_t)
     assert is_matrix_close(a, recomposed)
+
+
+def test_solve_triangular_float_and_field():
+    """Verify solve_triangular over float and ModularField, including upper/lower and singular cases."""
+    from fractions import Fraction
+    from algebrax.algebra import ModularField, StandardField
+
+    # Empty
+    assert solve_triangular({}, {}) == {}
+
+    # Float lower-triangular L x = b
+    l_mat = {0: {0: 2.0}, 1: {0: 4.0, 1: 3.0}}
+    b_vec = {0: 6.0, 1: 18.0}
+    x_low = solve_triangular(l_mat, b_vec, lower=True)
+    assert x_low[0] == pytest.approx(3.0)
+    assert x_low[1] == pytest.approx(2.0)
+
+    # Float upper-triangular U x = b
+    u_mat = {0: {0: 2.0, 1: 4.0}, 1: {1: 3.0}}
+    b_up = {0: 14.0, 1: 6.0}
+    x_up = solve_triangular(u_mat, b_up, lower=False)
+    assert x_up[1] == pytest.approx(2.0)
+    assert x_up[0] == pytest.approx(3.0)
+
+    # Singular float triangular
+    with pytest.raises(SingularMatrixError, match='zero diagonal'):
+        solve_triangular({0: {0: 0.0}, 1: {1: 1.0}}, {0: 1.0}, lower=True)
+
+    # Field lower-triangular over Q (Fraction)
+    q_field = StandardField(Fraction)
+    l_q = {0: {0: Fraction(2)}, 1: {0: Fraction(1), 1: Fraction(3)}}
+    b_q = {0: Fraction(4), 1: Fraction(8)}
+    x_q = solve_triangular(l_q, b_q, field=q_field, lower=True)
+    assert x_q == {0: Fraction(2), 1: Fraction(2)}
+
+    # Field upper-triangular over ModularField(7)
+    gf7 = ModularField(7)
+    assert gf7.p == 7
+    u_gf = {0: {0: 2, 1: 3}, 1: {1: 4}}
+    b_gf = {0: 5, 1: 1}  # 4 * x1 = 1 (mod 7) -> x1 = 2; 2*x0 + 3*2 = 5 -> 2*x0 = 6 -> x0 = 3
+    x_gf = solve_triangular(u_gf, b_gf, field=gf7, lower=False)
+    assert x_gf == {0: 3, 1: 2}
+
+    # Singular Field triangular
+    with pytest.raises(SingularMatrixError, match='zero diagonal'):
+        solve_triangular({0: {0: 0}, 1: {1: 1}}, {0: 1}, field=gf7, lower=True)
+
+
+def test_solve_det_inv_float_and_field_edge_cases():
+    """Verify solve, det, inv, and lu_decompose across float, custom non-abs Field, and error paths."""
+    from algebrax.algebra import Field, ModularField
+    from algebrax.matrix.decompose import _symmetric_jacobi_eigh
+
+    # Empty cases
+    assert lu_decompose({}) == ({}, {}, {})
+    assert svd({}) == ({}, {}, {})
+    assert _symmetric_jacobi_eigh([]) == ([], [])
+    assert solve({}, {}) == {}
+    assert det({}) == 1.0
+    assert inv({}) == {}
+
+    gf5 = ModularField(5)
+    assert det({}, field=gf5) == 1
+
+    # Non-square errors
+    rect = {0: {0: 1.0, 1: 2.0}}
+    with pytest.raises(ValueError, match='square'):
+        solve(rect, {0: 1.0})
+    with pytest.raises(ValueError, match='square'):
+        det(rect)
+    with pytest.raises(ValueError, match='square'):
+        inv(rect)
+
+    # Float solve, det, inv with row swaps (pivoting)
+    a_float = {0: {0: 0.0, 1: 2.0, 2: 1.0}, 1: {0: 1.0, 1: -2.0, 2: -3.0}, 2: {0: 3.0, 1: 1.0, 2: 2.0}}
+    b_float = {0: 8.0, 1: -15.0, 2: 13.0}
+    x_float = solve(a_float, b_float)
+    assert x_float[0] == pytest.approx(1.0)
+    assert x_float[1] == pytest.approx(2.0)
+    assert x_float[2] == pytest.approx(4.0)
+
+    d_float = det(a_float)
+    assert d_float == pytest.approx(-15.0)
+
+    a_inv = inv(a_float)
+    prod = dot(a_float, a_inv)
+    assert is_matrix_close(prod, {0: {0: 1.0}, 1: {1: 1.0}, 2: {2: 1.0}})
+
+    # Singular float solve
+    with pytest.raises(SingularMatrixError, match='singular'):
+        solve({0: {0: 1.0, 1: 2.0}, 1: {0: 2.0, 1: 4.0}}, {0: 1.0, 1: 2.0})
+
+    # Singular Field solve
+    with pytest.raises(SingularMatrixError, match='singular'):
+        solve({0: {0: 1, 1: 2}, 1: {0: 2, 1: 4}}, {0: 1, 1: 2}, field=gf5)
+
+    # Custom Field whose elements do NOT support abs() to exercise the non-abs pivoting branch in lu_decompose
+    class Box:
+        def __init__(self, v: int):
+            self.v = v % 5
+
+        def __eq__(self, other: object) -> bool:
+            return isinstance(other, Box) and self.v == other.v
+
+    class BoxField(Field[Box]):
+        @property
+        def zero(self) -> Box:
+            return Box(0)
+
+        @property
+        def one(self) -> Box:
+            return Box(1)
+
+        def is_zero(self, a: Box) -> bool:
+            return a.v == 0
+
+        def add(self, a: Box, b: Box) -> Box:
+            return Box(a.v + b.v)
+
+        def neg(self, a: Box) -> Box:
+            return Box(-a.v)
+
+        def mul(self, a: Box, b: Box) -> Box:
+            return Box(a.v * b.v)
+
+        def inv(self, a: Box) -> Box:
+            if a.v == 0:
+                raise ZeroDivisionError
+            return Box(pow(a.v, -1, 5))
+
+    bf = BoxField()
+    mat_box = {
+        0: {0: Box(0), 1: Box(2)},
+        1: {0: Box(3), 1: Box(1)},
+    }
+    p_b, l_b, u_b = lu_decompose(mat_box, field=bf)
+    recomp_b = recompose_lu(p_b, l_b, u_b, field=bf)
+    assert recomp_b[0][1] == Box(2)
+    assert recomp_b[1][0] == Box(3)
+    assert det(mat_box, field=bf) == Box(4)  # -(2*3) = -6 = 4 (mod 5)
+    inv_b = inv(mat_box, field=bf)
+    assert dot(mat_box, inv_b, semiring=bf) == {0: {0: Box(1)}, 1: {1: Box(1)}}
+

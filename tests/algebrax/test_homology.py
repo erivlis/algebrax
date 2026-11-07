@@ -874,3 +874,91 @@ def test_persistent_cohomology_and_sheaf_first_cohomology():
     empty_sheaf = CellularSheaf()
     assert empty_sheaf.first_cohomology_dimension() == 0
     assert empty_sheaf.euler_characteristic() == 0
+
+
+def test_topology_core_cochain_algebra_and_sheaf_edge_cases():
+    """Cover mixed-type vertex simplices, CochainAlgebra, SparseChainComplex cohomology_rank, and CellularSheaf."""
+    import pytest
+
+    from algebrax.semiring import StandardSemiring
+    from algebrax.topology import (
+        CellularSheaf,
+        Cochain,
+        CochainAlgebra,
+        SimplicialComplex,
+        SparseChainComplex,
+        cohomology_rank,
+    )
+    from algebrax.topology._core import _matrix_rank
+
+    # 1. Mixed-type uncomparable vertices (int and str) in _count_inversions_and_sort and _canonical_edge
+    c_mixed = Cochain([([2, 'a', 1], 3.0)])  # non-tuple simplex converted to tuple & mixed-type sorted
+    assert len(c_mixed) == 1
+    assert 'Cochain(' in repr(c_mixed)
+    assert '\\omega' in c_mixed._repr_latex_()
+
+    # _matrix_rank on empty or all-empty-row dict
+    assert _matrix_rank({}) == 0
+    assert _matrix_rank({0: {}, 1: {}}) == 0
+
+    # 2. Cochain equality and operator edge cases
+    c1 = Cochain({(0, 1): 2.0})
+    c1_unoriented = Cochain({(0, 1): 2.0}, oriented=False)
+    assert c1 != c1_unoriented
+    assert c1 != Cochain({(0, 2): 2.0})
+    assert c1 != Cochain({(0, 1): 9.0})
+    assert c1 != {123: 2.0}  # invalid non-iterable key in Mapping
+    assert (c1 == 'not-a-mapping') is False
+    assert c1.__add__('invalid') is NotImplemented  # type: ignore[arg-type]
+    assert c1.__sub__('invalid') is NotImplemented  # type: ignore[arg-type]
+    assert c1.__mul__({0: 1}) is NotImplemented  # type: ignore[arg-type]
+    assert c1.__rmul__({0: 1}) is NotImplemented  # type: ignore[arg-type]
+
+    # Negative edge flux in to_flow(skew_symmetric=False)
+    c_neg = Cochain({(0, 1): -4.0, (1, 2): 0.0})
+    flow_pos_only = c_neg.to_flow(skew_symmetric=False)
+    assert flow_pos_only == {1: {0: 4.0}}
+
+    # 3. cohomology_rank on raw SparseChainComplex (non-SimplicialComplex)
+    d1 = {(0,): {(0, 1): -1.0, (0, 2): -1.0}, (1,): {(0, 1): 1.0, (1, 2): -1.0}, (2,): {(0, 2): 1.0, (1, 2): 1.0}}
+    raw_cc = SparseChainComplex({1: d1})
+    assert cohomology_rank(raw_cc, 0) == 1
+    assert cohomology_rank(raw_cc, 1) == 1
+
+    # 4. CochainAlgebra operations
+    tri = SimplicialComplex([(0, 1, 2)])
+    ca = CochainAlgebra(tri, StandardSemiring(float))
+    z = ca.zero
+    u = ca.one
+    assert len(z) == 0
+    assert len(u) == 3
+    assert ca.add(u, z) == u
+    assert ca.sub(u, u) == z
+    assert ca.neg(u)[(0,)] == -1.0
+    assert ca.smul(3.0, u)[(0,)] == 3.0
+    assert ca.mul(u, c1) == (u ^ c1)
+
+    # 5. CellularSheaf constructor with explicit vertex/edge stalks & restrictions, plus isolated vertices
+    sheaf_init = CellularSheaf(
+        vertex_stalks={'a': 1, 1: 1},
+        edge_stalks={('a', 1): 1},
+        restrictions={('a', ('a', 1)): {0: {0: 1.0}}, (1, ('a', 1)): 1},
+    )
+    assert sheaf_init.euler_characteristic() == 1
+
+    # Sheaf with vertices/edges but zero restriction maps (empty coboundary delta)
+    sheaf_zero_rho = CellularSheaf(vertex_stalks={0: 1, 1: 1})
+    sheaf_zero_rho.edge_stalks[(0, 1)] = 1
+    assert sheaf_zero_rho.global_sections_dimension() == 2
+    assert sheaf_zero_rho.first_cohomology_dimension() == 1
+    assert sheaf_zero_rho.laplacian_matrix() == {}
+
+    from algebrax.topology.sheaf import _normalize_restriction, _normalize_restriction_row, sheaf_harmonic_extension
+
+    assert sheaf_harmonic_extension(sheaf_zero_rho, {(0, 0): 5.0}, boundary_vertices={0}) == {(0, 0): 5.0, (1, 0): 0.0}
+    assert _normalize_restriction_row(2.5) == {0: 2.5}
+    with pytest.raises(TypeError, match='Unsupported'):
+        _normalize_restriction_row('bad')
+    with pytest.raises(TypeError, match='Unsupported'):
+        _normalize_restriction(object())  # type: ignore[arg-type]
+
