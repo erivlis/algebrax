@@ -12,6 +12,10 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from typing import Literal
 
+from algebrax.matrix.academic import PerformanceWarning
+from algebrax.matrix.core import laplacian_matrix, mat_vec, vec_mat
+from algebrax.matrix.decompose import _symmetric_jacobi_eigh
+from algebrax.semiring import Semiring
 from algebrax.topology import (
     CellularSheaf,
     Cochain,
@@ -32,10 +36,6 @@ from algebrax.topology import (
     sheaf_harmonic_extension,
     sheaf_laplacian,
 )
-from algebrax.matrix.academic import PerformanceWarning
-from algebrax.matrix.core import laplacian_matrix, mat_vec, vec_mat
-from algebrax.matrix.decompose import _symmetric_jacobi_eigh
-from algebrax.semiring import Semiring
 from algebrax.typing import K, SparseMatrix, SparseVector
 
 __all__ = [
