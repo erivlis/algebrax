@@ -158,7 +158,9 @@ def test_structural_protocol_attrs_lattice():
     )
 
     def attrs(cls: type) -> set[str]:
-        return set(getattr(cls, '__protocol_attrs__', ()))
+        if hasattr(cls, '__protocol_attrs__'):
+            return set(cls.__protocol_attrs__)
+        return set(typing._get_protocol_attrs(cls))  # type: ignore[attr-defined]
 
     # Additive chain
     assert attrs(AddMagma) == {'add'}

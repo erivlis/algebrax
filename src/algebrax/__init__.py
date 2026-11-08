@@ -83,7 +83,7 @@ try:
 
     __version__ = importlib.metadata.version('algebrax')
 except Exception:
-    __version__ = '0.11.3'
+    __version__ = '0.12.0'
 
 __all__ = [
     'DenseMatrix',

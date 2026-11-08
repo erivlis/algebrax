@@ -53,8 +53,8 @@
 #    while eliminating divergence noise ($\omega_{\text{exact}} \to 0$).
 
 # %%
-from algebrax.topology import SimplicialComplex, helmholtz_hodge_decomposition
 from algebrax.matrix.core import add, dot, mat_vec, transpose
+from algebrax.topology import SimplicialComplex, helmholtz_hodge_decomposition
 from algebrax.typing import SparseMatrix
 
 # %% [markdown]

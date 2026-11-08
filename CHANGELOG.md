@@ -1,5 +1,23 @@
-## Unreleased
+## v0.12.0 (2026-11-08)
 
+### Feat
+
+- **algebra**: introduce mixin protocols for algebraic operations and update existing classes
+- add rings and fields guide to the zensical configuration
+- update status of EP-0191 to final
+- add verification laws for non-associative rings, division rings, fields, modules, and algebras
+- introduce Field, Module, and Algebra protocols with implementations for standard and modular fields
+- Add algebraic hierarchy protocols and helper functions for groups, lattices, and magmas
+- **Homology**: Add PersistenceInterval and FilteredSimplicialComplex classes with associated methods for topological data analysis
+
+### Refactor
+
+- reorganize imports across multiple test files for clarity
+- clean up imports in analysis.py by removing duplicates
+- remove Base Semiring protocol and related imports
+- update references from CliffordSemiring to CliffordAlgebra and adjust imports
+- remove canonical aliases for algebraic structures to streamline imports
+- **algebra**: add DualNumber and Polynomial algebra classes; update imports
 
 ## v0.11.3 (2026-10-25)
 
