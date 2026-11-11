@@ -78,7 +78,7 @@ print(
 # -> 0, 0
 assert sheaf_flat.euler_characteristic() == sheaf_frustrated.euler_characteristic() == 0
 
-# 3. Sheaf Harmonic Extension (Dirichlet Boundary Value Problem)
+#3. Sheaf Harmonic Extension (Dirichlet Boundary Value Problem)
 path_sheaf = CellularSheaf()
 path_sheaf.add_edge(0, 1, dim=1, rho_u=1.0, rho_v=1.0)
 path_sheaf.add_edge(1, 2, dim=1, rho_u=1.0, rho_v=1.0)
@@ -95,8 +95,35 @@ print('Harmonic extension:', harmonic_state)
 
 ---
 
+## Functorial Sheaves & Categorical DEC (`FunctorialSheaf`, `ConstantSheaf`)
+
+Following Justin Curry's categorical sheaf theory, every regular cell complex $K$ induces a face-inclusion poset category $\mathbf{Poset}(K)$ (`CellPosetCategory`), and a cellular sheaf is a functor $\mathcal{F}: \mathbf{Poset}(K) \to \mathbf{Mat}(\mathbb{R})$ (`FunctorialSheaf`).
+
+Standard **Discrete Exterior Calculus (DEC)** is identically the special case of cellular sheaf theory for the **Constant Rank-1 Sheaf** $\underline{\mathbb{R}}$ (`ConstantSheaf`):
+- Its degree-$k$ sheaf coboundary $\delta^k$ (`build_sheaf_coboundary_matrix`) equals the DEC exterior derivative $d_k = \partial_{k+1}^\top$.
+- Its degree-$k$ Hodge–Sheaf Laplacian $L_k = (\delta^k)^\top \delta^k + \delta^{k-1} (\delta^{k-1})^\top$ (`build_sheaf_laplacian`) equals the DEC Hodge Laplacian $\Delta_k$.
+
+```python
+from algebrax.topology import (
+    ConstantSheaf,
+    SimplicialComplex,
+    build_sheaf_coboundary_matrix,
+    build_sheaf_laplacian,
+)
+from algebrax.verification import verify_coboundary_nilpotency
+
+sc = SimplicialComplex([(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)])
+const_sheaf = ConstantSheaf.from_simplicial_complex(sc)
+
+assert verify_coboundary_nilpotency(const_sheaf, k=0)
+l1 = build_sheaf_laplacian(const_sheaf, k=1)
+```
+
+---
+
 ## Related Guides
 
 * [Discrete Exterior Calculus (DEC) & Hodge Decomposition](dec.md)
 * [Simplicial Cohomology & Cup Product Ring](cohomology.md)
+* [Category Theory & Enriched Matrix Mechanics](../discrete/category.md)
 * [Modules, Vector Spaces & Algebras](../algebra/modules_and_vector_spaces.md)
