@@ -18,7 +18,16 @@ Submodules:
 
 from __future__ import annotations
 
-from algebrax.topology import cohomology, dec, homology, persistence, sheaf
+from algebrax.topology import bundle, cohomology, dec, homology, persistence, sheaf
+from algebrax.topology.bundle import (
+    DiscreteConnection,
+    DiscreteOrthogonalConnection,
+    apply_gauge_transformation,
+    build_connection_laplacian,
+    compute_face_holonomy,
+    covariant_exterior_derivative,
+    is_flat_bundle,
+)
 from algebrax.topology.cohomology import (
     Cochain,
     CochainAlgebra,
@@ -73,7 +82,9 @@ __all__ = [
     'Cochain',
     'CochainAlgebra',
     'ConstantSheaf',
+    'DiscreteConnection',
     'DiscreteForm',
+    'DiscreteOrthogonalConnection',
     'EdgeStalkCoord',
     'FilteredSimplicialComplex',
     'FunctorialSheaf',
@@ -83,10 +94,13 @@ __all__ = [
     'SimplicialComplex',
     'SparseChainComplex',
     'StalkCoord',
+    'apply_gauge_transformation',
     'betti_curve',
     'bottleneck_distance',
+    'build_connection_laplacian',
     'build_sheaf_coboundary_matrix',
     'build_sheaf_laplacian',
+    'bundle',
     'canonicalize_form',
     'cap_product',
     'coboundary',
@@ -94,6 +108,8 @@ __all__ = [
     'codifferential',
     'cohomology',
     'cohomology_rank',
+    'compute_face_holonomy',
+    'covariant_exterior_derivative',
     'cup_product',
     'dec',
     'exterior_derivative',
@@ -102,6 +118,7 @@ __all__ = [
     'hodge_laplacian',
     'hodge_star',
     'homology',
+    'is_flat_bundle',
     'persistence',
     'persistence_entropy',
     'persistent_cohomology',
@@ -111,3 +128,4 @@ __all__ = [
     'sheaf_harmonic_extension',
     'sheaf_laplacian',
 ]
+

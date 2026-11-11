@@ -34,10 +34,12 @@ __all__ = [
     'verify_comm_group_laws',
     'verify_comm_monoid_laws',
     'verify_comm_ring_laws',
+    'verify_connection_inversion',
     'verify_distributive_lattice_laws',
     'verify_division_ring_laws',
     'verify_field_laws',
     'verify_functor_laws',
+    'verify_gauge_covariance',
     'verify_group_action_laws',
     'verify_group_laws',
     'verify_ideal_absorption_laws',
@@ -1571,3 +1573,67 @@ def verify_sheaf_laplacian_properties(
         'symmetry': symmetric,
         'positive_semidefinite': psd,
     }
+
+
+def verify_connection_inversion(
+    connection: Any,
+    edges: Iterable[tuple[Any, Any]],
+    tol: float = 1e-12,
+) -> bool:
+    r"""Verify that parallel transport satisfies $\rho(v, u) \cdot \rho(u, v) = I_d$ for all edges."""
+    from algebrax.matrix.core import dot
+    from algebrax.semiring import StandardSemiring
+
+    semiring = StandardSemiring(float)
+    d = connection.fiber_dim
+    for u, v in edges:
+        t_uv = connection.transport(u, v)
+        t_vu = connection.transport(v, u)
+        prod = dot(t_vu, t_uv, semiring=semiring)
+        for i in range(d):
+            for j in range(d):
+                expected = 1.0 if i == j else 0.0
+                if abs(prod.get(i, {}).get(j, 0.0) - expected) >= tol:
+                    return False
+    return True
+
+
+def verify_gauge_covariance(
+    connection: Any,
+    adjacency: Any,
+    gauge_transform: dict[Any, Any],
+    tol: float = 1e-9,
+) -> bool:
+    r"""Verify that under local vertex gauge transformations $g_u \in O(d)$,
+    the Connection Laplacian transforms covariantly:
+    $$L_{\nabla'} = \mathbf{G} \, L_\nabla \, \mathbf{G}^T$$
+    """
+    from algebrax.matrix.core import dot, transpose
+    from algebrax.semiring import StandardSemiring
+    from algebrax.topology.bundle import (
+        apply_gauge_transformation,
+        build_connection_laplacian,
+    )
+
+    semiring = StandardSemiring(float)
+    d = connection.fiber_dim
+    ident = {i: {i: 1.0} for i in range(d)}
+
+    l_orig = build_connection_laplacian(connection, adjacency)
+    conn_prime = apply_gauge_transformation(connection, gauge_transform)
+    l_prime = build_connection_laplacian(conn_prime, adjacency)
+
+    # Assemble block-diagonal global gauge matrix G
+    big_g: dict[tuple[Any, int], dict[tuple[Any, int], float]] = {}
+    for u in adjacency:
+        g_u = gauge_transform.get(u, ident)
+        for i, row in g_u.items():
+            row_u: dict[tuple[Any, int], float] = {}
+            for j, val in row.items():
+                if abs(float(val)) > 1e-15:
+                    row_u[(u, int(j))] = float(val)
+            if row_u:
+                big_g[(u, int(i))] = row_u
+
+    expected_l_prime = dot(big_g, dot(l_orig, transpose(big_g), semiring=semiring), semiring=semiring)
+    return semiring_elements_equal(l_prime, expected_l_prime, tol)
