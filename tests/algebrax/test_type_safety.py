@@ -55,7 +55,7 @@ def test_type_hints_resolution():
 
 
 def test_atomic_mixin_exports():
-    """Verify all 16 atomic operational mixins are exported from algebrax.algebra."""
+    """Verify all atomic operational mixins are exported from algebrax.algebra."""
     import algebrax.algebra as alg
 
     expected_mixins = [
@@ -75,6 +75,9 @@ def test_atomic_mixin_exports():
         'HasOp',
         'HasIdentity',
         'HasBracket',
+        'HasContains',
+        'HasReduce',
+        'HasGenerator',
     ]
     for name in expected_mixins:
         cls = getattr(alg, name)
@@ -82,7 +85,7 @@ def test_atomic_mixin_exports():
 
 
 def test_diamond_free_protocol_inheritance():
-    """Verify no named algebraic protocol or mixin has diamond inheritance across algebrax.algebra."""
+    """Verify no named algebraic protocol or mixin has diamond inheritance or Layer-2-to-Layer-2 chaining."""
     import algebrax.algebra as alg
 
     protocols = [
@@ -90,9 +93,18 @@ def test_diamond_free_protocol_inheritance():
         for name in alg.__all__
         if isinstance(getattr(alg, name), type) and getattr(getattr(alg, name), '_is_protocol', False)
     ]
-    assert len(protocols) >= 35
+    assert len(protocols) >= 45
 
     for proto in protocols:
+        # Law of Flat Protocol Composition (EP-0194 Section 5):
+        # Every algebrax base class of a Protocol in algebrax.algebra MUST be a Layer 1 atomic mixin in _mixins.py
+        for base in proto.__bases__:
+            if base.__module__.startswith('algebrax.'):
+                assert base.__module__ == 'algebrax.algebra._mixins', (
+                    f'{proto.__name__} inherits from non-mixin protocol {base.__name__} '
+                    f'({base.__module__}), violating EP-0194 Law of Flat Protocol Composition'
+                )
+
         # Traverse the base class DAG of algebrax protocols (excluding typing.Protocol / Generic / object)
         visited: list[type] = []
 
@@ -109,14 +121,26 @@ def test_diamond_free_protocol_inheritance():
 
 
 def test_two_sorted_protocol_parameter_order():
-    """Verify two-sorted protocols preserve (R, M) generic parameter order (R first, M second)."""
-    from algebrax.algebra import Algebra, HasScale, Module, NonAssocAlgebra, Semimodule, VectorSpace
+    """Verify two-sorted protocols preserve (R, ...) generic parameter order (R first)."""
+    from algebrax.algebra import (
+        Algebra,
+        HasScale,
+        LinearMap,
+        Module,
+        NonAssocAlgebra,
+        Semimodule,
+        VectorSpace,
+    )
 
     for proto in (HasScale, Semimodule, Module, VectorSpace, NonAssocAlgebra, Algebra):
         params = proto.__parameters__
         assert len(params) == 2, f'{proto.__name__} must have 2 type parameters'
         assert params[0].__name__ == 'R', f'{proto.__name__} first parameter must be R, got {params[0]}'
         assert params[1].__name__ == 'M', f'{proto.__name__} second parameter must be M, got {params[1]}'
+
+    lmap_params = LinearMap.__parameters__
+    assert len(lmap_params) == 3
+    assert lmap_params[0].__name__ == 'R', f'LinearMap first parameter must be R, got {lmap_params[0]}'
 
 
 def test_structural_protocol_attrs_lattice():
@@ -138,8 +162,15 @@ def test_structural_protocol_attrs_lattice():
         DivisionRing,
         Field,
         Group,
+        GroupHom,
+        Homomorphism,
+        Ideal,
         JoinSemilattice,
         Lattice,
+        LeftIdeal,
+        LieAlgebraHom,
+        LieIdeal,
+        LinearMap,
         Magma,
         MeetSemilattice,
         Module,
@@ -150,7 +181,10 @@ def test_structural_protocol_attrs_lattice():
         OpMagma,
         OpMonoid,
         OpSemigroup,
+        PrincipalIdeal,
+        RightIdeal,
         Ring,
+        RingHom,
         Semigroup,
         Semimodule,
         Semiring,
@@ -227,4 +261,18 @@ def test_structural_protocol_attrs_lattice():
         'bot',
         'complement',
     }
+
+    # Ideal & Homomorphism chain (EP-0201)
+    assert attrs(Ideal) == {'contains', 'reduce'}
+    assert attrs(Ideal) == attrs(LeftIdeal) == attrs(RightIdeal) == attrs(LieIdeal)
+    assert attrs(Ideal) < attrs(PrincipalIdeal) == {'contains', 'reduce', 'generator'}
+    assert attrs(Homomorphism) == {'__call__'}
+    assert (
+        attrs(Homomorphism)
+        == attrs(GroupHom)
+        == attrs(RingHom)
+        == attrs(LinearMap)
+        == attrs(LieAlgebraHom)
+    )
+
 
