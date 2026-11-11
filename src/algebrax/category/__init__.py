@@ -19,6 +19,7 @@ from algebrax.category.matrix import (
     SemiringChangeOfBaseFunctor,
     TransposeFunctor,
 )
+from algebrax.category.poset import Cell, CellPosetCategory, FaceInclusion
 from algebrax.matrix.core import dot
 from algebrax.semiring import Semiring
 from algebrax.typing import SparseMatrix
@@ -97,6 +98,9 @@ def kan_extension_left(
 
 __all__ = [
     'Category',
+    'Cell',
+    'CellPosetCategory',
+    'FaceInclusion',
     'Functor',
     'LawvereMetricCategory',
     'MatrixCategory',

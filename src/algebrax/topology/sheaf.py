@@ -3,17 +3,26 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping, Sequence
-from typing import Any, Generic, TypeAlias
+from collections.abc import Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeAlias, runtime_checkable
 
+from algebrax.category.poset import Cell, CellPosetCategory
 from algebrax.topology._core import _matrix_rank
 from algebrax.typing import K, SparseMatrix, SparseVector
 
+if TYPE_CHECKING:
+    from algebrax.topology.homology import SimplicialComplex
+
 __all__ = [
+    'CellStalkCoord',
     'CellularSheaf',
+    'ConstantSheaf',
     'EdgeStalkCoord',
+    'FunctorialSheaf',
     'RestrictionMap',
     'StalkCoord',
+    'build_sheaf_coboundary_matrix',
+    'build_sheaf_laplacian',
     'sheaf_diffusion',
     'sheaf_harmonic_extension',
     'sheaf_laplacian',
@@ -21,7 +30,95 @@ __all__ = [
 
 StalkCoord: TypeAlias = tuple[K, int]
 EdgeStalkCoord: TypeAlias = tuple[tuple[K, K], int]
+CellStalkCoord: TypeAlias = tuple[Cell, int]
 RestrictionMap: TypeAlias = Mapping[int, Mapping[int, float]] | Sequence[Sequence[float]] | float | int
+
+
+@runtime_checkable
+class FunctorialSheaf(Protocol):
+    r"""A cellular sheaf $\mathcal{F}: \mathbf{Poset}(K)^{\mathrm{op}} \to \mathbf{Mat}(\mathbb{R})$.
+
+    Maps:
+        - Cell $\sigma \mapsto$ Stalk dimension $\mathbb{R}^{d_\sigma}$.
+        - Face inclusion $\sigma \trianglelefteq \tau \mapsto$ Restriction matrix
+          $\mathcal{E}_{\sigma \trianglelefteq \tau}: \mathbb{R}^{d_\sigma} \to \mathbb{R}^{d_\tau}$.
+    """
+
+    @property
+    def poset_category(self) -> CellPosetCategory:
+        r"""The underlying cell poset category $\mathbf{Poset}(K)$."""
+        ...
+
+    def stalk_dim(self, cell: Cell) -> int:
+        r"""Dimension $d_\sigma$ of the vector stalk $\mathcal{F}(\sigma)$ at `cell`."""
+        ...
+
+    def restriction_map(self, face: Cell, coface: Cell) -> SparseMatrix[int, float]:
+        r"""Restriction matrix $\mathcal{E}_{\mathrm{face} \trianglelefteq \mathrm{coface}}$."""
+        ...
+
+
+class ConstantSheaf(FunctorialSheaf):
+    r"""The constant rank-1 sheaf $\underline{\mathbb{R}}$ over a regular cell or simplicial complex $K$.
+
+    Algebraic Signature:
+        $\underline{\mathbb{R}}(\sigma) = \mathbb{R}^1, \quad
+        \mathcal{E}_{\sigma \trianglelefteq \tau} = \begin{bmatrix} [\sigma : \tau] \end{bmatrix}$
+
+    Properties:
+        - Stalk at every cell $\sigma \in K$ is $\mathbb{R}^1$.
+        - Restriction map for oriented face $\sigma \trianglelefteq \tau$ is $[+1]$ or $[-1]$
+          according to relative orientation $[\sigma : \tau]$.
+        - Its degree-$k$ sheaf coboundary $\delta^k$ is canonically isomorphic to the
+          Discrete Exterior Calculus (DEC) exterior derivative $\mathbf{d}_k = \partial_{k+1}^T$.
+    """
+
+    def __init__(
+        self,
+        complex_cells: Iterable[Cell],
+        orientations: Mapping[tuple[Cell, Cell], int | float],
+    ) -> None:
+        self.cells: list[Cell] = sorted(set(complex_cells))
+        self.orientations: dict[tuple[Cell, Cell], float] = {
+            (f, c): float(s) for (f, c), s in orientations.items()
+        }
+        self._poset = CellPosetCategory(self.cells, self.orientations.keys())
+
+    @classmethod
+    def from_simplicial_complex(cls, sc: SimplicialComplex) -> ConstantSheaf:
+        r"""Construct the constant rank-1 sheaf $\underline{\mathbb{R}}$ over a `SimplicialComplex`."""
+        cells: list[Cell] = []
+        orientations: dict[tuple[Cell, Cell], float] = {}
+
+        for k, simplices in sc._simplices.items():
+            for s in sorted(simplices):
+                cells.append(Cell(dimension=k, id=s))
+
+        for k, b_k in sc.boundary_matrices.items():
+            for face_tuple, row in b_k.items():
+                face_cell = Cell(dimension=k - 1, id=face_tuple)
+                for coface_tuple, sign in row.items():
+                    coface_cell = Cell(dimension=k, id=coface_tuple)
+                    orientations[(face_cell, coface_cell)] = float(sign)
+
+        return cls(cells, orientations)
+
+    @property
+    def poset_category(self) -> CellPosetCategory:
+        return self._poset
+
+    def stalk_dim(self, cell: Cell) -> int:
+        if cell not in self._poset.cells:
+            raise KeyError(f'Cell {cell} not found in ConstantSheaf.')
+        return 1
+
+    def restriction_map(self, face: Cell, coface: Cell) -> SparseMatrix[int, float]:
+        if face == coface and face in self._poset.cells:
+            return {0: {0: 1.0}}
+        sign = self.orientations.get((face, coface))
+        if sign is None or abs(sign) <= 1e-15:
+            return {}
+        return {0: {0: float(sign)}}
 
 
 def _normalize_restriction_row(row: Any) -> dict[int, float]:
@@ -64,12 +161,12 @@ def _canonical_edge(u: K, v: K) -> tuple[tuple[K, K], bool]:
     return (u, v), False
 
 
-class CellularSheaf(Generic[K]):
+class CellularSheaf(FunctorialSheaf, Generic[K]):
     r"""Cellular sheaf $\mathcal{F}$ over a 1-dimensional cell complex (graph) $G = (V, E)$.
 
     Algebraic Signature:
-        $\mathcal{F} = \left(\\{\mathcal{F}(v)\\}_{v \in V}, \\{\mathcal{F}(e)\\}_{e \in E},
-        \\{\rho_{v \trianglelefteq e}: \mathcal{F}(v) \to \mathcal{F}(e)\\}\right)$
+        $\mathcal{F} = \left(\{\mathcal{F}(v)\}_{v \in V}, \{\mathcal{F}(e)\}_{e \in E},
+        \{\rho_{v \trianglelefteq e}: \mathcal{F}(v) \to \mathcal{F}(e)\}\right)$
 
     Carrier:
         - `vertex_stalks: dict[K, int]` mapping vertices to stalk vector dimensions $d_v$.
@@ -80,6 +177,7 @@ class CellularSheaf(Generic[K]):
     Operations:
         - Stalk & Edge Registration: `add_vertex(v, dim)` and `add_edge(u, v, dim, rho_u, rho_v)`.
         - Constant Sheaf Construction: `CellularSheaf.constant(graph, stalk_dim)`.
+        - Functorial Interface: `poset_category`, `stalk_dim(cell)`, and `restriction_map(face, coface)`.
         - Coboundary Assembly ($\delta_{\mathcal{F}}$): Local difference $(\delta_{\mathcal{F}} x)_{e=(u, v)} =
           \rho_{v \trianglelefteq e} x_v - \rho_{u \trianglelefteq e} x_u$.
         - Sheaf Laplacian ($L_{\mathcal{F}} = \delta_{\mathcal{F}}^T \delta_{\mathcal{F}}$): Positive semi-definite
@@ -118,6 +216,48 @@ class CellularSheaf(Generic[K]):
                 rho_u = restrictions.get((u, e), {})
                 rho_v = restrictions.get((v, e), {})
                 self.add_edge(u, v, dim=dim, rho_u=rho_u, rho_v=rho_v)
+
+    @property
+    def poset_category(self) -> CellPosetCategory:
+        r"""Construct the underlying cell poset category $\mathbf{Poset}(G)$."""
+        cells: list[Cell] = [Cell(dimension=0, id=(v,)) for v in self.vertex_stalks]  # type: ignore[arg-type]
+        faces: list[tuple[Cell, Cell]] = []
+        for u, v in self.edge_stalks:
+            e_cell = Cell(dimension=1, id=(u, v))  # type: ignore[arg-type]
+            u_cell = Cell(dimension=0, id=(u,))  # type: ignore[arg-type]
+            v_cell = Cell(dimension=0, id=(v,))  # type: ignore[arg-type]
+            cells.append(e_cell)
+            faces.append((u_cell, e_cell))
+            faces.append((v_cell, e_cell))
+        return CellPosetCategory(cells, faces)
+
+    def stalk_dim(self, cell: Cell) -> int:
+        """Return the dimension of the vector stalk at `cell`."""
+        if cell.dimension == 0 and len(cell.id) == 1:
+            v = cell.id[0]
+            if v in self.vertex_stalks:
+                return self.vertex_stalks[v]  # type: ignore[index]
+        elif cell.dimension == 1 and len(cell.id) == 2:
+            e = (cell.id[0], cell.id[1])
+            if e in self.edge_stalks:
+                return self.edge_stalks[e]  # type: ignore[index]
+        raise KeyError(f'Cell {cell} not found in CellularSheaf.')
+
+    def restriction_map(self, face: Cell, coface: Cell) -> SparseMatrix[int, float]:
+        r"""Return the signed restriction matrix $[\sigma : \tau] \rho_{\sigma \trianglelefteq \tau}$."""
+        if face == coface:
+            d = self.stalk_dim(face)
+            return {i: {i: 1.0} for i in range(d)}
+        if face.dimension == 0 and coface.dimension == 1 and len(face.id) == 1 and len(coface.id) == 2:
+            v = face.id[0]
+            e = (coface.id[0], coface.id[1])
+            rho = self.restrictions.get((v, e), {})  # type: ignore[arg-type]
+            if not rho:
+                return {}
+            # In canonical edge e = (u_c, v_c), orientation sign [u_c : e] = -1, [v_c : e] = +1
+            sign = -1.0 if v == e[0] else 1.0
+            return {r: {c: sign * val for c, val in row.items()} for r, row in rho.items()}
+        return {}
 
     def add_vertex(self, vertex: K, dim: int = 1) -> None:
         """Register a vertex and its vector stalk dimension.
@@ -311,6 +451,77 @@ class CellularSheaf(Generic[K]):
         return sum(self.vertex_stalks.values()) - sum(self.edge_stalks.values())
 
 
+def build_sheaf_coboundary_matrix(
+    sheaf: FunctorialSheaf,
+    k: int = 0,
+) -> SparseMatrix[CellStalkCoord, float]:
+    r"""Assemble the degree-$k$ sheaf coboundary matrix $\delta^k: C^k(K; \mathcal{F}) \to C^{k+1}(K; \mathcal{F})$.
+
+    Algebraic Signature:
+        $(\delta^k x)(\tau) = \sum_{\sigma \trianglelefteq \tau,\, \dim \sigma = k}
+        \mathcal{E}_{\sigma \trianglelefteq \tau} x(\sigma)$
+
+    Carrier:
+        `SparseMatrix[tuple[Cell, int], float]` mapping column keys `(face_cell, i)` to
+        row keys `(coface_cell, j)`.
+    """
+    if k < 0:
+        return {}
+    poset = sheaf.poset_category
+    matrix: dict[CellStalkCoord, dict[CellStalkCoord, float]] = {}
+
+    for face, coface in sorted(poset.direct_faces):
+        if face.dimension != k or coface.dimension != k + 1:
+            continue
+        rho = sheaf.restriction_map(face, coface)
+        for j, row in rho.items():
+            row_key: CellStalkCoord = (coface, int(j))
+            target_row = matrix.setdefault(row_key, {})
+            for i, val in row.items():
+                f_val = float(val)
+                if abs(f_val) > 1e-15:
+                    col_key: CellStalkCoord = (face, int(i))
+                    target_row[col_key] = target_row.get(col_key, 0.0) + f_val
+            if not target_row:
+                matrix.pop(row_key, None)
+
+    return matrix
+
+
+def build_sheaf_laplacian(
+    sheaf: FunctorialSheaf,
+    k: int = 0,
+) -> SparseMatrix[CellStalkCoord, float]:
+    r"""Assemble the $k$-th Hodge-Sheaf Laplacian $L_k = (\delta^k)^T \delta^k + \delta^{k-1} (\delta^{k-1})^T$.
+
+    For degree $k = 0$ (vertex signals), $L_0 = (\delta^0)^T \delta^0$.
+    For a `ConstantSheaf` over a `SimplicialComplex`, $L_k$ is identically isomorphic
+    to the discrete Hodge Laplacian $\Delta_k$.
+    """
+    from algebrax.matrix.core import add, dot, transpose
+    from algebrax.semiring import StandardSemiring
+
+    semiring = StandardSemiring(float)
+    delta_k = build_sheaf_coboundary_matrix(sheaf, k)
+    l_up: SparseMatrix[CellStalkCoord, float] = (
+        dot(transpose(delta_k), delta_k, semiring=semiring) if delta_k else {}
+    )
+
+    if k <= 0:
+        return l_up
+
+    delta_prev = build_sheaf_coboundary_matrix(sheaf, k - 1)
+    l_down: SparseMatrix[CellStalkCoord, float] = (
+        dot(delta_prev, transpose(delta_prev), semiring=semiring) if delta_prev else {}
+    )
+
+    if not l_up:
+        return l_down
+    if not l_down:
+        return l_up
+    return add(l_up, l_down, semiring=semiring)
+
+
 def sheaf_laplacian(sheaf: CellularSheaf) -> SparseMatrix[StalkCoord, float]:
     r"""Return the sparse Sheaf Laplacian matrix $L_{\mathcal{F}} = \delta_{\mathcal{F}}^T \delta_{\mathcal{F}}$."""
     return sheaf.laplacian_matrix()
@@ -381,3 +592,4 @@ def sheaf_harmonic_extension(
     solution = dict(x_b)
     solution.update(x_u)
     return solution
+

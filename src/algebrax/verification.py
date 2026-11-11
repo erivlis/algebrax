@@ -30,6 +30,7 @@ __all__ = [
     'verify_boolean_algebra_laws',
     'verify_bounded_lattice_laws',
     'verify_category_laws',
+    'verify_coboundary_nilpotency',
     'verify_comm_group_laws',
     'verify_comm_monoid_laws',
     'verify_comm_ring_laws',
@@ -55,6 +56,8 @@ __all__ = [
     'verify_semigroup_laws',
     'verify_semimodule_laws',
     'verify_semiring_laws',
+    'verify_sheaf_functoriality',
+    'verify_sheaf_laplacian_properties',
 ]
 
 
@@ -1282,6 +1285,8 @@ def verify_category_laws(
 
     assoc = True
     for f, g, h in itertools.product(mor_list, repeat=3):
+        if cat.target(f) != cat.source(g) or cat.target(g) != cat.source(h):
+            continue
         lhs = cat.compose(cat.compose(f, g), h)
         rhs = cat.compose(f, cat.compose(g, h))
         if not cmp(lhs, rhs):
@@ -1476,3 +1481,93 @@ def verify_quotient_ring_laws(
     }
 
 
+def verify_sheaf_functoriality(
+    sheaf: Any,
+    sample_paths: Iterable[tuple[Any, Any, Any]],
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify functoriality of cellular sheaf restriction maps:
+    - Identity Preservation: $\mathcal{E}_{\sigma \trianglelefteq \sigma} = I_{d_\sigma}$
+    - Composition Preservation:
+      $\mathcal{E}_{\tau \trianglelefteq \rho} \circ \mathcal{E}_{\sigma \trianglelefteq \tau}
+      = \mathcal{E}_{\sigma \trianglelefteq \rho}$
+    """
+    from algebrax.matrix.core import dot
+    from algebrax.semiring import StandardSemiring
+
+    semiring = StandardSemiring(float)
+    id_ok = True
+    for cell in sheaf.poset_category.cells:
+        d = sheaf.stalk_dim(cell)
+        expected_id = {i: {i: 1.0} for i in range(d)}
+        actual_id = sheaf.restriction_map(cell, cell)
+        if not semiring_elements_equal(actual_id, expected_id, tol):
+            id_ok = False
+            break
+
+    comp_ok = True
+    for sigma, tau, rho in sample_paths:
+        r_sigma_tau = sheaf.restriction_map(sigma, tau)
+        r_tau_rho = sheaf.restriction_map(tau, rho)
+        r_sigma_rho = sheaf.restriction_map(sigma, rho)
+        composed = dot(r_tau_rho, r_sigma_tau, semiring=semiring)
+        if not semiring_elements_equal(composed, r_sigma_rho, tol):
+            comp_ok = False
+            break
+
+    return {
+        'identity_preservation': id_ok,
+        'composition_preservation': comp_ok,
+    }
+
+
+def verify_coboundary_nilpotency(
+    sheaf: Any,
+    k: int = 0,
+    tol: float = 1e-12,
+) -> bool:
+    r"""Verify the fundamental cohomological invariant $\delta^{k+1} \circ \delta^k = \mathbf{0}$."""
+    from algebrax.matrix.core import dot
+    from algebrax.semiring import StandardSemiring
+    from algebrax.topology.sheaf import build_sheaf_coboundary_matrix
+
+    semiring = StandardSemiring(float)
+    delta_k = build_sheaf_coboundary_matrix(sheaf, k)
+    delta_k1 = build_sheaf_coboundary_matrix(sheaf, k + 1)
+    if not delta_k or not delta_k1:
+        return True
+    delta2 = dot(delta_k1, delta_k, semiring=semiring)
+    return not delta2 or all(abs(val) < tol for row in delta2.values() for val in row.values())
+
+
+def verify_sheaf_laplacian_properties(
+    sheaf: Any,
+    k: int = 0,
+    sample_cochains: Iterable[dict[Any, float]] = (),
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify structural invariants of the $k$-th Sheaf Laplacian $L_k$:
+    - Self-Adjoint Symmetry: $L_k^T = L_k$
+    - Positive Semi-Definiteness: $\langle x, L_k x \rangle \ge 0$ for all sample $k$-cochains $x$
+    """
+    from algebrax.matrix.core import inner, mat_vec, transpose
+    from algebrax.topology.sheaf import build_sheaf_laplacian
+
+    lap = build_sheaf_laplacian(sheaf, k)
+    lap_t = transpose(lap)
+    symmetric = semiring_elements_equal(lap, lap_t, tol)
+
+    psd = True
+    for x in sample_cochains:
+        if not x or not lap:
+            continue
+        lx = mat_vec(lap, x)
+        energy = float(inner(x, lx))
+        if energy < -tol:
+            psd = False
+            break
+
+    return {
+        'symmetry': symmetric,
+        'positive_semidefinite': psd,
+    }
