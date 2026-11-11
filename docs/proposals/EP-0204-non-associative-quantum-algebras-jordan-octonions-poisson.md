@@ -29,23 +29,23 @@ This proposal extends AlgebraX's pure algebraic hierarchy (`algebrax.algebra`) b
 establishing first-class mathematical protocols and unboxed implementations for the core non-associative and quantum
 algebras of modern mathematics and physics. Specifically, EP-0204 introduces:
 
-1. **Jordan Algebras (`JordanAlgebra[V, K]`)**: Commutative non-associative algebras satisfying the Jordan
+1. **Jordan Algebras (`JordanAlgebra[R, M]`)**: Commutative non-associative algebras satisfying the Jordan
    identity $(x \circ y) \circ x^2 = x \circ (y \circ x^2)$, formalizing quantum mechanical observables and the
    anticommutator product $A \circ B = \frac{1}{2} (AB + BA)$ on sparse Hermitian and symmetric matrices.
-2. **Alternative Algebras (`AlternativeAlgebra[V, K]`)**: Non-associative algebras with alternating associators
+2. **Alternative Algebras (`AlternativeAlgebra[R, M]`)**: Non-associative algebras with alternating associators
    ($x (xy) = (xx)y$ and $(yx)x = y (xx)$), satisfying Artin's di-associativity theorem.
 3. **The Octonions ($\mathbb{O}$)**: The 8-dimensional non-associative normed division algebra over $\mathbb{R}$,
    constructed via Cayley–Dickson doubling with sparse Fano-plane structure constants.
-4. **Malcev Algebras (`MalcevAlgebra[V, K]`)**: The generalization of Lie algebras to alternative algebras, instantiated
+4. **Malcev Algebras (`MalcevAlgebra[R, M]`)**: The generalization of Lie algebras to alternative algebras, instantiated
    on the 7-dimensional imaginary octonions $\operatorname{Im} (\mathbb{O})$.
-5. **Poisson Algebras (`PoissonAlgebra[V, K]`)**: Unifying commutative associative algebra with Lie brackets under the
+5. **Poisson Algebras (`PoissonAlgebra[R, M]`)**: Unifying commutative associative algebra with Lie brackets under the
    Leibniz derivation rule $\{f, g \cdot h\} = \{f, g\} \cdot h + g \cdot \{f, h\}$, formalizing classical Hamiltonian
    phase space dynamics.
 6. **Property-Based Verification**: Rigorous axiom testing in `algebrax.verification`: `verify_jordan_laws`,
    `verify_alternative_laws`, and `verify_poisson_laws`.
 
 All abstractions strictly preserve AlgebraX's canonical carrier constraint: unboxed raw values and sparse dictionaries,
-introducing zero heap wrapping overhead.
+introducing zero heap wrapping overhead, and strictly obey [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) (**Law of Flat Protocol Composition**).
 
 ---
 
@@ -79,8 +79,9 @@ with exact algebraic fidelity.
   Quantum observables are self-adjoint operators closed under Jordan products, while classical conserved quantities are
   Poisson brackets commuting with the Hamiltonian ($\{f, H\} = 0$).
 - **🧩 Russell (Taxonomy & Deductive Order)**:
-  Cleanly situates all non-associative algebras under `NonAssocAlgebra[R, M]`, distinguishing commutative Jordan
-  algebras from skew-symmetric Lie/Malcev algebras and alternative octonions.
+  Cleanly situates all non-associative algebras as flat compositions of Layer 1 atomic mixins (`HasZero`, `HasAdd`,
+  `HasNeg`, `HasMul`, `HasScale`), distinguishing commutative Jordan algebras from skew-symmetric Lie/Malcev algebras
+  and alternative octonions.
 - **⚡ Shannon (Zero Bloat & Sparse Structure Constants)**:
   Octonion multiplication is encoded as a sparse rank-3 structure constant tensor $c_{ijk}$ over the 7 imaginary units
   of the Fano plane. Jordan matrix multiplication uses native sparse `dot(A, B)`.
@@ -96,70 +97,113 @@ with exact algebraic fidelity.
 
 ## Specification
 
-### 1. Jordan Algebra Protocol (`src/algebrax/algebra/jordan.py`)
+### 1. Flat Non-Associative Algebra Protocols (`src/algebrax/algebra/_non_assoc.py`)
+
+In strict compliance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) (**Law of Flat Protocol Composition**), `JordanAlgebra`, `AlternativeAlgebra`, `MalcevAlgebra`, and `PoissonAlgebra` inherit **only** from Layer 1 atomic mixins in `algebrax.algebra._mixins` and `Protocol` (never from other Layer 2 protocols), with scalar ring `R` placed first:
 
 ```python
-from typing import Generic, Protocol, TypeVar, runtime_checkable
-from algebrax.algebra._module import NonAssocAlgebra
+from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
+from algebrax.algebra._mixins import HasAdd, HasBracket, HasMul, HasNeg, HasScale, HasZero
+from algebrax.matrix import add, dot, scale
+from algebrax.typing import SparseMatrix
 
 R = TypeVar("R")
 M = TypeVar("M")
 
 
 @runtime_checkable
-class JordanAlgebra(NonAssocAlgebra[R, M], Protocol[R, M]):
+class JordanAlgebra(HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], HasScale[R, M], Protocol):
     r"""A commutative non-associative algebra satisfying the Jordan identity:
     $$(x \circ y) \circ x^2 = x \circ (y \circ x^2)$$
+    where `mul(x, y)` denotes the symmetric Jordan product $x \circ y = y \circ x$.
     """
 
-    def jordan_mul(self, a: M, b: M) -> M:
-        r"""Symmetric Jordan product $a \circ b = b \circ a$."""
-        ...
+    def sub(self, a: M, b: M) -> M:
+        return self.add(a, self.neg(b))
 
 
-class SymmetricMatrixJordanAlgebra:
+class SymmetricMatrixJordanAlgebra(JordanAlgebra[float, SparseMatrix[Any, float]]):
     r"""Jordan algebra of sparse symmetric/Hermitian matrices under anticommutator product:
     $$A \circ B = \frac{1}{2}(AB + BA)$$
     """
 
-    def __init__(self, base_ring: Any) -> None:
-        self.base_ring = base_ring
+    def __init__(self, base_semiring: Any) -> None:
+        self.base_semiring = base_semiring
 
-    def jordan_mul(
-            self,
-            a: dict[Any, dict[Any, float]],
-            b: dict[Any, dict[Any, float]],
-    ) -> dict[Any, dict[Any, float]]:
-        from algebrax.linalg.sparse import add, dot, scale
-        ab = dot(a, b, self.base_ring)
-        ba = dot(b, a, self.base_ring)
-        return scale(add(ab, ba, self.base_ring), 0.5)
+    @property
+    def zero(self) -> SparseMatrix[Any, float]:
+        return {}
+
+    def add(self, a: SparseMatrix[Any, float], b: SparseMatrix[Any, float]) -> SparseMatrix[Any, float]:
+        return add(a, b, semiring=self.base_semiring)
+
+    def neg(self, a: SparseMatrix[Any, float]) -> SparseMatrix[Any, float]:
+        return scale(a, -1.0, semiring=self.base_semiring)
+
+    def smul(self, r: float, m: SparseMatrix[Any, float]) -> SparseMatrix[Any, float]:
+        return scale(m, r, semiring=self.base_semiring)
+
+    def mul(
+        self,
+        a: SparseMatrix[Any, float],
+        b: SparseMatrix[Any, float],
+    ) -> SparseMatrix[Any, float]:
+        ab = dot(a, b, semiring=self.base_semiring)
+        ba = dot(b, a, semiring=self.base_semiring)
+        return scale(add(ab, ba, semiring=self.base_semiring), 0.5, semiring=self.base_semiring)
 ```
 
-### 2. Alternative Algebras & The Octonions (`src/algebrax/algebra/octonions.py`)
+### 2. Alternative Algebras, Malcev Algebras & The Octonions (`src/algebrax/algebra/_non_assoc.py`)
 
 An alternative algebra satisfies the left and right alternative laws:
 $$x (xy) = (xx)y \quad \text{and} \quad (yx)x = y (xx)$$
 
 ```python
 @runtime_checkable
-class AlternativeAlgebra(NonAssocAlgebra[R, M], Protocol[R, M]):
+class AlternativeAlgebra(HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], HasScale[R, M], Protocol):
     r"""A non-associative algebra whose associator $[x, y, z] = (xy)z - x(yz)$ is alternating."""
-    ...
+
+    def sub(self, a: M, b: M) -> M:
+        return self.add(a, self.neg(b))
 
 
-class Octonions:
-    r"""The 8-dimensional real alternative division algebra $\mathbb{O}$.
+@runtime_checkable
+class MalcevAlgebra(HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], HasScale[R, M], Protocol):
+    r"""A non-associative anticommutative algebra satisfying the Malcev identity."""
+
+    def sub(self, a: M, b: M) -> M:
+        return self.add(a, self.neg(b))
+
+
+class OctonionAlgebra(AlternativeAlgebra[float, dict[int, float]]):
+    r"""The 8-dimensional real alternative normed division algebra $\mathbb{O}$.
 
     Basis: $(1, e_1, e_2, e_3, e_4, e_5, e_6, e_7)$ multiplication governed
-    by the 7 oriented lines of the Fano plane.
+    by the 7 oriented lines of the Fano plane. Nominally subclasses `AlternativeAlgebra`.
     """
 
-    FANO_LINES = [
+    FANO_LINES = (
         (1, 2, 3), (1, 4, 5), (1, 7, 6),
         (2, 4, 6), (2, 5, 7),
         (3, 4, 7), (3, 6, 5),
-    ]
+    )
+
+    @property
+    def zero(self) -> dict[int, float]:
+        return {}
+
+    @property
+    def one(self) -> dict[int, float]:
+        return {0: 1.0}
+
+    def add(self, a: dict[int, float], b: dict[int, float]) -> dict[int, float]:
+        ...
+
+    def neg(self, a: dict[int, float]) -> dict[int, float]:
+        return {i: -val for i, val in a.items() if val != 0.0}
+
+    def smul(self, r: float, m: dict[int, float]) -> dict[int, float]:
+        return {i: r * val for i, val in m.items() if r * val != 0.0}
 
     def mul(self, a: dict[int, float], b: dict[int, float]) -> dict[int, float]:
         r"""Compute octonion product $a \cdot b$ using sparse basis combinations."""
@@ -174,45 +218,35 @@ class Octonions:
         return sum(v * v for v in a.values())
 ```
 
-### 3. Poisson Algebra Protocol (`src/algebrax/algebra/poisson.py`)
+### 3. Flat Poisson Algebra Protocol (`src/algebrax/algebra/_non_assoc.py`)
 
 ```python
 @runtime_checkable
-class PoissonAlgebra(Protocol[R, M]):
-    r"""A Poisson algebra $\langle P, +, \cdot, \{\cdot, \cdot\} \rangle$.
+class PoissonAlgebra(
+    HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], HasBracket[M], HasScale[R, M], Protocol
+):
+    r"""A Poisson algebra $\langle R, P, \cdot_s, \mathbf{0}, +, -, \cdot, \{\cdot, \cdot\} \rangle$.
 
-    - $\langle P, +, \cdot \rangle$ is an associative commutative algebra.
-    - $\langle P, +, \{\cdot, \cdot\} \rangle$ is a Lie algebra.
+    - $\langle P, +, \cdot \rangle$ is an associative commutative algebra (`mul`).
+    - $\langle P, +, \{\cdot, \cdot\} \rangle$ is a Lie algebra (`bracket`).
     - Satisfies the Leibniz derivation rule:
       $$\{f, g \cdot h\} = \{f, g\} \cdot h + g \cdot \{f, h\}$$
     """
 
-    def mul(self, a: M, b: M) -> M:
-        """Associative commutative product."""
-        ...
-
-    def bracket(self, a: M, b: M) -> M:
-        """Lie/Poisson bracket satisfying Jacobi identity."""
-        ...
+    def sub(self, a: M, b: M) -> M:
+        return self.add(a, self.neg(b))
 ```
 
-### 4. Verification Suite (`src/algebrax/verification/non_assoc.py`)
+### 4. Verification Suite (`src/algebrax/verification.py`)
 
 ```python
-def verify_jordan_laws(algebra: JordanAlgebra[R, M], samples: list[M]) -> None:
+def verify_jordan_laws(algebra: JordanAlgebra[R, M], samples: list[M]) -> dict[str, bool]:
     """Verify Jordan commutativity and the Jordan identity."""
-    mul = algebra.jordan_mul
-    for a in samples:
-        a2 = mul(a, a)
-        for b in samples:
-            assert mul(a, b) == mul(b, a)
-            # (a ∘ b) ∘ a² == a ∘ (b ∘ a²)
-            lhs = mul(mul(a, b), a2)
-            rhs = mul(a, mul(b, a2))
-            assert lhs == rhs
+    mul = algebra.mul
+    ...
 
 
-def verify_poisson_leibniz_rule(poisson: PoissonAlgebra[R, M], samples: list[M]) -> None:
+def verify_poisson_laws(poisson: PoissonAlgebra[R, M], samples: list[M]) -> dict[str, bool]:
     """Verify the Poisson-Leibniz rule: {f, g * h} == {f, g} * h + g * {f, h}."""
     ...
 ```

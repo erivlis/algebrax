@@ -93,39 +93,54 @@ In modern computational mathematics:
 
 ## Specification
 
-### 1. The Normed Space Protocol (`src/algebrax/analysis/normed.py`)
+### 1. Atomic Mixins & Flat Normed Space Protocol (`src/algebrax/algebra/_mixins.py` & `src/algebrax/analysis/normed.py`)
+
+In strict compliance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) (**Law of Flat Protocol Composition**), we define two Layer 1 atomic mixins in `algebrax.algebra._mixins` (`HasNorm[V]` and `HasInner[R, V]`), and compose `NormedSpace[R, V]` and `InnerProductSpace[R, V]` flatly from Layer 1 mixins and `Protocol` (never inheriting from Layer 2 `VectorSpace` or `NormedSpace` protocols):
 
 ```python
-from typing import Generic, Protocol, TypeVar, runtime_checkable
-from algebrax.algebra._module import VectorSpace
+from typing import Any, Protocol, TypeVar, runtime_checkable
+from algebrax.algebra._mixins import HasAdd, HasNeg, HasScale, HasZero
 
-K = TypeVar("K")
+R = TypeVar("R")
 V = TypeVar("V")
 
 
-@runtime_checkable
-class NormedSpace(VectorSpace[K, V], Protocol[K, V]):
-    r"""A vector space $V$ over field $K$ equipped with a norm $\|\cdot\| : V \to \mathbb{R}_{\ge 0}$."""
+class HasNorm(Protocol[V]):
+    """Atomic operational mixin for structures equipped with a norm ||v|| >= 0."""
 
     def norm(self, v: V) -> float:
         r"""Compute the norm $\|v\| \ge 0$."""
         ...
+
+
+class HasInner(Protocol[R, V]):
+    """Atomic operational mixin for structures equipped with a scalar inner product <u, v>."""
+
+    def inner(self, u: V, v: V) -> R:
+        r"""Compute inner product $\langle u, v \rangle \in R$."""
+        ...
+
+
+@runtime_checkable
+class NormedSpace(HasZero[V], HasAdd[V], HasNeg[V], HasScale[R, V], HasNorm[V], Protocol):
+    r"""A vector space $V$ over field $R$ equipped with a norm $\|\cdot\| : V \to \mathbb{R}_{\ge 0}$."""
+
+    def sub(self, a: V, b: V) -> V:
+        return self.add(a, self.neg(b))
 
     def distance(self, u: V, v: V) -> float:
         r"""Induced metric distance $d(u, v) = \|u - v\|_V$."""
         return self.norm(self.sub(u, v))
 ```
 
-### 2. Standard Sparse $p$-Norms (`src/algebrax/analysis/norms.py`)
+### 2. Standard Sparse $p$-Norms (`src/algebrax/analysis/normed.py`)
 
 ```python
 import math
-from typing import Any
-
-SparseVector = dict[Any, float]
+from algebrax.typing import SparseMatrix, SparseVector
 
 
-def norm_p(vec: SparseVector, p: float = 2.0) -> float:
+def norm_p(vec: SparseVector[Any, float], p: float = 2.0) -> float:
     r"""Compute sparse vector $L_p$ norm: $\|x\|_p = \left( \sum |x_i|^p \right)^{1/p}$."""
     if p == float("inf"):
         return max((abs(v) for v in vec.values()), default=0.0)
@@ -136,25 +151,29 @@ def norm_p(vec: SparseVector, p: float = 2.0) -> float:
     return math.pow(sum(abs(v) ** p for v in vec.values()), 1.0 / p)
 
 
-def norm_frobenius(mat: dict[Any, dict[Any, float]]) -> float:
+def norm_frobenius(mat: SparseMatrix[Any, float]) -> float:
     r"""Compute matrix Frobenius norm $\|A\|_F = \sqrt{\sum A_{ij}^2}$."""
     return math.sqrt(sum(val * val for row in mat.values() for val in row.values()))
 ```
 
-### 3. Inner Product Space (Finite-Dimensional Hilbert Space) (`src/algebrax/analysis/inner_product.py`)
+### 3. Flat Inner Product Space Protocol (`src/algebrax/analysis/normed.py`)
 
 ```python
 @runtime_checkable
-class InnerProductSpace(NormedSpace[K, V], Protocol[K, V]):
-    r"""An inner product space (finite-dimensional Hilbert space) $\langle V, \langle \cdot, \cdot \rangle \rangle$."""
+class InnerProductSpace(
+    HasZero[V], HasAdd[V], HasNeg[V], HasScale[R, V], HasNorm[V], HasInner[R, V], Protocol
+):
+    r"""An inner product space (finite-dimensional Hilbert space) $\langle R, V, \langle \cdot, \cdot \rangle \rangle$."""
 
-    def inner(self, u: V, v: V) -> K:
-        r"""Compute positive-definite inner product $\langle u, v \rangle$."""
-        ...
+    def sub(self, a: V, b: V) -> V:
+        return self.add(a, self.neg(b))
 
     def norm(self, v: V) -> float:
         r"""Induced Euclidean norm $\|v\| = \sqrt{\langle v, v \rangle}$."""
-        return math.sqrt(float(self.inner(v, v)))
+        return math.sqrt(float(self.inner(v, v)))  # type: ignore[arg-type]
+
+    def distance(self, u: V, v: V) -> float:
+        return self.norm(self.sub(u, v))
 ```
 
 ### 4. Reproducing Kernel Hilbert Spaces (RKHS) (`src/algebrax/analysis/rkhs.py`)
@@ -169,9 +188,9 @@ class ReproducingKernelHilbertSpace:
     def __init__(self, kernel_fn: Callable[[Any, Any], float]) -> None:
         self.kernel_fn = kernel_fn
 
-    def build_gram_matrix(self, samples: list[Any]) -> dict[int, dict[int, float]]:
+    def build_gram_matrix(self, samples: list[Any]) -> SparseMatrix[int, float]:
         r"""Assemble the sparse positive semi-definite Gram matrix $K_{ij} = k(x_i, x_j)$."""
-        gram: dict[int, dict[int, float]] = {}
+        gram: SparseMatrix[int, float] = {}
         n = len(samples)
         for i in range(n):
             for j in range(i, n):
@@ -189,7 +208,7 @@ class ReproducingKernelHilbertSpace:
 class BanachContractionVerifier:
     r"""Certifies that operator $T : V \to V$ is a contraction with Lipschitz constant $\gamma < 1$."""
 
-    def __init__(self, normed_space: NormedSpace[K, V], gamma: float) -> None:
+    def __init__(self, normed_space: NormedSpace[R, V], gamma: float) -> None:
         if not (0.0 <= gamma < 1.0):
             raise ValueError(f"Contraction constant must satisfy 0 <= gamma < 1, got {gamma}")
         self.space = normed_space
@@ -206,12 +225,10 @@ class BanachContractionVerifier:
 
 ## Backwards Compatibility
 
-1. **Non-Breaking Extension**:
-   `NormedSpace` and `InnerProductSpace` inherit from the existing `VectorSpace` protocol without altering any existing
-   APIs.
+1. **Flat Protocol Composition (EP-0194)**:
+   `NormedSpace` and `InnerProductSpace` are flat compositions of Layer 1 atomic mixins (`HasZero`, `HasAdd`, `HasNeg`, `HasScale`, `HasNorm`, `HasInner`) + `Protocol`, structurally compatible with `VectorSpace` without multi-level protocol inheritance.
 2. **Seamless Solver Bridge**:
-   Existing solvers (`pagerank`, `bellman_ford`) remain unchanged, with `BanachContractionVerifier` available as an
-   opt-in formal correctness validator.
+   Existing solvers (`pagerank`, `bellman_ford`) remain unchanged, with `BanachContractionVerifier` available as an opt-in formal correctness validator.
 
 ---
 

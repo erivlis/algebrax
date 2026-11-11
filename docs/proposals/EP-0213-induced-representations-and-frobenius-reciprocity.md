@@ -84,30 +84,30 @@ from __future__ import annotations
 
 from typing import Any, Callable, Generic, Hashable, Sequence, TypeVar
 
-from algebrax.matrix import SparseMatrix
 from algebrax.rep.character import Character
 from algebrax.rep.group import ExplicitGroupRep, GroupRepresentation
+from algebrax.typing import SparseMatrix
 
+K = TypeVar("K")
 G = TypeVar("G", bound=Hashable)
 H = TypeVar("H", bound=Hashable)
-K = TypeVar("K")
 
 
 def restrict_representation(
-    rep: GroupRepresentation[G, K],
+    rep: GroupRepresentation[K, G],
     subgroup_elements: Sequence[H],
-) -> GroupRepresentation[H, K]:
+) -> GroupRepresentation[K, H]:
     """Restrict representation rho of G to subgroup H."""
     ...
 
 
 def induced_representation(
-    sub_rep: GroupRepresentation[H, K],
+    sub_rep: GroupRepresentation[K, H],
     group_elements: Sequence[G],
     subgroup_elements: Sequence[H],
     coset_representatives: Sequence[G],
     coset_action: Callable[[G, G], tuple[int, H]],  # g * g_j = g_i * h
-) -> ExplicitGroupRep[G, K]:
+) -> ExplicitGroupRep[K, G]:
     """Construct induced representation Ind_H^G(sub_rep).
     
     Dimension is [G:H] * dim(sub_rep). Each rho(g) is a sparse block permutation matrix.
@@ -140,10 +140,10 @@ def induced_character(
 """Frobenius reciprocity as a categorical adjunction Ind_H^G -| Res_H^G."""
 
 def frobenius_adjoint_transpose(
-    hom_h_w_res_v: SparseMatrix[K],
+    hom_h_w_res_v: SparseMatrix[int, K],
     coset_reps: Sequence[G],
     subgroup: Sequence[H],
-) -> SparseMatrix[K]:
+) -> SparseMatrix[int, K]:
     """Isomorphism Hom_H(W, Res_H^G(V)) -> Hom_G(Ind_H^G(W), V).
     
     Formalizes the unit and counit of the categorical adjunction from EP-0200.

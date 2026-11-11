@@ -75,14 +75,14 @@ Without discrete fiber bundles, users must manually hand-roll block matrices to 
 
 ### 1. The Discrete Connection Protocol (`src/algebrax/topology/bundle.py`)
 
-A discrete connection assigns parallel transport maps in group $G \subseteq \mathrm{GL}(d)$ to oriented 1-cells (edges):
+Following [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), `DiscreteConnection` is a flat `@runtime_checkable` `Protocol` assigning parallel transport maps in group $G \subseteq \mathrm{GL}(d)$ to oriented 1-cells (edges):
 
 ```python
-from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
 from collections.abc import Iterable, Sequence
+from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
+from algebrax.typing import SparseMatrix
 
 G = TypeVar("G")
-SparseBlockMatrix = dict[Any, dict[Any, dict[int, dict[int, float]]]]
 
 
 @runtime_checkable
@@ -98,11 +98,11 @@ class DiscreteConnection(Protocol[G]):
         """Dimension d of the fiber vector space R^d."""
         ...
 
-    def transport(self, u: Any, v: Any) -> dict[int, dict[int, float]]:
+    def transport(self, u: Any, v: Any) -> SparseMatrix[int, float]:
         r"""Parallel transport matrix $\rho(u, v) : F_u \to F_v$."""
         ...
 
-    def transport_path(self, path: Sequence[Any]) -> dict[int, dict[int, float]]:
+    def transport_path(self, path: Sequence[Any]) -> SparseMatrix[int, float]:
         r"""Compute parallel transport along a path $(v_0, v_1, \dots, v_k)$:
         $$\rho(\gamma) = \rho(v_{k-1}, v_k) \cdots \rho(v_0, v_1)$$
         """
@@ -111,33 +111,39 @@ class DiscreteConnection(Protocol[G]):
 
 ### 2. Concrete Orthogonal Connection (`src/algebrax/topology/bundle.py`)
 
+In accordance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), concrete Layer 3 class `DiscreteOrthogonalConnection` nominally subclasses `DiscreteConnection`:
+
 ```python
-from algebrax.linalg.sparse import dot, transpose
-from algebrax.structures.semiring import RealRing
+from algebrax.matrix import dot, transpose
+from algebrax.semiring import StandardSemiring
 
 
-class DiscreteOrthogonalConnection:
+class DiscreteOrthogonalConnection(DiscreteConnection[SparseMatrix[int, float]]):
     r"""Discrete vector bundle connection with structure group $O(d)$ or $SO(d)$.
 
     Enforces exact orthogonality: $\rho(u, v)^{-1} = \rho(u, v)^T = \rho(v, u)$.
     """
 
     def __init__(self, fiber_dim: int) -> None:
-        self.fiber_dim = fiber_dim
-        self._edges: dict[tuple[Any, Any], dict[int, dict[int, float]]] = {}
-        self._ring = RealRing()
+        self._fiber_dim = fiber_dim
+        self._edges: dict[tuple[Any, Any], SparseMatrix[int, float]] = {}
+        self._semiring = StandardSemiring(float)
 
-    def set_transport(self, u: Any, v: Any, matrix: dict[int, dict[int, float]]) -> None:
+    @property
+    def fiber_dim(self) -> int:
+        return self._fiber_dim
+
+    def set_transport(self, u: Any, v: Any, matrix: SparseMatrix[int, float]) -> None:
         """Set parallel transport rho(u, v) and automatically bind rho(v, u) = rho(u, v)^T."""
         self._edges[(u, v)] = matrix
         self._edges[(v, u)] = transpose(matrix)
 
-    def transport(self, u: Any, v: Any) -> dict[int, dict[int, float]]:
+    def transport(self, u: Any, v: Any) -> SparseMatrix[int, float]:
         if (u, v) not in self._edges:
             raise KeyError(f"No connection defined on edge ({u}, {v})")
         return self._edges[(u, v)]
 
-    def transport_path(self, path: Sequence[Any]) -> dict[int, dict[int, float]]:
+    def transport_path(self, path: Sequence[Any]) -> SparseMatrix[int, float]:
         if len(path) < 2:
             # Identity d x d
             return {i: {i: 1.0} for i in range(self.fiber_dim)}
@@ -145,11 +151,11 @@ class DiscreteOrthogonalConnection:
         result = self.transport(path[0], path[1])
         for i in range(1, len(path) - 1):
             next_step = self.transport(path[i], path[i + 1])
-            result = dot(next_step, result, self._ring)
+            result = dot(next_step, result, semiring=self._semiring)
         return result
 ```
 
-### 3. Discrete Curvature & Holonomy (`src/algebrax/topology/curvature.py`)
+### 3. Discrete Curvature & Holonomy (`src/algebrax/topology/bundle.py`)
 
 For any oriented 2-cell (triangle or polygon) $f = (v_0, v_1, \dots, v_{k-1})$, the **holonomy** is the Wilson loop around the boundary:
 
@@ -157,16 +163,16 @@ $$\operatorname{Hol}(f) = \rho(v_{k-1}, v_0) \cdots \rho(v_1, v_2) \cdot \rho(v_
 
 ```python
 def compute_face_holonomy(
-    connection: DiscreteConnection,
+    connection: DiscreteConnection[Any],
     face_boundary_vertices: Sequence[Any],
-) -> dict[int, dict[int, float]]:
+) -> SparseMatrix[int, float]:
     r"""Compute the holonomy (Wilson loop) around a closed 2-face boundary."""
-    cycle = list(face_boundary_vertices) + [face_boundary_vertices[0]]
+    cycle = [*face_boundary_vertices, face_boundary_vertices[0]]
     return connection.transport_path(cycle)
 
 
 def is_flat_bundle(
-    connection: DiscreteConnection,
+    connection: DiscreteConnection[Any],
     faces: Iterable[Sequence[Any]],
     tol: float = 1e-9,
 ) -> bool:
@@ -183,7 +189,7 @@ def is_flat_bundle(
     return True
 ```
 
-### 4. The Connection Laplacian ($L_\nabla$) (`src/algebrax/topology/connection_laplacian.py`)
+### 4. The Connection Laplacian ($L_\nabla$) (`src/algebrax/topology/bundle.py`)
 
 The **Connection Laplacian** acts on vertex fiber fields $x \in \bigoplus_{v \in V} F_v$:
 $$(L_\nabla x)(u) = \sum_{v \sim u} (x(u) - \rho(v, u) x(v))$$
@@ -194,12 +200,12 @@ where $\mathbf{A}_\rho(u, v) = \rho(v, u)$ is the connection-weighted block adja
 
 ```python
 def build_connection_laplacian(
-    connection: DiscreteConnection,
+    connection: DiscreteConnection[Any],
     adjacency: dict[Any, set[Any]],
-) -> dict[tuple[Any, int], dict[tuple[Any, int], float]]:
+) -> SparseMatrix[tuple[Any, int], float]:
     r"""Construct the sparse block Connection Laplacian $L_\nabla = D \otimes \mathbf{I}_d - \mathbf{A}_\rho$."""
     d = connection.fiber_dim
-    laplacian: dict[tuple[Any, int], dict[tuple[Any, int], float]] = {}
+    laplacian: SparseMatrix[tuple[Any, int], float] = {}
 
     for u, neighbors in adjacency.items():
         degree = float(len(neighbors))
@@ -222,7 +228,7 @@ def build_connection_laplacian(
     return laplacian
 ```
 
-### 5. Bundle-Valued DEC & Covariant Exterior Derivative (`src/algebrax/dec/bundle_forms.py`)
+### 5. Bundle-Valued DEC & Covariant Exterior Derivative (`src/algebrax/topology/bundle.py`)
 
 Bundle-valued differential forms $\Omega^k(K; E)$ assign vectors in $\mathbb{R}^d$ to $k$-cells:
 - **0-forms**: Vertex fields $x(v) \in \mathbb{R}^d$.
@@ -233,28 +239,30 @@ Bundle-valued differential forms $\Omega^k(K; E)$ assign vectors in $\mathbb{R}^
   $$(d_\nabla^2 x)(f) = (\operatorname{Hol}(f) - \mathbf{I}) x(v_0)$$
   When the bundle is flat ($\operatorname{Hol}(f) = \mathbf{I}$), $d_\nabla^2 = \mathbf{0}$, producing **twisted de Rham cohomology**.
 
-### 6. Executable Verification Suite (`src/algebrax/verification/bundle.py`)
+### 6. Executable Verification Suite (`src/algebrax/verification.py`)
 
 ```python
-def verify_connection_inversion(connection: DiscreteConnection, edges: list[tuple[Any, Any]]) -> None:
+def verify_connection_inversion(connection: DiscreteConnection[Any], edges: list[tuple[Any, Any]]) -> bool:
     """Verify that transport(v, u) == transport(u, v)^-1."""
-    ring = RealRing()
+    semiring = StandardSemiring(float)
     d = connection.fiber_dim
     for u, v in edges:
         t_uv = connection.transport(u, v)
         t_vu = connection.transport(v, u)
-        prod = dot(t_vu, t_uv, ring)
+        prod = dot(t_vu, t_uv, semiring=semiring)
         for i in range(d):
             for j in range(d):
                 expected = 1.0 if i == j else 0.0
-                assert abs(prod.get(i, {}).get(j, 0.0) - expected) < 1e-12
+                if abs(prod.get(i, {}).get(j, 0.0) - expected) >= 1e-12:
+                    return False
+    return True
 
 
 def verify_gauge_covariance(
-    connection: DiscreteConnection,
+    connection: DiscreteConnection[Any],
     adjacency: dict[Any, set[Any]],
-    gauge_transform: dict[Any, dict[int, dict[int, float]]],
-) -> None:
+    gauge_transform: dict[Any, SparseMatrix[int, float]],
+) -> bool:
     r"""Verify that under local gauge transformation g_u, L_nabla transforms covariantly:
     $$L_{\nabla'} = \mathbf{G} L_\nabla \mathbf{G}^T$$
     """
@@ -266,7 +274,7 @@ def verify_gauge_covariance(
 ## Backwards Compatibility
 
 1. **Zero Impact on Existing DEC or Sheaf Modules**:
-   `algebrax.dec` continues to compute standard scalar differential forms. `DiscreteConnection` is purely additive.
+   `algebrax.analysis` continues to compute standard scalar differential forms. `DiscreteConnection` is purely additive.
 2. **Specialization of Cellular Sheaf**:
    A `DiscreteOrthogonalConnection` can be converted into a `FunctorialSheaf` ([EP-0202](EP-0202-functorial-sheaves-and-categorical-dec.md)) automatically via `connection.to_sheaf()`, maintaining full structural interoperability.
 

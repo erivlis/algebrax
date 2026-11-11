@@ -86,14 +86,15 @@ Lie algebras govern continuous symmetries throughout physics and geometry—from
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Generic, Protocol, Sequence, TypeVar
+from typing import Generic, Protocol, Sequence, TypeVar, runtime_checkable
 
-from algebrax.lie.algebra import LieAlgebra
-from algebrax.matrix import SparseMatrix
+from algebrax.lie import LieAlgebra
+from algebrax.typing import SparseMatrix
 
 K = TypeVar("K")
 
 
+@runtime_checkable
 class LieRepresentation(Protocol[K]):
     """Protocol for a linear representation of a Lie algebra g on K^d."""
 
@@ -102,20 +103,20 @@ class LieRepresentation(Protocol[K]):
         """Dimension of representation space V."""
         ...
 
-    def __call__(self, generator_idx: int) -> SparseMatrix[K]:
+    def __call__(self, generator_idx: int) -> SparseMatrix[int, K]:
         """Evaluate representation matrix rho(X_i)."""
         ...
 
 
 @dataclass(frozen=True)
-class ExplicitLieRep(Generic[K]):
+class ExplicitLieRep(LieRepresentation[K], Generic[K]):
     """Lie representation backed by a sequence of sparse generator matrices."""
 
     algebra: LieAlgebra
-    generator_matrices: Sequence[SparseMatrix[K]]
+    generator_matrices: Sequence[SparseMatrix[int, K]]
     dimension: int
 
-    def __call__(self, idx: int) -> SparseMatrix[K]:
+    def __call__(self, idx: int) -> SparseMatrix[int, K]:
         return self.generator_matrices[idx]
 ```
 
@@ -141,15 +142,15 @@ def adjoint_representation(algebra: LieAlgebra) -> ExplicitLieRep[float]:
 ```python
 """Quadratic Casimir invariant operators."""
 
-from algebrax.lie.algebra import LieAlgebra
+from algebrax.lie import LieAlgebra
 from algebrax.lie.rep import LieRepresentation
-from algebrax.matrix import SparseMatrix
+from algebrax.typing import SparseMatrix
 
 
 def quadratic_casimir(
     rep: LieRepresentation[K],
-    killing_metric_inv: SparseMatrix[float],
-) -> SparseMatrix[K]:
+    killing_metric_inv: SparseMatrix[int, float],
+) -> SparseMatrix[int, K]:
     """Compute quadratic Casimir operator C = sum_{i,j} g^{ij} rho(X_i) @ rho(X_j).
     
     By Schur's lemma, on an irreducible representation C is a scalar multiple of I.
@@ -162,10 +163,10 @@ def quadratic_casimir(
 ```python
 """Clebsch–Gordan coefficients and sparse coupling tensors."""
 
-from algebrax.tensor import SparseTensor
+from algebrax.typing import SparseTensor
 
 
-def clebsch_gordan_tensor(j1_halves: int, j2_halves: int) -> SparseTensor[float]:
+def clebsch_gordan_tensor(j1_halves: int, j2_halves: int) -> SparseTensor[int, float]:
     """Compute sparse 3-tensor C_{m1, m2}^{(j, m)} coupling spins j1 and j2.
     
     Sparse keys are tuples: ((j, m), m1, m2) where m = m1 + m2.

@@ -97,112 +97,145 @@ elegant categorical duality.
 
 ## Specification
 
-### 1. The Coalgebra Protocol (`src/algebrax/algebra/coalgebra.py`)
+### 1. Atomic Mixins & Flat Coalgebra / Hopf Algebra Protocols (`src/algebrax/algebra/_mixins.py` & `src/algebrax/algebra/_hopf.py`)
+
+In strict compliance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) (**Law of Flat Protocol Composition**), we define three Layer 1 atomic mixins (`HasCoproduct[V]`, `HasCounit[R, V]`, `HasAntipode[V]`) in `algebrax.algebra._mixins`, and compose `Coalgebra`, `Bialgebra`, and `HopfAlgebra` flatly from Layer 1 mixins and `Protocol` (avoiding the diamond inheritance crash between `Algebra` and `Coalgebra`):
 
 ```python
 from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
-from algebrax.algebra._module import VectorSpace
+from algebrax.algebra._mixins import HasAdd, HasMul, HasNeg, HasOne, HasScale, HasZero
+from algebrax.typing import SparseVector
 
-K = TypeVar("K")
+R = TypeVar("R")
 C = TypeVar("C")
 TensorKey = tuple[Any, Any]
-SparseTensor = dict[TensorKey, float]
+SparseTensor = dict[TensorKey, Any]
 
 
-@runtime_checkable
-class Coalgebra(VectorSpace[K, C], Protocol[K, C]):
-    r"""A coalgebra $\langle C, \Delta, \epsilon \rangle$ over field $K$.
-
-    - Comultiplication $\Delta : C \to C \otimes C$
-    - Counit $\epsilon : C \to K$
-    """
+class HasCoproduct(Protocol[C]):
+    """Atomic operational mixin for structures equipped with a coproduct Delta: C -> C (x) C."""
 
     def coproduct(self, c: C) -> SparseTensor:
         r"""Compute comultiplication $\Delta(c) = \sum c_{(1)} \otimes c_{(2)}$."""
         ...
 
-    def counit(self, c: C) -> K:
-        r"""Compute counit $\epsilon(c) \in K$."""
+
+class HasCounit(Protocol[R, C]):
+    """Atomic operational mixin for structures equipped with a counit epsilon: C -> R."""
+
+    def counit(self, c: C) -> R:
+        r"""Compute counit $\epsilon(c) \in R$."""
         ...
-```
-
-### 2. Bialgebra & Hopf Algebra Protocols (`src/algebrax/algebra/hopf.py`)
-
-```python
-from algebrax.algebra._module import Algebra
 
 
-@runtime_checkable
-class Bialgebra(Algebra[K, C], Coalgebra[K, C], Protocol[K, C]):
-    r"""A bialgebra: both an Algebra and a Coalgebra where $\Delta$ and $\epsilon$ are algebra homomorphisms."""
-    ...
-
-
-@runtime_checkable
-class HopfAlgebra(Bialgebra[K, C], Protocol[K, C]):
-    r"""A Hopf algebra: a Bialgebra equipped with an Antipode $S : H \to H$ satisfying:
-    $$\mu \circ (S \otimes \mathrm{id}) \circ \Delta = \eta \circ \epsilon = \mu \circ (\mathrm{id} \otimes S) \circ \Delta$$
-    """
+class HasAntipode(Protocol[C]):
+    """Atomic operational mixin for structures equipped with an antipode S: H -> H."""
 
     def antipode(self, h: C) -> C:
         r"""Compute antipode $S(h)$."""
         ...
+
+
+@runtime_checkable
+class Coalgebra(
+    HasZero[C], HasAdd[C], HasNeg[C], HasScale[R, C], HasCoproduct[C], HasCounit[R, C], Protocol
+):
+    r"""A coalgebra $\langle R, C, \cdot_s, \mathbf{0}, +, -, \Delta, \epsilon \rangle$ over ring/field $R$."""
+
+    def sub(self, a: C, b: C) -> C:
+        return self.add(a, self.neg(b))
+
+
+@runtime_checkable
+class Bialgebra(
+    HasZero[C], HasAdd[C], HasNeg[C], HasOne[C], HasMul[C], HasScale[R, C],
+    HasCoproduct[C], HasCounit[R, C], Protocol
+):
+    r"""A bialgebra: flat composition of Algebra and Coalgebra atomic mixins."""
+
+    def sub(self, a: C, b: C) -> C:
+        return self.add(a, self.neg(b))
+
+
+@runtime_checkable
+class HopfAlgebra(
+    HasZero[C], HasAdd[C], HasNeg[C], HasOne[C], HasMul[C], HasScale[R, C],
+    HasCoproduct[C], HasCounit[R, C], HasAntipode[C], Protocol
+):
+    r"""A Hopf algebra: flat composition of Bialgebra mixins plus `HasAntipode[C]`."""
+
+    def sub(self, a: C, b: C) -> C:
+        return self.add(a, self.neg(b))
 ```
 
-### 3. Concrete Group Hopf Algebra (`src/algebrax/algebra/hopf.py`)
+### 2. Concrete Group Hopf Algebra (`src/algebrax/algebra/_hopf.py`)
+
+In accordance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), concrete Layer 3 class `GroupHopfAlgebra` subclasses `MonoidAlgebra[K, T]` and `HopfAlgebra[T, SparseVector[K, T]]`:
 
 ```python
-class GroupHopfAlgebra:
-    r"""Group Hopf algebra $K[G]$.
+from algebrax.algebra._group import Group
+from algebrax.algebra._monoid_algebra import MonoidAlgebra
+from algebrax.algebra._semiring import Semiring
 
-    - Multiplication: Group multiplication $g \cdot h$
-    - Coproduct: $\Delta(g) = g \otimes g$ (group-like elements)
-    - Counit: $\epsilon(g) = 1$
-    - Antipode: $S(g) = g^{-1}$
+
+class GroupHopfAlgebra(MonoidAlgebra[Any, float], HopfAlgebra[float, SparseVector[Any, float]]):
+    r"""Group Hopf algebra $R[G]$ over unboxed sparse group combinations `dict[G, float]`.
+
+    - Multiplication: Group convolution $g \cdot h$ (inherited from `MonoidAlgebra`)
+    - Coproduct: $\Delta(\sum c_g g) = \sum c_g (g \otimes g)$ (group-like elements)
+    - Counit: $\epsilon(\sum c_g g) = \sum c_g$
+    - Antipode: $S(\sum c_g g) = \sum c_g g^{-1}$
     """
 
-    def __init__(self, group: Any) -> None:
+    def __init__(self, group: Group[Any], coeff_semiring: Semiring[float]) -> None:
+        super().__init__(coeff_semiring, key_op=group.op, zero_key=group.identity)
         self.group = group
 
-    def coproduct(self, g: Any) -> SparseTensor:
-        return {(g, g): 1.0}
+    def coproduct(self, x: SparseVector[Any, float]) -> SparseTensor:
+        return {(g, g): coeff for g, coeff in x.items() if coeff != 0.0}
 
-    def counit(self, g: Any) -> float:
-        return 1.0
+    def counit(self, x: SparseVector[Any, float]) -> float:
+        return float(sum(x.values()))
 
-    def antipode(self, g: Any) -> Any:
-        return self.group.inv(g)
+    def antipode(self, x: SparseVector[Any, float]) -> SparseVector[Any, float]:
+        result: dict[Any, float] = {}
+        for g, coeff in x.items():
+            inv_g = self.group.inv(g)
+            result[inv_g] = result.get(inv_g, 0.0) + coeff
+        return {g: c for g, c in result.items() if c != 0.0}
 ```
 
-### 4. Alexander–Whitney Simplicial Coalgebra (`src/algebrax/topology/coalgebra.py`)
+### 3. Alexander–Whitney Simplicial Coalgebra (`src/algebrax/topology/coalgebra.py`)
 
 ```python
-class SimplicialChainCoalgebra:
+class SimplicialChainCoalgebra(Coalgebra[float, SparseVector[tuple[int, ...], float]]):
     r"""Simplicial chain complex $C_*(K)$ with the Alexander–Whitney coproduct."""
 
-    def coproduct(self, simplex: tuple[int, ...]) -> SparseTensor:
+    def coproduct(self, chain: SparseVector[tuple[int, ...], float]) -> SparseTensor:
         r"""Compute $\Delta([v_0, \dots, v_n]) = \sum_{i=0}^n [v_0, \dots, v_i] \otimes [v_i, \dots, v_n]$."""
         tensor: SparseTensor = {}
-        n = len(simplex)
-        for i in range(1, n + 1):
-            front_face = simplex[:i]
-            back_face = simplex[i - 1:]
-            tensor[(front_face, back_face)] = 1.0
-        return tensor
+        for simplex, coeff in chain.items():
+            n = len(simplex)
+            for i in range(1, n + 1):
+                front_face = simplex[:i]
+                back_face = simplex[i - 1 :]
+                key = (front_face, back_face)
+                tensor[key] = tensor.get(key, 0.0) + coeff
+        return {k: v for k, v in tensor.items() if v != 0.0}
 
-    def counit(self, simplex: tuple[int, ...]) -> float:
-        return 1.0 if len(simplex) == 1 else 0.0
+    def counit(self, chain: SparseVector[tuple[int, ...], float]) -> float:
+        return sum(coeff for simplex, coeff in chain.items() if len(simplex) == 1)
 ```
 
-### 5. Verification Suite (`src/algebrax/verification/hopf.py`)
+### 4. Verification Suite (`src/algebrax/verification.py`)
 
 ```python
-def verify_coassociativity(coalgebra: Coalgebra[K, C], samples: list[C]) -> None:
+def verify_coassociativity(coalgebra: Coalgebra[R, C], samples: list[C]) -> bool:
     r"""Verify that $(\Delta \otimes \mathrm{id})\Delta(c) == (\mathrm{id} \otimes \Delta)\Delta(c)$."""
     ...
 
 
-def verify_antipode_axiom(hopf: HopfAlgebra[K, C], samples: list[C]) -> None:
+def verify_antipode_axiom(hopf: HopfAlgebra[R, C], samples: list[C]) -> bool:
     r"""Verify that $\sum S(c_{(1)}) c_{(2)} == \epsilon(c) \mathbf{1}$."""
     ...
 ```

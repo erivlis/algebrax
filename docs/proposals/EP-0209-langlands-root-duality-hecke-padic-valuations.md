@@ -94,8 +94,8 @@ In computational discrete mathematics:
 ### 1. Langlands Dual Root System (`src/algebrax/lie/langlands.py`)
 
 ```python
-from algebrax.lie.root_system import RootSystem
-from algebrax.linalg.sparse import transpose
+from algebrax.lie import RootSystem
+from algebrax.matrix import transpose
 
 
 def langlands_dual_root_system(rs: RootSystem) -> RootSystem:
@@ -107,21 +107,19 @@ def langlands_dual_root_system(rs: RootSystem) -> RootSystem:
     dual_cartan = transpose(rs.cartan_matrix)
     # Reconstruct root system from transposed Cartan matrix
     ...
-    return RootSystem(cartan_matrix=dual_cartan)
 ```
 
-### 2. Ramanujan Expander Graph Verifier (`src/algebrax/analysis/ramanujan.py`)
+### 2. Ramanujan Expander Graph Verifier (`src/algebrax/analysis/spectral.py`)
 
 ```python
 import math
 from typing import Any
-from algebrax.analysis.spectral import adjacency_spectrum
 
 
 def is_ramanujan_graph(
-        adjacency: dict[Any, set[Any]],
-        degree: int,
-        tol: float = 1e-7,
+    adjacency: dict[Any, dict[Any, float]],
+    degree: int,
+    tol: float = 1e-7,
 ) -> tuple[bool, float, float]:
     r"""Verify if a d-regular graph satisfies the Ramanujan bound:
     $$\max_{|\lambda_i| < d} |\lambda_i| \le 2\sqrt{d - 1}$$
@@ -130,51 +128,63 @@ def is_ramanujan_graph(
         (is_ramanujan, max_nontrivial_eigenvalue, ramanujan_threshold)
     """
     threshold = 2.0 * math.sqrt(degree - 1)
-    eigenvalues = adjacency_spectrum(adjacency)
-
-    # Filter out trivial eigenvalues lambda == d and lambda == -d (bipartite)
-    nontrivial = [abs(lam) for lam in eigenvalues if abs(abs(lam) - degree) > tol]
-    max_lam = max(nontrivial, default=0.0)
-
-    is_ram = max_lam <= threshold + tol
-    return (is_ram, max_lam, threshold)
+    ...
 ```
 
-### 3. $p$-Adic Numbers & Tropical Valuation (`src/algebrax/algebra/padic.py`)
+### 3. Unboxed $p$-Adic Field & Tropical Valuation (`src/algebrax/algebra/_padic.py`)
+
+In strict compliance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) and Shannon's unboxed carrier rule, $p$-adic elements are represented as unboxed sparse digit mappings `dict[int, int]` (mapping power $k \in \mathbb{Z}$ to digit $a_k \in \{1, \dots, p-1\}$), operated on by `PAdicField(Field[dict[int, int]])`:
 
 ```python
-class PAdicNumber:
-    r"""A p-adic number in $\mathbb{Q}_p$ with expansion $x = p^v \sum_{i=0}^{N} a_i p^i$."""
+from algebrax.algebra._field import Field
 
-    def __init__(self, p: int, valuation: int, digits: list[int]) -> None:
+
+class PAdicField(Field[dict[int, int]]):
+    r"""The $p$-adic field $\mathbb{Q}_p$ operating on unboxed sparse $p$-adic expansions `dict[int, int]`.
+
+    An element $x = \sum_{k=v}^{N} a_k p^k$ is stored as `{k: a_k}` with $a_k \in \{1, \dots, p-1\}$.
+    """
+
+    def __init__(self, p: int, precision: int = 16) -> None:
         self.p = p
-        self.valuation = valuation  # v_p(x)
-        self.digits = digits
+        self.precision = precision
 
-    def p_adic_norm(self) -> float:
-        r"""Compute p-adic absolute value $|x|_p = p^{-v_p(x)}$."""
-        return self.p ** (-self.valuation)
+    @property
+    def zero(self) -> dict[int, int]:
+        return {}
 
-    def tropical_valuation(self) -> float:
-        r"""Compute tropical min-plus valuation $v_p(x)$."""
-        return float(self.valuation)
+    @property
+    def one(self) -> dict[int, int]:
+        return {0: 1}
+
+    def valuation(self, x: dict[int, int]) -> float:
+        r"""Compute tropical min-plus $p$-adic valuation $v_p(x) = \min \{k \mid a_k \ne 0\}$ ($\infty$ for $0$)."""
+        if not x:
+            return float("inf")
+        return float(min(x.keys()))
+
+    def norm(self, x: dict[int, int]) -> float:
+        r"""Compute non-archimedean $p$-adic absolute value $|x|_p = p^{-v_p(x)}$."""
+        if not x:
+            return 0.0
+        return float(self.p ** (-min(x.keys())))
 ```
 
-### 4. Verification Suite (`src/algebrax/verification/langlands.py`)
+### 4. Verification Suite (`src/algebrax/verification.py`)
 
 ```python
-def verify_cartan_duality(rs: RootSystem) -> None:
+def verify_cartan_duality(rs: RootSystem) -> bool:
     """Verify that dual of dual is isomorphic to original root system."""
     dual = langlands_dual_root_system(rs)
     dual_dual = langlands_dual_root_system(dual)
-    assert dual_dual.cartan_matrix == rs.cartan_matrix
+    return dual_dual.cartan_matrix == rs.cartan_matrix
 
 
-def verify_padic_ultrametric(x: PAdicNumber, y: PAdicNumber) -> None:
+def verify_padic_ultrametric(field: PAdicField, x: dict[int, int], y: dict[int, int]) -> bool:
     r"""Verify the strong triangle inequality: $|x + y|_p \le \max(|x|_p, |y|_p)$."""
-    sum_norm = (x + y).p_adic_norm()
-    max_norm = max(x.p_adic_norm(), y.p_adic_norm())
-    assert sum_norm <= max_norm + 1e-12
+    sum_norm = field.norm(field.add(x, y))
+    max_norm = max(field.norm(x), field.norm(y))
+    return sum_norm <= max_norm + 1e-12
 ```
 
 ---

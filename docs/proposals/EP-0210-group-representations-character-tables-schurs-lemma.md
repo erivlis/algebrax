@@ -86,15 +86,16 @@ Groups describe symmetries, but in quantum mechanics, crystallography, computer 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Generic, Hashable, Protocol, TypeVar
+from typing import Callable, Generic, Hashable, Protocol, TypeVar, runtime_checkable
 
-from algebrax.matrix import SparseMatrix
+from algebrax.typing import SparseMatrix
 
-G = TypeVar("G", bound=Hashable)  # Group element
 K = TypeVar("K")                   # Field scalar (float or complex)
+G = TypeVar("G", bound=Hashable)  # Group element
 
 
-class GroupRepresentation(Protocol[G, K]):
+@runtime_checkable
+class GroupRepresentation(Protocol[K, G]):
     """Protocol for a linear representation of a group G on a vector space K^d."""
 
     @property
@@ -102,19 +103,19 @@ class GroupRepresentation(Protocol[G, K]):
         """Dimension of the representation space V."""
         ...
 
-    def __call__(self, g: G) -> SparseMatrix[K]:
+    def __call__(self, g: G) -> SparseMatrix[int, K]:
         """Evaluate representation operator rho(g) as a sparse matrix."""
         ...
 
 
 @dataclass(frozen=True)
-class ExplicitGroupRep(Generic[G, K]):
+class ExplicitGroupRep(GroupRepresentation[K, G], Generic[K, G]):
     """Explicit group representation backed by precomputed sparse matrices."""
 
-    matrices: dict[G, SparseMatrix[K]]
+    matrices: dict[G, SparseMatrix[int, K]]
     dimension: int
 
-    def __call__(self, g: G) -> SparseMatrix[K]:
+    def __call__(self, g: G) -> SparseMatrix[int, K]:
         return self.matrices[g]
 ```
 
@@ -189,23 +190,23 @@ class CharacterTable:
 ```python
 """Standard representations for symmetric, cyclic, dihedral, and quaternion groups."""
 
-def trivial_rep(elements: Sequence[G]) -> ExplicitGroupRep[G, float]:
+def trivial_rep(elements: Sequence[G]) -> ExplicitGroupRep[float, G]:
     """Trivial 1D representation rho(g) = [1.0]."""
     ...
 
-def regular_rep(group_table: dict[tuple[G, G], G]) -> ExplicitGroupRep[G, float]:
+def regular_rep(group_table: dict[tuple[G, G], G]) -> ExplicitGroupRep[float, G]:
     """Regular representation of dimension |G| acting by permutation matrices."""
     ...
 
-def cyclic_rep(n: int, k: int = 1) -> GroupRepresentation[int, complex]:
+def cyclic_rep(n: int, k: int = 1) -> GroupRepresentation[complex, int]:
     """1D representation of C_n sending generator to exp(2 pi i k / n)."""
     ...
 
-def dihedral_rep(n: int, k: int = 1) -> GroupRepresentation[str, float]:
+def dihedral_rep(n: int, k: int = 1) -> GroupRepresentation[float, str]:
     """2D standard geometric rotation-reflection representation of D_2n."""
     ...
 
-def quaternion_rep() -> ExplicitGroupRep[str, complex]:
+def quaternion_rep() -> ExplicitGroupRep[complex, str]:
     """2D irreducible complex representation of Q_8 using Pauli spin matrices."""
     ...
 ```
@@ -215,7 +216,7 @@ def quaternion_rep() -> ExplicitGroupRep[str, complex]:
 ```python
 """Property-based verification for representation theory laws."""
 
-def verify_representation_homomorphism(rep: GroupRepresentation[G, K], elements: Sequence[G], mult: Callable[[G, G], G]) -> bool:
+def verify_representation_homomorphism(rep: GroupRepresentation[K, G], elements: Sequence[G], mult: Callable[[G, G], G]) -> bool:
     """Verify rho(g * h) == rho(g) @ rho(h)."""
     ...
 

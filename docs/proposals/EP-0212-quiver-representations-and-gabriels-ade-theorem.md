@@ -85,11 +85,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Generic, Hashable, Sequence, TypeVar
 
-from algebrax.matrix import SparseMatrix
+from algebrax.typing import SparseMatrix
 
+K = TypeVar("K")                   # Scalar field
 V = TypeVar("V", bound=Hashable)  # Vertex type
 E = TypeVar("E", bound=Hashable)  # Edge type
-K = TypeVar("K")                   # Scalar field
 
 
 @dataclass(frozen=True)
@@ -103,12 +103,12 @@ class Quiver(Generic[V, E]):
 
 
 @dataclass(frozen=True)
-class QuiverRepresentation(Generic[V, E, K]):
+class QuiverRepresentation(Generic[K, V, E]):
     """A representation of quiver Q over field K."""
 
     quiver: Quiver[V, E]
-    dimensions: dict[V, int]              # dim(V_i)
-    edge_maps: dict[E, SparseMatrix[K]]    # M_alpha: V_{s(alpha)} -> V_{t(alpha)}
+    dimensions: dict[V, int]                 # dim(V_i)
+    edge_maps: dict[E, SparseMatrix[int, K]] # M_alpha: V_{s(alpha)} -> V_{t(alpha)}
 
     @property
     def dimension_vector(self) -> tuple[int, ...]:
@@ -147,11 +147,10 @@ def classify_representation_type(quiver: Quiver[V, E]) -> str:
 ```python
 """Path algebras KQ of quivers."""
 
-from typing import Tuple
-from algebrax.algebra.monoid_algebra import QuotientMonoidAlgebraSemiring
+from algebrax.algebra import QuotientMonoidAlgebra
 
 
-def path_algebra(quiver: Quiver[V, E]) -> QuotientMonoidAlgebraSemiring:
+def path_algebra(quiver: Quiver[V, E]) -> QuotientMonoidAlgebra[tuple[E, ...], K]:
     """Construct associative path algebra K Q where elements are linear combinations of paths."""
     ...
 ```
@@ -162,9 +161,9 @@ def path_algebra(quiver: Quiver[V, E]) -> QuotientMonoidAlgebraSemiring:
 """Property-based verification for quiver representations and Gabriel's theorem."""
 
 def verify_quiver_morphism_commutation(
-    rep1: QuiverRepresentation[V, E, K],
-    rep2: QuiverRepresentation[V, E, K],
-    morphism_maps: dict[V, SparseMatrix[K]],
+    rep1: QuiverRepresentation[K, V, E],
+    rep2: QuiverRepresentation[K, V, E],
+    morphism_maps: dict[V, SparseMatrix[int, K]],
 ) -> bool:
     """Verify f_{t(e)} @ M_e == N_e @ f_{s(e)} for all edges e."""
     ...

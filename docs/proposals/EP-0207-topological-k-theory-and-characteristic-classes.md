@@ -95,13 +95,14 @@ cohomology.
 
 ## Specification
 
-### 1. The Universal Grothendieck Group Functor (`src/algebrax/algebra/grothendieck.py`)
+### 1. The Universal Grothendieck Group Functor (`src/algebrax/algebra/_grothendieck.py`)
+
+In accordance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), `GrothendieckGroup` nominally subclasses `AddCommGroup[tuple[M, M]]` and exposes `zero` as a `@property`:
 
 ```python
-from typing import Generic, Protocol, TypeVar
-from collections.abc import Callable
-from algebrax.algebra._monoid import AddCommMonoid
+from typing import Generic, TypeVar
 from algebrax.algebra._group import AddCommGroup
+from algebrax.algebra._monoid import AddCommMonoid
 
 M = TypeVar("M")
 
@@ -116,8 +117,9 @@ class GrothendieckGroup(AddCommGroup[tuple[M, M]], Generic[M]):
     def __init__(self, monoid: AddCommMonoid[M]) -> None:
         self.monoid = monoid
 
+    @property
     def zero(self) -> tuple[M, M]:
-        z = self.monoid.zero()
+        z = self.monoid.zero
         return (z, z)
 
     def add(self, x: tuple[M, M], y: tuple[M, M]) -> tuple[M, M]:

@@ -89,7 +89,9 @@ modern theoretical computer science.
 
 ## Specification
 
-### 1. Cartesian Closed Category Protocol (`src/algebrax/category/ccc.py`)
+### 1. Flat Cartesian Closed Category Protocol (`src/algebrax/category/ccc.py`)
+
+In strict compliance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) (**Law of Flat Protocol Composition**), `CartesianClosedCategory` is a flat `Protocol` (without inheriting from the Layer 2 `Category` protocol):
 
 ```python
 from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
@@ -100,15 +102,24 @@ Mor = TypeVar("Mor")
 
 
 @runtime_checkable
-class CartesianClosedCategory(Category[Obj, Mor], Protocol[Obj, Mor]):
+class CartesianClosedCategory(Protocol[Obj, Mor]):
     r"""A Cartesian Closed Category (CCC) $\langle \mathcal{C}, \times, \mathbf{1}, (-)^A \rangle$.
 
     Provides:
+    - Category operations (`id`, `compose`, `source`, `target`)
     - Terminal object $\mathbf{1}$
     - Binary products $A \times B$ and projections $\pi_1, \pi_2$
     - Exponential objects $B^A$ and evaluation map $\mathrm{eval} : B^A \times A \to B$
     - Currying isomorphism: $\mathrm{Hom}(A \times B, C) \cong \mathrm{Hom}(A, C^B)$
     """
+
+    def id(self, x: Obj) -> Mor: ...
+
+    def compose(self, f: Mor, g: Mor) -> Mor: ...
+
+    def source(self, f: Mor) -> Obj: ...
+
+    def target(self, f: Mor) -> Obj: ...
 
     def product(self, a: Obj, b: Obj) -> Obj:
         """Categorical product object."""
@@ -126,13 +137,13 @@ class CartesianClosedCategory(Category[Obj, Mor], Protocol[Obj, Mor]):
 ### 2. Semiring-Graded Coeffects (`src/algebrax/category/coeffect.py`)
 
 ```python
-from algebrax.structures.semiring import Semiring
+from algebrax.algebra import Semiring
 
 
 class SemiringCoeffectTracker(Generic[Obj]):
     r"""Tracks computational resource bounds graded by a Semiring $S$."""
 
-    def __init__(self, semiring: Semiring) -> None:
+    def __init__(self, semiring: Semiring[Any]) -> None:
         self.semiring = semiring
         self._costs: dict[Obj, Any] = {}
 
@@ -144,15 +155,15 @@ class SemiringCoeffectTracker(Generic[Obj]):
 
     def compose_sequence(self, op1: Obj, op2: Obj) -> Any:
         r"""Compose execution costs via semiring multiplication: $c_1 \times c_2$."""
-        c1 = self._costs.get(op1, self.semiring.one())
-        c2 = self._costs.get(op2, self.semiring.one())
+        c1 = self._costs.get(op1, self.semiring.one)
+        c2 = self._costs.get(op2, self.semiring.one)
         return self.semiring.mul(c1, c2)
 ```
 
 ### 3. Simplicial Homotopy Path Groupoid (`src/algebrax/topology/groupoid.py`)
 
 ```python
-class SimplicialPathGroupoid:
+class SimplicialPathGroupoid(Category[Any, tuple[Any, ...]]):
     r"""Fundamental groupoid $\Pi_1(K)$ over simplicial complex $K$.
 
     Objects: Vertices $v \in K_0$.

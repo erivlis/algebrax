@@ -80,26 +80,31 @@ Invariant theory—founded by Cayley, Sylvester, Gordan, and Hilbert—is the hi
 from __future__ import annotations
 
 from typing import Callable, Sequence, TypeVar
-from algebrax.matrix import SparseMatrix
+
+from algebrax.matrix import matvec, transpose
 from algebrax.rep.group import GroupRepresentation
+from algebrax.semiring import RealSemiring
 
 G = TypeVar("G")
 
 
 def reynolds_operator(
     poly_eval: Callable[[Sequence[float]], float],
-    rep: GroupRepresentation[G, float],
+    rep: GroupRepresentation[float, G],
     group_elements: Sequence[G],
 ) -> Callable[[Sequence[float]], float]:
     """Return invariant polynomial f_inv(x) = (1/|G|) sum_g f(rho(g^{-1}) x)."""
     order = len(group_elements)
+    semiring = RealSemiring()
 
     def invariant_poly(x: Sequence[float]) -> float:
         total = 0.0
+        x_sparse = {i: val for i, val in enumerate(x) if val != 0.0}
         for g in group_elements:
             mat = rep(g)
-            # x_transformed = mat.T @ x
-            x_g = mat.transpose().matvec(x)
+            # For orthogonal/unitary representations, rho(g^{-1}) = rho(g)^T
+            x_g_sparse = matvec(transpose(mat), x_sparse, semiring)
+            x_g = [x_g_sparse.get(i, 0.0) for i in range(len(x))]
             total += poly_eval(x_g)
         return total / order
 
@@ -113,7 +118,7 @@ def reynolds_operator(
 
 from dataclasses import dataclass
 from typing import Sequence
-from algebrax.matrix import SparseMatrix
+
 from algebrax.rep.group import GroupRepresentation
 
 
@@ -130,7 +135,7 @@ class MolienSeries:
 
 
 def compute_molien_series(
-    rep: GroupRepresentation[G, float],
+    rep: GroupRepresentation[float, G],
     group_elements: Sequence[G],
 ) -> MolienSeries:
     """Compute Molien series M(t) = (1/|G|) sum_{g in G} 1 / det(I - t rho(g))."""
@@ -142,11 +147,11 @@ def compute_molien_series(
 ```python
 """Higher-order Casimir polynomial invariants in symmetric algebra S(g)."""
 
-from algebrax.lie.algebra import LieAlgebra
-from algebrax.tensor import SparseTensor
+from algebrax.lie import LieAlgebra
+from algebrax.typing import SparseTensor
 
 
-def cubic_casimir_tensor(algebra: LieAlgebra) -> SparseTensor[float]:
+def cubic_casimir_tensor(algebra: LieAlgebra) -> SparseTensor[int, float]:
     """Compute symmetric cubic Casimir d_{ijk} = Tr(ad_{X_i} (ad_{X_j} ad_{X_k} + ad_{X_k} ad_{X_j})).
     
     Non-zero for sl_n (n >= 3), vanishing for sl_2 and so_n.
@@ -169,7 +174,7 @@ def verify_reynolds_idempotency(
 
 def verify_polynomial_invariance(
     poly: Callable[[Sequence[float]], float],
-    rep: GroupRepresentation[G, float],
+    rep: GroupRepresentation[float, G],
     elements: Sequence[G],
     dimension: int,
     num_probes: int = 50,

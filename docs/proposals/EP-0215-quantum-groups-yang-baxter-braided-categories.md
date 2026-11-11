@@ -82,7 +82,8 @@ Quantum groups (introduced independently by Vladimir Drinfeld and Michio Jimbo i
 from __future__ import annotations
 
 from dataclasses import dataclass
-from algebrax.matrix import SparseMatrix
+
+from algebrax.typing import SparseMatrix
 
 
 @dataclass(frozen=True)
@@ -97,7 +98,7 @@ class QuantumSL2:
             return complex(n)
         return (self.q ** n - self.q ** (-n)) / (self.q - self.q ** (-1))
 
-    def spin_representation(self, j_halves: int) -> dict[str, SparseMatrix[complex]]:
+    def spin_representation(self, j_halves: int) -> dict[str, SparseMatrix[int, complex]]:
         """Construct spin-j representation matrices for E, F, K, K_inv.
         
         Dimension is d = 2j + 1. Matrices are exact sparse dictionaries.
@@ -110,11 +111,11 @@ class QuantumSL2:
 ```python
 """Universal R-matrix and braiding operators for quantum groups."""
 
-from algebrax.matrix import SparseMatrix
 from algebrax.quantum.sl2 import QuantumSL2
+from algebrax.typing import SparseMatrix
 
 
-def universal_r_matrix_sl2_fundamental(q: complex) -> SparseMatrix[complex]:
+def universal_r_matrix_sl2_fundamental(q: complex) -> SparseMatrix[int, complex]:
     """Return explicit 4x4 R-matrix for fundamental 2D representation of U_q(sl_2).
     
     Acts on C^2 (x) C^2 with basis |++>, |+->, |-+>, |-->:
@@ -128,7 +129,7 @@ def universal_r_matrix_sl2_fundamental(q: complex) -> SparseMatrix[complex]:
     ...
 
 
-def braiding_operator(r_matrix: SparseMatrix[complex]) -> SparseMatrix[complex]:
+def braiding_operator(r_matrix: SparseMatrix[int, complex]) -> SparseMatrix[int, complex]:
     """Compute braiding map B = P @ R where P is the swap operator P(v (x) w) = w (x) v."""
     ...
 ```
@@ -139,15 +140,16 @@ def braiding_operator(r_matrix: SparseMatrix[complex]) -> SparseMatrix[complex]:
 """Knot invariants from quantum group braid representations."""
 
 from typing import Sequence
-from algebrax.matrix import SparseMatrix
+
 from algebrax.quantum.sl2 import QuantumSL2
+from algebrax.typing import SparseMatrix
 
 
 def braid_to_matrix(
     braid_word: Sequence[int],  # e.g., [1, -2, 1] for Artin generators sigma_i
     num_strands: int,
     q: complex,
-) -> SparseMatrix[complex]:
+) -> SparseMatrix[int, complex]:
     """Convert braid word into sparse matrix in (C^2)^{\otimes n} via R-matrices."""
     ...
 
@@ -162,7 +164,7 @@ def jones_polynomial_eval(braid_word: Sequence[int], num_strands: int, q: comple
 ```python
 """Property-based verification for quantum groups and Yang-Baxter equation."""
 
-def verify_yang_baxter_equation(r_matrix: SparseMatrix[complex], dim: int = 2) -> bool:
+def verify_yang_baxter_equation(r_matrix: SparseMatrix[int, complex], dim: int = 2) -> bool:
     """Verify R_{12} @ R_{13} @ R_{23} == R_{23} @ R_{13} @ R_{12} in V (x) V (x) V.
     
     Guards against dense d^3 x d^3 Kronecker allocations; embeddings are evaluated lazily
@@ -170,11 +172,11 @@ def verify_yang_baxter_equation(r_matrix: SparseMatrix[complex], dim: int = 2) -
     """
     ...
 
-def verify_artin_braid_relations(b1: SparseMatrix[complex], b2: SparseMatrix[complex]) -> bool:
+def verify_artin_braid_relations(b1: SparseMatrix[int, complex], b2: SparseMatrix[int, complex]) -> bool:
     """Verify B_1 @ B_2 @ B_1 == B_2 @ B_1 @ B_2."""
     ...
 
-def verify_quantum_sl2_relations(q: complex, rep: dict[str, SparseMatrix[complex]]) -> bool:
+def verify_quantum_sl2_relations(q: complex, rep: dict[str, SparseMatrix[int, complex]]) -> bool:
     """Verify K E K^{-1} == q^2 E, K F K^{-1} == q^{-2} F, and [E, F] == [K - K^{-1}] / (q - q^{-1}).
     
     Includes defensive L'Hopital expansion guard as q -> 1 recovering the classical [E, F] = H.

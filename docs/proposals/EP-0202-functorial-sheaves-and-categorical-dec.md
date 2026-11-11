@@ -76,10 +76,12 @@ Every regular cell complex $K$ induces a poset category $\mathbf{Poset}(K)$:
 - **Morphisms**: Inclusion relations $\sigma \trianglelefteq \tau$ indicating that $\sigma$ is a face of $\tau$.
 - **Composition**: Transitivity of face relations ($\sigma \trianglelefteq \tau \trianglelefteq \rho \implies \sigma \trianglelefteq \rho$).
 
+In accordance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), `CellPosetCategory` nominally subclasses `Category[Cell, FaceInclusion]`:
+
 ```python
-from dataclasses import dataclass
-from typing import Any
 from collections.abc import Iterable
+from dataclasses import dataclass
+from algebrax.category.core import Category
 
 
 @dataclass(frozen=True)
@@ -98,7 +100,7 @@ class FaceInclusion:
     target_cell: Cell  # Coface (higher dimension)
 
 
-class CellPosetCategory:
+class CellPosetCategory(Category[Cell, FaceInclusion]):
     """Poset category Poset(K) of a regular cell complex."""
 
     def __init__(self, cells: Iterable[Cell], faces: Iterable[tuple[Cell, Cell]]) -> None:
@@ -120,15 +122,13 @@ class CellPosetCategory:
         return f.target_cell
 ```
 
-### 2. Functorial Sheaf Protocol (`src/algebrax/sheaf/functor.py`)
+### 2. Functorial Sheaf Protocol (`src/algebrax/topology/sheaf.py`)
 
-A cellular sheaf $\mathcal{F}$ is a contravariant functor from $\mathbf{Poset}(K)$ to $\mathbf{Mat}(\mathbb{R})$:
+Following [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), `FunctorialSheaf` is a flat `@runtime_checkable` `Protocol` modeling a contravariant functor from $\mathbf{Poset}(K)$ to $\mathbf{Mat}(\mathbb{R})$:
 
 ```python
-from typing import Protocol, TypeVar, runtime_checkable
-from algebrax.category.core import Category, Functor
-
-SparseMatrix = dict[Any, dict[Any, float]]
+from typing import Any, Protocol, runtime_checkable
+from algebrax.typing import SparseMatrix
 
 
 @runtime_checkable
@@ -149,17 +149,17 @@ class FunctorialSheaf(Protocol):
         """Dimension of the stalk at cell sigma."""
         ...
 
-    def restriction_map(self, face: Cell, coface: Cell) -> SparseMatrix:
+    def restriction_map(self, face: Cell, coface: Cell) -> SparseMatrix[int, float]:
         r"""Restriction matrix $\mathcal{E}_{face \trianglelefteq coface}$."""
         ...
 ```
 
-### 3. Unification of DEC and the Constant Sheaf (`src/algebrax/sheaf/dec_bridge.py`)
+### 3. Unification of DEC and the Constant Sheaf (`src/algebrax/topology/sheaf.py`)
 
-The standard Discrete Exterior Calculus (DEC) boundary operator $\mathbf{d}_k$ is proven to be the coboundary operator of the constant sheaf $\underline{\mathbb{R}}$:
+The standard Discrete Exterior Calculus (DEC) boundary operator $\mathbf{d}_k$ is proven to be the coboundary operator of the constant sheaf $\underline{\mathbb{R}}$. Concrete class `ConstantSheaf` nominally subclasses `FunctorialSheaf`:
 
 ```python
-class ConstantSheaf:
+class ConstantSheaf(FunctorialSheaf):
     r"""The constant rank-1 sheaf $\underline{\mathbb{R}}$ over cell complex $K$.
 
     - Stalk at every cell is $\mathbb{R}^1$.
@@ -171,16 +171,21 @@ class ConstantSheaf:
     def __init__(self, complex_cells: list[Cell], orientations: dict[tuple[Cell, Cell], int]) -> None:
         self.cells = complex_cells
         self.orientations = orientations  # +1 or -1 for (face, coface)
+        self._poset = CellPosetCategory(complex_cells, orientations.keys())
+
+    @property
+    def poset_category(self) -> CellPosetCategory:
+        return self._poset
 
     def stalk_dim(self, cell: Cell) -> int:
         return 1
 
-    def restriction_map(self, face: Cell, coface: Cell) -> SparseMatrix:
+    def restriction_map(self, face: Cell, coface: Cell) -> SparseMatrix[int, float]:
         sign = self.orientations.get((face, coface), 1)
         return {0: {0: float(sign)}}
 ```
 
-### 4. Coboundary Natural Transformation & Sheaf Laplacian (`src/algebrax/sheaf/laplacian.py`)
+### 4. Coboundary Natural Transformation & Sheaf Laplacian (`src/algebrax/topology/sheaf.py`)
 
 The global degree-$k$ cochain space is the direct sum of stalks:
 $$C^k(K; \mathcal{F}) = \bigoplus_{\dim \sigma = k} \mathcal{F}(\sigma)$$
@@ -189,63 +194,63 @@ The coboundary operator $\delta^k: C^k(K; \mathcal{F}) \to C^{k+1}(K; \mathcal{F
 $$\delta^k(x)(\tau) = \sum_{\sigma \trianglelefteq \tau} [\sigma : \tau] \mathcal{E}_{\sigma \trianglelefteq \tau} x(\sigma)$$
 
 ```python
-from algebrax.linalg.sparse import dot, transpose
-from algebrax.structures.semiring import RealRing
+from algebrax.matrix import add, dot, transpose
+from algebrax.semiring import StandardSemiring
 
 
-def build_sheaf_coboundary_matrix(sheaf: FunctorialSheaf, k: int) -> SparseMatrix:
+def build_sheaf_coboundary_matrix(sheaf: FunctorialSheaf, k: int) -> SparseMatrix[Any, float]:
     r"""Assemble the sparse block coboundary matrix $\delta^k: C^k \to C^{k+1}$."""
-    # Maps k-cells to (k+1)-cells weighted by restriction matrices and incidence signs
-    matrix: SparseMatrix = {}
+    matrix: SparseMatrix[Any, float] = {}
     ...
     return matrix
 
 
-def build_sheaf_laplacian(sheaf: FunctorialSheaf, k: int = 0) -> SparseMatrix:
+def build_sheaf_laplacian(sheaf: FunctorialSheaf, k: int = 0) -> SparseMatrix[Any, float]:
     r"""Assemble the k-th Sheaf Laplacian $L_k = \delta_k^* \delta_k + \delta_{k-1} \delta_{k-1}^*$.
 
     For degree 0 (vertex signals), $L_0 = \delta_0^T \delta_0$.
     """
     delta_k = build_sheaf_coboundary_matrix(sheaf, k)
     delta_k_t = transpose(delta_k)
-    ring = RealRing()
+    semiring = StandardSemiring(float)
 
-    l_up = dot(delta_k_t, delta_k, ring)
+    l_up = dot(delta_k_t, delta_k, semiring=semiring)
     if k == 0:
         return l_up
 
     delta_prev = build_sheaf_coboundary_matrix(sheaf, k - 1)
     delta_prev_t = transpose(delta_prev)
-    l_down = dot(delta_prev, delta_prev_t, ring)
+    l_down = dot(delta_prev, delta_prev_t, semiring=semiring)
 
-    # Return l_up + l_down
-    ...
+    return add(l_up, l_down, semiring=semiring)
 ```
 
-### 5. Verification Invariants (`src/algebrax/verification/sheaf.py`)
+### 5. Verification Invariants (`src/algebrax/verification.py`)
 
 ```python
-def verify_sheaf_functoriality(sheaf: FunctorialSheaf, sample_paths: list[tuple[Cell, Cell, Cell]]) -> None:
+def verify_sheaf_functoriality(sheaf: FunctorialSheaf, sample_paths: list[tuple[Cell, Cell, Cell]]) -> bool:
     r"""Verify functoriality of restriction maps:
     $$\mathcal{E}_{\sigma \trianglelefteq \rho} = \mathcal{E}_{\sigma \trianglelefteq \tau} \circ \mathcal{E}_{\tau \trianglelefteq \rho}$$
     """
-    ring = RealRing()
+    semiring = StandardSemiring(float)
     for sigma, tau, rho in sample_paths:
         r_sigma_tau = sheaf.restriction_map(sigma, tau)
         r_tau_rho = sheaf.restriction_map(tau, rho)
         r_sigma_rho = sheaf.restriction_map(sigma, rho)
 
-        composed = dot(r_tau_rho, r_sigma_tau, ring)
-        assert composed == r_sigma_rho
+        composed = dot(r_sigma_tau, r_tau_rho, semiring=semiring)
+        if composed != r_sigma_rho:
+            return False
+    return True
 
 
-def verify_coboundary_nilpotency(sheaf: FunctorialSheaf, k: int) -> None:
+def verify_coboundary_nilpotency(sheaf: FunctorialSheaf, k: int) -> bool:
     r"""Verify the fundamental cohomological invariant $\delta^{k+1} \circ \delta^k = \mathbf{0}$."""
-    ring = RealRing()
+    semiring = StandardSemiring(float)
     delta_k = build_sheaf_coboundary_matrix(sheaf, k)
     delta_k1 = build_sheaf_coboundary_matrix(sheaf, k + 1)
-    delta2 = dot(delta_k1, delta_k, ring)
-    assert not delta2 or all(abs(val) < 1e-12 for row in delta2.values() for val in row.values())
+    delta2 = dot(delta_k1, delta_k, semiring=semiring)
+    return not delta2 or all(abs(val) < 1e-12 for row in delta2.values() for val in row.values())
 ```
 
 ---
@@ -253,9 +258,9 @@ def verify_coboundary_nilpotency(sheaf: FunctorialSheaf, k: int) -> None:
 ## Backwards Compatibility
 
 1. **Non-Breaking Extension**:
-   `CellularSheaf` in `algebrax.sheaf` is updated to satisfy `FunctorialSheaf` while retaining its existing helper methods (`add_stalk`, `add_restriction`).
+   `CellularSheaf` in `algebrax.topology` is updated to nominally subclass `FunctorialSheaf` while retaining its existing helper methods.
 2. **Interoperability with DEC**:
-   Existing discrete differential form workflows in `algebrax.dec` remain unchanged; `ConstantSheaf` provides an explicit bidirectional bridge.
+   Existing discrete differential form workflows in `algebrax.analysis` remain unchanged; `ConstantSheaf` provides an explicit bidirectional bridge.
 
 ---
 
