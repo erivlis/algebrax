@@ -2,7 +2,7 @@
 title: "EP-0200: Categorical Abstractions & Enriched Matrix Mechanics"
 description: "Formalize mathematical Category and Functor protocols in algebrax.category, establish the Matrix Category Mat(S), and realize Lawvere metric spaces over tropical semirings."
 icon: lucide/network
-status: draft
+status: final
 ---
 
 # EP-0200: Categorical Abstractions & Enriched Matrix Mechanics
@@ -14,10 +14,10 @@ status: draft
 | **Author**   | Eran Rivlis <eran@rivlis.info>, Antigravity                        |
 | **Sponsor**  | Core Maintainers                                                   |
 | **Delegate** | 🧩 Russell (Taxonomy & Consistency) & ⚡ Shannon (Zero Bloat & Efficiency) |
-| **Status**   | Draft                                                              |
+| **Status**   | Final                                                              |
 | **Type**     | Standards Track                                                    |
 | **Created**  | 2026-10-27                                                         |
-| **Updated**  | 2026-10-27                                                         |
+| **Updated**  | 2026-11-11                                                         |
 | **Replaces** | —                                                                  |
 | **Superseded-By** | —                                                             |
 
@@ -25,7 +25,7 @@ status: draft
 
 ## Abstract
 
-This proposal establishes a rigorous, Lean 4 Mathlib-aligned category-theoretic substrate within `algebrax.category`, upgrading the module from a pair of thin helper functions into a first-class mathematical suite. EP-0200 introduces: (1) core protocols for `Category[Obj, Mor]` and `Functor[C, D]`; (2) the **Matrix Category** $\mathbf{Mat}(S)$, where objects are finite index sets, morphisms are sparse dict-matrices, and composition is sparse matrix multiplication (`dot`); (3) **Lawvere Metric Spaces**, realizing metric spaces and graph shortest-path networks as enriched categories over the tropical cost semiring $\langle [0, \infty], \ge, +, 0 \rangle$; and (4) automated property-based verification (`verify_category_laws`, `verify_functor_laws`) in `algebrax.verification`. All abstractions adhere strictly to AlgebraX's canonical carrier constraint: **zero-overhead, unboxed sparse dictionary matrices**.
+This proposal establishes a rigorous, Lean 4 Mathlib-aligned category-theoretic substrate within `algebrax.category`, upgrading the module from a pair of thin helper functions into a first-class mathematical suite. EP-0200 introduces: (1) core protocols for `Category[Obj, Mor]`, `Functor[Obj, Mor, Obj_co, Mor_co]`, and `OppositeCategory`; (2) the **Matrix Category** $\mathbf{Mat}(S)$, where objects are finite index sets, morphisms are sparse dict-matrices, and composition is sparse matrix multiplication (`dot`), junto with `TransposeFunctor` and `SemiringChangeOfBaseFunctor`; (3) **Lawvere Metric Spaces** (`LawvereMetricCategory`), realizing metric spaces and graph shortest-path networks as enriched categories over `TropicalSemiring` $\langle [0, \infty], \min, +, \infty, 0 \rangle$; and (4) automated property-based verification (`verify_category_laws`, `verify_functor_laws`) in `algebrax.verification`. All abstractions adhere strictly to AlgebraX's canonical carrier constraint: **zero-overhead, unboxed sparse dictionary matrices**.
 
 ---
 
@@ -67,7 +67,6 @@ By elevating `algebrax.category` into a first-class protocol suite, AlgebraX bri
 
 ```python
 from typing import Generic, Protocol, TypeVar, runtime_checkable
-from collections.abc import Iterable
 
 Obj = TypeVar("Obj")
 Mor = TypeVar("Mor")
@@ -113,7 +112,7 @@ class Functor(Protocol[Obj, Mor, Obj_co, Mor_co]):
 
 ### 2. The Matrix Category $\mathbf{Mat}(S)$ (`src/algebrax/category/matrix.py`)
 
-A concrete category whose morphisms are unboxed sparse dict-matrices over a semiring or ring $S$:
+A concrete category whose morphisms are unboxed sparse dict-matrices over a semiring or ring $S$, together with `TransposeFunctor` and `SemiringChangeOfBaseFunctor`:
 
 ```python
 from typing import Generic, TypeVar
@@ -134,8 +133,8 @@ class MatrixCategory(Generic[K, V]):
     - Identity: $\mathrm{id}_A = \{k: \{k: 1_S\} \mid k \in A\}$.
     """
 
-    def __init__(self, semiring: Semiring[V]):
-        self._semiring = semiring
+    def __init__(self, semiring: Semiring[V] | type[Semiring[V]] | str | None = None):
+        self._semiring = Semiring.normalize(semiring)
 
     def id(self, x: frozenset[K]) -> SparseMatrix[K, V]:
         one = self._semiring.one
@@ -145,27 +144,30 @@ class MatrixCategory(Generic[K, V]):
         return dot(f, g, semiring=self._semiring)
 
     def source(self, f: SparseMatrix[K, V]) -> frozenset[K]:
-        return frozenset(f.keys())
+        return frozenset(r for r, row in f.items() if row)
 
     def target(self, f: SparseMatrix[K, V]) -> frozenset[K]:
         targets = set()
         for row in f.values():
             targets.update(row.keys())
         return frozenset(targets)
+
+    def opposite(self) -> OppositeCategory[frozenset[K], SparseMatrix[K, V]]:
+        return OppositeCategory(self)
 ```
 
 ---
 
 ### 3. Lawvere Enriched Metric Category (`src/algebrax/category/enriched.py`)
 
-Realizes F. William Lawvere's theorem that generalized metric spaces are categories enriched over the tropical cost semiring $\langle [0, \infty], \ge, +, 0 \rangle$:
+Realizes F. William Lawvere's theorem that generalized metric spaces are categories enriched over the tropical cost semiring (`TropicalSemiring`) $\langle [0, \infty], \min, +, \infty, 0 \rangle$:
 
 ```python
-from algebrax.semiring.optimization import MinPlusSemiring
+from algebrax.semiring.optimization import TropicalSemiring
 
 
-class LawvereMetricCategory:
-    r"""A Lawvere metric space $(X, d)$ as a category enriched over $\langle [0, \infty], \ge, +, 0 \rangle$.
+class LawvereMetricCategory(MatrixCategory[K, float], Generic[K]):
+    r"""A Lawvere metric space $(X, d)$ as a category enriched over `TropicalSemiring`.
 
     - Objects: Points $x \in X$.
     - Enriched Morphism: Distance $d(x, y) \in [0, \infty]$.
@@ -173,16 +175,20 @@ class LawvereMetricCategory:
     - Enriched Identity: $d(x, x) = 0$.
     """
 
-    def __init__(self, distance_matrix: SparseMatrix[K, float]):
-        self._d = distance_matrix
-        self._semiring = MinPlusSemiring()
+    def __init__(self, distance_matrix: SparseMatrix[K, float] | None = None):
+        super().__init__(TropicalSemiring())
+        self._d = distance_matrix if distance_matrix is not None else {}
 
     def distance(self, x: K, y: K) -> float:
-        return self._d.get(x, {}).get(y, float("inf"))
+        ...
 
     def compose_paths(self, f: SparseMatrix[K, float], g: SparseMatrix[K, float]) -> SparseMatrix[K, float]:
         """Compute all-pairs shortest paths via min-plus matrix composition."""
         return dot(f, g, semiring=self._semiring)
+
+    def metric_closure(self, max_steps: int | None = None) -> SparseMatrix[K, float]:
+        """Compute Kleene star metric closure enforcing the triangle inequality."""
+        ...
 ```
 
 ---
@@ -194,12 +200,13 @@ def verify_category_laws(
     cat: Category[Obj, Mor],
     objects: Iterable[Obj],
     morphisms: Iterable[Mor],
-    eq_fn: Callable[[Mor, Mor], bool],
+    eq_fn: Callable[[Mor, Mor], bool] | None = None,
+    tol: float = 1e-7,
 ) -> dict[str, bool]:
     r"""Test Category axioms:
-    - Left Identity: id(cod(f)) \circ f == f
-    - Right Identity: f \circ id(dom(f)) == f
-    - Associativity: (h \circ g) \circ f == h \circ (g \circ f)
+    - Left Identity: compose(f, id(target(f))) == f
+    - Right Identity: compose(id(source(f)), f) == f
+    - Associativity: compose(compose(f, g), h) == compose(f, compose(g, h))
     """
     ...
 
@@ -210,11 +217,12 @@ def verify_functor_laws(
     cat_dst: Category[Obj2, Mor2],
     test_objects: Iterable[Obj],
     test_morphisms: Iterable[Mor],
-    eq_fn: Callable[[Mor2, Mor2], bool],
+    eq_fn: Callable[[Mor2, Mor2], bool] | None = None,
+    tol: float = 1e-7,
 ) -> dict[str, bool]:
     r"""Test Functor axioms:
     - Identity preservation: F(id_x) == id_{F(x)}
-    - Composition preservation: F(g \circ f) == F(g) \circ F(f)
+    - Composition preservation: F(compose(f, g)) == compose(F(f), F(g))
     """
     ...
 ```
@@ -232,16 +240,16 @@ def verify_functor_laws(
 
 ## How to Teach This / Documentation Plan
 
-- Add `guide/discrete/category.md` to Tier 6 of the User Guide (per EP-0193), showcasing:
-  1. The 30-second snippet composing matrices via `MatrixCategory(StandardSemiring(float))`.
-  2. The Lawvere metric interpretation of shortest path networks.
-  3. Interactive verification using `verify_category_laws`.
+- Updated `docs/guide/discrete/category.md` in Tier 6 of the User Guide, showcasing:
+  1. Composing matrices via `MatrixCategory(StandardSemiring(Fraction))` and `TransposeFunctor` duality.
+  2. The Lawvere metric interpretation of shortest path networks and `metric_closure()`.
+  3. Automated verification using `verify_category_laws` and `verify_functor_laws`.
 
 ---
 
 ## Reference Implementation
 
-A prototype test in `tests/algebrax/test_category.py` confirms that `MatrixCategory(StandardSemiring(float))` satisfies all category axioms under `verify_category_laws`.
+Implemented across `src/algebrax/category/` (`core.py`, `matrix.py`, `enriched.py`, `__init__.py`), `src/algebrax/verification.py`, and verified in `tests/algebrax/test_category.py`.
 
 ---
 
@@ -256,7 +264,7 @@ A prototype test in `tests/algebrax/test_category.py` confirms that `MatrixCateg
 
 ## Open Questions
 
-- [ ] Should `MatrixCategory` provide automatic matrix transposition as the categorical dual (opposite category $\mathcal{C}^{\mathrm{op}}$)? (**Recommended: Yes, via `cat.opposite()`**).
+- [x] Should `MatrixCategory` provide automatic opposite category duality ($\mathcal{C}^{\mathrm{op}}$) and transposition functor? (**Resolved: Implemented `OppositeCategory`, `cat.opposite()`, and `TransposeFunctor`**).
 
 ---
 
@@ -264,3 +272,6 @@ A prototype test in `tests/algebrax/test_category.py` confirms that `MatrixCateg
 
 * **2026-10-27:**
     * Initial Draft authored by Eran Rivlis & Antigravity derived from EXP-0005.
+* **2026-11-11:**
+    * Implemented `Category`, `Functor`, `OppositeCategory`, `MatrixCategory`, `TransposeFunctor`, `SemiringChangeOfBaseFunctor`, `LawvereMetricCategory`, `verify_category_laws`, and `verify_functor_laws`. Status updated to **Final**.
+
