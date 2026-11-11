@@ -1,3 +1,10 @@
+## v0.13.0 (2026-11-12)
+
+### Feat
+
+- enhance algebra module by adding homomorphism and ideal protocols
+- restructure category module and introduce core protocols for category theory
+
 ## v0.12.0 (2026-11-08)
 
 ### Feat

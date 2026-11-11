@@ -6,7 +6,7 @@ import json
 
 from algebrax.__main__ import main
 
-VERSION = '0.12.0'
+VERSION = '0.13.0'
 
 
 def test_cli_catalog_all(capsys):
