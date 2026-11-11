@@ -121,9 +121,19 @@ l1 = build_sheaf_laplacian(const_sheaf, k=1)
 
 ---
 
+## Discrete Fiber Bundles & Gauge Connections (`algebrax.topology.bundle`)
+
+When every vertex stalk has identical fiber dimension $d$ and every edge restriction map is an orthogonal transformation $\rho(u, v) \in O(d)$ (or $SO(d)$), the cellular sheaf specializes to a **Discrete Vector Bundle with Orthogonal Gauge Connection** (`DiscreteOrthogonalConnection`):
+- **Parallel Transport & Wilson Loop Holonomy**: `transport_path(path)` and `compute_face_holonomy(connection, face)` evaluate path-ordered transport and discrete curvature around 2-faces (`is_flat_bundle`).
+- **Connection Laplacian ($L_\nabla = D \otimes I_d - A_\rho$)**: `build_connection_laplacian(connection, adjacency)` constructs the sparse block operator for angular synchronization, pose-graph SLAM, and cryo-EM orientation recovery, and `connection.to_sheaf()` embeds the bundle into a `CellularSheaf`.
+- **Gauge Covariance**: `apply_gauge_transformation` and `verify_gauge_covariance` verify $L_{\nabla'} = \mathbf{G} L_\nabla \mathbf{G}^\top$ under local vertex frame rotations $g_u \in O(d)$.
+
+---
+
 ## Related Guides
 
 * [Discrete Exterior Calculus (DEC) & Hodge Decomposition](dec.md)
 * [Simplicial Cohomology & Cup Product Ring](cohomology.md)
 * [Category Theory & Enriched Matrix Mechanics](../discrete/category.md)
 * [Modules, Vector Spaces & Algebras](../algebra/modules_and_vector_spaces.md)
+
