@@ -23,14 +23,15 @@ from algebrax.algebra import (
     Algebra,
     CommRing,
     DualNumberAlgebra,
+    MonoidAlgebra,
     PolynomialAlgebra,
-    QuotientMonoidAlgebraSemiring,
+    QuotientMonoidAlgebra,
 )
 from algebrax.semiring import StandardSemiring
 
-# 1. PolynomialAlgebra over integers Z[x]: (1 + 2x) - (1 - 3x) = 5x
+# 1. PolynomialAlgebra (subclass of MonoidAlgebra) over integers Z[x]: (1 + 2x) - (1 - 3x) = 5x
 poly = PolynomialAlgebra(StandardSemiring(int))
-assert isinstance(poly, Algebra) and isinstance(poly, CommRing)
+assert isinstance(poly, MonoidAlgebra) and isinstance(poly, Algebra) and isinstance(poly, CommRing)
 p1 = {0: 1, 1: 2}
 p2 = {0: 1, 1: -3}
 assert poly.sub(p1, p2) == {1: 5}
@@ -50,10 +51,78 @@ assert fx == (4.0, 5.0)
 
 | Class (`algebrax.algebra`) | Carrier Type | Satisfied Protocols | Algebraic Signature |
 |:---------------------------|:-------------|:--------------------|:--------------------|
-| `MonoidAlgebraSemiring[K, T]` | `dict[K, T]` | `Semiring`, `AddCommMonoid`, `Monoid` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ |
-| `QuotientMonoidAlgebraSemiring[K, T]` | `dict[K, T]` | `Semiring`, `AddCommMonoid`, `Monoid` | $R[M] / \mathcal{I}$ with `quotient_fn` |
+| `MonoidAlgebraSemiring[K, T]` | `dict[K, T]` | `Semiring`, `Semimodule`, `AddCommMonoid`, `Monoid` | $\langle S, S[M], \cdot_s, \mathbf{0}, +, \mathbf{1}, \ast \rangle$ |
+| `MonoidAlgebra[K, T]` | `dict[K, T]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle R, R[M], \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \ast \rangle$ |
+| `QuotientMonoidAlgebraSemiring[K, T]` | `dict[K, T]` | `Semiring`, `Semimodule`, `AddCommMonoid`, `Monoid` | $S[M] / \mathcal{I}$ with `quotient_fn` & `ideal` |
+| `QuotientMonoidAlgebra[K, T]` | `dict[K, T]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $R[M] / \mathcal{I}$ with `quotient_fn`, `ideal`, `neg`, `sub` |
 | `PolynomialAlgebra[T]` | `dict[int, T]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle R, R[x], \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
 | `DualNumberAlgebra` | `tuple[float, float]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle \mathbb{R}, \mathbb{R}[\varepsilon]/(\varepsilon^2), \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
+| `QuotientSemiring[V]` | `V` (unboxed coset rep) | `Semiring` | $\langle S / I, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ |
+| `QuotientRing[V]` | `V` (unboxed coset rep) | `CommRing`, `Ring`, `Semiring` | $\langle R / I, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
+| `QuotientAlgebra[R, V]` | `V` (unboxed coset rep) | `NonAssocAlgebra`, `Algebra` | $\langle R, A / I, \cdot_s, \mathbf{0}, +, -, \cdot \rangle$ |
+
+---
+
+## 4. Homomorphisms, Ideals & The First Isomorphism Theorem (`EP-0201`)
+
+In abstract algebra, an **ideal** $I \triangleleft R$ is an additive subgroup that *absorbs* multiplication by any element of the ambient ring ($\forall r \in R, x \in I \implies r \cdot x \in I$). Ideals generalize "multiples of $n$" and arise naturally as the **kernels** of structure-preserving **homomorphisms** $\phi: R \to S$:
+
+$$\ker \phi = \{x \in R \mid \phi(x) = \mathbf{0}_S\}, \qquad R / \ker \phi \cong \operatorname{im} \phi$$
+
+AlgebraX provides zero-overhead, unboxed ideal and quotient primitives in `algebrax.algebra`:
+
+- **Homomorphism Protocols**: `Homomorphism`, `RingHom`, `GroupHom`, `LinearMap`, `LieAlgebraHom`, and `CallableHomomorphism`.
+- **Ideal Protocols & Implementations**: `Ideal`, `PrincipalIdeal`, `LieIdeal`, `IntegerModuloIdeal(n)`, `PolynomialTruncationIdeal(n)`, `NilpotentIdeal(k)`, `KernelIdeal(hom, cod_ring, reducer)`, and `SubspaceLieIdeal(keys)`.
+- **Canonical Quotients**: `QuotientRing(ring, ideal)`, `QuotientSemiring(semiring, ideal)`, and `QuotientAlgebra(algebra, ideal)`.
+
+```python
+from fractions import Fraction
+from algebrax.algebra import (
+    CallableHomomorphism,
+    IntegerModuloIdeal,
+    KernelIdeal,
+    ModularField,
+    PolynomialAlgebra,
+    PolynomialTruncationIdeal,
+    QuotientRing,
+    StandardField,
+)
+from algebrax.semiring import StandardSemiring
+from algebrax.verification import (
+    verify_ideal_absorption_laws,
+    verify_quotient_ring_laws,
+    verify_ring_homomorphism_laws,
+)
+
+# 1. Modular Ring Z / 6Z via IntegerModuloIdeal
+z_ring = StandardField(int)
+ideal_6 = IntegerModuloIdeal(6)
+z_mod_6 = QuotientRing(z_ring, ideal_6)
+
+assert 18 in ideal_6
+assert z_mod_6.add(4, 5) == 3
+assert z_mod_6.mul(4, 5) == 2
+assert all(verify_ideal_absorption_laws(z_ring, ideal_6, [-5, 0, 2, 7], [-6, 0, 6, 12]).values())
+assert all(verify_quotient_ring_laws(z_mod_6, [-2, 0, 1, 5], [-6, 0, 6]).values())
+
+# 2. First Isomorphism Theorem: Z / ker(phi) ~= F_5
+f5 = ModularField(5)
+phi = CallableHomomorphism(lambda x: x % 5)
+assert all(verify_ring_homomorphism_laws(phi, z_ring, f5, [-3, 0, 1, 4]).values())
+
+ker_phi = KernelIdeal(phi, f5, reducer=lambda x: x % 5)
+assert 15 in ker_phi and 7 not in ker_phi
+
+# 3. Truncated Taylor Series Ring Q[x] / (x^3)
+poly_q = PolynomialAlgebra(StandardSemiring(Fraction))
+trunc_3 = PolynomialTruncationIdeal(3, zero_coeff=Fraction(0))
+taylor_3 = QuotientRing(poly_q, trunc_3)
+
+# (1 + x + x^2) * (1 + 2x) === 1 + 3x + 3x^2 (mod x^3)
+p1 = {0: Fraction(1), 1: Fraction(1), 2: Fraction(1)}
+p2 = {0: Fraction(1), 1: Fraction(2)}
+assert taylor_3.mul(p1, p2) == {0: Fraction(1), 1: Fraction(3), 2: Fraction(3)}
+```
 
 ### Quotient Monoid Algebra Example: Constructing $\mathbb{C} \cong \mathbb{R}[x] / (x^2 + 1)$
 
@@ -81,7 +150,7 @@ assert complex_quotient.mul(one_plus_i, one_plus_i) == {1: 2.0}
 
 ---
 
-## 4. Falsifiability: Law Verification & Counterexamples
+## 5. Falsifiability: Law Verification & Counterexamples
 
 ```python
 from algebrax.verification import verify_comm_ring_laws
@@ -99,7 +168,9 @@ assert all(verify_comm_ring_laws(DualNumberAlgebra(), dual_samples).values())
 
 ---
 
-## 5. Frontier Horizons & Cross-Domain Bridges
+## 6. Frontier Horizons & Cross-Domain Bridges
 
 - **Higher-Order Divided Power Jets**: Extending $\mathbb{R}[\varepsilon]/(\varepsilon^2)$ to $\mathbb{R}[\varepsilon]/(\varepsilon^{K+1})$ yields `BinomialConvolutionSemiring` and `StatisticalMomentSemiring` for exact single-pass variance, skewness, and kurtosis; see [Statistical Semirings](../semirings/statistical.md).
+- **Lie Algebra Quotients ($\mathfrak{se}(3) / \mathbb{R}^3 \cong \mathfrak{so}(3)$)**: Using `SubspaceLieIdeal` and `QuotientAlgebra`, rigid-body twists in $\mathfrak{se}(n)$ project cleanly onto pure rotational angular velocities in $\mathfrak{so}(n)$ by quotienting out the abelian translational ideal $\mathbb{R}^n$.
 - **Clifford & Galois Quotients**: `QuotientMonoidAlgebraSemiring` serves as the engine underneath [Clifford Geometric Algebras](clifford_geometric_algebra.md) and [Galois Finite Fields $\operatorname{GF}(p^m)$](rings_and_fields.md).
+

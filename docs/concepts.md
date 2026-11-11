@@ -21,32 +21,35 @@ concepts helps clarify why certain operations are grouped together and how they 
 
 ## The Periodic Table of Algebraic Mixins (`algebrax.algebra`)
 
-Every algebraic protocol in `algebrax.algebra` is assembled from **16 purely orthogonal atomic operational mixins**. Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
+Every algebraic protocol in `algebrax.algebra` is assembled from **19 purely orthogonal atomic operational mixins**. Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
 
-$$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Closure / Bounds } ({}^*, \vee, \wedge, \bot, \top, \neg)$$
+$$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Closure / Bounds / Quotients } ({}^*, \vee, \wedge, \bot, \top, \neg, \in, \bmod I)$$
 
-| Cluster             | Atomic Mixin                 | Required Member(s)     | Default Helper(s)    | Mathematical Symbol                             |
-|:--------------------|:-----------------------------|:-----------------------|:---------------------|:------------------------------------------------|
-| **External Action** | `HasScale[R, M]`             | `smul(r, m) -> M`      | `scale(r, m) -> M`   | $\cdot_s: R \times M \to M$                     |
-| **Additive**        | `HasZero[V]`                 | `zero -> V`            | —                    | $\mathbf{0} \in V$                              |
-|                     | `HasZeroPred[V]`             | —                      | `is_zero(a) -> bool` | $\operatorname{is\_zero}: V \to \{\top, \bot\}$ |
-|                     | `HasAdd[V]`                  | `add(a, b) -> V`       | —                    | $+: V \times V \to V$                           |
-|                     | `HasNeg[V]`                  | `neg(a) -> V`          | `sub(a, b) -> V`     | $-: V \to V$                                    |
-| **Multiplicative**  | `HasOne[V]`                  | `one -> V`             | —                    | $\mathbf{1} \in V$                              |
-|                     | `HasMul[V]`                  | `mul(a, b) -> V`       | —                    | $\cdot: V \times V \to V$                       |
-|                     | `HasInv[V]`                  | `inv(a) -> V`          | `div(a, b) -> V`     | ${}^{-1}: V \setminus \{\mathbf{0}\} \to V$     |
-| **Closure**         | `HasStar[V]`                 | `star(a) -> V`         | —                    | ${}^*: V \to V$                                 |
-| **Order / Lattice** | `HasJoin[V]`                 | `join(a, b) -> V`      | —                    | $\vee: V \times V \to V$                        |
-|                     | `HasMeet[V]`                 | `meet(a, b) -> V`      | —                    | $\wedge: V \times V \to V$                      |
-|                     | `HasBounds[V]`               | `bot -> V`, `top -> V` | —                    | $\bot, \top \in V$                              |
-|                     | `HasComplement[V]`           | `complement(a) -> V`   | —                    | $\neg: V \to V$                                 |
-| **Domain-Agnostic** | `HasIdentity[V]`             | `identity -> V`        | —                    | $e \in V$                                       |
-|                     | `HasOp[V]`                   | `op(a, b) -> V`        | —                    | $\circ: V \times V \to V$                       |
-| **Non-Associative** | `HasBracket[V]`              | `bracket(a, b) -> V`   | —                    | $[\cdot, \cdot]: V \times V \to V$              |
+| Cluster               | Atomic Mixin                 | Required Member(s)       | Default Helper(s)    | Mathematical Symbol                             |
+|:----------------------|:-----------------------------|:-------------------------|:---------------------|:------------------------------------------------|
+| **External Action**   | `HasScale[R, M]`             | `smul(r, m) -> M`        | —                    | $\cdot_s: R \times M \to M$                     |
+| **Additive**          | `HasZero[V]`                 | `zero -> V`              | —                    | $\mathbf{0} \in V$                              |
+|                       | `HasZeroPred[V]`             | —                        | `is_zero(a) -> bool` | $\operatorname{is\_zero}: V \to \{\top, \bot\}$ |
+|                       | `HasAdd[V]`                  | `add(a, b) -> V`         | —                    | $+: V \times V \to V$                           |
+|                       | `HasNeg[V]`                  | `neg(a) -> V`            | `sub(a, b) -> V`     | $-: V \to V$                                    |
+| **Multiplicative**    | `HasOne[V]`                  | `one -> V`               | —                    | $\mathbf{1} \in V$                              |
+|                       | `HasMul[V]`                  | `mul(a, b) -> V`         | —                    | $\cdot: V \times V \to V$                       |
+|                       | `HasInv[V]`                  | `inv(a) -> V`            | `div(a, b) -> V`     | ${}^{-1}: V \setminus \{\mathbf{0}\} \to V$     |
+| **Closure**           | `HasStar[V]`                 | `star(a) -> V`           | —                    | ${}^*: V \to V$                                 |
+| **Order / Lattice**   | `HasJoin[V]`                 | `join(a, b) -> V`        | —                    | $\vee: V \times V \to V$                        |
+|                       | `HasMeet[V]`                 | `meet(a, b) -> V`        | —                    | $\wedge: V \times V \to V$                      |
+|                       | `HasBounds[V]`               | `bot -> V`, `top -> V`   | —                    | $\bot, \top \in V$                              |
+|                       | `HasComplement[V]`           | `complement(a) -> V`     | —                    | $\neg: V \to V$                                 |
+| **Domain-Agnostic**   | `HasIdentity[V]`             | `identity -> V`          | —                    | $e \in V$                                       |
+|                       | `HasOp[V]`                   | `op(a, b) -> V`          | —                    | $\circ: V \times V \to V$                       |
+| **Non-Associative**   | `HasBracket[V]`              | `bracket(a, b) -> V`     | —                    | $[\cdot, \cdot]: V \times V \to V$              |
+| **Ideals & Quotients**| `HasContains[V]`             | `contains(x) -> bool`    | —                    | $\in: V \to \{\top, \bot\}$                     |
+|                       | `HasReduce[V]`               | `reduce(x) -> V`         | —                    | $x \mapsto [x] \in R / I$                       |
+|                       | `HasGenerator[V]`            | `generator -> V`         | —                    | $a \in R \text{ where } I = (a)$                |
 
 > [!NOTE]
 > **Subclassing vs. Structural Duck-Typing (The Golem Safety Contract)**
-> When subclassing `HasZeroPred`, `HasNeg`, `HasInv`, or `HasScale`, Python inherits their default helper implementations (`is_zero`, `sub`, `div`, `scale`). However, when using purely structural duck-typing without inheriting from the mixins, Python's `@runtime_checkable` `isinstance(obj, Protocol)` requires that **all** protocol attributes be present on the instance or class.
+> When subclassing `HasZeroPred`, `HasNeg`, or `HasInv`, Python inherits their default helper implementations (`is_zero`, `sub`, `div`). However, when using purely structural duck-typing without inheriting from the mixins, Python's `@runtime_checkable` `isinstance(obj, Protocol)` requires that **all** protocol attributes be present on the instance or class.
 
 
 ---
@@ -160,12 +163,15 @@ A Vector Space equipped with a bilinear product.
 
 **Example**: The set of $N \times N$ matrices forms an Algebra.
 
-### 9. Ideal
+### 9. Homomorphisms, Ideals & Canonical Quotients (`algebrax.algebra`)
 
-A subset $I$ of a Ring $R$ that absorbs multiplication.
+An **Ideal** $I \triangleleft R$ is an additive subgroup of a ring $R$ that *absorbs* multiplication ($\forall x \in I, r \in R \implies r \cdot x \in I \text{ and } x \cdot r \in I$). Ideals arise universally as the **kernels** of structure-preserving **homomorphisms** $\phi: R \to S$:
 
-* If $x \in I$ and $r \in R$, then $r \cdot x \in I$.
-* Used to define Quotient Rings (e.g., Modular Arithmetic).
+$$\ker \phi = \{x \in R \mid \phi(x) = \mathbf{0}_S\}, \qquad R / \ker \phi \cong \operatorname{im} \phi \quad (\text{First Isomorphism Theorem})$$
+
+* **Homomorphism Protocols**: `Homomorphism[Dom, Cod]`, `RingHom[Dom, Cod]`, `GroupHom[Dom, Cod]`, `LinearMap[R, Dom, Cod]`, `LieAlgebraHom[Dom, Cod]`, and `CallableHomomorphism`.
+* **Ideal Protocols & Implementations**: `Ideal[V]`, `LeftIdeal[V]`, `RightIdeal[V]`, `PrincipalIdeal[V]`, `LieIdeal[V]`, `IntegerModuloIdeal(n)`, `PolynomialTruncationIdeal(n)`, `NilpotentIdeal(k)`, `KernelIdeal(hom, cod_ring, reducer)`, and `SubspaceLieIdeal(keys)`.
+* **Canonical Unboxed Quotients**: `QuotientSemiring(semiring, ideal)`, `QuotientRing(ring, ideal)`, and `QuotientAlgebra(algebra, ideal)` evaluate operations on unboxed coset representatives via `ideal.reduce(x)` with zero heap-wrapper overhead, while `MonoidAlgebraSemiring` $\to$ `MonoidAlgebra` and `QuotientMonoidAlgebraSemiring` $\to$ `QuotientMonoidAlgebra` provide free and in-loop basis-rewriting monoid semirings and algebras.
 
 ### 10. Clifford Algebra (Geometric & Quantum Generalizations)
 
@@ -199,7 +205,7 @@ and $k$-dimensional simplicial complexes.
 
 ## Clifford Geometric Algebra ($Cl (p, q, r)$)
 
-The `algebrax.clifford` module implements **Clifford Geometric Algebra** over `QuotientMonoidAlgebraSemiring`.
+The `algebrax.clifford` module implements **Clifford Geometric Algebra** over `QuotientMonoidAlgebra`.
 Multivectors unify scalars, vectors, bivectors, and pseudoscalars into a single sparse mapping `{blade_tuple: coeff}`.
 
 * **Geometric Product**: $A B = A \cdot B + A \wedge B$ (computed via `cl.mul(A, B)` on `CliffordAlgebra`).
@@ -222,15 +228,14 @@ represented as sparse polynomial vectors `{exponent: coeff}` modulo an irreducib
 
 ---
 
-## Category Theory & Kleisli Monadic Composition
+## Category Theory, $\mathbf{Mat}(\mathcal{S})$ & Lawvere Metric Spaces
 
-The `algebrax.category` module formalizes category-theoretic compositions.
+The `algebrax.category` module formalizes Lean 4 Mathlib-aligned category theory, functorial duality, and enriched matrix mechanics (`EP-0200`):
 
-* **Morphisms as Matrices**: Hom-sets $\text{Hom} (A, B)$ are sparse matrices $M[A][B]$.
-* **Kleisli Monadic Composition**: Effectful morphisms $f: A \to T (B)$ and $g: B \to T (C)$ compose via Kleisli matrix
-  multiplication ($g \circ_T f = \text{dot} (f, g, \text{semiring})$) over probabilistic (Viterbi), cost-metric
-  (Tropical), or reachability (Boolean) monad semirings.
-* **Kan Extensions**: Left Kan extensions $\text{Lan}_P F$ computed over sparse category graphs.
+* **Category & Functor Protocols**: `Category[Obj, Mor]`, `Functor[Obj, Mor, Obj_co, Mor_co]`, and `OppositeCategory[Obj, Mor]` ($\mathcal{C}^{\mathrm{op}}$), verified via `verify_category_laws()` and `verify_functor_laws()`.
+* **The Matrix Category $\mathbf{Mat}(\mathcal{S})$ (`MatrixCategory`)**: Finite index sets are objects and unboxed sparse matrices `dict[K, dict[K, V]]` are morphisms, with `TransposeFunctor` realizing the duality isomorphism $\mathbf{Mat}(\mathcal{S})^{\mathrm{op}} \xrightarrow{\sim} \mathbf{Mat}(\mathcal{S})$ and `SemiringChangeOfBaseFunctor` mapping matrices across semiring homomorphisms.
+* **Lawvere Metric Spaces (`LawvereMetricCategory`)**: Realizes Lawvere's theorem that a generalized directed metric space $(X, d)$ is a category enriched over `TropicalSemiring` $\langle [0, \infty], \min, +, \infty, 0 \rangle$, where composition is the triangle inequality $d(x, y) + d(y, z) \ge d(x, z)$ and `metric_closure()` computes all-pairs shortest paths via Kleene star.
+* **Kleisli Monadic Composition & Kan Extensions**: `kleisli_compose()` and `kan_extension_left()` over monadic transition matrices.
 
 ---
 
