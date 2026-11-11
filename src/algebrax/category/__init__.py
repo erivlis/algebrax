@@ -1,16 +1,24 @@
 """
-Categorical Morphisms, Kleisli Composition & Operads.
+Categorical Morphisms, Enriched Matrix Categories, Kleisli Composition & Kan Extensions.
 
 Summary:
-    Pipeline composition with side-effects — chains functions over semirings using
-    Kleisli matrix composition and Kan extensions.
-
-This module provides formal category-theoretic abstractions: Kleisli monadic composition (g o_T f),
-string diagram wiring engines, and Kan extensions over sparse semiring matrices.
+    Unifies Lean 4 Mathlib-aligned Category and Functor protocols (`Category`, `Functor`,
+    `OppositeCategory`), the Matrix Category `Mat(S)` (`MatrixCategory`, `TransposeFunctor`,
+    `SemiringChangeOfBaseFunctor`), Lawvere Metric Spaces (`LawvereMetricCategory`),
+    and monadic Kleisli / Kan extension operators (`kleisli_compose`, `kan_extension_left`).
 """
+
+from __future__ import annotations
 
 from typing import TypeVar
 
+from algebrax.category.core import Category, Functor, OppositeCategory
+from algebrax.category.enriched import LawvereMetricCategory
+from algebrax.category.matrix import (
+    MatrixCategory,
+    SemiringChangeOfBaseFunctor,
+    TransposeFunctor,
+)
 from algebrax.matrix.core import dot
 from algebrax.semiring import Semiring
 from algebrax.typing import SparseMatrix
@@ -85,3 +93,16 @@ def kan_extension_left(
     """
     s = Semiring.normalize(semiring)
     return dot(functor_f, functor_p, semiring=s)
+
+
+__all__ = [
+    'Category',
+    'Functor',
+    'LawvereMetricCategory',
+    'MatrixCategory',
+    'OppositeCategory',
+    'SemiringChangeOfBaseFunctor',
+    'TransposeFunctor',
+    'kan_extension_left',
+    'kleisli_compose',
+]
