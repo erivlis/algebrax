@@ -16,7 +16,7 @@ import cmath
 import math
 from collections.abc import Iterable
 
-from algebrax.algebra._monoid_algebra import QuotientMonoidAlgebraSemiring
+from algebrax.algebra._monoid_algebra import QuotientMonoidAlgebra, QuotientMonoidAlgebraSemiring
 from algebrax.semiring.arithmetic import StandardSemiring
 from algebrax.typing import SparseVector
 
@@ -71,7 +71,7 @@ def _clifford_blade_mul(
     return [(tuple(canonical), sign)]
 
 
-class CliffordAlgebra(QuotientMonoidAlgebraSemiring[tuple[int, ...], float]):
+class CliffordAlgebra(QuotientMonoidAlgebra[tuple[int, ...], float]):
     r"""The Clifford Geometric Algebra $\mathcal{C}\ell(p, q, r)$ over $\mathbb{R}$.
 
     Algebraic Signature:
@@ -180,7 +180,7 @@ def _gca_blade_mul(
     return [(tuple(res_k), phase_factor)]
 
 
-class GeneralizedCliffordAlgebra(QuotientMonoidAlgebraSemiring[tuple[int, ...], complex]):
+class GeneralizedCliffordAlgebra(QuotientMonoidAlgebra[tuple[int, ...], complex]):
     r"""The Generalized Clifford Algebra $C_n^{(m)}$ Semiring (Clock-and-Shift Algebra).
 
     Algebraic Signature:
@@ -272,7 +272,7 @@ def _quantum_clifford_blade_mul(
     return [(tuple(res_k), phase_factor)]
 
 
-class QuantumCliffordAlgebra(QuotientMonoidAlgebraSemiring[tuple[int, ...], complex]):
+class QuantumCliffordAlgebra(QuotientMonoidAlgebra[tuple[int, ...], complex]):
     r"""The $q$-Deformed Quantum Clifford Algebra $\mathcal{C}\ell_q(m)$ Semiring.
 
     Algebraic Signature:

@@ -222,3 +222,38 @@ class HasBracket(Protocol[V]):
     """
 
     def bracket(self, a: V, b: V) -> V: ...
+
+
+@runtime_checkable
+class HasContains(Protocol[V]):
+    r"""Substructure membership predicate `contains(element)` ($\in$).
+
+    Algebraic Signature:
+        $\langle V, \operatorname{contains} \rangle$
+    """
+
+    def contains(self, element: V) -> bool: ...
+
+
+@runtime_checkable
+class HasReduce(Protocol[V]):
+    r"""Canonical normal-form / coset reduction `reduce(element)` ($\bmod I$).
+
+    Algebraic Signature:
+        $\langle V, \operatorname{reduce} \rangle$
+    """
+
+    def reduce(self, element: V) -> V: ...
+
+
+@runtime_checkable
+class HasGenerator(Protocol[V]):
+    r"""Single principal generating element `generator` ($a$ in $I = (a)$).
+
+    Algebraic Signature:
+        $\langle V, \operatorname{generator} \rangle$
+    """
+
+    @property
+    def generator(self) -> V: ...
+

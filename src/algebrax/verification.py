@@ -29,14 +29,17 @@ __all__ = [
     'verify_band_laws',
     'verify_boolean_algebra_laws',
     'verify_bounded_lattice_laws',
+    'verify_category_laws',
     'verify_comm_group_laws',
     'verify_comm_monoid_laws',
     'verify_comm_ring_laws',
     'verify_distributive_lattice_laws',
     'verify_division_ring_laws',
     'verify_field_laws',
+    'verify_functor_laws',
     'verify_group_action_laws',
     'verify_group_laws',
+    'verify_ideal_absorption_laws',
     'verify_join_semilattice_laws',
     'verify_lattice_laws',
     'verify_lie_algebra_laws',
@@ -46,6 +49,8 @@ __all__ = [
     'verify_monoid_laws',
     'verify_non_assoc_algebra_laws',
     'verify_non_assoc_ring_laws',
+    'verify_quotient_ring_laws',
+    'verify_ring_homomorphism_laws',
     'verify_ring_laws',
     'verify_semigroup_laws',
     'verify_semimodule_laws',
@@ -1233,3 +1238,241 @@ def verify_lie_algebra_laws(
     res['bracket_alternating'] = skew
     res['jacobi_identity'] = jacobi
     return res
+
+
+# =============================================================================
+# EP-0200: Category and Functor Law Verifiers
+# =============================================================================
+
+from collections.abc import Callable  # noqa: E402
+
+from algebrax.category.core import Category, Functor  # noqa: E402
+
+Obj = TypeVar('Obj')
+Mor = TypeVar('Mor')
+Obj2 = TypeVar('Obj2')
+Mor2 = TypeVar('Mor2')
+
+
+def verify_category_laws(
+    cat: Category[Obj, Mor],
+    objects: Iterable[Obj],
+    morphisms: Iterable[Mor],
+    eq_fn: Callable[[Mor, Mor], bool] | None = None,
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Category axioms over sample objects and morphisms:
+    - Left Identity: $\mathrm{compose}(f, \mathrm{id}(\mathrm{target}(f))) = f$
+    - Right Identity: $\mathrm{compose}(\mathrm{id}(\mathrm{source}(f)), f) = f$
+    - Associativity: $\mathrm{compose}(\mathrm{compose}(f, g), h) = \mathrm{compose}(f, \mathrm{compose}(g, h))$
+    """
+    _ = list(objects)
+    mor_list = _require_samples(morphisms)
+    cmp = eq_fn if eq_fn is not None else (lambda a, b: semiring_elements_equal(a, b, tol))
+
+    left_id = True
+    right_id = True
+    for f in mor_list:
+        id_cod = cat.id(cat.target(f))
+        id_dom = cat.id(cat.source(f))
+        if not cmp(cat.compose(f, id_cod), f):
+            left_id = False
+        if not cmp(cat.compose(id_dom, f), f):
+            right_id = False
+
+    assoc = True
+    for f, g, h in itertools.product(mor_list, repeat=3):
+        lhs = cat.compose(cat.compose(f, g), h)
+        rhs = cat.compose(f, cat.compose(g, h))
+        if not cmp(lhs, rhs):
+            assoc = False
+            break
+
+    return {
+        'left_identity': left_id,
+        'right_identity': right_id,
+        'associativity': assoc,
+    }
+
+
+def verify_functor_laws(
+    functor: Functor[Obj, Mor, Obj2, Mor2],
+    cat_src: Category[Obj, Mor],
+    cat_dst: Category[Obj2, Mor2],
+    test_objects: Iterable[Obj],
+    test_morphisms: Iterable[Mor],
+    eq_fn: Callable[[Mor2, Mor2], bool] | None = None,
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Functor axioms between source category $\mathcal{C}$ and target category $\mathcal{D}$:
+    - Identity Preservation: $F(\mathrm{id}_x) = \mathrm{id}_{F(x)}$
+    - Composition Preservation: $F(\mathrm{compose}_{\mathcal{C}}(f, g)) = \mathrm{compose}_{\mathcal{D}}(F(f), F(g))$
+    """
+    obj_list = list(test_objects)
+    if not obj_list:
+        raise ValueError('Functor verification requires at least 1 test object.')
+    mor_list = _require_samples(test_morphisms)
+    cmp = eq_fn if eq_fn is not None else (lambda a, b: semiring_elements_equal(a, b, tol))
+
+    id_pres = True
+    for x in obj_list:
+        lhs_id = functor.map_mor(cat_src.id(x))
+        rhs_id = cat_dst.id(functor.map_obj(x))
+        if not cmp(lhs_id, rhs_id):
+            id_pres = False
+            break
+
+    comp_pres = True
+    for f, g in itertools.product(mor_list, repeat=2):
+        lhs_comp = functor.map_mor(cat_src.compose(f, g))
+        rhs_comp = cat_dst.compose(functor.map_mor(f), functor.map_mor(g))
+        if not cmp(lhs_comp, rhs_comp):
+            comp_pres = False
+            break
+
+    return {
+        'identity_preservation': id_pres,
+        'composition_preservation': comp_pres,
+    }
+
+
+# =============================================================================
+# EP-0201: Homomorphism, Ideal, and Quotient Ring Law Verifiers
+# =============================================================================
+
+from algebrax.algebra._homomorphisms import RingHom  # noqa: E402
+from algebrax.algebra._ideals import Ideal  # noqa: E402
+from algebrax.algebra._quotient import QuotientRing  # noqa: E402
+
+Dom = TypeVar('Dom')
+Cod = TypeVar('Cod')
+
+
+def verify_ring_homomorphism_laws(
+    hom: RingHom[Dom, Cod],
+    ring_dom: Ring[Dom] | CommRing[Dom],
+    ring_cod: Ring[Cod] | CommRing[Cod],
+    samples: Iterable[Dom],
+    eq_fn: Callable[[Cod, Cod], bool] | None = None,
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test unital Ring Homomorphism axioms for $\phi: R_1 \to R_2$:
+    - Zero Preservation: $\phi(\mathbf{0}_{R_1}) = \mathbf{0}_{R_2}$
+    - One Preservation: $\phi(\mathbf{1}_{R_1}) = \mathbf{1}_{R_2}$
+    - Addition Preservation: $\phi(a + b) = \phi(a) + \phi(b)$
+    - Multiplication Preservation: $\phi(a \cdot b) = \phi(a) \cdot \phi(b)$
+    """
+    elements = _require_samples(samples)
+    cmp = eq_fn if eq_fn is not None else (lambda a, b: semiring_elements_equal(a, b, tol))
+
+    zero_pres = cmp(hom(ring_dom.zero), ring_cod.zero)
+    one_pres = cmp(hom(ring_dom.one), ring_cod.one)
+
+    add_pres = True
+    mul_pres = True
+    for a, b in itertools.product(elements, repeat=2):
+        if not cmp(hom(ring_dom.add(a, b)), ring_cod.add(hom(a), hom(b))):
+            add_pres = False
+        if not cmp(hom(ring_dom.mul(a, b)), ring_cod.mul(hom(a), hom(b))):
+            mul_pres = False
+
+    return {
+        'zero_preservation': zero_pres,
+        'one_preservation': one_pres,
+        'add_preservation': add_pres,
+        'mul_preservation': mul_pres,
+    }
+
+
+def verify_ideal_absorption_laws(
+    ring: Ring[V] | CommRing[V],
+    ideal: Ideal[V],
+    ring_samples: Iterable[V],
+    ideal_samples: Iterable[V],
+) -> dict[str, bool]:
+    r"""Test two-sided Ideal axioms for $I \triangleleft R$:
+    - Zero Containment: $\mathbf{0}_R \in I$
+    - Additive Closure: $\forall x, y \in I,\; x + y \in I \land -x \in I$
+    - Left Absorption: $\forall r \in R,\, x \in I,\; r \cdot x \in I$
+    - Right Absorption: $\forall r \in R,\, x \in I,\; x \cdot r \in I$
+    """
+    r_list = _require_samples(ring_samples)
+    i_list = _require_samples(ideal_samples, min_count=1)
+
+    zero_in = ideal.contains(ring.zero)
+
+    add_closed = True
+    for x in i_list:
+        if not ideal.contains(x) or not ideal.contains(ring.neg(x)):
+            add_closed = False
+            break
+    if add_closed:
+        for x, y in itertools.product(i_list, repeat=2):
+            if not ideal.contains(ring.add(x, y)):
+                add_closed = False
+                break
+
+    left_abs = True
+    right_abs = True
+    for r in r_list:
+        for x in i_list:
+            if not ideal.contains(ring.mul(r, x)):
+                left_abs = False
+            if not ideal.contains(ring.mul(x, r)):
+                right_abs = False
+
+    return {
+        'zero_containment': zero_in,
+        'additive_closure': add_closed,
+        'left_absorption': left_abs,
+        'right_absorption': right_abs,
+    }
+
+
+def verify_quotient_ring_laws(
+    quotient: QuotientRing[V],
+    ring_samples: Iterable[V],
+    ideal_samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Quotient Ring $R / I$ well-definedness (congruence invariance) and Ring axioms:
+    - Coset Invariance: $\forall a, b \in R,\, i_1, i_2 \in I$:
+      $[a + i_1] +_{R/I} [b + i_2] = [a + b]$ and $[a + i_1] \cdot_{R/I} [b + i_2] = [a \cdot b]$
+    - Canonical Projection Homomorphism: $\pi(x) = \mathrm{ideal.reduce}(x)$ satisfies `RingHom` laws
+    - Ring Laws: $R / I$ satisfies all associative unital ring axioms
+    """
+    r_list = _require_samples(ring_samples)
+    i_list = _require_samples(ideal_samples, min_count=1)
+    base = quotient.base_ring
+
+    coset_invariance = True
+    for a, b in itertools.product(r_list, repeat=2):
+        for i1, i2 in itertools.product(i_list, repeat=2):
+            a_pert = base.add(a, i1)
+            b_pert = base.add(b, i2)
+            if not semiring_elements_equal(quotient.add(a_pert, b_pert), quotient.add(a, b), tol):
+                coset_invariance = False
+                break
+            if not semiring_elements_equal(quotient.mul(a_pert, b_pert), quotient.mul(a, b), tol):
+                coset_invariance = False
+                break
+        if not coset_invariance:
+            break
+
+    reduced_samples = [quotient.project(r) for r in r_list]
+    ring_res = verify_ring_laws(quotient, reduced_samples, tol)
+    hom_res = verify_ring_homomorphism_laws(
+        quotient.project,
+        base,
+        quotient,
+        r_list,
+        tol=tol,
+    )
+
+    return {
+        **ring_res,
+        'coset_invariance': coset_invariance,
+        'projection_homomorphism': all(hom_res.values()),
+    }
+
+
