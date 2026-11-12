@@ -2,7 +2,7 @@
 title: "EP-0204: Non-Associative & Quantum Algebras — Jordan, Alternative, Octonions & Poisson"
 description: "Formalize Jordan algebras of quantum observables, alternative division algebras and octonions via Cayley-Dickson doubling, Malcev algebras, and Poisson algebras for Hamiltonian dynamics."
 icon: lucide/atom
-status: draft
+status: final
 ---
 
 # EP-0204: Non-Associative & Quantum Algebras — Jordan, Alternative, Octonions & Poisson
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                   |
 | **Sponsor**       | Core Maintainers                                                              |
 | **Delegate**      | ⚖️ Noether (Observables & Invariants) & 🧩 Russell (Taxonomy & Hierarchy)     |
-| **Status**        | Draft                                                                         |
+| **Status**        | Final                                                                         |
 | **Type**          | Standards Track                                                               |
 | **Created**       | 2026-10-28                                                                    |
-| **Updated**       | 2026-10-28                                                                    |
+| **Updated**       | 2026-11-12                                                                    |
 | **Replaces**      | —                                                                             |
 | **Superseded-By** | —                                                                             |
 
@@ -294,3 +294,4 @@ Prototypes of `SymmetricMatrixJordanAlgebra` and `Octonions` were evaluated unde
 ## Change Log
 
 - **2026-10-28**: Initial draft authored following Council consensus.
+- **2026-11-12**: Implemented `JordanAlgebra`, `AlternativeAlgebra`, `MalcevAlgebra`, `PoissonAlgebra`, `SymmetricMatrixJordanAlgebra`, `OctonionAlgebra`, and `ImaginaryOctonionMalcevAlgebra` in `algebrax.algebra._non_assoc` along with `verify_jordan_laws`, `verify_alternative_laws`, `verify_malcev_laws`, and `verify_poisson_laws` in `algebrax.verification`. Promoted to `Final`.
