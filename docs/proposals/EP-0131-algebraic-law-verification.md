@@ -12,10 +12,12 @@ status: final
 | **EP**      | 0131                              |
 | **Title**   | Algebraic Law Verification Engine |
 | **Author**  | Eran Rivlis & Antigravity         |
-| **Status**  | Final                             |
+| **Status**  | Superseded                        |
 | **Type**    | Standards Track                   |
 | **Created** | 2026-08-02                        |
-| **Updated** | 2026-08-02                        |
+| **Updated** | 2026-11-12                        |
+| **Replaces** | —                                 |
+| **Superseded-By** | [EP-0003](EP-0003-axiomatic-verification-and-property-based-testing.md) |
 
 ## Abstract
 

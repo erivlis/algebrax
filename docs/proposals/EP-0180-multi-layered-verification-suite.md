@@ -14,12 +14,12 @@ status: final
 | **Author**        | Eran Rivlis & Jules (The Explorer & Council Agent)                                                                                                                                                              |
 | **Sponsor**       | The Council                                                                                                                                                                                                     |
 | **Delegate**      | 🔬 Karl Popper (Falsifiability), ⚖️ Emmy Noether (Symmetry), ⚡ Claude Shannon (Efficiency), 🛡️ The Golem (Safety) & 🧭 The Explorer (Curiosity)                                                                 |
-| **Status**        | Final                                                                                                                                                                                                           |
+| **Status**        | Superseded                                                                                                                                                                                                           |
 | **Type**          | Standards Track                                                                                                                                                                                                 |
 | **Created**       | 2026-10-24                                                                                                                                                                                                      |
-| **Updated**       | 2026-10-24                                                                                                                                                                                                      |
+| **Updated**       | 2026-11-12                                                                                                                                                                                                      |
 | **Replaces**      | None                                                                                                                                                                                                            |
-| **Superseded-By** | None                                                                                                                                                                                                            |
+| **Superseded-By** | [EP-0003](EP-0003-axiomatic-verification-and-property-based-testing.md)                                                                                                                                                                                                            |
 
 ---
 

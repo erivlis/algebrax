@@ -14,12 +14,12 @@ status: final
 | **Author** | Eran Rivlis <eran@rivlis.info>, Antigravity |
 | **Sponsor** | Council Framework |
 | **Delegate** | 🧩 Russell (Taxonomy & Type Theory) & ⚖️ Noether (Algebraic Invariants) |
-| **Status** | Final |
+| **Status** | Superseded |
 | **Type** | Standards Track |
 | **Created** | 2026-11-01 |
-| **Updated** | 2026-11-01 |
+| **Updated** | 2026-11-12 |
 | **Replaces** | — |
-| **Superseded-By** | — |
+| **Superseded-By** | [EP-0005](EP-0005-universal-algebraic-protocol-architecture.md) |
 
 ## Abstract
 

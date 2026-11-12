@@ -14,10 +14,12 @@ status: final
 | **Author**   | Eran Rivlis <eran@rivlis.info>                                      |
 | **Sponsor**  | The Council                                                         |
 | **Delegate** | Richard Feynman & Bertrand Russell                                  |
-| **Status**   | Final                                                               |
+| **Status**   | Superseded                                                          |
 | **Type**     | Standards Track                                                     |
 | **Created**  | 2026-09-05                                                          |
-| **Updated**  | 2026-09-10                                                          |
+| **Updated**  | 2026-11-12                                                          |
+| **Replaces** | —                                                                   |
+| **Superseded-By** | [EP-0002](EP-0002-mathematical-docstring-standards-and-algebraic-signatures.md) |
 
 ---
 
