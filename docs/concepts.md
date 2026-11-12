@@ -51,6 +51,21 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 > **Subclassing vs. Structural Duck-Typing (The Golem Safety Contract)**
 > When subclassing `HasZeroPred`, `HasNeg`, or `HasInv`, Python inherits their default helper implementations (`is_zero`, `sub`, `div`). However, when using purely structural duck-typing without inheriting from the mixins, Python's `@runtime_checkable` `isinstance(obj, Protocol)` requires that **all** protocol attributes be present on the instance or class.
 
+### Equational Law Witness Mixins (Pillar 2)
+
+Alongside operational mixins (`Has*`), `algebrax.algebra` defines lightweight **Law Witness Mixins** that advertise equational axioms satisfied by a structure:
+
+| Law Witness | Property / Witness Method | Axiom / Equational Law | Canonical Examples |
+|:------------|:--------------------------|:-----------------------|:-------------------|
+| `LawAssociative` | `is_associative -> True` | $(a \cdot b) \cdot c = a \cdot (b \cdot c)$ | Monoids, Groups, Semirings, Associative Algebras |
+| `LawCommutative` | `is_commutative -> True` | $a \cdot b = b \cdot a$ | Abelian groups, Commutative rings, Fields |
+| `LawIdempotent` | `is_idempotent -> True` | $a \oplus a = a$ | Tropical semiring $(\min, +)$, Boolean $(\lor, \land)$, Lattices |
+| `LawDistributive` | `is_distributive -> True` | $a \cdot (b + c) = (a \cdot b) + (a \cdot c)$ | Semirings, Rings, Fields |
+| `LawUnital` | `is_unital -> True` | $a \cdot \mathbf{1} = \mathbf{1} \cdot a = a$ | Unital rings, Monoids |
+| `LawLieAdmissible` | `is_lie_admissible -> True` | Jacobi identity $[[x, y], z] + [[y, z], x] + [[z, x], y] = 0$ | Lie algebras $\mathfrak{g}$, Poisson brackets |
+| `LawJordanAdmissible`| `is_jordan_admissible -> True`| $(x \circ y) \circ x^2 = x \circ (y \circ x^2)$ | Jordan algebras, Quantum observables |
+| `LawAlternative` | `is_alternative -> True` | $x(xy) = x^2 y$ and $(yx)x = y x^2$ | Octonions $\mathbb{O}$, Cayley-Dickson algebras |
+| `LawFlexible` | `is_flexible -> True` | $(xy)x = x(yx)$ | Non-associative division algebras |
 
 ---
 
@@ -118,18 +133,22 @@ A set $S$ with two operations, Addition ($\oplus$) and Multiplication ($\otimes$
 * **Distributivity**: Multiplication distributes over Addition.
 * **Annihilation**: $a \otimes \mathbf{0} = \mathbf{0}$.
 
-**Crucially**: Semirings do **not** require additive inverses (subtraction) or multiplicative inverses (division).
+**Crucially**: Semirings do **not** require additive inverses (subtraction) or multiplicative inverses (division). In `algebrax.algebra`, the semiring family forms a precise three-tiered protocol hierarchy ([EP-0197](proposals/EP-0197-decoupled-semiring-foundations-star-semirings-and-kleene-algebras.md)):
+
+* **`Semiring` (Pure Rig)** $\langle S, \mathbf{0}, \oplus, \mathbf{1}, \otimes \rangle$: Pure two-operation system (`HasZero`, `HasAdd`, `HasOne`, `HasMul`). Because Kleene star is decoupled, **every Ring is structurally a Semiring** ($\text{Semiring} \subset \text{Ring} \subset \text{Field}$).
+* **`StarSemiring` (Closed / Conway Semiring)** $\langle S, \mathbf{0}, \oplus, \mathbf{1}, \otimes, {}^* \rangle$: Equips a semiring with unary Kleene star closure $a^* = \mathbf{1} \oplus a \otimes a^* = \mathbf{1} \oplus a^* \otimes a$ (`HasStar`). Exemplified by `DualNumberAlgebra` (Taylor series) and infinite reachability matrices.
+* **`KleeneAlgebra`**: An idempotent star semiring where addition is idempotent ($a \oplus a = a$), witnessing [`LawIdempotent`](#equational-law-witness-mixins-pillar-2). Exemplified by `TropicalSemiring` (shortest paths) and `BooleanSemiring` (transitive reachability).
 
 **Examples in Library** (`algebrax.semiring`):
 
 Semirings are organized into categorical sub-modules under `algebrax.semiring`:
 
 * **`arithmetic`**: `StandardSemiring` over real numbers $(\mathbb{R}, +, \times)$ or complex amplitudes $(\mathbb{C}, +, \times)$ (quantum path integrals, discrete wave interference).
-* **`optimization`**: `TropicalSemiring` $(\mathbb{R} \cup \{\infty\}, \min, +)$, `ArcticSemiring`, `ViterbiSemiring`, `ReliabilitySemiring`, `BottleneckSemiring`, `MinTimesSemiring`. Shortest path and capacity algorithms.
-* **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations.
+* **`optimization`**: `TropicalSemiring` $(\mathbb{R} \cup \{\infty\}, \min, +)$, `ArcticSemiring`, `ViterbiSemiring`, `ReliabilitySemiring`, `BottleneckSemiring`, `MinTimesSemiring`. Shortest path and capacity algorithms (Kleene algebras).
+* **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations (Kleene algebras).
 * **`statistical`**: `LogSemiring`, `ExpectationSemiring`, `VarianceSemiring`, `SkewnessSemiring`, `KurtosisSemiring`, `StatisticalMomentSemiring`, `BivariateVarianceSemiring`, `MultivariateMomentSemiring`. Probabilistic inference, higher-order statistical moments, multivariate covariance matrices.
 * **`structures`**: `StringSemiring`, `KCollapsedSemiring`. Formal path languages, bounded counting.
-* **`algebraic`**: `DualNumberAlgebra`, `BinomialConvolutionSemiring`, `MultivariateBinomialConvolutionSemiring`, `MonoidAlgebraSemiring`, `PolynomialAlgebra`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordAlgebra` ($Cl(p,q,r)$ geometric algebras and Spacetime Dirac spinors), `GeneralizedCliffordAlgebra`, `QuantumCliffordAlgebra`, `GaloisFieldSemiring`. Free & quotient monoid algebras, divided power polynomial rings, skein modules, Clifford multivectors, finite fields.
+* **`algebraic`**: `DualNumberAlgebra` (Star semiring), `BinomialConvolutionSemiring`, `MultivariateBinomialConvolutionSemiring`, `MonoidAlgebraSemiring`, `PolynomialAlgebra`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordAlgebra` ($Cl(p,q,r)$ geometric algebras and Spacetime Dirac spinors), `GeneralizedCliffordAlgebra`, `QuantumCliffordAlgebra`, `GaloisFieldSemiring`. Free & quotient monoid algebras, divided power polynomial rings, skein modules, Clifford multivectors, finite fields.
 
 ### 6. Ring $(R, +, \cdot)$
 

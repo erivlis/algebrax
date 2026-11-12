@@ -24,6 +24,16 @@ built-in semiring types.
 | **`left_annihilation`**    | $\mathbf{0} \cdot a = \mathbf{0}$             |
 | **`right_annihilation`**   | $a \cdot \mathbf{0} = \mathbf{0}$             |
 
+### Star Semiring & Kleene Algebra Axioms
+
+For structures implementing `StarSemiring` and `KleeneAlgebra`:
+
+| Axiom                      | Protocol                | Equation                                      |
+|:---------------------------|:------------------------|:----------------------------------------------|
+| **`star_left_fixed_point`** | `StarSemiring`          | $a^* = \mathbf{1} + a \cdot a^*$              |
+| **`star_right_fixed_point`**| `StarSemiring`          | $a^* = \mathbf{1} + a^* \cdot a$              |
+| **`additive_idempotence`**  | `KleeneAlgebra`         | $a + a = a$                                   |
+
 ---
 
 ## Python Example: Programmatic Verification
@@ -31,12 +41,23 @@ built-in semiring types.
 ```python
 import algebrax as ax
 
-# Programmatic verification for Tropical ax.semiring.Semiring
+# Programmatic verification for Tropical Semiring (a Kleene Algebra)
 semiring, samples = ax.verification.get_semiring_samples('Tropical')
-results = ax.verification.verify_semiring_laws(semiring, samples)
 
-for axiom, passed in results.items():
-    print(f'{axiom:20s}: {"PASS" if passed else "FAIL"}')
+# 1. Verify standard semiring axioms
+res_rig = ax.verification.verify_semiring_laws(semiring, samples)
+for axiom, passed in res_rig.items():
+    print(f'{axiom:25s}: {"PASS" if passed else "FAIL"}')
+
+# 2. Verify star semiring fixed-point closure laws
+res_star = ax.verification.verify_star_semiring_laws(semiring, samples)
+for axiom, passed in res_star.items():
+    print(f'{axiom:25s}: {"PASS" if passed else "FAIL"}')
+
+# 3. Verify Kleene algebra laws (idempotence)
+res_kleene = ax.verification.verify_kleene_algebra_laws(semiring, samples)
+for axiom, passed in res_kleene.items():
+    print(f'{axiom:25s}: {"PASS" if passed else "FAIL"}')
 ```
 
 ---

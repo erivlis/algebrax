@@ -1,6 +1,6 @@
 ---
 title: Semirings Overview
-description: How Semiring[V] combines an additive commutative monoid, a multiplicative monoid, and Kleene star closure to power polymorphic graph and matrix algorithms.
+description: How Semiring[V], StarSemiring[V], and KleeneAlgebra[V] structure commutative path aggregations, sequential compositions, and Kleene closures.
 ---
 
 # Semirings Overview (`algebrax.algebra.Semiring`)
@@ -37,26 +37,52 @@ assert short[0][2] == 5.0
 
 ## 3. Atomic Mixins & Protocol Contract
 
-In `algebrax.algebra`, `Semiring[V]` is a flat, diamond-free composition of five atomic operational mixins:
+In `algebrax.algebra`, the semiring family is structured as a clear three-tiered hierarchy of flat, diamond-free compositions:
+
+1. **`Semiring[V]` (Pure Rig)**: The foundational two-operation system $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ combining an additive commutative monoid and a multiplicative monoid linked by distributivity and zero annihilation.
+2. **`StarSemiring[V]` (Closed / Conway Semiring)**: Equips a `Semiring` with unary Kleene star closure $a^* = \mathbf{1} \oplus a \cdot a^*$ (`HasStar[V]`). Synonyms: `ClosedSemiring`, `ConwaySemiring`.
+3. **`KleeneAlgebra[V]`**: An idempotent star semiring ($a \oplus a = a$) witnessing the [`LawIdempotent`](../../concepts.md#equational-law-witness-mixins-pillar-2) marker.
 
 ```python
 from typing import Protocol, TypeVar
-from algebrax.algebra import HasAdd, HasMul, HasOne, HasStar, HasZero
+from algebrax.algebra import HasAdd, HasMul, HasOne, HasStar, HasZero, LawIdempotent
 
 V = TypeVar('V')
 
 
-class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol):
+# 1. Pure Rig: (zero, one, add, mul)
+class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
+    ...
+
+
+# 2. Closed / Conway Semiring: adds Kleene star closure
+class StarSemiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol):
+    ...
+
+
+# 3. Kleene Algebra: idempotent star semiring
+class KleeneAlgebra(
+    HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], LawIdempotent, Protocol
+):
     ...
 ```
 
-| Mixin | Operation / Property | Semiring Role |
-|:------|:---------------------|:--------------|
-| `HasZero[V]` | `zero: V` | Additive neutral element $\mathbf{0}$ (annihilator for $\cdot$) |
-| `HasAdd[V]` | `add(a, b) -> V` | Commutative, associative path aggregation $\oplus$ |
-| `HasOne[V]` | `one: V` | Multiplicative neutral element $\mathbf{1}$ |
-| `HasMul[V]` | `mul(a, b) -> V` | Associative sequential path composition $\otimes$ |
-| `HasStar[V]` | `star(a) -> V` | Kleene closure $a^* = \mathbf{1} \oplus a \oplus a^2 \oplus \cdots$ |
+| Protocol | Mixin Composition | Formal Signature | Role & Capabilities |
+|:---------|:------------------|:-----------------|:--------------------|
+| **`Semiring[V]`** | `(HasZero, HasAdd, HasOne, HasMul)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ | Standard linear algebra, polynomial algebras, and generic rigs. |
+| **`StarSemiring[V]`** | `(..., HasStar)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ | Graph reachability, all-pairs paths, and Taylor series closures (`DualNumberAlgebra`). |
+| **`KleeneAlgebra[V]`** | `(..., HasStar, LawIdempotent)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ with $a \oplus a = a$ | Regular languages, finite automata, and extremal routing (`TropicalSemiring`, `BooleanSemiring`). |
+
+> [!NOTE]
+> **Subtyping Harmony: Every Ring is a Semiring**
+> Because `Semiring` requires only `zero, one, add, mul`, the classical mathematical inclusion $\text{Semiring} \subset \text{Ring} \subset \text{CommRing} \subset \text{Field}$ holds strictly under structural subtyping:
+> ```python
+> from algebrax.algebra import IntegerRing, ModularField, Ring, Semiring, StandardField
+>
+> assert isinstance(IntegerRing(), Semiring)  # Rings are Semirings!
+> assert isinstance(StandardField(float), Semiring)  # Fields are Semirings!
+> assert isinstance(ModularField(7), Semiring)  # Modular rings are Semirings!
+> ```
 
 Because `Semiring` includes `HasZero`, `HasAdd`, `HasOne`, and `HasMul`, every `Semiring` instance automatically satisfies `AddCommMonoid[V]`, `AddMonoid[V]`, `Monoid[V]`, and `Semigroup[V]` via structural subtyping (`isinstance`).
 
@@ -64,19 +90,34 @@ Because `Semiring` includes `HasZero`, `HasAdd`, `HasOne`, and `HasMul`, every `
 
 ## 4. Falsifiability: Law Verification & Counterexamples
 
-Every semiring must satisfy 9 axioms (additive associativity/commutativity/identity, multiplicative associativity/identity, left/right distributivity, and left/right zero annihilation):
+Every semiring must satisfy 9 axioms (additive associativity/commutativity/identity, multiplicative associativity/identity, left/right distributivity, and left/right zero annihilation). Structures equipped with Kleene star (`StarSemiring` and `KleeneAlgebra`) satisfy additional closure laws:
 
 ```python
 from algebrax.semiring import TropicalSemiring
-from algebrax.verification import verify_semiring_laws
+from algebrax.verification import (
+    verify_kleene_algebra_laws,
+    verify_semiring_laws,
+    verify_star_semiring_laws,
+)
 
-res = verify_semiring_laws(TropicalSemiring(), [float('inf'), 0.0, 1.5, 4.0])
-assert all(res.values())
+samples = [float('inf'), 0.0, 1.5, 4.0]
+trop = TropicalSemiring()
+
+# 1. Standard 9 Semiring laws
+res_rig = verify_semiring_laws(trop, samples)
+assert all(res_rig.values())
+
+# 2. Star Semiring fixed-point closure laws: a* = 1 + a · a* = 1 + a* · a
+res_star = verify_star_semiring_laws(trop, samples)
+assert all(res_star.values())
+
+# 3. Kleene Algebra laws: Star closure + Additive Idempotence (a + a = a)
+res_kleene = verify_kleene_algebra_laws(trop, samples)
+assert all(res_kleene.values())
 
 # Counterexample: Idempotent Semirings cannot possess additive inverses (no subtraction!)
 # In TropicalSemiring, min(a, a) = a. If an additive inverse (-a) existed,
 # adding it to both sides would force a = 0 (tropical infinity), collapsing the carrier.
-trop = TropicalSemiring()
 assert trop.add(3.0, 3.0) == 3.0  # min(3.0, 3.0) == 3.0
 ```
 
