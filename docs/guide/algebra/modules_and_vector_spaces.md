@@ -57,6 +57,10 @@ All two-sorted protocols place `HasScale[R, M]` first in their base tuple alongs
 | `Module[R, M]` | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, - \rangle$ |
 | `VectorSpace[R, M]` | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, - \rangle$ ($R$ is a `Field`) |
 | `NonAssocAlgebra[R, M]` | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, -, \cdot \rangle$ |
+| `JordanAlgebra[R, M]` | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, -, \circ \rangle$ ($(x \circ y) \circ x^2 = x \circ (y \circ x^2)$) |
+| `AlternativeAlgebra[R, M]` | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, -, \cdot \rangle$ ($(x \cdot x) \cdot y = x \cdot (x \cdot y)$) |
+| `MalcevAlgebra[R, M]` | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, -, [\cdot, \cdot] \rangle$ ($\operatorname{Im}(\mathbb{O})$) |
+| `PoissonAlgebra[R, M]` | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], HasBracket[M], Protocol[R, M])` | $\langle R, P, \cdot_s, \mathbf{0}, +, -, \cdot, \{\cdot, \cdot\} \rangle$ |
 | `Algebra[R, M]` | `(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasOne[M], HasMul[M], Protocol[R, M])` | $\langle R, M, \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
 
 ### Domain Unification Table
@@ -65,13 +69,56 @@ All two-sorted protocols place `HasScale[R, M]` first in their base tuple alongs
 |:-----------------|:------------|:-----------|:------------|:-----------------------|
 | `PolynomialAlgebra[T]` | `algebrax.algebra` | `T` | `dict[int, T]` | Cauchy polynomial convolution |
 | `DualNumberAlgebra` | `algebrax.algebra` | `float` | `tuple[float, float]` | Dual number product $(a+b\varepsilon)(c+d\varepsilon)$ |
+| `SymmetricMatrixJordanAlgebra` | `algebrax.algebra` | `float` | `SparseMatrix[Any, float]` | Quantum anticommutator $A \circ B = \frac{1}{2}(AB + BA)$ |
+| `OctonionAlgebra` | `algebrax.algebra` | `float` | `dict[int, float]` | Fano-plane Cayley–Dickson octonion product |
+| `ImaginaryOctonionMalcevAlgebra` | `algebrax.algebra` | `float` | `dict[int, float]` | Malcev commutator $[x, y] = \frac{1}{2}(xy - yx)$ on $\operatorname{Im}(\mathbb{O})$ |
 | `CliffordAlgebra` | `algebrax.clifford` | `float` | `dict[tuple[int, ...], float]` | Geometric product $ab = a \cdot b + a \wedge b$ |
 | `LieAlgebra` | `algebrax.lie` | `float` | `dict[int, float]` | Lie commutator bracket $[X, Y]$ |
 | `CochainAlgebra` | `algebrax.topology` | `float` | `dict[tuple[int, ...], float]` | Alexander–Whitney cup product $\alpha \smile \beta$ |
 
 ---
 
-## 4. Falsifiability: Law Verification & Bilinearity
+## 4. Non-Associative & Quantum Algebras (EP-0204)
+
+Beyond Lie algebras, modern quantum mechanics, division algebra classification (Hurwitz's theorem), and Hamiltonian mechanics rely on structured non-associative algebras:
+
+- **`SymmetricMatrixJordanAlgebra`**: Models quantum mechanical observables via the symmetric anticommutator $A \circ B = \frac{1}{2}(AB + BA)$, satisfying the Jordan identity $(x \circ y) \circ x^2 = x \circ (y \circ x^2)$.
+- **`OctonionAlgebra`**: The 8-dimensional non-associative normed division algebra $\mathbb{O}$ over $\mathbb{R}$, satisfying Artin's left/right alternative identities ($x(xy) = (xx)y$, $(yx)x = y(xx)$) and Hurwitz norm multiplicativity $\|a \cdot b\|^2 = \|a\|^2 \|b\|^2$.
+- **`ImaginaryOctonionMalcevAlgebra`**: The 7-dimensional commutator algebra on $\operatorname{Im}(\mathbb{O})$ satisfying the Malcev identity $J(x, y, [x, z]) = [J(x, y, z), x]$.
+- **`PoissonAlgebra`**: Combines commutative multiplication `mul` with a Lie bracket `bracket` linked by the Leibniz derivation law $\{f, g \cdot h\} = \{f, g\} \cdot h + g \cdot \{f, h\}$.
+
+```python
+from algebrax.algebra import (
+    ImaginaryOctonionMalcevAlgebra,
+    OctonionAlgebra,
+    SymmetricMatrixJordanAlgebra,
+)
+from algebrax.verification import (
+    verify_alternative_laws,
+    verify_jordan_laws,
+    verify_malcev_laws,
+)
+
+# 1. Jordan Algebra of Quantum Observables
+jordan = SymmetricMatrixJordanAlgebra()
+m1 = {0: {0: 2.0, 1: 1.0}, 1: {0: 1.0, 1: 3.0}}
+m2 = {0: {0: -1.0, 1: 4.0}, 1: {0: 4.0, 1: 2.0}}
+assert all(verify_jordan_laws(jordan, [m1, m2]).values())
+
+# 2. Octonions O and Alternative Division Laws
+octo = OctonionAlgebra()
+e1, e2, e4 = {1: 1.0}, {2: 1.0}, {4: 1.0}
+assert octo.associator(e1, e2, e4) == {7: 2.0}  # Non-associative!
+assert all(verify_alternative_laws(octo, [e1, e2, e4]).values())
+
+# 3. Malcev Algebra on Im(O)
+malcev = ImaginaryOctonionMalcevAlgebra()
+assert all(verify_malcev_laws(malcev, [e1, e2, e4]).values())
+```
+
+---
+
+## 5. Falsifiability: Law Verification & Bilinearity
 
 Every module and algebra can be verified using `verify_module_laws`, `verify_non_assoc_algebra_laws`, and `verify_algebra_laws`:
 
@@ -92,7 +139,7 @@ assert all(verify_non_assoc_algebra_laws(lie_so3, StandardSemiring(float), scala
 
 ---
 
-## 5. Frontier Horizons & Cross-Domain Bridges
+## 6. Frontier Horizons & Cross-Domain Bridges
 
 - **[Clifford Geometric Algebras](clifford_geometric_algebra.md)**: Unify inner products and exterior wedge products into an associative unital `Algebra`.
 - **[Lie Algebras](lie_algebras.md)**: Model tangent spaces of continuous symmetry groups as a `NonAssocAlgebra` where `.mul()` is the alternating Lie bracket $[X, Y]$.
