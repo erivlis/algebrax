@@ -110,6 +110,15 @@ from algebrax.algebra._monoid_algebra import (
     QuotientMonoidAlgebra,
     QuotientMonoidAlgebraSemiring,
 )
+from algebrax.algebra._non_assoc import (
+    AlternativeAlgebra,
+    ImaginaryOctonionMalcevAlgebra,
+    JordanAlgebra,
+    MalcevAlgebra,
+    OctonionAlgebra,
+    PoissonAlgebra,
+    SymmetricMatrixJordanAlgebra,
+)
 from algebrax.algebra._polynomial import (
     PolynomialAlgebra,
 )
@@ -134,6 +143,7 @@ __all__ = [
     'AddMonoid',
     'AddSemigroup',
     'Algebra',
+    'AlternativeAlgebra',
     'Band',
     'BooleanAlgebra',
     'BoundedLattice',
@@ -170,9 +180,11 @@ __all__ = [
     'HasZeroPred',
     'Homomorphism',
     'Ideal',
+    'ImaginaryOctonionMalcevAlgebra',
     'IntegerField',
     'IntegerModuloIdeal',
     'JoinSemilattice',
+    'JordanAlgebra',
     'KernelIdeal',
     'Lattice',
     'LeftIdeal',
@@ -180,6 +192,7 @@ __all__ = [
     'LieIdeal',
     'LinearMap',
     'Magma',
+    'MalcevAlgebra',
     'MeetSemilattice',
     'ModularField',
     'Module',
@@ -189,10 +202,12 @@ __all__ = [
     'NilpotentIdeal',
     'NonAssocAlgebra',
     'NonAssocRing',
+    'OctonionAlgebra',
     'OpCommMonoid',
     'OpMagma',
     'OpMonoid',
     'OpSemigroup',
+    'PoissonAlgebra',
     'PolynomialAlgebra',
     'PolynomialTruncationIdeal',
     'PrincipalIdeal',
@@ -212,6 +227,7 @@ __all__ = [
     'Semiring',
     'StandardField',
     'SubspaceLieIdeal',
+    'SymmetricMatrixJordanAlgebra',
     'VectorSpace',
     'fold_add',
     'fold_mul',
@@ -221,3 +237,4 @@ __all__ = [
     'zpow',
     'zsmul',
 ]
+

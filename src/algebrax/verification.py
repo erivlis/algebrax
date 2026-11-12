@@ -26,6 +26,7 @@ __all__ = [
     'verify_add_monoid_laws',
     'verify_add_semigroup_laws',
     'verify_algebra_laws',
+    'verify_alternative_laws',
     'verify_band_laws',
     'verify_boolean_algebra_laws',
     'verify_bounded_lattice_laws',
@@ -44,14 +45,17 @@ __all__ = [
     'verify_group_laws',
     'verify_ideal_absorption_laws',
     'verify_join_semilattice_laws',
+    'verify_jordan_laws',
     'verify_lattice_laws',
     'verify_lie_algebra_laws',
     'verify_magma_laws',
+    'verify_malcev_laws',
     'verify_meet_semilattice_laws',
     'verify_module_laws',
     'verify_monoid_laws',
     'verify_non_assoc_algebra_laws',
     'verify_non_assoc_ring_laws',
+    'verify_poisson_laws',
     'verify_quotient_ring_laws',
     'verify_ring_homomorphism_laws',
     'verify_ring_laws',
@@ -1637,3 +1641,150 @@ def verify_gauge_covariance(
 
     expected_l_prime = dot(big_g, dot(l_orig, transpose(big_g), semiring=semiring), semiring=semiring)
     return semiring_elements_equal(l_prime, expected_l_prime, tol)
+
+
+def verify_jordan_laws(
+    algebra: Any,
+    samples: Iterable[Any],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Jordan Algebra axioms:
+    - Commutativity: $x \circ y = y \circ x$
+    - Jordan Identity: $(x \circ y) \circ (x \circ x) = x \circ (y \circ (x \circ x))$
+    """
+    elements = _require_samples(samples)
+    mul = algebra.mul
+
+    comm = True
+    jordan_id = True
+    for x, y in itertools.product(elements, repeat=2):
+        xy = mul(x, y)
+        yx = mul(y, x)
+        if not semiring_elements_equal(xy, yx, tol):
+            comm = False
+        x2 = mul(x, x)
+        lhs = mul(xy, x2)
+        rhs = mul(x, mul(y, x2))
+        if not semiring_elements_equal(lhs, rhs, tol):
+            jordan_id = False
+
+    return {
+        'commutativity': comm,
+        'jordan_identity': jordan_id,
+    }
+
+
+def verify_alternative_laws(
+    algebra: Any,
+    samples: Iterable[Any],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Alternative Algebra axioms:
+    - Left Alternative Law: $x(xy) = (xx)y$
+    - Right Alternative Law: $(yx)x = y(xx)$
+    - Flexible Law: $x(yx) = (xy)x$
+    """
+    elements = _require_samples(samples)
+    mul = algebra.mul
+
+    left_alt = True
+    right_alt = True
+    flexible = True
+    for x, y in itertools.product(elements, repeat=2):
+        xx = mul(x, x)
+        xy = mul(x, y)
+        yx = mul(y, x)
+        if not semiring_elements_equal(mul(x, xy), mul(xx, y), tol):
+            left_alt = False
+        if not semiring_elements_equal(mul(yx, x), mul(y, xx), tol):
+            right_alt = False
+        if not semiring_elements_equal(mul(x, yx), mul(xy, x), tol):
+            flexible = False
+
+    return {
+        'left_alternative': left_alt,
+        'right_alternative': right_alt,
+        'flexible': flexible,
+    }
+
+
+def verify_malcev_laws(
+    algebra: Any,
+    samples: Iterable[Any],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Malcev Algebra axioms:
+    - Anticommutativity: $x \cdot y = -(y \cdot x)$
+    - Malcev Identity: $J(x, y, x \cdot z) = J(x, y, z) \cdot x$, where
+      $J(a, b, c) = (a \cdot b) \cdot c + (b \cdot c) \cdot a + (c \cdot a) \cdot b$
+    """
+    elements = _require_samples(samples)
+    mul = algebra.mul
+    add = algebra.add
+    neg = algebra.neg
+
+    def jacobian(a: Any, b: Any, c: Any) -> Any:
+        return add(add(mul(mul(a, b), c), mul(mul(b, c), a)), mul(mul(c, a), b))
+
+    anticomm = True
+    for x, y in itertools.product(elements, repeat=2):
+        if not semiring_elements_equal(mul(x, y), neg(mul(y, x)), tol):
+            anticomm = False
+            break
+
+    malcev_id = True
+    for x, y, z in itertools.product(elements, repeat=3):
+        lhs = jacobian(x, y, mul(x, z))
+        rhs = mul(jacobian(x, y, z), x)
+        if not semiring_elements_equal(lhs, rhs, tol):
+            malcev_id = False
+            break
+
+    return {
+        'anticommutativity': anticomm,
+        'malcev_identity': malcev_id,
+    }
+
+
+def verify_poisson_laws(
+    poisson: Any,
+    samples: Iterable[Any],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Poisson Algebra axioms:
+    - Bracket Anticommutativity: $\{f, g\} = -\{g, f\}$
+    - Jacobi Identity: $\{f, \{g, h\}\} + \{g, \{h, f\}\} + \{h, \{f, g\}\} = \mathbf{0}$
+    - Leibniz Derivation Rule: $\{f, g \cdot h\} = \{f, g\} \cdot h + g \cdot \{f, h\}$
+    """
+    elements = _require_samples(samples)
+    mul = poisson.mul
+    bracket = poisson.bracket
+    add = poisson.add
+    neg = poisson.neg
+    zero = poisson.zero
+
+    anticomm = True
+    for f, g in itertools.product(elements, repeat=2):
+        if not semiring_elements_equal(bracket(f, g), neg(bracket(g, f)), tol):
+            anticomm = False
+            break
+
+    jacobi = True
+    leibniz = True
+    for f, g, h in itertools.product(elements, repeat=3):
+        t1 = bracket(f, bracket(g, h))
+        t2 = bracket(g, bracket(h, f))
+        t3 = bracket(h, bracket(f, g))
+        if not semiring_elements_equal(add(add(t1, t2), t3), zero, tol):
+            jacobi = False
+
+        lhs = bracket(f, mul(g, h))
+        rhs = add(mul(bracket(f, g), h), mul(g, bracket(f, h)))
+        if not semiring_elements_equal(lhs, rhs, tol):
+            leibniz = False
+
+    return {
+        'anticommutativity': anticomm,
+        'jacobi_identity': jacobi,
+        'leibniz_rule': leibniz,
+    }
