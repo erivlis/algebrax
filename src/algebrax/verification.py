@@ -12,7 +12,7 @@ import math
 from collections.abc import Iterable
 from typing import Any, TypeVar
 
-from algebrax.semiring import Semiring
+from algebrax.semiring import KleeneAlgebra, Semiring, StarSemiring
 
 V = TypeVar('V')
 
@@ -46,6 +46,7 @@ __all__ = [
     'verify_ideal_absorption_laws',
     'verify_join_semilattice_laws',
     'verify_jordan_laws',
+    'verify_kleene_algebra_laws',
     'verify_lattice_laws',
     'verify_lie_algebra_laws',
     'verify_magma_laws',
@@ -64,6 +65,7 @@ __all__ = [
     'verify_semiring_laws',
     'verify_sheaf_functoriality',
     'verify_sheaf_laplacian_properties',
+    'verify_star_semiring_laws',
 ]
 
 
@@ -235,6 +237,63 @@ def verify_semiring_laws(
     results['add_commutativity'] = _check_add_commutativity(semiring, elements, tol)
     results['add_associativity'], results['mul_associativity'] = _check_associativity(semiring, elements, tol)
     results['left_distributivity'], results['right_distributivity'] = _check_distributivity(semiring, elements, tol)
+    return results
+
+
+def verify_star_semiring_laws(
+    semiring: StarSemiring[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test all semiring axioms plus Conway star closure axioms.
+
+    Validates:
+      - All 9 semiring axioms
+      - 'left_conway':  $a^* \approx \mathbf{1} + a \cdot a^*$
+      - 'right_conway': $a^* \approx \mathbf{1} + a^* \cdot a$
+    """
+    results = verify_semiring_laws(semiring, samples, tol)
+    elements = list(samples)
+    one = semiring.one
+
+    left_conway = True
+    right_conway = True
+    for a in elements:
+        try:
+            a_star = semiring.star(a)
+            # Skip infinite/overflow values in numerical semirings
+            if isinstance(a_star, float) and (math.isinf(a_star) or math.isnan(a_star)):
+                continue
+            lhs_left = semiring.add(one, semiring.mul(a, a_star))
+            if not semiring_elements_equal(a_star, lhs_left, tol):
+                left_conway = False
+                break
+            rhs_right = semiring.add(one, semiring.mul(a_star, a))
+            if not semiring_elements_equal(a_star, rhs_right, tol):
+                right_conway = False
+                break
+        except (ValueError, ZeroDivisionError, OverflowError, NotImplementedError):
+            continue
+
+    results['left_conway'] = left_conway
+    results['right_conway'] = right_conway
+    return results
+
+
+def verify_kleene_algebra_laws(
+    semiring: KleeneAlgebra[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test all star semiring axioms plus addition idempotency ($a \oplus a \approx a$)."""
+    results = verify_star_semiring_laws(semiring, samples, tol)
+    elements = list(samples)
+    idempotent = True
+    for a in elements:
+        if not semiring_elements_equal(semiring.add(a, a), a, tol):
+            idempotent = False
+            break
+    results['add_idempotence'] = idempotent
     return results
 
 

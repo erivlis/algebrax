@@ -1,39 +1,40 @@
 r"""
-Semiring protocol for two-operation algebraic structures.
+Semiring, StarSemiring, and KleeneAlgebra protocols for two-operation algebraic structures.
 
-Algebraic Signature (EP-0150 AMDS):
-    Semiring: $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$
+Algebraic Signatures (EP-0150, EP-0197):
+    Semiring:      $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$
+    StarSemiring:  $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$
+    KleeneAlgebra: $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ with $a \oplus a = a$
 """
 
 from functools import cache
-from typing import Any, Protocol, TypeVar, runtime_checkable
+from typing import Any, Literal, Protocol, TypeVar, runtime_checkable
 
 from algebrax.algebra._helpers import nsum as _nsum
 from algebrax.algebra._helpers import power as _power
-from algebrax.algebra._mixins import HasAdd, HasMul, HasOne, HasStar, HasZero
+from algebrax.algebra._mixins import HasAdd, HasMul, HasOne, HasStar, HasZero, LawIdempotent
 
 V = TypeVar('V')
 
 
 @runtime_checkable
-class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol):
-    r"""A mathematical Semiring $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$.
+class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
+    r"""A mathematical Semiring (Rig / Hemiring) $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$.
 
     Combines an additive commutative monoid $\langle V, \mathbf{0}, + \rangle$
-    and a multiplicative monoid $\langle V, \mathbf{1}, \cdot \rangle$ equipped with Kleene closure $a^*$, satisfying:
+    and a multiplicative monoid $\langle V, \mathbf{1}, \cdot \rangle$ satisfying:
     - Distributivity: $a \cdot (b + c) = (a \cdot b) + (a \cdot c)$
                       $(a + b) \cdot c = (a \cdot c) + (b \cdot c)$
     - Annihilation:   $\mathbf{0} \cdot a = a \cdot \mathbf{0} = \mathbf{0}$
 
     Algebraic Signature:
-        $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$
+        $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$
 
     Operations:
         - `zero`: Additive neutral element (`HasZero[V]`).
         - `add(a, b)`: Commutative, associative addition (`HasAdd[V]`).
         - `one`: Multiplicative identity element (`HasOne[V]`).
         - `mul(a, b)`: Associative multiplication (`HasMul[V]`).
-        - `star(a)`: Kleene closure $\mathbf{1} + a + a^2 + \cdots$ (`HasStar[V]`).
     """
 
     def nsum(self, a: V, n: int) -> V:
@@ -186,3 +187,74 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol
         return s() if isinstance(s, type) else s
 
     create = normalize
+
+
+# Explicitly restrict structural protocol attrs to pure algebraic operations,
+# excluding utility classmethods/staticmethods (normalize, catalog, default, etc.)
+Semiring.__protocol_attrs__ = frozenset({'zero', 'one', 'add', 'mul'})
+
+
+@runtime_checkable
+class StarSemiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol):
+    r"""A Star Semiring (Closed / Conway Semiring) $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$.
+
+    Equipped with a unary Kleene star closure operation $*: V \to V$ satisfying:
+        $a^* = \mathbf{1} + a \cdot a^* = \mathbf{1} + a^* \cdot a$.
+
+    Algebraic Signature:
+        $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$
+
+    Operations:
+        - `zero`: Additive neutral element (`HasZero[V]`).
+        - `add(a, b)`: Commutative, associative addition (`HasAdd[V]`).
+        - `one`: Multiplicative identity element (`HasOne[V]`).
+        - `mul(a, b)`: Associative multiplication (`HasMul[V]`).
+        - `star(a)`: Kleene closure $\mathbf{1} + a + a^2 + \cdots$ (`HasStar[V]`).
+    """
+
+    ...
+
+
+# Canonical mathematical synonyms:
+ClosedSemiring = StarSemiring
+ConwaySemiring = StarSemiring
+
+
+@runtime_checkable
+class KleeneAlgebra(
+    HasZero[V],
+    HasAdd[V],
+    HasOne[V],
+    HasMul[V],
+    HasStar[V],
+    LawIdempotent,
+    Protocol,
+):
+    r"""A Kleene Algebra $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ with $a \oplus a = a$.
+
+    An idempotent star semiring ($a \oplus a = a$) satisfying Kozen's induction axioms:
+        $\mathbf{1} + a \cdot a^* \le a^*, \quad b + a \cdot x \le x \implies a^* \cdot b \le x$.
+
+    Algebraic Signature:
+        $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ with $a \oplus a = a$
+
+    Operations:
+        - `zero`: Additive neutral element (`HasZero[V]`).
+        - `add(a, b)`: Idempotent, commutative, associative addition (`HasAdd[V]`).
+        - `one`: Multiplicative identity element (`HasOne[V]`).
+        - `mul(a, b)`: Associative multiplication (`HasMul[V]`).
+        - `star(a)`: Kleene closure $\mathbf{1} + a + a^2 + \cdots$ (`HasStar[V]`).
+    """
+
+    @property
+    def is_idempotent(self) -> Literal[True]:
+        return True
+
+
+__all__ = [
+    'ClosedSemiring',
+    'ConwaySemiring',
+    'KleeneAlgebra',
+    'Semiring',
+    'StarSemiring',
+]

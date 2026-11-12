@@ -18,9 +18,13 @@ Algebraic Signatures:
     HasOp:         $\langle V, \operatorname{op} \rangle$
     HasIdentity:   $\langle V, \operatorname{identity} \rangle$
     HasBracket:    $\langle V, [\cdot, \cdot] \rangle$
+
+Law Witnesses (EP-0005, EP-0197):
+    LawCommutative, LawAnticommutative, LawAssociative,
+    LawJordan, LawAlternative, LawMalcev, LawLie, LawIdempotent
 """
 
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Literal, Protocol, TypeVar, runtime_checkable
 
 V = TypeVar('V')
 R = TypeVar('R')
@@ -256,4 +260,84 @@ class HasGenerator(Protocol[V]):
 
     @property
     def generator(self) -> V: ...
+
+
+# =============================================================================
+# Pillar 2: Layer 1 Law Witness Mixins (EP-0005)
+# Zero-cost equational axiom markers for static typing and runtime differentiation.
+# =============================================================================
+
+
+@runtime_checkable
+class LawCommutative(Protocol):
+    r"""Equational axiom witness: binary multiplication or addition is commutative ($a \cdot b = b \cdot a$)."""
+
+    @property
+    def is_commutative(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawAnticommutative(Protocol):
+    r"""Equational axiom witness: binary multiplication or bracket is anticommutative ($[a, b] = -[b, a]$)."""
+
+    @property
+    def is_anticommutative(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawAssociative(Protocol):
+    r"""Equational axiom witness: binary multiplication is associative ($(a \cdot b) \cdot c = a \cdot (b \cdot c)$)."""
+
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawJordan(Protocol):
+    r"""Equational axiom witness: satisfies Jordan identity ($(a \circ b) \circ a^2 = a \circ (b \circ a^2)$)."""
+
+    @property
+    def is_jordan(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawAlternative(Protocol):
+    r"""Equational axiom witness: satisfies Artin alternativity.
+    Identities: $(a \cdot a) \cdot b = a \cdot (a \cdot b)$ and $(b \cdot a) \cdot a = b \cdot (a \cdot a)$.
+    """
+
+    @property
+    def is_alternative(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawMalcev(Protocol):
+    r"""Equational axiom witness: satisfies Malcev identity ($J(x, y, x \cdot z) = J(x, y, z) \cdot x$)."""
+
+    @property
+    def is_malcev(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawLie(Protocol):
+    r"""Equational axiom witness: satisfies Jacobi identity ($[[x, y], z] + [[y, z], x] + [[z, x], y] = \mathbf{0}$)."""
+
+    @property
+    def is_lie(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawIdempotent(Protocol):
+    r"""Equational axiom witness: binary addition is idempotent ($a \oplus a = a$)."""
+
+    @property
+    def is_idempotent(self) -> Literal[True]:
+        return True
 

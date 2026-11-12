@@ -88,6 +88,14 @@ from algebrax.algebra._mixins import (
     HasStar,
     HasZero,
     HasZeroPred,
+    LawAlternative,
+    LawAnticommutative,
+    LawAssociative,
+    LawCommutative,
+    LawIdempotent,
+    LawJordan,
+    LawLie,
+    LawMalcev,
 )
 from algebrax.algebra._module import (
     Algebra,
@@ -133,7 +141,13 @@ from algebrax.algebra._ring import (
     NonAssocRing,
     Ring,
 )
-from algebrax.algebra._semiring import Semiring
+from algebrax.algebra._semiring import (
+    ClosedSemiring,
+    ConwaySemiring,
+    KleeneAlgebra,
+    Semiring,
+    StarSemiring,
+)
 
 __all__ = [
     'AddCommGroup',
@@ -148,10 +162,12 @@ __all__ = [
     'BooleanAlgebra',
     'BoundedLattice',
     'CallableHomomorphism',
+    'ClosedSemiring',
     'CommGroup',
     'CommMonoid',
     'CommRing',
     'ComplexField',
+    'ConwaySemiring',
     'DistributiveLattice',
     'DivisionRing',
     'DualNumberAlgebra',
@@ -186,7 +202,16 @@ __all__ = [
     'JoinSemilattice',
     'JordanAlgebra',
     'KernelIdeal',
+    'KleeneAlgebra',
     'Lattice',
+    'LawAlternative',
+    'LawAnticommutative',
+    'LawAssociative',
+    'LawCommutative',
+    'LawIdempotent',
+    'LawJordan',
+    'LawLie',
+    'LawMalcev',
     'LeftIdeal',
     'LieAlgebraHom',
     'LieIdeal',
@@ -226,6 +251,7 @@ __all__ = [
     'Semimodule',
     'Semiring',
     'StandardField',
+    'StarSemiring',
     'SubspaceLieIdeal',
     'SymmetricMatrixJordanAlgebra',
     'VectorSpace',

@@ -10,7 +10,7 @@ unboxed sparse implementations (`SymmetricMatrixJordanAlgebra`, `OctonionAlgebra
 
 from __future__ import annotations
 
-from typing import Any, Protocol, TypeVar, runtime_checkable
+from typing import Any, Literal, Protocol, TypeVar, runtime_checkable
 
 from algebrax.algebra._mixins import (
     HasAdd,
@@ -19,6 +19,11 @@ from algebrax.algebra._mixins import (
     HasNeg,
     HasScale,
     HasZero,
+    LawAlternative,
+    LawAnticommutative,
+    LawCommutative,
+    LawJordan,
+    LawMalcev,
 )
 from algebrax.algebra._semiring import Semiring
 from algebrax.typing import SparseMatrix, SparseVector
@@ -38,7 +43,16 @@ __all__ = [
 
 
 @runtime_checkable
-class JordanAlgebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], Protocol[R, M]):
+class JordanAlgebra(
+    HasScale[R, M],
+    HasZero[M],
+    HasAdd[M],
+    HasNeg[M],
+    HasMul[M],
+    LawCommutative,
+    LawJordan,
+    Protocol[R, M],
+):
     r"""A commutative non-associative algebra satisfying the Jordan identity:
     $$(x \circ y) \circ x^2 = x \circ (y \circ x^2)$$
     where `mul(x, y)` denotes the symmetric Jordan product $x \circ y = y \circ x$.
@@ -51,11 +65,39 @@ class JordanAlgebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M],
         - Jordan Identity: $(x \circ y) \circ (x \circ x) = x \circ (y \circ (x \circ x))$.
     """
 
-    ...
+    @property
+    def is_commutative(self) -> Literal[True]:
+        return True
+
+    @property
+    def is_jordan(self) -> Literal[True]:
+        return True
+
+    def jordan_triple(self, x: M, y: M, z: M) -> M:
+        r"""Jordan triple product $\{x, y, z\} = (x \circ y) \circ z + x \circ (y \circ z) - y \circ (x \circ z)$."""
+        xy_z = self.mul(self.mul(x, y), z)
+        x_yz = self.mul(x, self.mul(y, z))
+        y_xz = self.mul(y, self.mul(x, z))
+        return self.add(self.add(xy_z, x_yz), self.neg(y_xz))
+
+    def quadratic_repr(self, x: M, y: M) -> M:
+        r"""Quadratic representation operator $U_x(y) = 2 x \circ (x \circ y) - x^2 \circ y$."""
+        x_xy = self.mul(x, self.mul(x, y))
+        two_x_xy = self.add(x_xy, x_xy)
+        x2_y = self.mul(self.mul(x, x), y)
+        return self.add(two_x_xy, self.neg(x2_y))
 
 
 @runtime_checkable
-class AlternativeAlgebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], Protocol[R, M]):
+class AlternativeAlgebra(
+    HasScale[R, M],
+    HasZero[M],
+    HasAdd[M],
+    HasNeg[M],
+    HasMul[M],
+    LawAlternative,
+    Protocol[R, M],
+):
     r"""A non-associative algebra whose associator $[x, y, z] = (xy)z - x(yz)$ is alternating:
     $$x(xy) = (xx)y \quad \text{(Left Alternative)} \qquad (yx)x = y(xx) \quad \text{(Right Alternative)}$$
 
@@ -63,11 +105,28 @@ class AlternativeAlgebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMu
         $\langle R, M, \cdot_s, \mathbf{0}, +, -, \cdot \rangle$
     """
 
-    ...
+    @property
+    def is_alternative(self) -> Literal[True]:
+        return True
+
+    def associator(self, x: M, y: M, z: M) -> M:
+        r"""Associator $[x, y, z] = (x \cdot y) \cdot z - x \cdot (y \cdot z)$."""
+        xy_z = self.mul(self.mul(x, y), z)
+        x_yz = self.mul(x, self.mul(y, z))
+        return self.add(xy_z, self.neg(x_yz))
 
 
 @runtime_checkable
-class MalcevAlgebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M], Protocol[R, M]):
+class MalcevAlgebra(
+    HasScale[R, M],
+    HasZero[M],
+    HasAdd[M],
+    HasNeg[M],
+    HasMul[M],
+    LawAnticommutative,
+    LawMalcev,
+    Protocol[R, M],
+):
     r"""A non-associative anticommutative algebra satisfying the Malcev identity:
     $$J(x, y, x \cdot z) = J(x, y, z) \cdot x$$
     where $J(x, y, z) = (x \cdot y) \cdot z + (y \cdot z) \cdot x + (z \cdot x) \cdot y$ is the Jacobian.
@@ -76,7 +135,20 @@ class MalcevAlgebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M],
         $\langle R, M, \cdot_s, \mathbf{0}, +, -, \cdot \rangle$
     """
 
-    ...
+    @property
+    def is_anticommutative(self) -> Literal[True]:
+        return True
+
+    @property
+    def is_malcev(self) -> Literal[True]:
+        return True
+
+    def jacobian(self, x: M, y: M, z: M) -> M:
+        r"""Jacobian operator $J(x, y, z) = (x \cdot y) \cdot z + (y \cdot z) \cdot x + (z \cdot x) \cdot y$."""
+        xy_z = self.mul(self.mul(x, y), z)
+        yz_x = self.mul(self.mul(y, z), x)
+        zx_y = self.mul(self.mul(z, x), y)
+        return self.add(self.add(xy_z, yz_x), zx_y)
 
 
 @runtime_checkable
@@ -87,6 +159,7 @@ class PoissonAlgebra(
     HasNeg[M],
     HasMul[M],
     HasBracket[M],
+    LawCommutative,
     Protocol[R, M],
 ):
     r"""A Poisson algebra $\langle R, P, \cdot_s, \mathbf{0}, +, -, \cdot, \{\cdot, \cdot\} \rangle$.
@@ -96,7 +169,9 @@ class PoissonAlgebra(
     $$\{f, g \cdot h\} = \{f, g\} \cdot h + g \cdot \{f, h\}$$
     """
 
-    ...
+    @property
+    def is_commutative(self) -> Literal[True]:
+        return True
 
 
 class SymmetricMatrixJordanAlgebra(JordanAlgebra[float, SparseMatrix[Any, float]]):

@@ -4,10 +4,16 @@ Dual number algebra R[eps]/(eps^2) for forward-mode automatic differentiation.
 
 from __future__ import annotations
 
-from algebrax.algebra._semiring import Semiring
+from algebrax.algebra._mixins import LawCommutative
+from algebrax.algebra._module import Algebra
+from algebrax.algebra._semiring import StarSemiring
 
 
-class DualNumberAlgebra(Semiring[tuple[float, float]]):
+class DualNumberAlgebra(
+    StarSemiring[tuple[float, float]],
+    Algebra[float, tuple[float, float]],
+    LawCommutative,
+):
     r"""The Dual Number Algebra and Commutative Ring over $\mathbb{R}[\varepsilon]/(\varepsilon^2)$.
 
     Algebraic Signature:

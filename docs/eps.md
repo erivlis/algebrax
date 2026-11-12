@@ -19,6 +19,19 @@ and documenting design decisions. See [EP-0000](proposals/EP-0000-process.md) fo
 
 ---
 
+## Single-Digit Foundational Canon
+
+| EP                                                                                            | Title                                                         | Module                  |          Status         |
+|:----------------------------------------------------------------------------------------------|:--------------------------------------------------------------|:------------------------|:-----------------------:|
+| [EP-0001](proposals/EP-0001-mathematical-manifesto-core-invariants-and-foundational-canon.md) | Mathematical Manifesto, Core Invariants & Foundational Canon  | Foundations             | :material-pencil: Draft |
+| [EP-0002](proposals/EP-0002-mathematical-docstring-standards-and-algebraic-signatures.md)    | Mathematical Docstring Standards & Algebraic Signatures       | Standards               | :material-pencil: Draft |
+| [EP-0003](proposals/EP-0003-axiomatic-verification-and-property-based-testing.md)            | Axiomatic Verification, Falsification & Multi-Layered Testing | `algebrax.verification` | :material-pencil: Draft |
+| [EP-0004](proposals/EP-0004-unboxed-storage-and-sparse-carrier-invariance.md)                | Unboxed Storage & Sparse Carrier Invariance                   | Architecture            | :material-pencil: Draft |
+| [EP-0005](proposals/EP-0005-universal-algebraic-protocol-architecture.md)                    | Universal Algebraic Protocol Architecture                     | `algebrax.algebra`      | :material-pencil: Draft |
+| [EP-0006](proposals/EP-0006-algebraic-morphisms-and-structural-mappings.md)                  | Morphisms, Homomorphisms & Structural Mappings                | `algebrax.algebra`      | :material-pencil: Draft |
+
+---
+
 ## Phase 0 — Architecture
 
 | EP                                                | Title                                                     |                  Status                   |
@@ -136,6 +149,7 @@ lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 | [EP-0194](proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)   | Atomic Algebraic Mixins & Diamond-Free Protocol Composition                   | 🧩 Russell & ⚖️ Noether | :material-check-all: Final |
 | [EP-0195](proposals/EP-0195-canonical-core-consolidation.md)                       | Canonical Core Consolidation & Deprecation Purge                              | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
 | [EP-0196](proposals/EP-0196-peripheral-ecosystem-realignment.md)                   | Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides) | 🎨 Feynman & ⏱️ Shannon  |  :material-pencil: Draft   |
+| [EP-0197](proposals/EP-0197-decoupled-semiring-foundations-star-semirings-and-kleene-algebras.md) | Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
 
 ---
 

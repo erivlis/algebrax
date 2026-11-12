@@ -11,9 +11,17 @@ Algebraic Signatures:
                          where $M$ is an associative unital ring and $R$-module
 """
 
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Literal, Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._mixins import HasAdd, HasMul, HasNeg, HasOne, HasScale, HasZero
+from algebrax.algebra._mixins import (
+    HasAdd,
+    HasMul,
+    HasNeg,
+    HasOne,
+    HasScale,
+    HasZero,
+    LawAssociative,
+)
 
 R = TypeVar('R')
 M = TypeVar('M')
@@ -111,7 +119,7 @@ class NonAssocAlgebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasMul[M
 
 
 @runtime_checkable
-class Algebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasOne[M], HasMul[M], Protocol[R, M]):
+class Algebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasOne[M], HasMul[M], LawAssociative, Protocol[R, M]):
     r"""An associative unital ring $M$ equipped with a compatible $R$-module scalar action.
 
     Algebraic Signature:
@@ -130,4 +138,6 @@ class Algebra(HasScale[R, M], HasZero[M], HasAdd[M], HasNeg[M], HasOne[M], HasMu
         Matrix algebras $M_n(F)$, group algebras $F[G]$, monoid algebras, Clifford geometric algebras.
     """
 
-    ...
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True

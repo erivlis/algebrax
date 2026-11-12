@@ -112,9 +112,6 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVe
                 result[exp] = scaled
         return result
 
-    def star(self, a: SparseVector[K, T]) -> SparseVector[K, T]:
-        raise NotImplementedError('Kleene star not implemented for MonoidAlgebraSemiring')
-
 
 class MonoidAlgebra(MonoidAlgebraSemiring[K, T], Algebra[T, SparseVector[K, T]], CommRing[SparseVector[K, T]]):
     r"""The Monoid Algebra (and Monoid Ring) $R[M]$ over coefficient ring $R$ and monoid $M$.

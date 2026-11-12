@@ -4,7 +4,13 @@ Semiring namespace — all classes available from algebrax.semiring.
 
 from algebrax.algebra._dual import DualNumberAlgebra
 from algebrax.algebra._polynomial import PolynomialAlgebra
-from algebrax.algebra._semiring import Semiring
+from algebrax.algebra._semiring import (
+    ClosedSemiring,
+    ConwaySemiring,
+    KleeneAlgebra,
+    Semiring,
+    StarSemiring,
+)
 from algebrax.clifford import (
     CliffordAlgebra,
     GeneralizedCliffordAlgebra,
@@ -48,12 +54,15 @@ __all__ = [
     'BooleanSemiring',
     'BottleneckSemiring',
     'CliffordAlgebra',
+    'ClosedSemiring',
+    'ConwaySemiring',
     'DigitalSemiring',
     'DualNumberAlgebra',
     'ExpectationSemiring',
     'GaloisFieldSemiring',
     'GeneralizedCliffordAlgebra',
     'KCollapsedSemiring',
+    'KleeneAlgebra',
     'KnotSemiring',
     'KurtosisSemiring',
     'LogSemiring',
@@ -71,6 +80,7 @@ __all__ = [
     'Semiring',
     'SkewnessSemiring',
     'StandardSemiring',
+    'StarSemiring',
     'StatisticalMomentSemiring',
     'StringSemiring',
     'TropicalSemiring',

@@ -8,15 +8,36 @@ Algebraic Signatures (EP-0150 AMDS):
 
 import math
 from fractions import Fraction
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Literal, Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._mixins import HasAdd, HasInv, HasMul, HasNeg, HasOne, HasZero, HasZeroPred
+from algebrax.algebra._mixins import (
+    HasAdd,
+    HasInv,
+    HasMul,
+    HasNeg,
+    HasOne,
+    HasZero,
+    HasZeroPred,
+    LawAssociative,
+    LawCommutative,
+)
 
 V = TypeVar('V')
 
 
 @runtime_checkable
-class Field(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], HasInv[V], Protocol):
+class Field(
+    HasZero[V],
+    HasZeroPred[V],
+    HasAdd[V],
+    HasNeg[V],
+    HasOne[V],
+    HasMul[V],
+    HasInv[V],
+    LawAssociative,
+    LawCommutative,
+    Protocol,
+):
     r"""A commutative division ring where every non-zero element has a multiplicative inverse.
 
     Combines an additive abelian group $\langle V, \mathbf{0}, +, - \rangle$
@@ -42,7 +63,13 @@ class Field(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[
         finite Galois fields ($\mathbb{F}_p, \operatorname{GF}(p^m)$), Gaussian elimination, exact matrix solvers.
     """
 
-    ...
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
+
+    @property
+    def is_commutative(self) -> Literal[True]:
+        return True
 
 
 # =============================================================================

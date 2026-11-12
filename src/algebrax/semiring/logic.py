@@ -2,10 +2,10 @@
 Logic and fuzzy set semirings.
 """
 
-from algebrax.algebra import Semiring
+from algebrax.algebra import KleeneAlgebra, Semiring
 
 
-class BooleanSemiring(Semiring[bool]):
+class BooleanSemiring(Semiring[bool], KleeneAlgebra[bool]):
     r"""The Boolean algebra semiring for reachability and connectivity.
 
     Algebraic Signature:

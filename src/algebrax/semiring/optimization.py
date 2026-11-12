@@ -2,10 +2,10 @@
 Optimization and path problems semirings.
 """
 
-from algebrax.algebra import Semiring
+from algebrax.algebra import KleeneAlgebra, Semiring
 
 
-class TropicalSemiring(Semiring[float]):
+class TropicalSemiring(Semiring[float], KleeneAlgebra[float]):
     r"""The Min-Plus semiring for shortest path problems.
 
     Algebraic Signature:

@@ -152,6 +152,12 @@ class LawLie(Protocol):
     r"""Equational axiom witness: satisfies Jacobi identity ($[[x, y], z] + [[y, z], x] + [[z, x], y] = \mathbf{0}$)."""
     @property
     def is_lie(self) -> Literal[True]: ...
+
+@runtime_checkable
+class LawIdempotent(Protocol):
+    r"""Equational axiom witness: binary operation is idempotent ($a \oplus a = a$)."""
+    @property
+    def is_idempotent(self) -> Literal[True]: ...
 ```
 
 ---
@@ -257,6 +263,12 @@ class CommRing(
     def is_commutative(self) -> Literal[True]:
         return True
 ```
+
+#### 3.3 Semirings, Star Semirings & Kleene Algebras (`_semiring.py`)
+To preserve true algebraic subtyping ($\text{Semiring} \subset \text{Ring} \subset \text{Field}$), `Semiring` defines pure rig operations without requiring Kleene closure. Kleene closure is isolated into `StarSemiring`, and idempotence into `KleeneAlgebra` (detailed in `EP-0197`):
+- `Semiring[V]`: $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ (`HasZero`, `HasAdd`, `HasOne`, `HasMul`)
+- `StarSemiring[V]`: $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ (`HasZero`, `HasAdd`, `HasOne`, `HasMul`, `HasStar`)
+- `KleeneAlgebra[V]`: $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ with $a \oplus a = a$ (`StarSemiring` + `LawIdempotent`)
 
 ---
 

@@ -8,9 +8,19 @@ Algebraic Signatures:
     Division Ring:        $\langle V, \mathbf{0}, \operatorname{is\_zero}, +, -, \mathbf{1}, \cdot, ^{-1} \rangle$
 """
 
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Literal, Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._mixins import HasAdd, HasInv, HasMul, HasNeg, HasOne, HasZero, HasZeroPred
+from algebrax.algebra._mixins import (
+    HasAdd,
+    HasInv,
+    HasMul,
+    HasNeg,
+    HasOne,
+    HasZero,
+    HasZeroPred,
+    LawAssociative,
+    LawCommutative,
+)
 
 V = TypeVar('V')
 
@@ -43,7 +53,7 @@ class NonAssocRing(HasZero[V], HasAdd[V], HasNeg[V], HasMul[V], Protocol):
 
 
 @runtime_checkable
-class Ring(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol):
+class Ring(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], LawAssociative, Protocol):
     r"""An associative unital ring $\langle V, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$.
 
     Combines an additive abelian group $\langle V, \mathbf{0}, +, - \rangle$
@@ -64,11 +74,13 @@ class Ring(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol):
         Polynomial rings $R[x]$, matrix rings $M_n(R)$, integer arithmetic $\mathbb{Z}$, Clifford algebras.
     """
 
-    ...
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
 
 
 @runtime_checkable
-class CommRing(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol):
+class CommRing(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], LawAssociative, LawCommutative, Protocol):
     r"""A commutative ring whose multiplication is commutative: $a \cdot b = b \cdot a$.
 
     Algebraic Signature:
@@ -83,12 +95,30 @@ class CommRing(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol)
         - `mul(a, b)`: Commutative, associative multiplication (`HasMul[V]`).
     """
 
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
+
+    @property
+    def is_commutative(self) -> Literal[True]:
+        return True
+
     ...
 
 
 
 @runtime_checkable
-class DivisionRing(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], HasInv[V], Protocol):
+class DivisionRing(
+    HasZero[V],
+    HasZeroPred[V],
+    HasAdd[V],
+    HasNeg[V],
+    HasOne[V],
+    HasMul[V],
+    HasInv[V],
+    LawAssociative,
+    Protocol,
+):
     r"""A unital ring where every non-zero element has a two-sided multiplicative inverse.
 
     Note: The additive neutral element $\mathbf{0}$ has no multiplicative inverse.
@@ -113,7 +143,9 @@ class DivisionRing(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], 
         - If `is_zero(b)` is true, `div(a, b)` and `inv(b)` MUST raise `ZeroDivisionError`.
     """
 
-    ...
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
 
 
 __all__ = [
