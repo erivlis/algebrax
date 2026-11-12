@@ -119,7 +119,7 @@ class ModularSubtractionQuasigroup:
         return (a + b) % 5
 
 
-class NonZeroFloatMultiplicativeGroup:
+class NonZeroFloatMultiplicativeGroup(CommGroup[float]):
     """Multiplicative abelian group of non-zero floats (R*, *, 1, 1/x)."""
 
     @property
@@ -166,7 +166,7 @@ class MinimalAddGroup(AddGroup[int]):
         return -a
 
 
-class PermutationGroup:
+class PermutationGroup(Group[dict[int, int]]):
     """
     Symmetric group S_3 represented as unboxed dictionaries {int: int}.
     Zero boxing: carrier elements are raw dicts.
@@ -284,7 +284,7 @@ def test_multiplicative_verifiers():
 # =============================================================================
 
 
-class SparseVectorGroup:
+class SparseVectorGroup(AddCommGroup[dict[str, float]]):
     """
     Additive abelian group of sparse vectors over R.
     Core Architectural Principle: carrier elements are unboxed raw dict[str, float].

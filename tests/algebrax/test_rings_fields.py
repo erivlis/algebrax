@@ -53,7 +53,7 @@ from algebrax.verification import (
 # =============================================================================
 
 
-class IntegerRing:
+class IntegerRing(CommRing[int]):
     """Standard integer ring Z (unboxed ints)."""
 
     @property

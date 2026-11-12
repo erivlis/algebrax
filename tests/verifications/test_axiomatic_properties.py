@@ -281,9 +281,10 @@ def test_all_34_catalog_semirings_laws_and_nsum_power_consistency(semiring_name:
         assert semiring_elements_equal(pow_3, manual_mul_3, tol=1e-6)
 
     # Verify Kleene star fixed-point law on dioids that implement star(zero) == one
-    try:
-        zero_star = semiring.star(semiring.zero)
-        if zero_star is not None:
-            assert semiring_elements_equal(zero_star, semiring.one, tol=1e-6)
-    except NotImplementedError:
-        pass
+    if hasattr(semiring, 'star'):
+        try:
+            zero_star = semiring.star(semiring.zero)
+            if zero_star is not None:
+                assert semiring_elements_equal(zero_star, semiring.one, tol=1e-6)
+        except NotImplementedError:
+            pass

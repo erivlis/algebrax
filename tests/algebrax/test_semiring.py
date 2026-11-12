@@ -519,8 +519,7 @@ def test_all_specialized_semirings_coverage():
     assert k_s.star(2) == 5
 
     mon_s = MonoidAlgebraSemiring(StandardSemiring(int))
-    with pytest.raises(NotImplementedError):
-        mon_s.star({})
+    assert not hasattr(mon_s, 'star')
     a = {'x': 5}
     b = {'x': -5}
     assert mon_s.add(a, b) == {}
@@ -839,4 +838,68 @@ def test_algebraic_dynamic_getattr_and_protocol_defaults():
     cz = CustomZero()
     assert cz.is_zero(0) is True
     assert cz.is_zero(3) is False
+
+
+def test_star_semiring_and_kleene_algebra_protocols():
+    """Verify EP-0197 Decoupled Semiring, StarSemiring, and KleeneAlgebra protocols."""
+    from algebrax.algebra import (
+        Algebra,
+        ClosedSemiring,
+        CommRing,
+        ConwaySemiring,
+        DualNumberAlgebra,
+        KleeneAlgebra,
+        PolynomialAlgebra,
+        Ring,
+        Semiring,
+        StandardField,
+        StarSemiring,
+    )
+    from algebrax.semiring import BooleanSemiring, StandardSemiring, TropicalSemiring
+    from algebrax.verification import verify_kleene_algebra_laws, verify_star_semiring_laws
+
+    # 1. Literature synonyms
+    assert ClosedSemiring is StarSemiring
+    assert ConwaySemiring is StarSemiring
+
+    # 2. Pure Rings are Semirings (EP-0197 breakthrough)
+    p_ring = PolynomialAlgebra(StandardSemiring[int]())
+    assert isinstance(p_ring, Semiring)
+    assert isinstance(p_ring, Ring)
+    assert not isinstance(p_ring, StarSemiring)
+
+    f_std = StandardField(float)
+    assert isinstance(f_std, Semiring)
+    assert isinstance(f_std, Ring)
+    assert not isinstance(f_std, StarSemiring)
+
+    # 3. Dual numbers are StarSemiring, Algebra, Ring, and CommRing
+    d_alg = DualNumberAlgebra()
+    assert isinstance(d_alg, StarSemiring)
+    assert isinstance(d_alg, Semiring)
+    assert isinstance(d_alg, Algebra)
+    assert isinstance(d_alg, Ring)
+    assert isinstance(d_alg, CommRing)
+
+    # 4. Tropical & Boolean are Kleene Algebras
+    trop = TropicalSemiring()
+    assert isinstance(trop, KleeneAlgebra)
+    assert isinstance(trop, StarSemiring)
+    assert isinstance(trop, Semiring)
+    assert trop.is_idempotent is True
+
+    bool_s = BooleanSemiring()
+    assert isinstance(bool_s, KleeneAlgebra)
+    assert isinstance(bool_s, StarSemiring)
+    assert isinstance(bool_s, Semiring)
+
+    # 5. Axiomatic Star and Kleene verification
+    trop_laws = verify_kleene_algebra_laws(trop, [0.0, 1.0, 2.5, float('inf')])
+    assert all(trop_laws.values()), f'Failed Tropical Kleene laws: {trop_laws}'
+
+    bool_laws = verify_kleene_algebra_laws(bool_s, [False, True])
+    assert all(bool_laws.values()), f'Failed Boolean Kleene laws: {bool_laws}'
+
+    std_laws = verify_star_semiring_laws(StandardSemiring[float](), [0.0, 0.25, 0.5])
+    assert all(std_laws.values()), f'Failed Standard StarSemiring laws: {std_laws}'
 

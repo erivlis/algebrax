@@ -166,6 +166,7 @@ def test_structural_protocol_attrs_lattice():
         Homomorphism,
         Ideal,
         JoinSemilattice,
+        KleeneAlgebra,
         Lattice,
         LeftIdeal,
         LieAlgebraHom,
@@ -188,6 +189,7 @@ def test_structural_protocol_attrs_lattice():
         Semigroup,
         Semimodule,
         Semiring,
+        StarSemiring,
         VectorSpace,
     )
 
@@ -220,8 +222,17 @@ def test_structural_protocol_attrs_lattice():
 
     # Ring & Field chain
     assert attrs(AddCommGroup) < attrs(NonAssocRing) == {'zero', 'add', 'neg', 'sub', 'mul'}
-    assert attrs(NonAssocRing) < attrs(Ring) == {'zero', 'one', 'add', 'neg', 'sub', 'mul'}
-    assert attrs(Ring) == attrs(CommRing)
+    assert attrs(NonAssocRing) < attrs(Ring) == {'zero', 'one', 'add', 'neg', 'sub', 'mul', 'is_associative'}
+    assert attrs(Ring) < attrs(CommRing) == {
+        'zero',
+        'one',
+        'add',
+        'neg',
+        'sub',
+        'mul',
+        'is_associative',
+        'is_commutative',
+    }
     assert attrs(Ring) < attrs(DivisionRing) == {
         'zero',
         'is_zero',
@@ -232,19 +243,51 @@ def test_structural_protocol_attrs_lattice():
         'mul',
         'inv',
         'div',
+        'is_associative',
     }
-    assert attrs(DivisionRing) == attrs(Field)
+    assert attrs(DivisionRing) < attrs(Field) == {
+        'zero',
+        'is_zero',
+        'one',
+        'add',
+        'neg',
+        'sub',
+        'mul',
+        'inv',
+        'div',
+        'is_associative',
+        'is_commutative',
+    }
 
     # Semiring chain
-    assert attrs(AddMonoid) < attrs(Semiring)
+    assert attrs(AddMonoid) < attrs(Semiring) == {'zero', 'add', 'one', 'mul'}
     assert attrs(Monoid) < attrs(Semiring)
+    assert attrs(Semiring) < attrs(Ring)
+    assert attrs(Semiring) < attrs(StarSemiring) == {'zero', 'add', 'one', 'mul', 'star'}
+    assert attrs(StarSemiring) < attrs(KleeneAlgebra) == {
+        'zero',
+        'add',
+        'one',
+        'mul',
+        'star',
+        'is_idempotent',
+    }
 
     # Module & Algebra chain
     assert attrs(AddMonoid) < attrs(Semimodule) == {'zero', 'add', 'smul'}
     assert attrs(Semimodule) < attrs(Module) == {'zero', 'add', 'neg', 'sub', 'smul'}
     assert attrs(Module) == attrs(VectorSpace)
     assert attrs(Module) < attrs(NonAssocAlgebra) == {'zero', 'add', 'neg', 'sub', 'mul', 'smul'}
-    assert attrs(NonAssocAlgebra) < attrs(Algebra) == {'zero', 'one', 'add', 'neg', 'sub', 'mul', 'smul'}
+    assert attrs(NonAssocAlgebra) < attrs(Algebra) == {
+        'zero',
+        'one',
+        'add',
+        'neg',
+        'sub',
+        'mul',
+        'smul',
+        'is_associative',
+    }
     assert attrs(Ring) < attrs(Algebra)
 
     # Lattice chain

@@ -8,6 +8,11 @@ from algebrax.algebra import (
     AlternativeAlgebra,
     ImaginaryOctonionMalcevAlgebra,
     JordanAlgebra,
+    LawAlternative,
+    LawAnticommutative,
+    LawCommutative,
+    LawJordan,
+    LawMalcev,
     MalcevAlgebra,
     NonAssocAlgebra,
     OctonionAlgebra,
@@ -29,6 +34,9 @@ def test_symmetric_matrix_jordan_algebra_laws() -> None:
     jordan = SymmetricMatrixJordanAlgebra()
     assert isinstance(jordan, JordanAlgebra)
     assert isinstance(jordan, NonAssocAlgebra)
+    assert isinstance(jordan, LawCommutative)
+    assert isinstance(jordan, LawJordan)
+    assert not isinstance(jordan, LawAnticommutative)
     assert jordan.zero == {}
 
     m1 = {0: {0: 2.0, 1: 1.0}, 1: {0: 1.0, 1: 3.0}}
@@ -38,6 +46,12 @@ def test_symmetric_matrix_jordan_algebra_laws() -> None:
     assert jordan.sub(m1, m1) == {}
     assert jordan.smul(2.0, {0: {0: 1.5}}) == {0: {0: 3.0}}
     assert jordan.smul(0.0, m1) == {}
+
+    # Verify canonical derived operations (EP-0005 Pillar 3)
+    triple = jordan.jordan_triple(m1, m2, m3)
+    assert isinstance(triple, dict)
+    quad = jordan.quadratic_repr(m1, m2)
+    assert isinstance(quad, dict)
 
     res = verify_jordan_laws(jordan, [m1, m2, m3])
     assert all(res.values())
@@ -50,6 +64,8 @@ def test_octonion_algebra_alternative_and_division_laws() -> None:
     octo = OctonionAlgebra()
     assert isinstance(octo, AlternativeAlgebra)
     assert isinstance(octo, NonAssocAlgebra)
+    assert isinstance(octo, LawAlternative)
+    assert not isinstance(octo, LawAnticommutative)
     assert octo.zero == {}
     assert octo.one == {0: 1.0}
     assert octo.smul(0.0, {1: 3.0}) == {}
@@ -87,12 +103,19 @@ def test_octonion_algebra_alternative_and_division_laws() -> None:
 def test_imaginary_octonion_malcev_algebra_laws() -> None:
     malcev = ImaginaryOctonionMalcevAlgebra()
     assert isinstance(malcev, MalcevAlgebra)
+    assert isinstance(malcev, LawAnticommutative)
+    assert isinstance(malcev, LawMalcev)
+    assert not isinstance(malcev, LawCommutative)
     assert malcev.zero == {}
     assert malcev.smul(2.0, {1: 1.5}) == {1: 3.0}
 
     x = {1: 1.0, 2: -0.5, 4: 2.0}
     y = {2: 1.0, 3: 1.5, 6: -1.0}
     z = {1: -0.5, 5: 1.0, 7: 2.0}
+
+    # Verify canonical derived operation jacobian (EP-0005 Pillar 3)
+    jac = malcev.jacobian(x, y, z)
+    assert isinstance(jac, dict)
 
     res = verify_malcev_laws(malcev, [x, y, z])
     assert all(res.values())
