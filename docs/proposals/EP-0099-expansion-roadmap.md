@@ -101,15 +101,16 @@ flowchart TD
         EP0194_N["EP-0194 Atomic Algebraic Mixins ✅\n🧩 Russell & ⚖️ Noether"]
         EP0195_N["EP-0195 Canonical Core Consolidation ✅\n🧩 Russell & ✂️ Shannon"]
         EP0196_N["EP-0196 Peripheral Realignment ✅\n🎨 Feynman & ⏱️ Shannon"]
+        EP0197_N["EP-0197 Decoupled Semirings & Kleene ✅\n⚖️ Noether & 🧩 Russell"]
     end
 
     subgraph P7["Phase 7 — Categorical Foundations, Morphisms & Duality (EXP-0005)"]
         EP0200_N["EP-0200 Enriched Matrices & Lawvere ✅\n🧩 Russell & ⚡ Shannon"]
         EP0201_N["EP-0201 Homomorphisms, Ideals & Quotients ✅\n⚖️ Noether & 🧩 Russell"]
-        EP0202_N["EP-0202 Functorial Sheaves & DEC 💡\n⚖️ Noether & 🔬 Popper"]
-        EP0203_N["EP-0203 Discrete Fiber Bundles & Connections 💡\n⚖️ Noether & ⚡ Shannon"]
-        EP0204_N["EP-0204 Non-Assoc & Quantum Algebras 💡\n⚖️ Noether & 🧩 Russell"]
-        EP0205_N["EP-0205 Normed, Banach & Hilbert Spaces 💡\n⚡ Shannon & 🔬 Popper"]
+        EP0202_N["EP-0202 Functorial Sheaves & DEC ✅\n⚖️ Noether & 🔬 Popper"]
+        EP0203_N["EP-0203 Discrete Fiber Bundles & Connections ✅\n⚖️ Noether & ⚡ Shannon"]
+        EP0204_N["EP-0204 Non-Assoc & Quantum Algebras ✅\n⚖️ Noether & 🧩 Russell"]
+        EP0205_N["EP-0205 Normed, Banach & Hilbert Spaces ✅\n⚡ Shannon & 🔬 Popper"]
         EP0206_N["EP-0206 Coalgebras, Bialgebras & Hopf 💡\n⚖️ Noether & ⚡ Shannon"]
         EP0207_N["EP-0207 K-Theory & Chern Classes 💡\n⚖️ Noether & 🧩 Russell"]
         EP0208_N["EP-0208 Type Theory & Homotopy Groupoids 💡\n🧩 Russell & 🛡️ Golem"]
@@ -333,12 +334,13 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0194** | Atomic Algebraic Mixins        | Russell & Noether | `algebrax.algebra`                       | Final    | Atomic operational mixins (`HasZero`, `HasOne`, `HasAdd`, `HasNeg`, `HasMul`, `HasInv`, `HasScale`) and flat diamond-free protocol bundles |
 | **EP-0195** | Canonical Core Consolidation   | Russell & Shannon | `src/algebrax`, `tests/`                 | Final    | Zero-alias purge across core engine, delete duplicate facades, align all 622 tests                                                          |
 | **EP-0196** | Peripheral Realignment         | Feynman & Shannon | `benchmarks/`, `recipes/`                | Final    | Realogn benchmarks, Jupyter recipe notebooks, GUI lab.py, and build validation                                                             |
+| **EP-0197** | Decoupled Semiring Foundations | Noether & Russell | `algebrax.algebra`                       | Final    | Decoupled pure Rigs, StarSemiring unary star laws, KleeneAlgebra idempotence                                                               |
 | **EP-0200** | Enriched Matrices & Lawvere    | Russell & Shannon | `algebrax.category`, `verification`      | Final    | Category, Functor, MatrixCategory Mat(S), Lawvere metric spaces over tropical cost semiring                                                |
 | **EP-0201** | Homomorphisms, Ideals, Quots   | Noether & Russell | `algebrax.algebra`, `verification`       | Final    | RingHom, LinearMap, Ideal[V], LieIdeal, QuotientRing, First Isomorphism Theorem                                                            |
-| **EP-0202** | Functorial Sheaves & DEC       | Noether & Popper  | `algebrax.sheaf`, `algebrax.dec`         | Draft    | Contravariant sheaf functors, coboundary natural transformations, Sheaf Laplacian, DEC unification                                         |
-| **EP-0203** | Discrete Fiber Bundles & Gauge | Noether & Shannon | `algebrax.topology`, `algebrax.dec`      | Draft    | Discrete vector/principal bundles, parallel transport, holonomy, Connection Laplacian, gauge tests                                         |
-| **EP-0204** | Non-Assoc & Quantum Algebras   | Noether & Russell | `algebrax.algebra`                       | Draft    | Jordan algebras, observables, Cayley-Dickson octonions, Fano plane, Malcev and Poisson algebras                                            |
-| **EP-0205** | Normed, Banach & Hilbert Space | Shannon & Popper  | `algebrax.analysis`                      | Draft    | Vector/matrix p-norms, inner product spaces, RKHS Mercer Gram matrices, certified Banach contracts                                         |
+| **EP-0202** | Functorial Sheaves & DEC       | Noether & Popper  | `algebrax.sheaf`, `algebrax.dec`         | Final    | Contravariant sheaf functors, coboundary natural transformations, Sheaf Laplacian, DEC unification                                         |
+| **EP-0203** | Discrete Fiber Bundles & Gauge | Noether & Shannon | `algebrax.topology`, `algebrax.dec`      | Final    | Discrete vector/principal bundles, parallel transport, holonomy, Connection Laplacian, gauge tests                                         |
+| **EP-0204** | Non-Assoc & Quantum Algebras   | Noether & Russell | `algebrax.algebra`                       | Final    | Jordan algebras, observables, Cayley-Dickson octonions, Fano plane, Malcev and Poisson algebras                                            |
+| **EP-0205** | Normed, Banach & Hilbert Space | Shannon & Popper  | `algebrax.analysis`                      | Final    | Vector/matrix p-norms, inner product spaces, RKHS Mercer Gram matrices, certified Banach contracts                                         |
 | **EP-0206** | Coalgebras, Bialgebras & Hopf  | Noether & Shannon | `algebrax.algebra`, `algebrax.topology`  | Draft    | Comultiplication Δ, counit ε, Antipode S, Alexander-Whitney coproduct, divided power moment tensor                                         |
 | **EP-0207** | Topological K-Theory & Chern   | Noether & Russell | `algebrax.topology`, `algebrax.dec`      | Draft    | Universal Grothendieck group, Whitney sums ⊕, ⊗, discrete Chern character ch(E) to cohomology                                              |
 | **EP-0208** | Categorical Type Theory & HoTT | Russell & Golem   | `algebrax.category`, `algebrax.topology` | Draft    | Cartesian Closed Categories (CCC), Curry-Howard-Lambek, semiring coeffects, path groupoids Π₁                                              |
@@ -386,6 +388,11 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-11 | Eran Rivlis & Antigravity | Implemented EP-0195 & EP-0196 (Canonical Core Consolidation & Peripheral Ecosystem Realignment); updated status to Final.                   |
 | 2026-11-11 | Eran Rivlis & Antigravity | Implemented EP-0200 (Categorical Abstractions & Enriched Matrix Mechanics); updated status to Final.                                        |
 | 2026-11-11 | Eran Rivlis & Antigravity | Implemented EP-0201 (Algebraic Homomorphisms, Ideals & Canonical Quotients); updated status to Final.                                       |
+| 2026-11-12 | Eran Rivlis & Antigravity | Implemented EP-0197 (Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras); updated status to Final.                 |
+| 2026-11-12 | Eran Rivlis & Antigravity | Implemented EP-0202 (Functorial Sheaves & Categorical DEC); updated status to Final.                                                        |
+| 2026-11-12 | Eran Rivlis & Antigravity | Implemented EP-0203 (Discrete Fiber Bundles & Gauge Connections); updated status to Final.                                                  |
+| 2026-11-12 | Eran Rivlis & Antigravity | Implemented EP-0204 (Non-Associative & Quantum Algebras: Jordan, Octonions, Poisson); updated status to Final.                               |
+| 2026-11-13 | Eran Rivlis & Antigravity | Implemented EP-0205 (Normed, Banach & Hilbert Spaces — Inner Products, RKHS & Contractions); updated status to Final.                       |
 
 
 
