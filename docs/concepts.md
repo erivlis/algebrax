@@ -21,9 +21,9 @@ concepts helps clarify why certain operations are grouped together and how they 
 
 ## The Periodic Table of Algebraic Mixins (`algebrax.algebra`)
 
-Every algebraic protocol in `algebrax.algebra` is assembled from **19 purely orthogonal atomic operational mixins**. Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
+Every algebraic protocol in `algebrax.algebra` is assembled from **22 purely orthogonal atomic operational mixins**. Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
 
-$$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Closure / Bounds / Quotients } ({}^*, \vee, \wedge, \bot, \top, \neg, \in, \bmod I)$$
+$$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Coalgebraic Cluster } (\Delta, \epsilon, S) \longrightarrow \text{Closure / Bounds / Quotients } ({}^*, \vee, \wedge, \bot, \top, \neg, \in, \bmod I)$$
 
 | Cluster               | Atomic Mixin                 | Required Member(s)       | Default Helper(s)    | Mathematical Symbol                             |
 |:----------------------|:-----------------------------|:-------------------------|:---------------------|:------------------------------------------------|
@@ -35,6 +35,9 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 | **Multiplicative**    | `HasOne[V]`                  | `one -> V`               | —                    | $\mathbf{1} \in V$                              |
 |                       | `HasMul[V]`                  | `mul(a, b) -> V`         | —                    | $\cdot: V \times V \to V$                       |
 |                       | `HasInv[V]`                  | `inv(a) -> V`            | `div(a, b) -> V`     | ${}^{-1}: V \setminus \{\mathbf{0}\} \to V$     |
+| **Coalgebra & Duality**| `HasCoproduct[C]`           | `coproduct(c) -> dict`   | —                    | $\Delta: C \to C \otimes C$                     |
+|                       | `HasCounit[R, C]`            | `counit(c) -> R`         | —                    | $\epsilon: C \to R$                             |
+|                       | `HasAntipode[H]`             | `antipode(h) -> H`       | —                    | $S: H \to H$                                    |
 | **Closure**           | `HasStar[V]`                 | `star(a) -> V`           | —                    | ${}^*: V \to V$                                 |
 | **Order / Lattice**   | `HasJoin[V]`                 | `join(a, b) -> V`        | —                    | $\vee: V \times V \to V$                        |
 |                       | `HasMeet[V]`                 | `meet(a, b) -> V`        | —                    | $\wedge: V \times V \to V$                      |
@@ -255,6 +258,19 @@ The `algebrax.category` module formalizes Lean 4 Mathlib-aligned category theory
 * **The Matrix Category $\mathbf{Mat}(\mathcal{S})$ (`MatrixCategory`)**: Finite index sets are objects and unboxed sparse matrices `dict[K, dict[K, V]]` are morphisms, with `TransposeFunctor` realizing the duality isomorphism $\mathbf{Mat}(\mathcal{S})^{\mathrm{op}} \xrightarrow{\sim} \mathbf{Mat}(\mathcal{S})$ and `SemiringChangeOfBaseFunctor` mapping matrices across semiring homomorphisms.
 * **Lawvere Metric Spaces (`LawvereMetricCategory`)**: Realizes Lawvere's theorem that a generalized directed metric space $(X, d)$ is a category enriched over `TropicalSemiring` $\langle [0, \infty], \min, +, \infty, 0 \rangle$, where composition is the triangle inequality $d(x, y) + d(y, z) \ge d(x, z)$ and `metric_closure()` computes all-pairs shortest paths via Kleene star.
 * **Kleisli Monadic Composition & Kan Extensions**: `kleisli_compose()` and `kan_extension_left()` over monadic transition matrices.
+
+---
+
+## Coalgebras, Bialgebras & Hopf Algebras (Quantum Symmetries & Duality)
+
+The `algebrax.algebra` and `algebrax.topology` modules complete the arrow-reversal categorical duality of algebraic structures (`EP-0206`):
+
+* **Coalgebra Protocol (`Coalgebra[R, C]`)**: Reverses the multiplication arrow, decomposing states via comultiplication $\Delta: C \to C \otimes C$ and counit $\epsilon: C \to R$ satisfying coassociativity $(\Delta \otimes \mathrm{id})\Delta = (\mathrm{id} \otimes \Delta)\Delta$ and counitality $(\epsilon \otimes \mathrm{id})\Delta = \mathrm{id} = (\mathrm{id} \otimes \epsilon)\Delta$.
+* **Bialgebra Protocol (`Bialgebra[R, C]`)**: Unifies algebra and coalgebra structures such that $\Delta$ and $\epsilon$ are algebra homomorphisms.
+* **Hopf Algebra Protocol (`HopfAlgebra[R, C]`)**: Equips a bialgebra with an antipode $S: H \to H$ (the quantum inverse) satisfying $\mu \circ (S \otimes \mathrm{id}) \circ \Delta = \eta \circ \epsilon = \mu \circ (\mathrm{id} \otimes S) \circ \Delta$.
+* **Group Hopf Algebras (`GroupHopfAlgebra`)**: Group convolution ring $R[G]$ with group-like coproduct $\Delta(g) = g \otimes g$, counit $\epsilon(g) = 1$, and antipode $S(g) = g^{-1}$.
+* **Alexander-Whitney Simplicial Coalgebra (`SimplicialChainCoalgebra`)**: Evaluates the diagonal approximation on simplicial chains $\Delta(\sigma) = \sum \sigma[:i] \otimes \sigma[i-1:]$, establishing exact linear duality with the simplicial cohomology cup product $\langle \alpha \smile \beta, \sigma \rangle = \langle \alpha \otimes \beta, \Delta(\sigma) \rangle$.
+* **Divided Power Coalgebras (`DividedPowerCoalgebra`)**: Binomial degree-splitting $\Delta(x^{[n]}) = \sum_{k=0}^n x^{[k]} \otimes x^{[n-k]}$ governing moment sequences.
 
 ---
 
