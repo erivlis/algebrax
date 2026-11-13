@@ -258,7 +258,9 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0193: Documentation Architecture Realignment with Pure Algebraic Hierarchy (Feynman/Russell) [Final]
   │     ├── EP-0194: Atomic Algebraic Mixins & Diamond-Free Protocol Composition (Russell/Noether) [Final]
   │     ├── EP-0195: Canonical Core Consolidation & Verification Suite Alignment (Russell/Shannon) [Final]
-  │     └── EP-0196: Peripheral Ecosystem Realignment — Benchmarks, Recipes & Guides (Feynman/Shannon) [Final]
+  │     ├── EP-0196: Peripheral Ecosystem Realignment — Benchmarks, Recipes & Guides (Feynman/Shannon) [Final]
+  │     ├── EP-0197: Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras (Noether/Russell) [Final]
+  │     └── EP-0198: Generalized Closure Operators — Kleene Plus, Matrix Star & Action Algebras (Noether/Russell) [Draft]
   │
   ├── Phase 7: Categorical Foundations, Morphisms & Duality (EXP-0005)  ⏳ IN PROGRESS
   │     ├── EP-0200: Categorical Abstractions & Enriched Matrix Mechanics (Russell/Shannon) [Final]
@@ -335,6 +337,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0195** | Canonical Core Consolidation   | Russell & Shannon | `src/algebrax`, `tests/`                 | Final    | Zero-alias purge across core engine, delete duplicate facades, align all 622 tests                                                          |
 | **EP-0196** | Peripheral Realignment         | Feynman & Shannon | `benchmarks/`, `recipes/`                | Final    | Realogn benchmarks, Jupyter recipe notebooks, GUI lab.py, and build validation                                                             |
 | **EP-0197** | Decoupled Semiring Foundations | Noether & Russell | `algebrax.algebra`                       | Final    | Decoupled pure Rigs, StarSemiring unary star laws, KleeneAlgebra idempotence                                                               |
+| **EP-0198** | Generalized Closure Operators  | Noether & Russell | `algebrax.algebra`                       | Draft    | Kleene plus HasPlus, Conway matrix star closure, residuated action algebras                                                                |
 | **EP-0200** | Enriched Matrices & Lawvere    | Russell & Shannon | `algebrax.category`, `verification`      | Final    | Category, Functor, MatrixCategory Mat(S), Lawvere metric spaces over tropical cost semiring                                                |
 | **EP-0201** | Homomorphisms, Ideals, Quots   | Noether & Russell | `algebrax.algebra`, `verification`       | Final    | RingHom, LinearMap, Ideal[V], LieIdeal, QuotientRing, First Isomorphism Theorem                                                            |
 | **EP-0202** | Functorial Sheaves & DEC       | Noether & Popper  | `algebrax.sheaf`, `algebrax.dec`         | Final    | Contravariant sheaf functors, coboundary natural transformations, Sheaf Laplacian, DEC unification                                         |

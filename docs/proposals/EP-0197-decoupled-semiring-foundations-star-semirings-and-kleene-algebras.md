@@ -2,7 +2,7 @@
 title: "EP-0197: Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras"
 description: "Decouples Kleene star closure from pure semirings to restore universal mathematical subtyping (Semiring ⊂ Ring) and establishes first-class StarSemiring and KleeneAlgebra protocols."
 icon: lucide/scroll-text
-status: draft
+status: final
 ---
 
 # EP-0197: Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras
@@ -14,7 +14,7 @@ status: draft
 | **Author** | Eran Rivlis <eran@algebrax.org>, Antigravity AI |
 | **Sponsor** | ⚖️ Noether (Symmetry & Invariance), 🧩 Russell (Taxonomy & Consistency) |
 | **Delegate** | 🔬 Popper (Falsifiability & Multi-Layered Testing) |
-| **Status** | Draft |
+| **Status** | Final |
 | **Type** | Standards Track |
 | **Created** | 2026-11-13 |
 | **Updated** | 2026-11-13 |

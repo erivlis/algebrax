@@ -147,9 +147,9 @@ lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 | [EP-0192](proposals/EP-0192-unifying-domain-objects-with-algebraic-hierarchy.md)   | Unifying Domain Objects with the Pure Algebraic Hierarchy                     | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 | [EP-0193](proposals/EP-0193-documentation-architecture-realignment.md)             | Documentation Architecture Realignment with Pure Algebraic Hierarchy          | 💡 Feynman & 🧩 Russell | :material-check-all: Final |
 | [EP-0194](proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)   | Atomic Algebraic Mixins & Diamond-Free Protocol Composition                   | 🧩 Russell & ⚖️ Noether | :material-check-all: Final |
-| [EP-0195](proposals/EP-0195-canonical-core-consolidation.md)                       | Canonical Core Consolidation & Deprecation Purge                              | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
-| [EP-0196](proposals/EP-0196-peripheral-ecosystem-realignment.md)                   | Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides) | 🎨 Feynman & ⏱️ Shannon  |  :material-pencil: Draft   |
-| [EP-0197](proposals/EP-0197-decoupled-semiring-foundations-star-semirings-and-kleene-algebras.md) | Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
+| [EP-0195](proposals/EP-0195-canonical-core-consolidation.md)                       | Canonical Core Consolidation & Deprecation Purge                              | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
+| [EP-0196](proposals/EP-0196-peripheral-ecosystem-realignment.md)                   | Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides) | 🎨 Feynman & ⏱️ Shannon  | :material-check-all: Final |
+| [EP-0197](proposals/EP-0197-decoupled-semiring-foundations-star-semirings-and-kleene-algebras.md) | Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 | [EP-0198](proposals/EP-0198-generalized-closure-operators-kleene-plus-matrix-star-and-action-algebras.md) | Generalized Closure Operators — Kleene Plus, Matrix Star & Action Algebras | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
 
 ---
