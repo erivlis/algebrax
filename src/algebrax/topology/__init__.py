@@ -18,7 +18,7 @@ Submodules:
 
 from __future__ import annotations
 
-from algebrax.topology import bundle, cohomology, dec, homology, persistence, sheaf
+from algebrax.topology import bundle, coalgebra, cohomology, dec, homology, persistence, sheaf
 from algebrax.topology.bundle import (
     DiscreteConnection,
     DiscreteOrthogonalConnection,
@@ -27,6 +27,9 @@ from algebrax.topology.bundle import (
     compute_face_holonomy,
     covariant_exterior_derivative,
     is_flat_bundle,
+)
+from algebrax.topology.coalgebra import (
+    SimplicialChainCoalgebra,
 )
 from algebrax.topology.cohomology import (
     Cochain,
@@ -91,6 +94,7 @@ __all__ = [
     'HodgeDecomposition',
     'PersistenceInterval',
     'RestrictionMap',
+    'SimplicialChainCoalgebra',
     'SimplicialComplex',
     'SparseChainComplex',
     'StalkCoord',
@@ -103,6 +107,7 @@ __all__ = [
     'bundle',
     'canonicalize_form',
     'cap_product',
+    'coalgebra',
     'coboundary',
     'cochain_to_flow',
     'codifferential',
