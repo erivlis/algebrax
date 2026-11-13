@@ -37,6 +37,8 @@ The **`algebrax.matrix.core`** module provides fundamental primitives for manipu
 | **`hstack(matrices)`**                         | $[M_1 \mid M_2]$                           | Horizontal concatenation along column dimensions.                                                                  |
 | **`vstack(matrices)`**                         | $\begin{bmatrix} M_1 \\ M_2 \end{bmatrix}$ | Vertical concatenation along row dimensions.                                                                       |
 | **`block(matrix, rows, cols)`**                | $M[\text{rows}, \text{cols}]$              | Slice sub-matrix with index re-basing to 0.                                                                        |
+| **`star(matrix, semiring=...)`**               | $M^* = \bigoplus_{k \ge 0} M^k$            | Kleene star closure via recursive Conway block decomposition over any `StarSemiring`.              |
+| **`plus(matrix, semiring=...)`**               | $M^+ = M \cdot M^*$                        | Strict transitive closure (paths of length $\ge 1$) avoiding false self-loops on DAGs.            |
 | **`kronecker_delta(i, j)`**                    | $\delta_{i, j}$                            | Returns 1 if $i = j$, else 0.                                                                                      |
 
 ---

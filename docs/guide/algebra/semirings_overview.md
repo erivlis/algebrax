@@ -37,15 +37,16 @@ assert short[0][2] == 5.0
 
 ## 3. Atomic Mixins & Protocol Contract
 
-In `algebrax.algebra`, the semiring family is structured as a clear three-tiered hierarchy of flat, diamond-free compositions:
+In `algebrax.algebra`, the semiring family is structured as a clear four-tiered hierarchy of flat, diamond-free compositions:
 
 1. **`Semiring[V]` (Pure Rig)**: The foundational two-operation system $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ combining an additive commutative monoid and a multiplicative monoid linked by distributivity and zero annihilation.
-2. **`StarSemiring[V]` (Closed / Conway Semiring)**: Equips a `Semiring` with unary Kleene star closure $a^* = \mathbf{1} \oplus a \cdot a^*$ (`HasStar[V]`). Synonyms: `ClosedSemiring`, `ConwaySemiring`.
+2. **`StarSemiring[V]` (Closed / Conway Semiring)**: Equips a `Semiring` with unary Kleene star closure $a^* = \mathbf{1} \oplus a \cdot a^*$ (`HasStar[V]`) and strict positive iteration $a^+ = a \cdot a^*$ (`HasPlus[V]`). Synonyms: `ClosedSemiring`, `ConwaySemiring`.
 3. **`KleeneAlgebra[V]`**: An idempotent star semiring ($a \oplus a = a$) witnessing the [`LawIdempotent`](../../concepts.md#equational-law-witness-mixins-pillar-2) marker.
+4. **`ActionAlgebra[V]`**: Augments a `KleeneAlgebra` with left and right residuals ($a \backslash b$ and $b / a$, `HasResiduals[V]`), providing purely equational axiomatization without Horn clauses.
 
 ```python
 from typing import Protocol, TypeVar
-from algebrax.algebra import HasAdd, HasMul, HasOne, HasStar, HasZero, LawIdempotent
+from algebrax.algebra import HasAdd, HasMul, HasOne, HasPlus, HasResiduals, HasStar, HasZero, LawIdempotent
 
 V = TypeVar('V')
 
@@ -55,14 +56,30 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
     ...
 
 
-# 2. Closed / Conway Semiring: adds Kleene star closure
-class StarSemiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol):
-    ...
+# 2. Closed / Conway Semiring: adds Kleene star and strict plus
+class StarSemiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], HasPlus[V], Protocol):
+    def plus(self, a: V) -> V:
+        return self.mul(a, self.star(a))
 
 
 # 3. Kleene Algebra: idempotent star semiring
 class KleeneAlgebra(
-    HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], LawIdempotent, Protocol
+    HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], HasPlus[V], LawIdempotent, Protocol
+):
+    ...
+
+
+# 4. Action Algebra: Kleene algebra with left and right residuals
+class ActionAlgebra(
+    HasZero[V],
+    HasAdd[V],
+    HasOne[V],
+    HasMul[V],
+    HasStar[V],
+    HasPlus[V],
+    HasResiduals[V],
+    LawIdempotent,
+    Protocol,
 ):
     ...
 ```
@@ -70,8 +87,9 @@ class KleeneAlgebra(
 | Protocol | Mixin Composition | Formal Signature | Role & Capabilities |
 |:---------|:------------------|:-----------------|:--------------------|
 | **`Semiring[V]`** | `(HasZero, HasAdd, HasOne, HasMul)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ | Standard linear algebra, polynomial algebras, and generic rigs. |
-| **`StarSemiring[V]`** | `(..., HasStar)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ | Graph reachability, all-pairs paths, and Taylor series closures (`DualNumberAlgebra`). |
-| **`KleeneAlgebra[V]`** | `(..., HasStar, LawIdempotent)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$ with $a \oplus a = a$ | Regular languages, finite automata, and extremal routing (`TropicalSemiring`, `BooleanSemiring`). |
+| **`StarSemiring[V]`** | `(..., HasStar, HasPlus)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^*, ^+ \rangle$ | Graph reachability, all-pairs paths, and Taylor series closures (`DualNumberAlgebra`). |
+| **`KleeneAlgebra[V]`** | `(..., HasStar, HasPlus, LawIdempotent)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^*, ^+ \rangle$ with $a \oplus a = a$ | Regular languages, finite automata, and extremal routing (`TropicalSemiring`, `BooleanSemiring`). |
+| **`ActionAlgebra[V]`** | `(..., HasResiduals)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^*, ^+, \backslash, / \rangle$ | Equational Kleene logic, Dijkstra weakest preconditions, and Brzozowski language quotients (`RelationActionAlgebra`). |
 
 > [!NOTE]
 > **Subtyping Harmony: Every Ring is a Semiring**
@@ -119,6 +137,49 @@ assert all(res_kleene.values())
 # In TropicalSemiring, min(a, a) = a. If an additive inverse (-a) existed,
 # adding it to both sides would force a = 0 (tropical infinity), collapsing the carrier.
 assert trop.add(3.0, 3.0) == 3.0  # min(3.0, 3.0) == 3.0
+```
+
+---
+
+## 5. Generalized Closures: Kleene Plus, Conway Matrix Star & Action Algebras
+
+AlgebraX provides comprehensive algebraic closure primitives across both scalar carriers and sparse matrices:
+
+### Reflexive vs. Strict Closures ($A^*$ vs. $A^+$)
+
+* **Kleene Star ($A^*$)**: Represents paths of length $\ge 0$. Every node reaches itself reflexively via identity ($d(u, u) = \mathbf{1}$).
+* **Kleene Plus ($A^+$)**: Represents paths of length $\ge 1$ ($A^+ = A \cdot A^*$). On Directed Acyclic Graphs (DAGs), $A^+$ **avoids spurious self-loops**, making it ideal for cycle detection and reachability analysis.
+
+```python
+import algebrax as ax
+
+# DAG: 0 -> 1 -> 2
+dag = {0: {1: True}, 1: {2: True}}
+b = ax.semiring.BooleanSemiring()
+
+# 1. Reflexive-transitive star closure includes self-loops
+star_m = ax.matrix.star(dag, b)
+assert star_m[0][0] is True  # 0 reaches 0 in 0 steps
+
+# 2. Strict transitive plus closure excludes self-loops on DAGs
+plus_m = ax.matrix.plus(dag, b)
+assert 0 not in plus_m.get(0, {})  # No cycle, no self-loop!
+assert plus_m[0][2] is True  # 0 reaches 2 in 2 steps
+```
+
+### Universal Conway Block Matrix Closure
+
+Lifting scalar closure to matrices is achieved via Conway's recursive $2 \times 2$ block decomposition over any `StarSemiring`:
+
+```python
+# All-Pairs Shortest Paths via Tropical Matrix Star
+graph = {
+    0: {1: 2.0, 2: 10.0},
+    1: {2: 3.0},
+}
+trop = ax.semiring.TropicalSemiring()
+apsp = ax.matrix.star(graph, trop)
+assert apsp[0][2] == 5.0  # min(10.0, 2.0 + 3.0) = 5.0
 ```
 
 > [!TIP]
