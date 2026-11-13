@@ -663,3 +663,106 @@ def test_hypothesis_differential_dft_and_wht(sig_list: list[float]) -> None:
     sp_wht = spla.hadamard(8) @ sig_np
     for k in range(8):
         assert math.isclose(ax_wht.get(k, 0.0), float(sp_wht[k]), rel_tol=1e-8, abs_tol=1e-8)
+
+
+# ---------------------------------------------------------------------------
+# 6. EP-0205: Norms, Inner Products & Kernel Gram Matrices vs NumPy / SciPy
+# ---------------------------------------------------------------------------
+
+
+def test_differential_norm_p_and_matrix_norms_vs_numpy() -> None:
+    """Verify ax.analysis norm_p, norm_frobenius, norm_operator_1, and norm_operator_inf against NumPy linalg."""
+    from algebrax.analysis import (
+        cosine_similarity,
+        inner_euclidean,
+        norm_frobenius,
+        norm_operator_1,
+        norm_operator_inf,
+        norm_p,
+    )
+
+    # 1. Vector p-norms vs np.linalg.norm
+    raw_vec = [3.0, -4.0, 12.0, -1.5, 0.0, 7.2]
+    vec_sp = {i: raw_vec[i] for i in range(len(raw_vec))}
+    vec_np = np.array(raw_vec, dtype=np.float64)
+
+    assert math.isclose(norm_p(vec_sp, p=1.0), float(np.linalg.norm(vec_np, ord=1)), rel_tol=1e-12)
+    assert math.isclose(norm_p(vec_sp, p=2.0), float(np.linalg.norm(vec_np, ord=2)), rel_tol=1e-12)
+    assert math.isclose(norm_p(vec_sp, p=3.5), float(np.linalg.norm(vec_np, ord=3.5)), rel_tol=1e-12)
+    assert math.isclose(norm_p(vec_sp, p=float('inf')), float(np.linalg.norm(vec_np, ord=np.inf)), rel_tol=1e-12)
+
+    # 2. Euclidean inner product & cosine similarity vs NumPy / SciPy
+    raw_v2 = [-1.0, 2.0, 0.5, 3.0, -5.0, 1.1]
+    v2_sp = {i: raw_v2[i] for i in range(len(raw_v2))}
+    v2_np = np.array(raw_v2, dtype=np.float64)
+
+    assert math.isclose(inner_euclidean(vec_sp, v2_sp), float(np.dot(vec_np, v2_np)), rel_tol=1e-12)
+
+    expected_cos = float(np.dot(vec_np, v2_np) / (np.linalg.norm(vec_np) * np.linalg.norm(v2_np)))
+    assert math.isclose(cosine_similarity(vec_sp, v2_sp), expected_cos, rel_tol=1e-12)
+
+    # 3. Matrix norms vs np.linalg.norm
+    mat_np = np.array(
+        [
+            [1.0, -2.0, 3.5],
+            [-4.0, 5.2, -0.5],
+            [2.1, 0.0, -6.0],
+        ],
+        dtype=np.float64,
+    )
+    mat_sp = _dense_to_sparse(mat_np)
+
+    assert math.isclose(norm_frobenius(mat_sp), float(np.linalg.norm(mat_np, ord='fro')), rel_tol=1e-12)
+    assert math.isclose(norm_operator_1(mat_sp), float(np.linalg.norm(mat_np, ord=1)), rel_tol=1e-12)
+    assert math.isclose(norm_operator_inf(mat_sp), float(np.linalg.norm(mat_np, ord=np.inf)), rel_tol=1e-12)
+
+
+def test_differential_rkhs_gram_matrices_vs_scipy_cdist() -> None:
+    """Verify ReproducingKernelHilbertSpace Gram matrix assembly against scipy.spatial.distance.cdist."""
+    import scipy.spatial.distance as spdist
+
+    from algebrax.analysis import (
+        ReproducingKernelHilbertSpace,
+        cosine_kernel,
+        linear_kernel,
+        polynomial_kernel,
+        rbf_kernel,
+    )
+
+    points = [
+        {'x': 1.0, 'y': 0.0},
+        {'x': 0.0, 'y': 2.0},
+        {'x': -1.0, 'y': -1.0},
+        {'x': 2.0, 'y': 1.5},
+    ]
+    points_np = np.array([[p['x'], p['y']] for p in points], dtype=np.float64)
+
+    # 1. Linear Kernel Gram matrix vs X @ X.T
+    rkhs_lin = ReproducingKernelHilbertSpace(kernel_fn=linear_kernel)
+    gram_lin_sp = rkhs_lin.build_gram_matrix(points)
+    gram_lin_ax = _sparse_to_dense(gram_lin_sp, len(points))
+    gram_lin_expected = points_np @ points_np.T
+    np.testing.assert_allclose(gram_lin_ax, gram_lin_expected, rtol=1e-12, atol=1e-12)
+
+    # 2. Polynomial Kernel (degree 3, c=1.0) vs (X @ X.T + 1)^3
+    rkhs_poly = ReproducingKernelHilbertSpace(kernel_fn=lambda u, v: polynomial_kernel(u, v, degree=3, c=1.0))
+    gram_poly_sp = rkhs_poly.build_gram_matrix(points)
+    gram_poly_ax = _sparse_to_dense(gram_poly_sp, len(points))
+    gram_poly_expected = (points_np @ points_np.T + 1.0) ** 3
+    np.testing.assert_allclose(gram_poly_ax, gram_poly_expected, rtol=1e-12, atol=1e-12)
+
+    # 3. RBF Kernel (gamma=0.5) vs exp(-0.5 * cdist(X, X)^2)
+    gamma = 0.5
+    rkhs_rbf = ReproducingKernelHilbertSpace(kernel_fn=lambda u, v: rbf_kernel(u, v, gamma=gamma))
+    gram_rbf_sp = rkhs_rbf.build_gram_matrix(points)
+    gram_rbf_ax = _sparse_to_dense(gram_rbf_sp, len(points))
+    sq_dists = spdist.cdist(points_np, points_np, metric='sqeuclidean')
+    gram_rbf_expected = np.exp(-gamma * sq_dists)
+    np.testing.assert_allclose(gram_rbf_ax, gram_rbf_expected, rtol=1e-12, atol=1e-12)
+
+    # 4. Cosine Kernel vs 1 - cdist(X, X, metric='cosine')
+    rkhs_cos = ReproducingKernelHilbertSpace(kernel_fn=cosine_kernel)
+    gram_cos_sp = rkhs_cos.build_gram_matrix(points)
+    gram_cos_ax = _sparse_to_dense(gram_cos_sp, len(points))
+    gram_cos_expected = 1.0 - spdist.cdist(points_np, points_np, metric='cosine')
+    np.testing.assert_allclose(gram_cos_ax, gram_cos_expected, rtol=1e-12, atol=1e-12)

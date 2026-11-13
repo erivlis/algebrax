@@ -313,3 +313,53 @@ def test_helmholtz_hodge_decomposition_certificate() -> None:
     lap_harmonic = ax.matrix.mat_vec(delta1, harmonic)
     for edge, val in lap_harmonic.items():
         assert abs(val) < 1e-6, f'Harmonic component has non-zero Hodge Laplacian on {edge}: {val}'
+
+
+# ---------------------------------------------------------------------------
+# 7. EP-0205: Banach Contraction Fixed-Point Solver Certificate
+# ---------------------------------------------------------------------------
+
+
+def test_certificate_banach_contraction_fixed_point() -> None:
+    """Verify contractive_fixed_point solver emits a valid O(nnz) residual certificate ||T(x*) - x*|| <= tol."""
+    from algebrax.analysis import (
+        BanachContractionVerifier,
+        EuclideanSpace,
+        contractive_fixed_point,
+    )
+
+    space = EuclideanSpace()
+
+    # Operator T(v) = 0.6 * v + b, fixed point is v* = b / (1 - 0.6) = 2.5 * b
+    b = {0: 1.5, 1: -2.0, 2: 0.5}
+    gamma = 0.6
+
+    def contractive_op(v: dict[int, float]) -> dict[int, float]:
+        res = {k: gamma * val for k, val in v.items()}
+        for k, b_val in b.items():
+            res[k] = res.get(k, 0.0) + b_val
+        return res
+
+    # Verify operator contraction factor
+    verifier = BanachContractionVerifier(space, gamma=gamma)
+    samples = [{0: float(i), 1: -float(i) * 0.5} for i in range(-5, 5)]
+    for u in samples:
+        for v in samples:
+            assert verifier.verify_step(contractive_op, u, v)
+
+    # Solve
+    tol = 1e-10
+    x_star, _iters, converged = contractive_fixed_point(
+        space,
+        contractive_op,
+        initial={0: 0.0, 1: 0.0, 2: 0.0},
+        tol=tol,
+        max_iter=200,
+    )
+    assert converged
+
+    # Certificate: Check post-condition witness ||T(x*) - x*|| <= tol
+    tx_star = contractive_op(x_star)
+    residual = space.sub(tx_star, x_star)
+    cert_norm = space.norm(residual)
+    assert cert_norm <= tol, f'Banach certificate violated: ||T(x*) - x*|| = {cert_norm} > {tol}'

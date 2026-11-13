@@ -217,3 +217,48 @@ def test_pit_polynomial_ring_brahmagupta_fibonacci_identity() -> None:
         rhs = poly_sr.add(poly_sr.power(pr_minus_qs, 2), poly_sr.power(ps_plus_qr, 2))
 
         assert lhs == rhs
+
+
+# ---------------------------------------------------------------------------
+# PIT 5: Non-Associative Algebras (EP-0204) — Jordan & Alternative Identities
+# ---------------------------------------------------------------------------
+
+
+def test_pit_non_associative_jordan_and_alternative_identities() -> None:
+    """Verify Jordan identity (x * y) * x^2 == x * (y * x^2) and Artin's alternative theorem via PIT."""
+    from algebrax.algebra._non_assoc import OctonionAlgebra, SymmetricMatrixJordanAlgebra
+
+    # 1. Jordan Identity over 3x3 symmetric matrix algebra
+    jordan_alg = SymmetricMatrixJordanAlgebra()
+    rng = random.Random(42)
+
+    for _ in range(NUM_TRIALS):
+        # Sample random symmetric matrices
+        x_dense = [[float(rng.randint(-10, 10)) for _ in range(3)] for _ in range(3)]
+        y_dense = [[float(rng.randint(-10, 10)) for _ in range(3)] for _ in range(3)]
+        # Symmetrize
+        x_mat = {i: {j: (x_dense[i][j] + x_dense[j][i]) / 2.0 for j in range(3)} for i in range(3)}
+        y_mat = {i: {j: (y_dense[i][j] + y_dense[j][i]) / 2.0 for j in range(3)} for i in range(3)}
+
+        x2 = jordan_alg.mul(x_mat, x_mat)
+
+        # Jordan identity: (x * y) * x^2 == x * (y * x^2)
+        lhs = jordan_alg.mul(jordan_alg.mul(x_mat, y_mat), x2)
+        rhs = jordan_alg.mul(x_mat, jordan_alg.mul(y_mat, x2))
+
+        for i in range(3):
+            for j in range(3):
+                assert math.isclose(lhs[i][j], rhs[i][j], rel_tol=1e-10, abs_tol=1e-10)
+
+    # 2. Alternative Identity in OctonionAlgebra: x * (x * y) == x^2 * y (Left Alternative)
+    oct_alg = OctonionAlgebra()
+    for _ in range(NUM_TRIALS):
+        ox = {i: float(rng.randint(-15, 15)) for i in range(8)}
+        oy = {i: float(rng.randint(-15, 15)) for i in range(8)}
+
+        ox2 = oct_alg.mul(ox, ox)
+        lhs_alt = oct_alg.mul(ox, oct_alg.mul(ox, oy))
+        rhs_alt = oct_alg.mul(ox2, oy)
+
+        for k in range(8):
+            assert math.isclose(lhs_alt.get(k, 0.0), rhs_alt.get(k, 0.0), rel_tol=1e-10, abs_tol=1e-10)

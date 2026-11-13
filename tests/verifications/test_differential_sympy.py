@@ -617,3 +617,78 @@ def test_differential_autodiff_semirings_vs_sympy_derivatives() -> None:
         for a2 in range(4 - a1):
             partial_sp = float(sp.diff(g_sym, (x, a1), (y, a2)).subs({x: x0_2d, y: y0_2d}))
             assert math.isclose(g_jets.get((a1, a2), 0.0), partial_sp, rel_tol=1e-11, abs_tol=1e-11)
+
+
+# =============================================================================
+# 10. EP-0204: Non-Associative & Quantum Algebras vs SymPy
+# =============================================================================
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_octonion_quaternion_subalgebra_vs_sympy_quaternion() -> None:
+    """Verify OctonionAlgebra restricted to quaternion subalgebra (e0, e1, e2, e3) matches sympy.algebras.quaternion."""
+    from sympy.algebras.quaternion import Quaternion as SymPyQuaternion
+
+    from algebrax.algebra._non_assoc import OctonionAlgebra
+
+    oct_alg = OctonionAlgebra()
+
+    # Quaternion sub-elements (e0, e1, e2, e3)
+    # in Octonion: basis indices 0..7
+    q1_vals = [2.0, -1.5, 3.0, 0.5]
+    q2_vals = [1.0, 2.0, -0.5, 4.0]
+
+    o1 = {i: q1_vals[i] for i in range(4)}
+    o2 = {i: q2_vals[i] for i in range(4)}
+
+    o_prod = oct_alg.mul(o1, o2)
+
+    # SymPy Quaternion (w, x, y, z)
+    sq1 = SymPyQuaternion(*q1_vals)
+    sq2 = SymPyQuaternion(*q2_vals)
+    sq_prod = sq1 * sq2
+
+    assert math.isclose(o_prod.get(0, 0.0), float(sq_prod.a), rel_tol=1e-12)
+    assert math.isclose(o_prod.get(1, 0.0), float(sq_prod.b), rel_tol=1e-12)
+    assert math.isclose(o_prod.get(2, 0.0), float(sq_prod.c), rel_tol=1e-12)
+    assert math.isclose(o_prod.get(3, 0.0), float(sq_prod.d), rel_tol=1e-12)
+    for i in range(4, 8):
+        assert math.isclose(o_prod.get(i, 0.0), 0.0, abs_tol=1e-12)
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_symmetric_matrix_jordan_product_vs_sympy_matrix() -> None:
+    """Verify SymmetricMatrixJordanAlgebra Jordan product (A B + B A) / 2 against SymPy Matrix."""
+    from algebrax.algebra._non_assoc import SymmetricMatrixJordanAlgebra
+
+    jordan_alg = SymmetricMatrixJordanAlgebra()
+
+    # Symmetric 3x3 matrices
+    a_dense = [
+        [2.0, 1.0, -1.0],
+        [1.0, 3.0, 0.5],
+        [-1.0, 0.5, 4.0],
+    ]
+    b_dense = [
+        [1.5, -0.5, 2.0],
+        [-0.5, 2.0, 1.0],
+        [2.0, 1.0, -1.0],
+    ]
+
+    a_sp = {i: {j: a_dense[i][j] for j in range(3)} for i in range(3)}
+    b_sp = {i: {j: b_dense[i][j] for j in range(3)} for i in range(3)}
+
+    prod_ax = jordan_alg.mul(a_sp, b_sp)
+
+    # SymPy Matrix computation
+    sp_a = sp.Matrix(a_dense)
+    sp_b = sp.Matrix(b_dense)
+    sp_jordan = (sp_a * sp_b + sp_b * sp_a) / 2
+
+    for i in range(3):
+        for j in range(3):
+            val_ax = prod_ax.get(i, {}).get(j, 0.0)
+            val_sp = float(sp_jordan[i, j])
+            assert math.isclose(val_ax, val_sp, rel_tol=1e-12, abs_tol=1e-12)
