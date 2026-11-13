@@ -20,17 +20,22 @@ Algebraic Signatures:
     HasBracket:    $\langle V, [\cdot, \cdot] \rangle$
     HasNorm:       $\langle V, \|\cdot\| \rangle$
     HasInner:      $\langle R, V, \langle \cdot, \cdot \rangle \rangle$
+    HasCoproduct:  $\langle C, \Delta \rangle$
+    HasCounit:     $\langle R, C, \epsilon \rangle$
+    HasAntipode:   $\langle H, S \rangle$
 
 Law Witnesses (EP-0005, EP-0197):
     LawCommutative, LawAnticommutative, LawAssociative,
     LawJordan, LawAlternative, LawMalcev, LawLie, LawIdempotent
 """
 
-from typing import Literal, Protocol, TypeVar, runtime_checkable
+from typing import Any, Literal, Protocol, TypeVar, runtime_checkable
 
 V = TypeVar('V')
 R = TypeVar('R')
 M = TypeVar('M')
+C = TypeVar('C')
+H = TypeVar('H')
 
 
 @runtime_checkable
@@ -284,6 +289,39 @@ class HasInner(Protocol[R, V]):
     """
 
     def inner(self, u: V, v: V) -> R: ...
+
+
+@runtime_checkable
+class HasCoproduct(Protocol[C]):
+    r"""Atomic operational mixin for structures equipped with a coproduct $\Delta: C \to C \otimes C$.
+
+    Algebraic Signature:
+        $\Delta: C \to C \otimes C$
+    """
+
+    def coproduct(self, c: C) -> dict[tuple[Any, Any], Any]: ...
+
+
+@runtime_checkable
+class HasCounit(Protocol[R, C]):
+    r"""Atomic operational mixin for structures equipped with a counit $\epsilon: C \to R$.
+
+    Algebraic Signature:
+        $\epsilon: C \to R$
+    """
+
+    def counit(self, c: C) -> R: ...
+
+
+@runtime_checkable
+class HasAntipode(Protocol[H]):
+    r"""Atomic operational mixin for structures equipped with an antipode $S: H \to H$.
+
+    Algebraic Signature:
+        $S: H \to H$
+    """
+
+    def antipode(self, h: H) -> H: ...
 
 
 # =============================================================================

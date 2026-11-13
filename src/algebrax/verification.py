@@ -12,6 +12,7 @@ import math
 from collections.abc import Callable, Iterable, Sequence
 from typing import Any, TypeVar
 
+from algebrax.algebra._hopf import Bialgebra, Coalgebra, HopfAlgebra
 from algebrax.algebra._normed import InnerProductSpace, NormedSpace
 from algebrax.semiring import KleeneAlgebra, Semiring, StarSemiring
 
@@ -30,17 +31,22 @@ __all__ = [
     'verify_add_semigroup_laws',
     'verify_algebra_laws',
     'verify_alternative_laws',
+    'verify_antipode_axiom',
     'verify_band_laws',
+    'verify_bialgebra_laws',
     'verify_boolean_algebra_laws',
     'verify_bounded_lattice_laws',
     'verify_category_laws',
     'verify_cauchy_schwarz',
+    'verify_coalgebra_laws',
+    'verify_coassociativity',
     'verify_coboundary_nilpotency',
     'verify_comm_group_laws',
     'verify_comm_monoid_laws',
     'verify_comm_ring_laws',
     'verify_connection_inversion',
     'verify_contraction_constant',
+    'verify_counitality',
     'verify_distributive_lattice_laws',
     'verify_division_ring_laws',
     'verify_field_laws',
@@ -48,6 +54,7 @@ __all__ = [
     'verify_gauge_covariance',
     'verify_group_action_laws',
     'verify_group_laws',
+    'verify_hopf_algebra_laws',
     'verify_ideal_absorption_laws',
     'verify_inner_product_space_laws',
     'verify_join_semilattice_laws',
@@ -2049,4 +2056,249 @@ def verify_inner_product_space_laws(
     res['conjugate_symmetry'] = sym
     res['first_argument_linearity'] = lin
     return res
+
+
+# =============================================================================
+# EP-0206: Coalgebra, Bialgebra & Hopf Algebra Axiom Verifiers
+# =============================================================================
+
+C = TypeVar('C')
+
+
+def _carrier_basis(val: Any) -> Any:
+    if isinstance(val, dict):
+        return val
+    return {val: 1.0}
+
+
+def verify_coassociativity(
+    coalgebra: Coalgebra[Any, C],
+    samples: Iterable[C],
+    tol: float = 1e-9,
+) -> bool:
+    r"""Verify that $(\Delta \otimes \mathrm{id}) \circ \Delta(c) == (\mathrm{id} \otimes \Delta) \circ \Delta(c)$."""
+    for c in samples:
+        delta_c = coalgebra.coproduct(c)
+
+        # 1. Left parenthesization: (Delta (x) id) Delta(c)
+        tensor_left: dict[tuple[Any, Any, Any], float] = {}
+        for (u, v), alpha in delta_c.items():
+            af = float(alpha)
+            u_basis = _carrier_basis(u)
+            delta_u = coalgebra.coproduct(u_basis)
+            for (x, y), beta in delta_u.items():
+                key = (x, y, v)
+                tensor_left[key] = tensor_left.get(key, 0.0) + af * float(beta)
+
+        # 2. Right parenthesization: (id (x) Delta) Delta(c)
+        tensor_right: dict[tuple[Any, Any, Any], float] = {}
+        for (u, v), alpha in delta_c.items():
+            af = float(alpha)
+            v_basis = _carrier_basis(v)
+            delta_v = coalgebra.coproduct(v_basis)
+            for (y, z), gamma in delta_v.items():
+                key = (u, y, z)
+                tensor_right[key] = tensor_right.get(key, 0.0) + af * float(gamma)
+
+        tl_clean = {k: val for k, val in tensor_left.items() if abs(val) > tol}
+        tr_clean = {k: val for k, val in tensor_right.items() if abs(val) > tol}
+
+        if not semiring_elements_equal(tl_clean, tr_clean, tol):
+            return False
+
+    return True
+
+
+def _clean_sparse(val: Any, tol: float) -> Any:
+    if isinstance(val, dict):
+        return {
+            k: v
+            for k, v in val.items()
+            if (abs(v) > tol if isinstance(v, (int, float, complex)) else True)
+        }
+    return val
+
+
+def verify_counitality(
+    coalgebra: Coalgebra[Any, C],
+    samples: Iterable[C],
+    tol: float = 1e-9,
+) -> bool:
+    r"""Verify counitality:
+    $(\epsilon \otimes \mathrm{id})\Delta(c) == c == (\mathrm{id} \otimes \epsilon)\Delta(c)$.
+    """
+    for c in samples:
+        delta_c = coalgebra.coproduct(c)
+
+        # Left counitality: sum_{(u, v)} alpha * epsilon(u) * v
+        left_eval = coalgebra.zero
+        for (u, v), alpha in delta_c.items():
+            u_basis = _carrier_basis(u)
+            v_basis = _carrier_basis(v)
+            eps_u = coalgebra.counit(u_basis)
+            scaled_v = coalgebra.smul(float(alpha) * float(eps_u), v_basis)
+            left_eval = coalgebra.add(left_eval, scaled_v)
+
+        c_clean = _clean_sparse(c, tol)
+        if not semiring_elements_equal(_clean_sparse(left_eval, tol), c_clean, tol):
+            return False
+
+        # Right counitality: sum_{(u, v)} alpha * epsilon(v) * u
+        right_eval = coalgebra.zero
+        for (u, v), alpha in delta_c.items():
+            u_basis = _carrier_basis(u)
+            v_basis = _carrier_basis(v)
+            eps_v = coalgebra.counit(v_basis)
+            scaled_u = coalgebra.smul(float(alpha) * float(eps_v), u_basis)
+            right_eval = coalgebra.add(right_eval, scaled_u)
+
+        if not semiring_elements_equal(_clean_sparse(right_eval, tol), c_clean, tol):
+            return False
+
+    return True
+
+
+def verify_antipode_axiom(
+    hopf: HopfAlgebra[Any, C],
+    samples: Iterable[C],
+    tol: float = 1e-9,
+) -> bool:
+    r"""Verify the antipode axiom:
+    $$\sum S(c_{(1)}) \cdot c_{(2)} = \epsilon(c) \mathbf{1} = \sum c_{(1)} \cdot S(c_{(2)})$$
+    """
+    one = hopf.one
+    for c in samples:
+        delta_c = hopf.coproduct(c)
+        eps_c = hopf.counit(c)
+        expected = hopf.smul(eps_c, one)
+
+        # Left condition: sum S(u) * v
+        left_val = hopf.zero
+        for (u, v), alpha in delta_c.items():
+            u_basis = _carrier_basis(u)
+            v_basis = _carrier_basis(v)
+            s_u = hopf.antipode(u_basis)
+            prod = hopf.mul(s_u, v_basis)
+            scaled = hopf.smul(float(alpha), prod)
+            left_val = hopf.add(left_val, scaled)
+
+        exp_clean = _clean_sparse(expected, tol)
+        if not semiring_elements_equal(_clean_sparse(left_val, tol), exp_clean, tol):
+            return False
+
+        # Right condition: sum u * S(v)
+        right_val = hopf.zero
+        for (u, v), alpha in delta_c.items():
+            u_basis = _carrier_basis(u)
+            v_basis = _carrier_basis(v)
+            s_v = hopf.antipode(v_basis)
+            prod = hopf.mul(u_basis, s_v)
+            scaled = hopf.smul(float(alpha), prod)
+            right_val = hopf.add(right_val, scaled)
+
+        if not semiring_elements_equal(_clean_sparse(right_val, tol), exp_clean, tol):
+            return False
+
+    return True
+
+
+def verify_coalgebra_laws(
+    coalgebra: Coalgebra[R, C],
+    r_samples: Iterable[R],
+    c_samples: Iterable[C],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify axioms of a Coalgebra:
+    - Vector space axioms on (C, +, 0, -, smul)
+    - Coassociativity: $(\Delta \otimes \mathrm{id}) \circ \Delta = (\mathrm{id} \otimes \Delta) \circ \Delta$
+    - Counitality: $(\epsilon \otimes \mathrm{id})\Delta(c) = c = (\mathrm{id} \otimes \epsilon)\Delta(c)$
+    """
+    c_elements = _require_samples(c_samples)
+    r_elements = _require_samples(r_samples)
+
+    res = verify_add_comm_group_laws(coalgebra, c_elements, tol)
+
+    smul = coalgebra.smul
+    add_c = coalgebra.add
+    c_zero = coalgebra.zero
+
+    dist = True
+    for r in r_elements:
+        for c1, c2 in itertools.combinations(c_elements, 2):
+            lhs = smul(r, add_c(c1, c2))
+            rhs = add_c(smul(r, c1), smul(r, c2))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                dist = False
+                break
+        if not dist:
+            break
+
+    annihil = True
+    for r in r_elements:
+        if not semiring_elements_equal(smul(r, c_zero), c_zero, tol):
+            annihil = False
+            break
+
+    res['scalar_distributivity'] = dist
+    res['scalar_zero_annihilation'] = annihil
+    res['coassociativity'] = verify_coassociativity(coalgebra, c_elements, tol)
+    res['counitality'] = verify_counitality(coalgebra, c_elements, tol)
+    return res
+
+
+def verify_bialgebra_laws(
+    bialgebra: Bialgebra[R, C],
+    r_samples: Iterable[R],
+    c_samples: Iterable[C],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify axioms of a Bialgebra:
+    - Coalgebra axioms
+    - Monoid / Algebra axioms for multiplication
+    - Homomorphism compatibility of Delta and epsilon with multiplication and unit
+    """
+    c_elements = _require_samples(c_samples)
+    r_elements = _require_samples(r_samples)
+
+    res = verify_coalgebra_laws(bialgebra, r_elements, c_elements, tol)
+    res.update(verify_monoid_laws(bialgebra, c_elements, tol))
+
+    # Counit homomorphism: epsilon(a * b) == epsilon(a) * epsilon(b), epsilon(1) == 1
+    counit_hom = True
+    one = bialgebra.one
+    eps_one = bialgebra.counit(one)
+    if not math.isclose(float(eps_one), 1.0, rel_tol=tol, abs_tol=tol):
+        counit_hom = False
+
+    for a, b in itertools.combinations(c_elements, 2):
+        eps_ab = bialgebra.counit(bialgebra.mul(a, b))
+        eps_a_eps_b = float(bialgebra.counit(a)) * float(bialgebra.counit(b))
+        if not math.isclose(float(eps_ab), eps_a_eps_b, rel_tol=tol, abs_tol=tol):
+            counit_hom = False
+            break
+
+    # Coproduct unit preservation: Delta(1) has sum of coeffs 1
+    delta_one = bialgebra.coproduct(one)
+    coprod_unit = len(delta_one) >= 1 and math.isclose(sum(delta_one.values()), 1.0, rel_tol=tol, abs_tol=tol)
+
+    res['counit_homomorphism'] = counit_hom
+    res['coproduct_unit_preservation'] = coprod_unit
+    return res
+
+
+def verify_hopf_algebra_laws(
+    hopf: HopfAlgebra[R, C],
+    r_samples: Iterable[R],
+    c_samples: Iterable[C],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify axioms of a Hopf Algebra:
+    - Bialgebra axioms
+    - Antipode axiom: $\mu \circ (S \otimes \mathrm{id}) \circ \Delta = \eta \circ \epsilon$
+    """
+    c_elements = _require_samples(c_samples)
+    res = verify_bialgebra_laws(hopf, r_samples, c_samples, tol)
+    res['antipode_axiom'] = verify_antipode_axiom(hopf, c_elements, tol)
+    return res
+
 
