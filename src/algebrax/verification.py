@@ -9,12 +9,15 @@ identity, and annihilation).
 import cmath
 import itertools
 import math
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Sequence
 from typing import Any, TypeVar
 
+from algebrax.algebra._normed import InnerProductSpace, NormedSpace
 from algebrax.semiring import KleeneAlgebra, Semiring, StarSemiring
 
 V = TypeVar('V')
+R = TypeVar('R')
+M = TypeVar('M')
 
 __all__ = [
     'get_semiring_samples',
@@ -31,11 +34,13 @@ __all__ = [
     'verify_boolean_algebra_laws',
     'verify_bounded_lattice_laws',
     'verify_category_laws',
+    'verify_cauchy_schwarz',
     'verify_coboundary_nilpotency',
     'verify_comm_group_laws',
     'verify_comm_monoid_laws',
     'verify_comm_ring_laws',
     'verify_connection_inversion',
+    'verify_contraction_constant',
     'verify_distributive_lattice_laws',
     'verify_division_ring_laws',
     'verify_field_laws',
@@ -44,6 +49,7 @@ __all__ = [
     'verify_group_action_laws',
     'verify_group_laws',
     'verify_ideal_absorption_laws',
+    'verify_inner_product_space_laws',
     'verify_join_semilattice_laws',
     'verify_jordan_laws',
     'verify_kleene_algebra_laws',
@@ -56,6 +62,8 @@ __all__ = [
     'verify_monoid_laws',
     'verify_non_assoc_algebra_laws',
     'verify_non_assoc_ring_laws',
+    'verify_normed_space_laws',
+    'verify_parallelogram_law',
     'verify_poisson_laws',
     'verify_quotient_ring_laws',
     'verify_ring_homomorphism_laws',
@@ -66,6 +74,7 @@ __all__ = [
     'verify_sheaf_functoriality',
     'verify_sheaf_laplacian_properties',
     'verify_star_semiring_laws',
+    'verify_triangle_inequality',
 ]
 
 
@@ -1312,8 +1321,6 @@ def verify_lie_algebra_laws(
 # EP-0200: Category and Functor Law Verifiers
 # =============================================================================
 
-from collections.abc import Callable  # noqa: E402
-
 from algebrax.category.core import Category, Functor  # noqa: E402
 
 Obj = TypeVar('Obj')
@@ -1847,3 +1854,199 @@ def verify_poisson_laws(
         'jacobi_identity': jacobi,
         'leibniz_rule': leibniz,
     }
+
+
+# =============================================================================
+# Normed Spaces, Inner Products & Banach Contractions (EP-0205)
+# =============================================================================
+
+
+def verify_triangle_inequality(
+    space: NormedSpace[Any, V],
+    u: V,
+    v: V,
+    tol: float = 1e-9,
+) -> bool:
+    r"""Verify the triangle inequality $\|u + v\| \le \|u\| + \|v\| + \text{tol}$."""
+    sum_uv = space.add(u, v)
+    norm_sum = space.norm(sum_uv)
+    bound = space.norm(u) + space.norm(v)
+    return norm_sum <= bound + tol
+
+
+def verify_cauchy_schwarz(
+    space: InnerProductSpace[Any, V],
+    u: V,
+    v: V,
+    tol: float = 1e-9,
+) -> bool:
+    r"""Verify the Cauchy-Schwarz inequality.
+
+    $|\langle u, v \rangle|^2 \le \langle u, u \rangle \langle v, v \rangle + \text{tol}$.
+    """
+    inner_uv = space.inner(u, v)
+    lhs = abs(inner_uv) ** 2 if isinstance(inner_uv, complex) else float(inner_uv) ** 2
+
+    inner_uu = space.inner(u, u)
+    inner_vv = space.inner(v, v)
+    rhs = float(inner_uu.real if isinstance(inner_uu, complex) else inner_uu) * float(
+        inner_vv.real if isinstance(inner_vv, complex) else inner_vv
+    )
+    return lhs <= rhs + tol
+
+
+def verify_parallelogram_law(
+    space: InnerProductSpace[Any, V],
+    u: V,
+    v: V,
+    tol: float = 1e-7,
+) -> bool:
+    r"""Verify the parallelogram law: $\|u + v\|^2 + \|u - v\|^2 \approx 2(\|u\|^2 + \|v\|^2)$."""
+    sum_uv = space.add(u, v)
+    diff_uv = space.sub(u, v)
+    norm_sum_sq = space.norm(sum_uv) ** 2
+    norm_diff_sq = space.norm(diff_uv) ** 2
+    lhs = norm_sum_sq + norm_diff_sq
+
+    norm_u_sq = space.norm(u) ** 2
+    norm_v_sq = space.norm(v) ** 2
+    rhs = 2.0 * (norm_u_sq + norm_v_sq)
+
+    return math.isclose(lhs, rhs, rel_tol=tol, abs_tol=tol)
+
+
+def verify_contraction_constant(
+    space: NormedSpace[Any, V],
+    operator: Callable[[V], V],
+    samples: Sequence[V],
+    gamma: float,
+    tol: float = 1e-9,
+) -> bool:
+    r"""Verify that operator $T$ satisfies $\|T(u) - T(v)\| \le \gamma \|u - v\| + \text{tol}$ for all sample pairs."""
+    if not (0.0 <= gamma < 1.0):
+        raise ValueError(f'Contraction constant gamma must be in [0, 1), got {gamma}')
+
+    n = len(samples)
+    for i in range(n):
+        for j in range(i + 1, n):
+            u, v = samples[i], samples[j]
+            d_in = space.distance(u, v)
+            d_out = space.distance(operator(u), operator(v))
+            if d_out > gamma * d_in + tol:
+                return False
+    return True
+
+
+def verify_normed_space_laws(
+    space: NormedSpace[R, V],
+    r_samples: Iterable[R],
+    v_samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify axioms of a NormedSpace:
+    - Non-negativity: $\|v\| \ge 0$
+    - Identity of indiscernibles: $\|v\| \approx 0 \iff v \approx \mathbf{0}$
+    - Absolute scalability: $\|\alpha \cdot_s v\| \approx |\alpha| \cdot \|v\|$
+    - Triangle inequality: $\|u + v\| \le \|u\| + \|v\|$
+    """
+    v_elements = _require_samples(v_samples)
+    r_elements = _require_samples(r_samples)
+
+    non_neg = True
+    zero_norm = _float_equal(space.norm(space.zero), 0.0, tol)
+    for v in v_elements:
+        if space.norm(v) < -tol:
+            non_neg = False
+            break
+
+    scalability = True
+    for r in r_elements:
+        for v in v_elements:
+            scaled = space.smul(r, v)
+            norm_scaled = space.norm(scaled)
+            r_mag = abs(r) if isinstance(r, (int, float, complex)) else 1.0
+            expected = r_mag * space.norm(v)
+            if not _float_equal(norm_scaled, expected, tol):
+                scalability = False
+                break
+        if not scalability:
+            break
+
+    tri = True
+    for u, v in itertools.combinations(v_elements, 2):
+        if not verify_triangle_inequality(space, u, v, tol):
+            tri = False
+            break
+
+    return {
+        'non_negativity': non_neg,
+        'zero_norm': zero_norm,
+        'absolute_scalability': scalability,
+        'triangle_inequality': tri,
+    }
+
+
+def verify_inner_product_space_laws(
+    space: InnerProductSpace[R, V],
+    r_samples: Iterable[R],
+    v_samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify axioms of an InnerProductSpace:
+    - All NormedSpace axioms
+    - Cauchy-Schwarz inequality: $|\langle u, v \rangle|^2 \le \langle u, u \rangle \langle v, v \rangle$
+    - Parallelogram law: $\|u+v\|^2 + \|u-v\|^2 \approx 2(\|u\|^2 + \|v\|^2)$
+    - Symmetry / Conjugate symmetry: $\langle u, v \rangle \approx \overline{\langle v, u \rangle}$
+    - Linearity in first argument:
+      $\langle \alpha u + v, w \rangle \approx \alpha \langle u, w \rangle + \langle v, w \rangle$
+    """
+    v_elements = _require_samples(v_samples)
+    r_elements = _require_samples(r_samples)
+
+    res = verify_normed_space_laws(space, r_elements, v_elements, tol)
+
+    cs = True
+    for u, v in itertools.combinations(v_elements, 2):
+        if not verify_cauchy_schwarz(space, u, v, tol):
+            cs = False
+            break
+
+    pl = True
+    for u, v in itertools.combinations(v_elements, 2):
+        if not verify_parallelogram_law(space, u, v, tol):
+            pl = False
+            break
+
+    sym = True
+    for u, v in itertools.combinations(v_elements, 2):
+        uv = space.inner(u, v)
+        vu = space.inner(v, u)
+        if isinstance(vu, complex):
+            vu = vu.conjugate()
+        if not semiring_elements_equal(uv, vu, tol):
+            sym = False
+            break
+
+    lin = True
+    w = v_elements[0]
+    for r in r_elements:
+        for u, v in itertools.combinations(v_elements, 2):
+            lhs = space.inner(space.add(space.smul(r, u), v), w)
+            uw = space.inner(u, w)
+            vw = space.inner(v, w)
+            if isinstance(r, (int, float, complex)) and isinstance(uw, (int, float, complex)):
+                rhs = r * uw + vw
+            else:
+                rhs = space.add(space.smul(r, uw), vw)  # type: ignore[arg-type]
+            if not semiring_elements_equal(lhs, rhs, tol):
+                lin = False
+                break
+        if not lin:
+            break
+
+    res['cauchy_schwarz'] = cs
+    res['parallelogram_law'] = pl
+    res['conjugate_symmetry'] = sym
+    res['first_argument_linearity'] = lin
+    return res
+

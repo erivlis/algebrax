@@ -78,6 +78,8 @@ def test_atomic_mixin_exports():
         'HasContains',
         'HasReduce',
         'HasGenerator',
+        'HasNorm',
+        'HasInner',
     ]
     for name in expected_mixins:
         cls = getattr(alg, name)

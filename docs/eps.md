@@ -162,13 +162,13 @@ homomorphisms, ideals, canonical quotients, and functorial cellular sheaves.
 
 | EP                                                                                        | Title                                                           | Council Sponsor         |         Status          |
 |:------------------------------------------------------------------------------------------|:----------------------------------------------------------------|:------------------------|:-----------------------:|
-| [EP-0200](proposals/EP-0200-categorical-abstractions-and-enriched-matrices.md)            | Categorical Abstractions & Enriched Matrix Mechanics            | 🧩 Russell & ⚡ Shannon | :material-pencil: Draft |
-| [EP-0201](proposals/EP-0201-algebraic-homomorphisms-ideals-quotients.md)                  | Algebraic Homomorphisms, Ideals & Canonical Quotients           | ⚖️ Noether & 🧩 Russell | :material-pencil: Draft |
-| [EP-0202](proposals/EP-0202-functorial-sheaves-and-categorical-dec.md)                    | Functorial Sheaves & Categorical DEC                            | ⚖️ Noether & 🔬 Popper  | :material-pencil: Draft |
-| [EP-0203](proposals/EP-0203-discrete-fiber-bundles-and-gauge-connections.md)              | Discrete Fiber Bundles & Gauge Connections                      | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
-| [EP-0204](proposals/EP-0204-non-associative-quantum-algebras-jordan-octonions-poisson.md) | Non-Associative & Quantum Algebras (Jordan, Octonions, Poisson) | ⚖️ Noether & 🧩 Russell | :material-pencil: Draft |
-| [EP-0205](proposals/EP-0205-normed-banach-hilbert-spaces-and-rkhs.md)                     | Normed, Banach & Hilbert Spaces (Inner Products, RKHS)          | ⚡ Shannon & 🔬 Popper  | :material-pencil: Draft |
-| [EP-0206](proposals/EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)                   | Coalgebras, Bialgebras & Hopf Algebras                          | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
+| [EP-0200](proposals/EP-0200-categorical-abstractions-and-enriched-matrices.md)            | Categorical Abstractions & Enriched Matrix Mechanics            | 🧩 Russell & ⚡ Shannon | :material-check-all: Final |
+| [EP-0201](proposals/EP-0201-algebraic-homomorphisms-ideals-quotients.md)                  | Algebraic Homomorphisms, Ideals & Canonical Quotients           | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
+| [EP-0202](proposals/EP-0202-functorial-sheaves-and-categorical-dec.md)                    | Functorial Sheaves & Categorical DEC                            | ⚖️ Noether & 🔬 Popper  | :material-check-all: Final |
+| [EP-0203](proposals/EP-0203-discrete-fiber-bundles-and-gauge-connections.md)              | Discrete Fiber Bundles & Gauge Connections                      | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
+| [EP-0204](proposals/EP-0204-non-associative-quantum-algebras-jordan-octonions-poisson.md) | Non-Associative & Quantum Algebras (Jordan, Octonions, Poisson) | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
+| [EP-0205](proposals/EP-0205-normed-banach-hilbert-spaces-and-rkhs.md)                     | Normed, Banach & Hilbert Spaces (Inner Products, RKHS)          | ⚡ Shannon & 🔬 Popper  | :material-check-all: Final |
+| [EP-0206](proposals/EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)                   | Coalgebras, Bialgebras & Hopf Algebras                          | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft    |
 | [EP-0207](proposals/EP-0207-topological-k-theory-and-characteristic-classes.md)           | Topological K-Theory & Characteristic Classes                   | ⚖️ Noether & 🧩 Russell | :material-pencil: Draft |
 | [EP-0208](proposals/EP-0208-categorical-type-theory-and-homotopy-groupoids.md)            | Categorical Type Theory & Homotopy Groupoids                    | 🧩 Russell & 🛡️ Golem   | :material-pencil: Draft |
 | [EP-0209](proposals/EP-0209-langlands-root-duality-hecke-padic-valuations.md)             | Langlands Root Duality, Hecke & p-Adic Valuations               | ⚖️ Noether & 🔬 Popper  | :material-pencil: Draft |

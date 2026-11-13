@@ -2,7 +2,7 @@
 title: "EP-0205: Normed, Banach & Hilbert Spaces — Inner Products, RKHS & Contractions"
 description: "Equip VectorSpace with metric geometry: vector and matrix p-norms, inner product spaces (finite-dimensional Hilbert spaces), Reproducing Kernel Hilbert Spaces (RKHS), and certified Banach contraction solvers."
 icon: lucide/maximize-2
-status: draft
+status: final
 ---
 
 # EP-0205: Normed, Banach & Hilbert Spaces — Inner Products, RKHS & Contractions
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                           |
 | **Sponsor**       | Core Maintainers                                                      |
 | **Delegate**      | ⚡ Shannon (Sparse Norms) & 🔬 Popper (Cauchy-Schwarz Invariants)     |
-| **Status**        | Draft                                                                 |
+| **Status**        | Final                                                                 |
 | **Type**          | Standards Track                                                       |
 | **Created**       | 2026-10-28                                                            |
-| **Updated**       | 2026-10-28                                                            |
+| **Updated**       | 2026-11-13                                                            |
 | **Replaces**      | —                                                                     |
 | **Superseded-By** | —                                                                     |
 
@@ -267,3 +267,4 @@ Prototypes of `norm_p`, `InnerProductSpace`, and `BanachContractionVerifier` wer
 ## Change Log
 
 - **2026-10-28**: Initial draft authored following Council consensus.
+- **2026-11-13**: Implemented `HasNorm` and `HasInner` in `algebrax.algebra._mixins`, `NormedSpace` and `InnerProductSpace` in `algebrax.algebra._normed`, sparse norms, Gram-Schmidt and `EuclideanSpace` in `algebrax.analysis.normed`, Mercer kernels and RKHS in `algebrax.analysis.rkhs`, and Banach contraction solvers in `algebrax.analysis.contraction`. Verified via `algebrax.verification` and promoted status to Final.

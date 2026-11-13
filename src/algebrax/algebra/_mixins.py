@@ -18,6 +18,8 @@ Algebraic Signatures:
     HasOp:         $\langle V, \operatorname{op} \rangle$
     HasIdentity:   $\langle V, \operatorname{identity} \rangle$
     HasBracket:    $\langle V, [\cdot, \cdot] \rangle$
+    HasNorm:       $\langle V, \|\cdot\| \rangle$
+    HasInner:      $\langle R, V, \langle \cdot, \cdot \rangle \rangle$
 
 Law Witnesses (EP-0005, EP-0197):
     LawCommutative, LawAnticommutative, LawAssociative,
@@ -260,6 +262,28 @@ class HasGenerator(Protocol[V]):
 
     @property
     def generator(self) -> V: ...
+
+
+@runtime_checkable
+class HasNorm(Protocol[V]):
+    r"""Atomic operational mixin for structures equipped with a norm $\|v\| \ge 0$.
+
+    Algebraic Signature:
+        $\|\cdot\|: V \to \mathbb{R}_{\ge 0}$
+    """
+
+    def norm(self, v: V) -> float: ...
+
+
+@runtime_checkable
+class HasInner(Protocol[R, V]):
+    r"""Atomic operational mixin for structures equipped with a scalar inner product $\langle u, v \rangle$.
+
+    Algebraic Signature:
+        $\langle \cdot, \cdot \rangle: V \times V \to R$
+    """
+
+    def inner(self, u: V, v: V) -> R: ...
 
 
 # =============================================================================
