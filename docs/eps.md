@@ -150,6 +150,7 @@ lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 | [EP-0195](proposals/EP-0195-canonical-core-consolidation.md)                       | Canonical Core Consolidation & Deprecation Purge                              | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
 | [EP-0196](proposals/EP-0196-peripheral-ecosystem-realignment.md)                   | Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides) | 🎨 Feynman & ⏱️ Shannon  |  :material-pencil: Draft   |
 | [EP-0197](proposals/EP-0197-decoupled-semiring-foundations-star-semirings-and-kleene-algebras.md) | Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
+| [EP-0198](proposals/EP-0198-generalized-closure-operators-kleene-plus-matrix-star-and-action-algebras.md) | Generalized Closure Operators — Kleene Plus, Matrix Star & Action Algebras | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
 
 ---
 
@@ -168,7 +169,7 @@ homomorphisms, ideals, canonical quotients, and functorial cellular sheaves.
 | [EP-0203](proposals/EP-0203-discrete-fiber-bundles-and-gauge-connections.md)              | Discrete Fiber Bundles & Gauge Connections                      | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
 | [EP-0204](proposals/EP-0204-non-associative-quantum-algebras-jordan-octonions-poisson.md) | Non-Associative & Quantum Algebras (Jordan, Octonions, Poisson) | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 | [EP-0205](proposals/EP-0205-normed-banach-hilbert-spaces-and-rkhs.md)                     | Normed, Banach & Hilbert Spaces (Inner Products, RKHS)          | ⚡ Shannon & 🔬 Popper  | :material-check-all: Final |
-| [EP-0206](proposals/EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)                   | Coalgebras, Bialgebras & Hopf Algebras                          | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft    |
+| [EP-0206](proposals/EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)                   | Coalgebras, Bialgebras & Hopf Algebras                          | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
 | [EP-0207](proposals/EP-0207-topological-k-theory-and-characteristic-classes.md)           | Topological K-Theory & Characteristic Classes                   | ⚖️ Noether & 🧩 Russell | :material-pencil: Draft |
 | [EP-0208](proposals/EP-0208-categorical-type-theory-and-homotopy-groupoids.md)            | Categorical Type Theory & Homotopy Groupoids                    | 🧩 Russell & 🛡️ Golem   | :material-pencil: Draft |
 | [EP-0209](proposals/EP-0209-langlands-root-duality-hecke-padic-valuations.md)             | Langlands Root Duality, Hecke & p-Adic Valuations               | ⚖️ Noether & 🔬 Popper  | :material-pencil: Draft |

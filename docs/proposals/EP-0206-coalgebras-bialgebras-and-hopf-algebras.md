@@ -2,7 +2,7 @@
 title: "EP-0206: Coalgebras, Bialgebras & Hopf Algebras — Duality & Quantum Symmetries"
 description: "Formalize the arrow-reversal dual of algebras: Coalgebras with comultiplication, Bialgebras, and Hopf algebras with antipodes, unifying the Alexander-Whitney topological coproduct, divided power moments, and quantum symmetries."
 icon: lucide/git-fork
-status: draft
+status: final
 ---
 
 # EP-0206: Coalgebras, Bialgebras & Hopf Algebras — Duality & Quantum Symmetries
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                 |
 | **Sponsor**       | Core Maintainers                                                            |
 | **Delegate**      | ⚖️ Noether (Antipodes & Conserved Duality) & ⚡ Shannon (Sparse Coproducts) |
-| **Status**        | Draft                                                                       |
+| **Status**        | Final                                                                       |
 | **Type**          | Standards Track                                                             |
 | **Created**       | 2026-10-28                                                                  |
-| **Updated**       | 2026-10-28                                                                  |
+| **Updated**       | 2026-11-13                                                                  |
 | **Replaces**      | —                                                                           |
 | **Superseded-By** | —                                                                           |
 
