@@ -2,7 +2,7 @@
 title: "EP-0198: Generalized Closure Operators — Kleene Plus, Matrix Star Closure & Action Algebras"
 description: "Extends AlgebraX's closure hierarchy with strict Kleene plus, universal Conway matrix star closure, and residuated Action Algebras."
 icon: lucide/repeat
-status: draft
+status: final
 ---
 
 # EP-0198: Generalized Closure Operators — Kleene Plus, Matrix Star Closure & Action Algebras
@@ -14,7 +14,7 @@ status: draft
 | **Author** | Eran Rivlis <eran@algebrax.org>, Antigravity AI |
 | **Sponsor** | ⚖️ Noether (Symmetry & Invariance), 🧩 Russell (Taxonomy & Consistency) |
 | **Delegate** | 🔬 Popper (Falsifiability & Multi-Layered Testing) |
-| **Status** | Draft |
+| **Status** | Final |
 | **Type** | Standards Track |
 | **Created** | 2026-11-13 |
 | **Updated** | 2026-11-13 |
@@ -135,7 +135,7 @@ class ActionAlgebra(
         $b \le a \backslash (a \cdot b)$
         $(b / a) \cdot a \le b$
         $b \le (b \cdot a) / a$
-        $a^* \le (a \backslash a)^*$
+        $(a \backslash a)^* \le a \backslash a \quad\text{and}\quad (a / a)^* \le a / a$
     """
 
     ...
@@ -247,5 +247,8 @@ def _block_star_2x2(a11, a12, a21, a22, s: StarSemiring[V]):
 
 ## Change Log
 
+* **2026-11-13:**
+  * Implemented and validated via multi-tier verification suites (`tests/algebrax/test_action.py`).
+  * Promoted to **Final** status following consensus and complete quality gate pass.
 * **2026-11-13:**
   * Initial Draft authored by Eran Rivlis and Antigravity AI following architectural consensus on generalized closure mechanisms.

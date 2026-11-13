@@ -150,7 +150,7 @@ lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 | [EP-0195](proposals/EP-0195-canonical-core-consolidation.md)                       | Canonical Core Consolidation & Deprecation Purge                              | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 | [EP-0196](proposals/EP-0196-peripheral-ecosystem-realignment.md)                   | Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides) | 🎨 Feynman & ⏱️ Shannon  | :material-check-all: Final |
 | [EP-0197](proposals/EP-0197-decoupled-semiring-foundations-star-semirings-and-kleene-algebras.md) | Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
-| [EP-0198](proposals/EP-0198-generalized-closure-operators-kleene-plus-matrix-star-and-action-algebras.md) | Generalized Closure Operators — Kleene Plus, Matrix Star & Action Algebras | ⚖️ Noether & 🧩 Russell |  :material-pencil: Draft   |
+| [EP-0198](proposals/EP-0198-generalized-closure-operators-kleene-plus-matrix-star-and-action-algebras.md) | Generalized Closure Operators — Kleene Plus, Matrix Star & Action Algebras | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 
 ---
 
