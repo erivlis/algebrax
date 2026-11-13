@@ -68,6 +68,8 @@ def test_atomic_mixin_exports():
         'HasInv',
         'HasScale',
         'HasStar',
+        'HasPlus',
+        'HasResiduals',
         'HasJoin',
         'HasMeet',
         'HasBounds',
@@ -151,6 +153,7 @@ def test_two_sorted_protocol_parameter_order():
 def test_structural_protocol_attrs_lattice():
     """Verify __protocol_attrs__ forms a strict subset lattice across the algebraic hierarchy."""
     from algebrax.algebra import (
+        ActionAlgebra,
         AddCommGroup,
         AddCommMonoid,
         AddGroup,
@@ -268,14 +271,26 @@ def test_structural_protocol_attrs_lattice():
     assert attrs(AddMonoid) < attrs(Semiring) == {'zero', 'add', 'one', 'mul'}
     assert attrs(Monoid) < attrs(Semiring)
     assert attrs(Semiring) < attrs(Ring)
-    assert attrs(Semiring) < attrs(StarSemiring) == {'zero', 'add', 'one', 'mul', 'star'}
+    assert attrs(Semiring) < attrs(StarSemiring) == {'zero', 'add', 'one', 'mul', 'star', 'plus'}
     assert attrs(StarSemiring) < attrs(KleeneAlgebra) == {
         'zero',
         'add',
         'one',
         'mul',
         'star',
+        'plus',
         'is_idempotent',
+    }
+    assert attrs(KleeneAlgebra) < attrs(ActionAlgebra) == {
+        'zero',
+        'add',
+        'one',
+        'mul',
+        'star',
+        'plus',
+        'is_idempotent',
+        'ldiv',
+        'rdiv',
     }
 
     # Module & Algebra chain
