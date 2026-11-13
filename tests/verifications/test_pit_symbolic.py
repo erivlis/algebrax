@@ -262,3 +262,49 @@ def test_pit_non_associative_jordan_and_alternative_identities() -> None:
 
         for k in range(8):
             assert math.isclose(lhs_alt.get(k, 0.0), rhs_alt.get(k, 0.0), rel_tol=1e-10, abs_tol=1e-10)
+
+
+# ---------------------------------------------------------------------------
+# PIT 6: Hopf Algebras (EP-0206) — Antipode Axiom & Coassociativity
+# ---------------------------------------------------------------------------
+
+
+def test_pit_hopf_algebra_antipode_and_coassociativity() -> None:
+    """Verify Hopf algebra antipode axiom and coassociativity under randomized rational trials."""
+    from algebrax.algebra import DividedPowerCoalgebra, Group, GroupHopfAlgebra
+    from algebrax.verification import verify_antipode_axiom, verify_coassociativity, verify_counitality
+
+    class CyclicGroup6(Group[int]):
+        @property
+        def zero(self) -> int:
+            return 0
+
+        @property
+        def one(self) -> int:
+            return 0
+
+        def mul(self, x: int, y: int) -> int:
+            return (x + y) % 6
+
+        def inv(self, x: int) -> int:
+            return (-x) % 6
+
+        def div(self, x: int, y: int) -> int:
+            return (x - y) % 6
+
+    gh = GroupHopfAlgebra(CyclicGroup6())
+    dpc = DividedPowerCoalgebra()
+    rng = random.Random(9990206)
+
+    for _ in range(NUM_TRIALS):
+        # 1. Random group algebra linear combinations
+        gh_sample = {g: float(rng.randint(-50, 50)) for g in range(6)}
+        assert verify_coassociativity(gh, [gh_sample])
+        assert verify_counitality(gh, [gh_sample])
+        assert verify_antipode_axiom(gh, [gh_sample])
+
+        # 2. Random divided power sequence element
+        dpc_sample = {deg: float(rng.randint(-30, 30)) for deg in range(5)}
+        assert verify_coassociativity(dpc, [dpc_sample])
+        assert verify_counitality(dpc, [dpc_sample])
+

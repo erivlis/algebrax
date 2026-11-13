@@ -414,3 +414,52 @@ def test_mms_discrete_connection_holonomy_and_curvature() -> None:
         for j in range(2):
             assert math.isclose(face_hol[i][j], expected_hol[i][j], rel_tol=1e-12, abs_tol=1e-12)
 
+
+# ---------------------------------------------------------------------------
+# 7. EP-0206: Alexander-Whitney Duality & Coalgebra MMS
+# ---------------------------------------------------------------------------
+
+
+def test_mms_alexander_whitney_duality_with_cup_product() -> None:
+    r"""Verify Alexander-Whitney duality: <alpha \smile \beta, \sigma> == <alpha \otimes \beta, \Delta(\sigma)>.
+
+    For arbitrary simplicial cochains \alpha \in C^p, \beta \in C^q and simplices \sigma \in C_{p+q},
+    the cup product value on \sigma must equal the tensor contraction with the Alexander-Whitney coproduct.
+    """
+    from algebrax.topology import SimplicialChainCoalgebra, cup_product
+
+    scc = SimplicialChainCoalgebra()
+
+    # Case 1: 1-cochains on 2-simplex (0, 1, 2)
+    alpha_1 = {(0, 1): 2.5, (0, 2): 1.0, (1, 2): 3.0}
+    beta_1 = {(1, 2): 4.0, (0, 1): -2.0}
+
+    sigma_2 = (0, 1, 2)
+    cup_12 = cup_product(alpha_1, beta_1)
+    eval_cup_2 = cup_12.get(sigma_2, 0.0)
+
+    delta_sigma_2 = scc.coproduct({sigma_2: 1.0})
+    eval_dual_2 = sum(
+        coeff * alpha_1.get(front, 0.0) * beta_1.get(back, 0.0)
+        for (front, back), coeff in delta_sigma_2.items()
+    )
+    assert math.isclose(eval_cup_2, eval_dual_2, rel_tol=1e-12, abs_tol=1e-12)
+    assert math.isclose(eval_cup_2, 2.5 * 4.0, rel_tol=1e-12, abs_tol=1e-12)
+
+    # Case 2: 1-cochain and 2-cochain on 3-simplex (0, 1, 2, 3)
+    alpha_edge = {(0, 1): 1.5, (1, 2): -2.0}
+    beta_face = {(1, 2, 3): 3.5, (0, 1, 2): 4.0}
+
+    sigma_3 = (0, 1, 2, 3)
+    cup_edge_face = cup_product(alpha_edge, beta_face)
+    eval_cup_3 = cup_edge_face.get(sigma_3, 0.0)
+
+    delta_sigma_3 = scc.coproduct({sigma_3: 1.0})
+    eval_dual_3 = sum(
+        coeff * alpha_edge.get(front, 0.0) * beta_face.get(back, 0.0)
+        for (front, back), coeff in delta_sigma_3.items()
+    )
+    assert math.isclose(eval_cup_3, eval_dual_3, rel_tol=1e-12, abs_tol=1e-12)
+    assert math.isclose(eval_cup_3, 1.5 * 3.5, rel_tol=1e-12, abs_tol=1e-12)
+
+
