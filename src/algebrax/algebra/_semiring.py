@@ -188,6 +188,16 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
 
     create = normalize
 
+    @classmethod
+    def __subclasshook__(cls, subclass: type) -> bool:
+        if cls is Semiring:
+            attrs = {'zero', 'one', 'add', 'mul'}
+            return all(
+                any(attr in B.__dict__ or attr in getattr(B, '__annotations__', {}) for B in subclass.__mro__)
+                for attr in attrs
+            )
+        return NotImplemented
+
 
 # Explicitly restrict structural protocol attrs to pure algebraic operations,
 # excluding utility classmethods/staticmethods (normalize, catalog, default, etc.)
