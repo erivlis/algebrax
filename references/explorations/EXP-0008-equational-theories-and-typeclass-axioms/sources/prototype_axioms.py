@@ -220,23 +220,37 @@ class ProposedLieSo3(ProposedMalcevAlgebra[float, dict[int, float]]):
 
 def run_demonstration() -> None:
     print("=== EXP-0008 Empirical Demonstration ===")
-    
+
     # 1. Baseline False Positive Collision
     so3_old = BaselineLieSo3()
     print("\n1. Baseline Structural Subtyping (Status Quo):")
-    print(f"   isinstance(so3, BaselineMalcevAlgebra):     {isinstance(so3_old, BaselineMalcevAlgebra)} (Expected True)")
-    print(f"   isinstance(so3, BaselineJordanAlgebra):     {isinstance(so3_old, BaselineJordanAlgebra)} (ERROR: False Positive! Lie != Jordan)")
-    print(f"   isinstance(so3, BaselineAlternativeAlgebra):{isinstance(so3_old, BaselineAlternativeAlgebra)} (ERROR: False Positive! Lie != Alternative)")
-    
+    print(
+        f"   isinstance(so3, BaselineMalcevAlgebra):     {isinstance(so3_old, BaselineMalcevAlgebra)} (Expected True)"
+    )
+    print(
+        f"   isinstance(so3, BaselineJordanAlgebra):     {isinstance(so3_old, BaselineJordanAlgebra)} "
+        "(ERROR: False Positive! Lie != Jordan)"
+    )
+    print(
+        f"   isinstance(so3, BaselineAlternativeAlgebra):{isinstance(so3_old, BaselineAlternativeAlgebra)} "
+        "(ERROR: False Positive! Lie != Alternative)"
+    )
+
     # 2. Proposed Axiom & Operational Separation
     so3_new = ProposedLieSo3()
     print("\n2. Proposed Axiom-Witness Subtyping (Pillars 2 & 3):")
     print(f"   isinstance(so3, ProposedMalcevAlgebra):     {isinstance(so3_new, ProposedMalcevAlgebra)} (True)")
-    print(f"   isinstance(so3, ProposedJordanAlgebra):     {isinstance(so3_new, ProposedJordanAlgebra)} (Correctly False!)")
-    print(f"   isinstance(so3, ProposedAlternativeAlgebra):{isinstance(so3_new, ProposedAlternativeAlgebra)} (Correctly False!)")
+    print(
+        f"   isinstance(so3, ProposedJordanAlgebra):     {isinstance(so3_new, ProposedJordanAlgebra)} "
+        "(Correctly False!)"
+    )
+    print(
+        f"   isinstance(so3, ProposedAlternativeAlgebra):{isinstance(so3_new, ProposedAlternativeAlgebra)} "
+        "(Correctly False!)"
+    )
     print(f"   isinstance(so3, LawAnticommutative):        {isinstance(so3_new, LawAnticommutative)} (True)")
     print(f"   isinstance(so3, LawCommutative):            {isinstance(so3_new, LawCommutative)} (Correctly False!)")
-    
+
     # 3. Canonical Derived Operations for free
     e1, e2, e3 = {0: 1.0}, {1: 1.0}, {2: 1.0}
     jac = so3_new.jacobian(e1, e2, e3)
