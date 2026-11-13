@@ -1,3 +1,26 @@
+## v0.14.0 (2026-11-13)
+
+### Feat
+
+- add Action Algebra and related operations for matrix closures
+- **topology**: implement SimplicialChainCoalgebra with Alexander-Whitney coproduct
+- **algebra**: add Coalgebra, Bialgebra, and Hopf Algebra implementations with associated mixins and verification functions
+- **analysis**: implement EP-0205 normed spaces, Hilbert spaces, RKHS, and Banach contractions
+- enhance algebra classes with new law mixins and type safety checks
+- decouple semiring foundations into pure rigs, star semirings, and Kleene algebras with updated protocols and verification methods
+- add new non-associative algebra classes and update documentation for Jordan, Alternative, Malcev, and Poisson algebras
+- add non-associative algebra classes and verification functions for Jordan, Alternative, Malcev, and Poisson algebras
+- add DiscreteConnection and DiscreteOrthogonalConnection classes for discrete fiber bundles
+- introduce CellPosetCategory and related classes for cellular sheaf structures
+
+### Fix
+
+- implement __subclasshook__ for Semiring to enforce structural protocol attributes
+
+### Refactor
+
+- improve output formatting in run_demonstration function
+
 ## v0.13.0 (2026-11-12)
 
 ### Feat
