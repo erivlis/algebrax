@@ -307,6 +307,14 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Coalgebras, Bialgebras & Hopf Algebras
+* **Files**: [`coalgebras_and_hopf_symmetries.py`](https://github.com/erivlis/algebrax/blob/main/recipes/coalgebras_and_hopf_symmetries.py) | [`coalgebras_and_hopf_symmetries.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/coalgebras_and_hopf_symmetries.ipynb)
+* **Run**: `uv run recipes/coalgebras_and_hopf_symmetries.py`
+* **Components**: `algebra.Coalgebra`, `algebra.Bialgebra`, `algebra.HopfAlgebra`, `algebra.GroupHopfAlgebra`, `algebra.DividedPowerCoalgebra`, `topology.SimplicialChainCoalgebra`, `topology.cup_product`
+* **Summary**: Explores arrow-reversal categorical duality, quantum antipodes ($S(g) = g^{-1}$), divided power moment decompositions, and Alexander-Whitney simplicial comultiplication establishing exact linear duality with the cohomology cup product $\langle \alpha \smile \beta, \sigma \rangle = \langle \alpha \otimes \beta, \Delta(\sigma) \rangle$.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
