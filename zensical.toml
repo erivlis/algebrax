@@ -48,6 +48,7 @@ nav = [
             "guide/algebra/modules_and_vector_spaces.md",
             "guide/algebra/clifford_geometric_algebra.md",
             "guide/algebra/lie_algebras.md",
+            "guide/algebra/coalgebras_and_hopf.md",
             "guide/tensor/trie.md",
             "guide/tensor/einsum.md",
         ] },
