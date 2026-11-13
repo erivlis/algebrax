@@ -218,3 +218,126 @@ def test_metamorphic_graph_laplacian_permutation_conjugacy() -> None:
             expected_lap_perm[pu][pv] = val
 
     assert semiring_elements_equal(lap_perm, expected_lap_perm, tol=1e-10)
+
+
+# ---------------------------------------------------------------------------
+# Metamorphic Relation 7: Denjoy-Conway Sum-Star Identity (A + B)* == (A* B)* A*
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    'semiring',
+    [
+        BooleanSemiring(),
+        TropicalSemiring(),
+    ],
+)
+def test_metamorphic_sum_star_conway_identity(semiring: Any) -> None:
+    r"""Verify the fundamental Denjoy-Conway sum-star identity: (A + B)* == (A* · B)* · A*."""
+    if isinstance(semiring, BooleanSemiring):
+        a = {0: {1: True}, 1: {2: False}}
+        b = {1: {2: True}, 2: {0: True}}
+    else:
+        a = {0: {1: 2.0}, 1: {2: 10.0}}
+        b = {1: {2: 3.0}, 2: {0: 4.0}}
+
+    # LHS: (A + B)*
+    a_plus_b = ax.matrix.add(a, b, semiring=semiring)
+    lhs = ax.matrix.star(a_plus_b, semiring=semiring)
+
+    # RHS: (A* · B)* · A*
+    a_star = ax.matrix.star(a, semiring=semiring)
+    astar_b = ax.matrix.dot(a_star, b, semiring=semiring)
+    astar_b_star = ax.matrix.star(astar_b, semiring=semiring)
+    rhs = ax.matrix.dot(astar_b_star, a_star, semiring=semiring)
+
+    assert semiring_elements_equal(lhs, rhs, tol=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# Metamorphic Relation 8: Product-Star Sliding Identity (A · B)* · A == A · (B · A)*
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    'semiring',
+    [
+        BooleanSemiring(),
+        TropicalSemiring(),
+    ],
+)
+def test_metamorphic_product_star_sliding_identity(semiring: Any) -> None:
+    r"""Verify the Conway product-star sliding identity: (A · B)* · A == A · (B · A)*."""
+    if isinstance(semiring, BooleanSemiring):
+        a = {0: {1: True}, 1: {0: True}}
+        b = {0: {0: False, 1: True}, 1: {1: True}}
+    else:
+        a = {0: {1: 1.0}, 1: {0: 3.0}}
+        b = {0: {1: 2.0}, 1: {1: 4.0}}
+
+    ab = ax.matrix.dot(a, b, semiring=semiring)
+    ba = ax.matrix.dot(b, a, semiring=semiring)
+
+    # LHS: (A · B)* · A
+    ab_star = ax.matrix.star(ab, semiring=semiring)
+    lhs = ax.matrix.dot(ab_star, a, semiring=semiring)
+
+    # RHS: A · (B · A)*
+    ba_star = ax.matrix.star(ba, semiring=semiring)
+    rhs = ax.matrix.dot(a, ba_star, semiring=semiring)
+
+    assert semiring_elements_equal(lhs, rhs, tol=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# Metamorphic Relation 9: Permutation Equivariance of Star and Plus Closures
+# ---------------------------------------------------------------------------
+
+
+def test_metamorphic_matrix_closure_permutation_equivariance() -> None:
+    r"""Verify that graph node permutation commutes with star and plus closures:
+    star(P · A · P^T) == P · star(A) · P^T and plus(P · A · P^T) == P · plus(A) · P^T.
+    """
+    b = BooleanSemiring()
+    adj = {
+        0: {1: True},
+        1: {2: True},
+        2: {0: False},
+    }
+    perm = {0: 2, 1: 0, 2: 1}
+
+    # Permute input graph
+    adj_perm: dict[int, dict[int, bool]] = {}
+    for u, neighbors in adj.items():
+        pu = perm[u]
+        adj_perm[pu] = {}
+        for v, val in neighbors.items():
+            pv = perm[v]
+            adj_perm[pu][pv] = val
+
+    # 1. Star closure equivariance
+    star_orig = ax.matrix.star(adj, b)
+    star_perm = ax.matrix.star(adj_perm, b)
+    expected_star_perm: dict[int, dict[int, bool]] = {}
+    for u, row in star_orig.items():
+        pu = perm[u]
+        expected_star_perm[pu] = {}
+        for v, val in row.items():
+            pv = perm[v]
+            expected_star_perm[pu][pv] = val
+
+    assert semiring_elements_equal(star_perm, expected_star_perm, tol=1e-9)
+
+    # 2. Plus closure equivariance
+    plus_orig = ax.matrix.plus(adj, b)
+    plus_perm = ax.matrix.plus(adj_perm, b)
+    expected_plus_perm: dict[int, dict[int, bool]] = {}
+    for u, row in plus_orig.items():
+        pu = perm[u]
+        expected_plus_perm[pu] = {}
+        for v, val in row.items():
+            pv = perm[v]
+            expected_plus_perm[pu][pv] = val
+
+    assert semiring_elements_equal(plus_perm, expected_plus_perm, tol=1e-9)
+

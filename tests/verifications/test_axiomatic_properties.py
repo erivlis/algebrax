@@ -17,6 +17,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from algebrax.algebra import RelationActionAlgebra
 from algebrax.semiring import (
     ArcticSemiring,
     BooleanSemiring,
@@ -33,7 +34,14 @@ from algebrax.semiring import (
     TropicalSemiring,
     ViterbiSemiring,
 )
-from algebrax.verification import get_semiring_samples, semiring_elements_equal, verify_semiring_laws
+from algebrax.verification import (
+    get_semiring_samples,
+    semiring_elements_equal,
+    verify_action_algebra_laws,
+    verify_matrix_conway_laws,
+    verify_semiring_laws,
+    verify_star_plus_consistency,
+)
 
 pytestmark = [pytest.mark.verification, pytest.mark.axiomatic]
 
@@ -288,3 +296,58 @@ def test_all_34_catalog_semirings_laws_and_nsum_power_consistency(semiring_name:
                 assert semiring_elements_equal(zero_star, semiring.one, tol=1e-6)
         except NotImplementedError:
             pass
+
+
+def test_action_algebra_axiomatic_laws() -> None:
+    """Verify ActionAlgebra equational axioms (residuals + pure induction) on concrete instances."""
+    # 1. Boolean Action Algebra
+    b = BooleanSemiring()
+    res_b = verify_action_algebra_laws(b, [False, True])
+    for axiom, passed in res_b.items():
+        assert passed, f"BooleanSemiring failed action algebra axiom '{axiom}'"
+
+    # 2. Relation Action Algebra
+    rel_alg = RelationActionAlgebra((0, 1, 2))
+    samples = [
+        rel_alg.zero,
+        rel_alg.one,
+        frozenset({(0, 1)}),
+        frozenset({(1, 2)}),
+        frozenset({(0, 1), (1, 2)}),
+    ]
+    res_rel = verify_action_algebra_laws(rel_alg, samples)
+    for axiom, passed in res_rel.items():
+        assert passed, f"RelationActionAlgebra failed action algebra axiom '{axiom}'"
+
+
+def test_matrix_conway_closure_axiomatic_properties() -> None:
+    """Verify universal Conway block matrix closure laws across multiple semirings."""
+    # 1. Boolean Semiring Transitive Reachability
+    b = BooleanSemiring()
+    graph_bool = {
+        0: {1: True, 2: False},
+        1: {2: True},
+        2: {0: False},
+    }
+    res_bool = verify_matrix_conway_laws(graph_bool, b)
+    assert all(res_bool.values()), f'Conway matrix laws failed on Boolean: {res_bool}'
+
+    # 2. Tropical Semiring Shortest Paths
+    trop = TropicalSemiring()
+    graph_trop = {
+        0: {1: 2.0, 2: 7.0},
+        1: {2: 1.5, 0: 10.0},
+        2: {1: 8.0},
+    }
+    res_trop = verify_matrix_conway_laws(graph_trop, trop)
+    assert all(res_trop.values()), f'Conway matrix laws failed on Tropical: {res_trop}'
+
+    # 3. Standard Semiring Neumann Inversion (I - A)^(-1)
+    std = StandardSemiring()
+    graph_std = {
+        0: {1: 0.3},
+        1: {2: 0.4},
+    }
+    res_std = verify_matrix_conway_laws(graph_std, std)
+    assert all(res_std.values()), f'Conway matrix laws failed on Standard: {res_std}'
+
