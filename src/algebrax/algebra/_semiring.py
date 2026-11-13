@@ -12,7 +12,7 @@ from typing import Any, Literal, Protocol, TypeVar, runtime_checkable
 
 from algebrax.algebra._helpers import nsum as _nsum
 from algebrax.algebra._helpers import power as _power
-from algebrax.algebra._mixins import HasAdd, HasMul, HasOne, HasStar, HasZero, LawIdempotent
+from algebrax.algebra._mixins import HasAdd, HasMul, HasOne, HasPlus, HasStar, HasZero, LawIdempotent
 
 V = TypeVar('V')
 
@@ -195,7 +195,7 @@ Semiring.__protocol_attrs__ = frozenset({'zero', 'one', 'add', 'mul'})
 
 
 @runtime_checkable
-class StarSemiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Protocol):
+class StarSemiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], HasPlus[V], Protocol):
     r"""A Star Semiring (Closed / Conway Semiring) $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$.
 
     Equipped with a unary Kleene star closure operation $*: V \to V$ satisfying:
@@ -210,9 +210,15 @@ class StarSemiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], HasStar[V], Prot
         - `one`: Multiplicative identity element (`HasOne[V]`).
         - `mul(a, b)`: Associative multiplication (`HasMul[V]`).
         - `star(a)`: Kleene closure $\mathbf{1} + a + a^2 + \cdots$ (`HasStar[V]`).
+        - `plus(a)`: Strict positive iteration $a \cdot a^* = a^* \cdot a$ (`HasPlus[V]`).
     """
 
-    ...
+    def plus(self, a: V) -> V:
+        r"""Strict positive iteration: $a^+ = a \cdot a^*$.
+
+        In any unital star semiring, $a^+ = a \cdot a^* = a^* \cdot a$.
+        """
+        return self.mul(a, self.star(a))
 
 
 # Canonical mathematical synonyms:
@@ -227,6 +233,7 @@ class KleeneAlgebra(
     HasOne[V],
     HasMul[V],
     HasStar[V],
+    HasPlus[V],
     LawIdempotent,
     Protocol,
 ):
@@ -244,7 +251,15 @@ class KleeneAlgebra(
         - `one`: Multiplicative identity element (`HasOne[V]`).
         - `mul(a, b)`: Associative multiplication (`HasMul[V]`).
         - `star(a)`: Kleene closure $\mathbf{1} + a + a^2 + \cdots$ (`HasStar[V]`).
+        - `plus(a)`: Strict positive iteration $a \cdot a^*$ (`HasPlus[V]`).
     """
+
+    def plus(self, a: V) -> V:
+        r"""Strict positive iteration: $a^+ = a \cdot a^*$.
+
+        In any unital star semiring, $a^+ = a \cdot a^* = a^* \cdot a$.
+        """
+        return self.mul(a, self.star(a))
 
     @property
     def is_idempotent(self) -> Literal[True]:

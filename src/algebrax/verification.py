@@ -12,6 +12,7 @@ import math
 from collections.abc import Callable, Iterable, Sequence
 from typing import Any, TypeVar
 
+from algebrax.algebra._action import ActionAlgebra
 from algebrax.algebra._hopf import Bialgebra, Coalgebra, HopfAlgebra
 from algebrax.algebra._normed import InnerProductSpace, NormedSpace
 from algebrax.semiring import KleeneAlgebra, Semiring, StarSemiring
@@ -23,6 +24,7 @@ M = TypeVar('M')
 __all__ = [
     'get_semiring_samples',
     'semiring_elements_equal',
+    'verify_action_algebra_laws',
     'verify_add_comm_group_laws',
     'verify_add_comm_monoid_laws',
     'verify_add_group_laws',
@@ -64,6 +66,7 @@ __all__ = [
     'verify_lie_algebra_laws',
     'verify_magma_laws',
     'verify_malcev_laws',
+    'verify_matrix_conway_laws',
     'verify_meet_semilattice_laws',
     'verify_module_laws',
     'verify_monoid_laws',
@@ -73,6 +76,7 @@ __all__ = [
     'verify_parallelogram_law',
     'verify_poisson_laws',
     'verify_quotient_ring_laws',
+    'verify_residuation_laws',
     'verify_ring_homomorphism_laws',
     'verify_ring_laws',
     'verify_semigroup_laws',
@@ -80,6 +84,7 @@ __all__ = [
     'verify_semiring_laws',
     'verify_sheaf_functoriality',
     'verify_sheaf_laplacian_properties',
+    'verify_star_plus_consistency',
     'verify_star_semiring_laws',
     'verify_triangle_inequality',
 ]
@@ -311,6 +316,198 @@ def verify_kleene_algebra_laws(
             break
     results['add_idempotence'] = idempotent
     return results
+
+
+def verify_star_plus_consistency(
+    semiring: StarSemiring[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test consistency of Kleene star and strict plus operators:
+    - Left Star-Plus:  $a^+ \approx a \cdot a^*$
+    - Right Star-Plus: $a^+ \approx a^* \cdot a$
+    """
+    elements = list(samples)
+    mul = semiring.mul
+    star_fn = semiring.star
+    plus_fn = getattr(semiring, 'plus', lambda a: mul(a, star_fn(a)))
+
+    left_plus = True
+    right_plus = True
+    for a in elements:
+        try:
+            a_star = star_fn(a)
+            if isinstance(a_star, float) and (math.isinf(a_star) or math.isnan(a_star)):
+                continue
+            a_plus = plus_fn(a)
+            if isinstance(a_plus, float) and (math.isinf(a_plus) or math.isnan(a_plus)):
+                continue
+
+            expected_left = mul(a, a_star)
+            expected_right = mul(a_star, a)
+            if not semiring_elements_equal(a_plus, expected_left, tol):
+                left_plus = False
+            if not semiring_elements_equal(a_plus, expected_right, tol):
+                right_plus = False
+            if not left_plus or not right_plus:
+                break
+        except (ValueError, ZeroDivisionError, OverflowError, NotImplementedError):
+            continue
+
+    return {
+        'left_star_plus': left_plus,
+        'right_star_plus': right_plus,
+    }
+
+
+def verify_residuation_laws(
+    algebra: Any,
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test left and right residuation adjoint laws:
+    - Left Soundness:     $a \cdot (a \backslash b) \le b \iff a \cdot (a \backslash b) + b \approx b$
+    - Left Completeness:  $b \le a \backslash (a \cdot b)$
+                          $\iff b + a \backslash (a \cdot b) \approx a \backslash (a \cdot b)$
+    - Right Soundness:    $(b / a) \cdot a \le b \iff (b / a) \cdot a + b \approx b$
+    - Right Completeness: $b \le (b \cdot a) / a \iff b + (b \cdot a) / a \approx (b \cdot a) / a$
+    where the order in an idempotent semiring is $x \le y \iff x + y \approx y$.
+    """
+    elements = list(samples)
+    mul = algebra.mul
+    add = algebra.add
+    ldiv = algebra.ldiv
+    rdiv = algebra.rdiv
+
+    left_sound = True
+    left_comp = True
+    right_sound = True
+    right_comp = True
+
+    for a, b in itertools.product(elements, repeat=2):
+        try:
+            # 1. Left soundness: a · (a \ b) <= b
+            a_ldiv_b = ldiv(a, b)
+            prod_left = mul(a, a_ldiv_b)
+            if not semiring_elements_equal(add(prod_left, b), b, tol):
+                left_sound = False
+
+            # 2. Left completeness: b <= a \ (a · b)
+            a_mul_b = mul(a, b)
+            ldiv_prod = ldiv(a, a_mul_b)
+            if not semiring_elements_equal(add(b, ldiv_prod), ldiv_prod, tol):
+                left_comp = False
+
+            # 3. Right soundness: (b / a) · a <= b
+            b_rdiv_a = rdiv(b, a)
+            prod_right = mul(b_rdiv_a, a)
+            if not semiring_elements_equal(add(prod_right, b), b, tol):
+                right_sound = False
+
+            # 4. Right completeness: b <= (b · a) / a
+            b_mul_a = mul(b, a)
+            rdiv_prod = rdiv(b_mul_a, a)
+            if not semiring_elements_equal(add(b, rdiv_prod), rdiv_prod, tol):
+                right_comp = False
+
+            if not (left_sound and left_comp and right_sound and right_comp):
+                break
+        except (ValueError, ZeroDivisionError, OverflowError, NotImplementedError):
+            continue
+
+    return {
+        'left_residuation_soundness': left_sound,
+        'left_residuation_completeness': left_comp,
+        'right_residuation_soundness': right_sound,
+        'right_residuation_completeness': right_comp,
+    }
+
+
+def verify_action_algebra_laws(
+    algebra: ActionAlgebra[V],
+    samples: Iterable[V],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test all Action Algebra axioms:
+    - Kleene Algebra axioms (semiring + star + addition idempotence)
+    - Star-Plus consistency: $a^+ = a \cdot a^* = a^* \cdot a$
+    - Left and right residuation laws
+    - Action induction axiom: $a^* \le (a \backslash a)^* \iff a^* + (a \backslash a)^* \approx (a \backslash a)^*$
+    """
+    res = verify_kleene_algebra_laws(algebra, samples, tol)
+    res.update(verify_star_plus_consistency(algebra, samples, tol))
+    res.update(verify_residuation_laws(algebra, samples, tol))
+
+    elements = list(samples)
+    add = algebra.add
+    star_fn = algebra.star
+    ldiv = algebra.ldiv
+    rdiv = algebra.rdiv
+
+    action_ind = True
+    for a in elements:
+        try:
+            # Pure Induction Axiom (Pratt 1990): (a \ a)* <= a \ a and (a / a)* <= a / a
+            a_ldiv_a = ldiv(a, a)
+            a_ldiv_a_star = star_fn(a_ldiv_a)
+            if not semiring_elements_equal(add(a_ldiv_a_star, a_ldiv_a), a_ldiv_a, tol):
+                action_ind = False
+                break
+
+            a_rdiv_a = rdiv(a, a)
+            a_rdiv_a_star = star_fn(a_rdiv_a)
+            if not semiring_elements_equal(add(a_rdiv_a_star, a_rdiv_a), a_rdiv_a, tol):
+                action_ind = False
+                break
+        except (ValueError, ZeroDivisionError, OverflowError, NotImplementedError):
+            continue
+
+    res['action_induction'] = action_ind
+    return res
+
+
+def verify_matrix_conway_laws(
+    matrix: Any,
+    semiring: Any = None,
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Test Conway block matrix closure axioms for a matrix A over a StarSemiring:
+    - Left Conway identity:  $A^* \approx I + A \cdot A^*$
+    - Right Conway identity: $A^* \approx I + A^* \cdot A$
+    - Plus consistency:      $A^+ \approx A \cdot A^*$
+    """
+    from algebrax.matrix.closure import matrix_plus, matrix_star
+    from algebrax.matrix.core import add, dot
+
+    sr = Semiring.normalize(semiring)
+    all_keys: set[Any] = set(matrix.keys())
+    for row in matrix.values():
+        all_keys.update(row.keys())
+
+    # Build identity matrix I over all keys
+    ident: dict[Any, dict[Any, Any]] = {k: {k: sr.one} for k in all_keys}
+
+    a_star = matrix_star(matrix, sr)
+    a_plus = matrix_plus(matrix, sr)
+
+    # 1. Left Conway: I + A · A*
+    a_dot_astar = dot(matrix, a_star, semiring=sr)
+    left_expected = add(ident, a_dot_astar, semiring=sr)
+
+    # 2. Right Conway: I + A* · A
+    astar_dot_a = dot(a_star, matrix, semiring=sr)
+    right_expected = add(ident, astar_dot_a, semiring=sr)
+
+    # 3. Plus consistency: A+ == A · A*
+    left_conway = semiring_elements_equal(a_star, left_expected, tol)
+    right_conway = semiring_elements_equal(a_star, right_expected, tol)
+    plus_cons = semiring_elements_equal(a_plus, a_dot_astar, tol)
+
+    return {
+        'matrix_left_conway': left_conway,
+        'matrix_right_conway': right_conway,
+        'matrix_plus_consistency': plus_cons,
+    }
 
 
 def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:

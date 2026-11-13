@@ -11,6 +11,8 @@ Algebraic Signatures:
     HasInv:        $\langle V, ^{-1} \rangle$
     HasScale:      $\langle R, M, \cdot_s \rangle$
     HasStar:       $\langle V, ^* \rangle$
+    HasPlus:       $\langle V, ^+ \rangle$
+    HasResiduals:  $\langle V, \backslash, / \rangle$
     HasJoin:       $\langle V, \vee \rangle$
     HasMeet:       $\langle V, \wedge \rangle$
     HasBounds:     $\langle V, \bot, \top \rangle$
@@ -151,6 +153,32 @@ class HasStar(Protocol[V]):
     """
 
     def star(self, a: V) -> V: ...
+
+
+@runtime_checkable
+class HasPlus(Protocol[V]):
+    r"""Strict non-empty iteration closure $a^+ = a \cdot a^* = a^* \cdot a$.
+
+    Algebraic Signature:
+        $\langle V, ^+ \rangle$
+    """
+
+    def plus(self, a: V) -> V: ...
+
+
+@runtime_checkable
+class HasResiduals(Protocol[V]):
+    r"""Left and right residuation / division operators adjoint to multiplication:
+    $a \cdot x \le b \iff x \le a \backslash b$ (left residual: `ldiv(a, b)`)
+    $x \cdot b \le a \iff x \le a / b$ (right residual: `rdiv(a, b)`)
+
+    Algebraic Signature:
+        $\langle V, \backslash, / \rangle$
+    """
+
+    def ldiv(self, a: V, b: V) -> V: ...
+
+    def rdiv(self, a: V, b: V) -> V: ...
 
 
 @runtime_checkable

@@ -2,6 +2,10 @@
 Unified algebraic hierarchy — Lean 4 Mathlib-aligned protocols for abstract algebra.
 """
 
+from algebrax.algebra._action import (
+    ActionAlgebra,
+    RelationActionAlgebra,
+)
 from algebrax.algebra._dual import (
     DualNumberAlgebra,
 )
@@ -95,7 +99,9 @@ from algebrax.algebra._mixins import (
     HasNorm,
     HasOne,
     HasOp,
+    HasPlus,
     HasReduce,
+    HasResiduals,
     HasScale,
     HasStar,
     HasZero,
@@ -166,6 +172,7 @@ from algebrax.algebra._semiring import (
 )
 
 __all__ = [
+    'ActionAlgebra',
     'AddCommGroup',
     'AddCommMonoid',
     'AddGroup',
@@ -214,7 +221,9 @@ __all__ = [
     'HasNorm',
     'HasOne',
     'HasOp',
+    'HasPlus',
     'HasReduce',
+    'HasResiduals',
     'HasScale',
     'HasStar',
     'HasZero',
@@ -272,6 +281,7 @@ __all__ = [
     'QuotientSemiring',
     'RationalField',
     'RealField',
+    'RelationActionAlgebra',
     'RightIdeal',
     'Ring',
     'RingHom',

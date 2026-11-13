@@ -1,4 +1,10 @@
 from algebrax.matrix import academic
+from algebrax.matrix.closure import (
+    matrix_plus,
+    matrix_star,
+    plus,
+    star,
+)
 from algebrax.matrix.core import (
     add,
     block_diag,
@@ -56,6 +62,9 @@ __all__ = [
     'laplacian_matrix',
     'lu_decompose',
     'mat_vec',
+    'matrix_plus',
+    'matrix_star',
+    'plus',
     'power',
     'qr',
     'recompose_cholesky',
@@ -64,6 +73,7 @@ __all__ = [
     'recompose_svd',
     'solve',
     'solve_triangular',
+    'star',
     'subtract',
     'svd',
     'trace',

@@ -2,10 +2,10 @@
 Logic and fuzzy set semirings.
 """
 
-from algebrax.algebra import KleeneAlgebra, Semiring
+from algebrax.algebra import ActionAlgebra, KleeneAlgebra, Semiring
 
 
-class BooleanSemiring(Semiring[bool], KleeneAlgebra[bool]):
+class BooleanSemiring(Semiring[bool], KleeneAlgebra[bool], ActionAlgebra[bool]):
     r"""The Boolean algebra semiring for reachability and connectivity.
 
     Algebraic Signature:
@@ -19,13 +19,15 @@ class BooleanSemiring(Semiring[bool], KleeneAlgebra[bool]):
         - Multiplication ($\otimes$): Logical Conjunction $a \land b$
         - Zero Element ($\mathbb{0}$): `False`
         - One Element ($\mathbb{1}$): `True`
+        - Left Residual ($\backslash$): $a \backslash b = \neg a \lor b$
+        - Right Residual ($/$): $a / b = a \lor \neg b$
 
     Properties:
-        Fully Idempotent, Distributive Lattice, Boolean Algebra, Dioid.
+        Fully Idempotent, Distributive Lattice, Boolean Algebra, Dioid, Action Algebra.
 
     Applications:
         Graph reachability, transitive closure (Warshall's algorithm), cycle detection,
-        unweighted path connectivity.
+        unweighted path connectivity, weakest precondition reasoning.
     """
 
     @property
@@ -57,6 +59,14 @@ class BooleanSemiring(Semiring[bool], KleeneAlgebra[bool]):
 
     def star(self, a: bool) -> bool:
         return True
+
+    def ldiv(self, a: bool, b: bool) -> bool:
+        r"""Left residual $a \backslash b \iff a \land x \le b \iff x \le \neg a \lor b$."""
+        return (not a) or b
+
+    def rdiv(self, a: bool, b: bool) -> bool:
+        r"""Right residual $a / b \iff x \land b \le a \iff x \le a \lor \neg b$."""
+        return (not b) or a
 
 
 class LukasiewiczSemiring(Semiring[float]):
