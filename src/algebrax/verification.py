@@ -13,6 +13,7 @@ from collections.abc import Callable, Iterable, Sequence
 from typing import Any, TypeVar
 
 from algebrax.algebra._action import ActionAlgebra
+from algebrax.algebra._grothendieck import GrothendieckGroup
 from algebrax.algebra._hopf import Bialgebra, Coalgebra, HopfAlgebra
 from algebrax.algebra._normed import InnerProductSpace, NormedSpace
 from algebrax.semiring import KleeneAlgebra, Semiring, StarSemiring
@@ -40,6 +41,8 @@ __all__ = [
     'verify_bounded_lattice_laws',
     'verify_category_laws',
     'verify_cauchy_schwarz',
+    'verify_chern_character_additivity',
+    'verify_chern_number_integrality',
     'verify_coalgebra_laws',
     'verify_coassociativity',
     'verify_coboundary_nilpotency',
@@ -54,6 +57,7 @@ __all__ = [
     'verify_field_laws',
     'verify_functor_laws',
     'verify_gauge_covariance',
+    'verify_grothendieck_universal_property',
     'verify_group_action_laws',
     'verify_group_laws',
     'verify_hopf_algebra_laws',
@@ -2459,5 +2463,169 @@ def verify_hopf_algebra_laws(
     res = verify_bialgebra_laws(hopf, r_samples, c_samples, tol)
     res['antipode_axiom'] = verify_antipode_axiom(hopf, c_elements, tol)
     return res
+
+
+# =============================================================================
+# Grothendieck Groups, Topological K-Theory & Characteristic Classes
+# =============================================================================
+
+G = TypeVar('G')
+
+
+def _check_monoid_map_compatibility(
+    k0: GrothendieckGroup[M],
+    target_group: AddCommGroup[G],
+    monoid_map: Callable[[M], G],
+    m_elements: list[M],
+    tol: float,
+) -> tuple[bool, bool, bool]:
+    r"""Check monoid homomorphism, embedding factorization, and difference law."""
+    lifted = k0.lift_homomorphism(target_group, monoid_map)
+    monoid = k0.monoid
+
+    monoid_hom = semiring_elements_equal(monoid_map(monoid.zero), target_group.zero, tol)
+    factorization = True
+    difference_law = True
+
+    for a in m_elements:
+        if not semiring_elements_equal(lifted(k0.embed(a)), monoid_map(a), tol):
+            factorization = False
+
+    for a, b in itertools.product(m_elements, repeat=2):
+        lhs_m = monoid_map(monoid.add(a, b))
+        rhs_m = target_group.add(monoid_map(a), monoid_map(b))
+        if not semiring_elements_equal(lhs_m, rhs_m, tol):
+            monoid_hom = False
+
+        if not semiring_elements_equal(lifted((a, b)), target_group.sub(monoid_map(a), monoid_map(b)), tol):
+            difference_law = False
+
+    return monoid_hom, factorization, difference_law
+
+
+def _check_lifted_group_homomorphism(
+    k0: GrothendieckGroup[M],
+    target_group: AddCommGroup[G],
+    monoid_map: Callable[[M], G],
+    m_elements: list[M],
+    tol: float,
+) -> tuple[bool, bool]:
+    r"""Check group homomorphism and Grothendieck equivalence invariance of the lifted map."""
+    lifted = k0.lift_homomorphism(target_group, monoid_map)
+    pairs = list(itertools.product(m_elements, repeat=2))
+
+    group_hom = semiring_elements_equal(lifted(k0.zero), target_group.zero, tol)
+    equiv_inv = True
+
+    for x in pairs:
+        if not semiring_elements_equal(lifted(k0.neg(x)), target_group.neg(lifted(x)), tol):
+            group_hom = False
+            break
+
+    for x, y in itertools.product(pairs, repeat=2):
+        lhs_g = lifted(k0.add(x, y))
+        rhs_g = target_group.add(lifted(x), lifted(y))
+        if not semiring_elements_equal(lhs_g, rhs_g, tol):
+            group_hom = False
+
+        if k0.equiv(x, y, stabilizers=m_elements) and not semiring_elements_equal(lifted(x), lifted(y), tol):
+            equiv_inv = False
+
+    return group_hom, equiv_inv
+
+
+def verify_grothendieck_universal_property(
+    k0: GrothendieckGroup[M],
+    target_group: AddCommGroup[G],
+    monoid_map: Callable[[M], G],
+    monoid_samples: Iterable[M],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify the universal property of the Grothendieck group $K_0(M)$:
+    - Monoid Homomorphism: $f(a +_M b) = f(a) +_G f(b)$ and $f(0_M) = 0_G$
+    - Factorization through Embedding: $\tilde{f}(\iota(a)) = f(a)$
+    - Formal Difference Law: $\tilde{f}((a, b)) = f(a) -_G f(b)$
+    - Lifted Group Homomorphism: $\tilde{f}(x +_{K_0} y) = \tilde{f}(x) +_G \tilde{f}(y)$
+      and $\tilde{f}(-x) = -\tilde{f}(x)$
+    - Equivalence Invariance: $(a, b) \sim (c, d) \implies \tilde{f}(a, b) = \tilde{f}(c, d)$
+    """
+    m_elements = _require_samples(monoid_samples)
+    monoid_hom, factorization, difference_law = _check_monoid_map_compatibility(
+        k0, target_group, monoid_map, m_elements, tol
+    )
+    group_hom, equiv_inv = _check_lifted_group_homomorphism(
+        k0, target_group, monoid_map, m_elements, tol
+    )
+    return {
+        'monoid_homomorphism': monoid_hom,
+        'embedding_factorization': factorization,
+        'formal_difference_law': difference_law,
+        'lifted_group_homomorphism': group_hom,
+        'equivalence_invariance': equiv_inv,
+    }
+
+
+def verify_chern_character_additivity(
+    conn1: Any,
+    conn2: Any,
+    faces: Sequence[Sequence[Any]],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify additivity of rank and discrete Chern character forms under Whitney sum $E_1 \oplus E_2$:
+    - Rank Additivity: $\mathrm{ch}_0(E_1 \oplus E_2) = \mathrm{ch}_0(E_1) + \mathrm{ch}_0(E_2)$
+    - First Chern Character Additivity: $\mathrm{ch}_1(E_1 \oplus E_2) = \mathrm{ch}_1(E_1) + \mathrm{ch}_1(E_2)$
+    - Second Chern Character Additivity: $\mathrm{ch}_2(E_1 \oplus E_2) = \mathrm{ch}_2(E_1) + \mathrm{ch}_2(E_2)$
+    """
+    from algebrax.topology.k_theory import (
+        bundle_direct_sum,
+        compute_chern_character_1,
+        compute_chern_character_2,
+    )
+
+    direct_sum = bundle_direct_sum(conn1, conn2)
+    rank_ok = direct_sum.fiber_dim == (conn1.fiber_dim + conn2.fiber_dim)
+
+    ch1_1 = compute_chern_character_1(conn1, faces)
+    ch1_2 = compute_chern_character_1(conn2, faces)
+    ch1_sum = compute_chern_character_1(direct_sum, faces)
+
+    ch2_1 = compute_chern_character_2(conn1, faces)
+    ch2_2 = compute_chern_character_2(conn2, faces)
+    ch2_sum = compute_chern_character_2(direct_sum, faces)
+
+    ch1_ok = True
+    ch2_ok = True
+    for f in faces:
+        f_key = tuple(f)
+        expected_1 = ch1_1.get(f_key, 0.0) + ch1_2.get(f_key, 0.0)
+        actual_1 = ch1_sum.get(f_key, 0.0)
+        if not math.isclose(actual_1, expected_1, rel_tol=tol, abs_tol=tol):
+            ch1_ok = False
+
+        expected_2 = ch2_1.get(f_key, 0.0) + ch2_2.get(f_key, 0.0)
+        actual_2 = ch2_sum.get(f_key, 0.0)
+        if not math.isclose(actual_2, expected_2, rel_tol=tol, abs_tol=tol):
+            ch2_ok = False
+
+    return {
+        'rank_additivity': rank_ok,
+        'ch1_additivity': ch1_ok,
+        'ch2_additivity': ch2_ok,
+    }
+
+
+def verify_chern_number_integrality(
+    conn: Any,
+    oriented_faces: Sequence[Sequence[Any]],
+    tol: float = 1e-6,
+) -> bool:
+    r"""Verify that the integrated first Chern number $\int_\Sigma c_1(E)$ is an integer within `tol`."""
+    from algebrax.topology.k_theory import first_chern_number
+
+    c1_val = first_chern_number(conn, oriented_faces)
+    nearest_int = round(c1_val)
+    return math.isclose(c1_val, float(nearest_int), rel_tol=tol, abs_tol=tol)
+
+
 
 
