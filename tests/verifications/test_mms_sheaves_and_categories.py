@@ -531,4 +531,57 @@ def test_mms_k_theory_monopole_chern_quantization_and_whitney_additivity() -> No
     assert math.isclose(sum(v_ch1.values()), 2.0, abs_tol=1e-11)
 
 
+# ---------------------------------------------------------------------------
+# 9. EP-0208: Simplicial Path Groupoid Homotopy Obstruction & CCC Adjunction
+# ---------------------------------------------------------------------------
 
+
+@pytest.mark.mms
+def test_mms_path_groupoid_homotopy_obstruction_and_ccc_adjunction() -> None:
+    """Verify via MMS that puncturing a 2-simplex creates a non-contractible loop in Pi_1(K) and CCC laws hold."""
+    from algebrax.category import CoeffectContext, FiniteSetCCC
+    from algebrax.semiring import TropicalSemiring
+    from algebrax.topology import SimplicialComplex, SimplicialPathGroupoid
+    from algebrax.verification import (
+        verify_coeffect_grading,
+        verify_exponential_adjunction,
+        verify_path_groupoid_laws,
+    )
+
+    # 1. Manufactured two-triangle square [0, 1, 2] + [0, 2, 3]: simply connected disk
+    disk_sc = SimplicialComplex([(0, 1, 2), (0, 2, 3)])
+    pi1_disk = SimplicialPathGroupoid.from_simplicial_complex(disk_sc)
+
+    # Boundary paths (0, 1, 2, 3) and (0, 3) around the disk are homotopic across the two 2-simplices
+    assert pi1_disk.are_homotopic((0, 1, 2, 3), (0, 3))
+    # Full perimeter loop (0, 1, 2, 3, 0) contracts to the trivial identity loop (0,)
+    assert pi1_disk.are_homotopic((0, 1, 2, 3, 0), pi1_disk.id(0))
+    assert all(verify_path_groupoid_laws(pi1_disk, [(0, 1, 2), (0, 2, 3), (0, 1, 2, 3)]).values())
+
+    # 2. Punctured annulus boundary (remove the 2-simplices, keeping 1-skeleton): non-contractible H_1 hole
+    punctured_sc = SimplicialComplex([(0, 1), (1, 2), (2, 3), (0, 3), (0, 2)])
+    pi1_punctured = SimplicialPathGroupoid.from_simplicial_complex(punctured_sc)
+    assert not pi1_punctured.are_homotopic((0, 1, 2, 3), (0, 3))
+    assert not pi1_punctured.are_homotopic((0, 1, 2, 0), pi1_punctured.id(0))
+
+    # 3. Curry-Howard-Lambek exponential adjunction on FinSet and Tropical coeffect semimodule
+    ccc = FiniteSetCCC()
+    a = frozenset({0, 1})
+    b = frozenset({'p', 'q'})
+    c = frozenset({True, False})
+    ab = ccc.product(a, b)
+    xor_like = (
+        ab,
+        c,
+        {(0, 'p'): False, (0, 'q'): True, (1, 'p'): True, (1, 'q'): False},
+    )
+    assert all(verify_exponential_adjunction(ccc, a, b, c, [xor_like]).values())
+
+    trop_ctx = CoeffectContext[str, float](TropicalSemiring())
+    assert all(
+        verify_coeffect_grading(
+            trop_ctx,
+            grade_samples=[0.0, 1.5, 3.0],
+            context_samples=[{}, {'x': 1.0}, {'x': 2.0, 'y': 0.5}],
+        ).values()
+    )
