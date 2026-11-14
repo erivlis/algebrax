@@ -260,6 +260,19 @@ class FilteredSimplicialComplex:
         )
 
 
+def _reduce_boundary_column(
+    simplex: tuple[int, ...],
+    idx_of: dict[tuple[int, ...], int],
+    low_to_col: dict[int, int],
+    reduced_cols: dict[int, set[int]],
+) -> set[int]:
+    """Compute and Z2-reduce the boundary column for a simplex."""
+    col = {idx_of[simplex[:i] + simplex[i + 1 :]] for i in range(len(simplex))}
+    while col and max(col) in low_to_col:
+        col ^= reduced_cols[low_to_col[max(col)]]
+    return col
+
+
 def persistent_homology(
     filtration: FilteredSimplicialComplex,
     max_k: int = 2,
@@ -295,27 +308,26 @@ def persistent_homology(
             if j in paired_births:
                 continue
             s, d_time = ordered_simplices[j]
-            col = {idx_of[s[:i] + s[i + 1 :]] for i in range(len(s))}
-            while col and max(col) in low_to_col:
-                col ^= reduced_cols[low_to_col[max(col)]]
-            if col:
-                piv = max(col)
-                low_to_col[piv] = j
-                reduced_cols[j] = col
-                paired_births.add(piv)
-                death_cols.add(j)
-                if dim - 1 <= max_k:
-                    b_simplex, b_time = ordered_simplices[piv]
-                    if include_zero_persistence or d_time > b_time:
-                        intervals.append(
-                            PersistenceInterval(
-                                dimension=dim - 1,
-                                birth=b_time,
-                                death=d_time,
-                                birth_simplex=b_simplex,
-                                death_simplex=s,
-                            )
+            col = _reduce_boundary_column(s, idx_of, low_to_col, reduced_cols)
+            if not col:
+                continue
+            piv = max(col)
+            low_to_col[piv] = j
+            reduced_cols[j] = col
+            paired_births.add(piv)
+            death_cols.add(j)
+            if dim - 1 <= max_k:
+                b_simplex, b_time = ordered_simplices[piv]
+                if include_zero_persistence or d_time > b_time:
+                    intervals.append(
+                        PersistenceInterval(
+                            dimension=dim - 1,
+                            birth=b_time,
+                            death=d_time,
+                            birth_simplex=b_simplex,
+                            death_simplex=s,
                         )
+                    )
 
     for i, (b_simplex, b_time) in enumerate(ordered_simplices):
         dim = len(b_simplex) - 1
@@ -539,7 +551,7 @@ def _bottleneck_finite_points(
     candidates = sorted(candidates_set)
 
     total_nodes = m + n
-    diag_right = list(range(n, total_nodes))
+    diag_right = range(n, total_nodes)
 
     def can_match(delta: float) -> bool:
         adj: list[list[int]] = [[] for _ in range(total_nodes)]
