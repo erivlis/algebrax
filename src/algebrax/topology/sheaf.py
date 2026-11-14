@@ -6,7 +6,8 @@ import math
 from collections.abc import Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeAlias, runtime_checkable
 
-from algebrax.category.poset import Cell, CellPosetCategory
+from algebrax.category._mixins import HasMapMor, HasMapObj
+from algebrax.category.poset import Cell, CellPosetCategory, FaceInclusion
 from algebrax.topology._core import _matrix_rank
 from algebrax.typing import K, SparseMatrix, SparseVector
 
@@ -35,11 +36,15 @@ RestrictionMap: TypeAlias = Mapping[int, Mapping[int, float]] | Sequence[Sequenc
 
 
 @runtime_checkable
-class FunctorialSheaf(Protocol):
-    r"""A cellular sheaf $\mathcal{F}: \mathbf{Poset}(K)^{\mathrm{op}} \to \mathbf{Mat}(\mathbb{R})$.
+class FunctorialSheaf(
+    HasMapObj[Cell, frozenset[int]],
+    HasMapMor[FaceInclusion, SparseMatrix[int, float]],
+    Protocol,
+):
+    r"""A cellular sheaf $\mathcal{F}: \mathbf{Poset}(K) \to \mathbf{Mat}(\mathbb{R})$.
 
     Maps:
-        - Cell $\sigma \mapsto$ Stalk dimension $\mathbb{R}^{d_\sigma}$.
+        - Cell $\sigma \mapsto$ Stalk basis index set `frozenset(range(d_sigma))` in $\mathbb{R}^{d_\sigma}$.
         - Face inclusion $\sigma \trianglelefteq \tau \mapsto$ Restriction matrix
           $\mathcal{E}_{\sigma \trianglelefteq \tau}: \mathbb{R}^{d_\sigma} \to \mathbb{R}^{d_\tau}$.
     """
@@ -56,6 +61,14 @@ class FunctorialSheaf(Protocol):
     def restriction_map(self, face: Cell, coface: Cell) -> SparseMatrix[int, float]:
         r"""Restriction matrix $\mathcal{E}_{\mathrm{face} \trianglelefteq \mathrm{coface}}$."""
         ...
+
+    def map_obj(self, x: Cell) -> frozenset[int]:
+        r"""Map cell $\sigma \in \mathbf{Poset}(K)$ to its stalk basis `frozenset(range(d_sigma))`."""
+        return frozenset(range(self.stalk_dim(x)))
+
+    def map_mor(self, f: FaceInclusion) -> SparseMatrix[int, float]:
+        r"""Map face inclusion $\sigma \trianglelefteq \tau$ to $\mathcal{E}_{\sigma \trianglelefteq \tau}$."""
+        return self.restriction_map(f.source_cell, f.target_cell)
 
 
 class ConstantSheaf(FunctorialSheaf):

@@ -18,7 +18,17 @@ Submodules:
 
 from __future__ import annotations
 
-from algebrax.topology import bundle, coalgebra, cohomology, dec, homology, k_theory, persistence, sheaf
+from algebrax.topology import (
+    bundle,
+    coalgebra,
+    cohomology,
+    dec,
+    groupoid,
+    homology,
+    k_theory,
+    persistence,
+    sheaf,
+)
 from algebrax.topology.bundle import (
     DiscreteConnection,
     DiscreteOrthogonalConnection,
@@ -50,6 +60,10 @@ from algebrax.topology.dec import (
     helmholtz_hodge_decomposition,
     hodge_laplacian,
     hodge_star,
+)
+from algebrax.topology.groupoid import (
+    PathMor,
+    SimplicialPathGroupoid,
 )
 from algebrax.topology.homology import (
     SimplicialComplex,
@@ -103,10 +117,12 @@ __all__ = [
     'FilteredSimplicialComplex',
     'FunctorialSheaf',
     'HodgeDecomposition',
+    'PathMor',
     'PersistenceInterval',
     'RestrictionMap',
     'SimplicialChainCoalgebra',
     'SimplicialComplex',
+    'SimplicialPathGroupoid',
     'SparseChainComplex',
     'StalkCoord',
     'TopologicalKTheoryRing',
@@ -138,6 +154,7 @@ __all__ = [
     'exterior_derivative',
     'first_chern_number',
     'flow_to_cochain',
+    'groupoid',
     'helmholtz_hodge_decomposition',
     'hodge_laplacian',
     'hodge_star',
