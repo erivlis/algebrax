@@ -120,3 +120,4 @@ print(f'Convex Conjugate at slope 2: {val}')
 * [Telecommunications & Fractal Networks](../../recipes.md) — Orthogonal multiplexing via `walsh_hadamard`.
 * [Vibration Structural Analysis](../../recipes.md) — Fatigue envelope detection via `hilbert`.
 * [Quantum Convex Optimization](../../recipes.md) — Dual loss evaluation via `legendre_fenchel`.
+* [Discrete Calculus & Spectral Graph Theory](../analysis/discrete_calculus.md) — Graph Laplacians, Fiedler vectors, Ramanujan expander verification (`is_ramanujan_graph`), and Hecke walk operators (`hecke_graph_operator`).

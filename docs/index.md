@@ -34,22 +34,27 @@ pip install algebrax
 
 * ⚡ **Zero Heavy Dependencies**: Pure-Python core requiring no C++ compilation (`mappingtools` is the sole core runtime
   dependency), with optional bridges to NumPy, SciPy, and PIL.
-* 🧱 **Deductive Algebraic Hierarchy (`algebrax.algebra`)**: Lean 4 / Mathlib-aligned `@runtime_checkable` protocols
-  composed from **22 orthogonal atomic mixins** (`Has*`) — spanning `Magma`, `Monoid`, `Group`, `Lattice` &
-  `BooleanAlgebra`, `Semiring` / `StarSemiring` / `KleeneAlgebra`, `Ring` / `Field`, `Ideal` / `QuotientRing`,
-  `Module` / `Algebra`, and dual `Coalgebra` / `Bialgebra` / `HopfAlgebra`.
+* 🧱 **Deductive Algebraic Hierarchy (`algebrax.algebra`, `algebrax.category`)**: Lean 4 / Mathlib-aligned
+  `@runtime_checkable` protocols composed from **35 orthogonal atomic mixins** (26 algebraic `Has*` + 9 categorical
+  `Has*`) — spanning `Magma`, `Monoid`, `Group`, `Lattice` & `BooleanAlgebra`, `Semiring` / `StarSemiring` /
+  `KleeneAlgebra`, `Ring` / `Field` / `PAdicField`, `Ideal` / `QuotientRing`, `Module` / `Algebra` / `NormedSpace` /
+  `InnerProductSpace`, dual `Coalgebra` / `Bialgebra` / `HopfAlgebra`, and `Category` / `Groupoid` /
+  `CartesianClosedCategory`.
 * 🔄 **Polymorphic Semiring Computing (`algebrax.semiring`)**: 33 built-in semirings and algebras. Swap $(\oplus, \otimes)$
   in `matrix.dot`, `tensor.einsum`, or `AlgebraicTrie` to compute linear algebra, tropical shortest paths, Viterbi
   probabilities, statistical moments, or symbolic rule provenance with identical code.
-* 🎯 **Exact Drift-Free Linear Solvers (`algebrax.matrix`)**: Gaussian elimination, LU, QR, SVD, Cholesky, determinants,
-  and matrix inversion parameterized over any `Field[V]` — including exact rationals (`StandardField(Fraction)`) and
-  finite prime fields (`ModularField(p)`).
-* 🌌 **Geometry, Symmetry & Algebraic Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`), classical &
-  exceptional Lie algebras (`lie`), finite fields $\operatorname{GF}(p^m)$ (`galois`), and unified algebraic topology
-  (`topology`: homology, cohomology cup products, persistent barcodes, DEC, cellular sheaves, fiber bundles, and
-  topological K-theory & Chern classes).
+* 🎯 **Exact Drift-Free Linear Solvers & $p$-Adic Fields (`algebrax.matrix`, `algebrax.algebra`)**: Gaussian elimination,
+  LU, QR, SVD, Cholesky, determinants, and matrix inversion parameterized over any `Field[V]` — including exact rationals
+  (`StandardField(Fraction)`), finite prime fields (`ModularField(p)`), and non-archimedean $p$-adic numbers
+  (`PAdicField(p)` bridging directly to `TropicalSemiring`).
+* 🌌 **Geometry, Symmetry, Langlands Duality & Algebraic Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`),
+  classical & exceptional Lie algebras, Langlands dual root systems & `IwahoriHeckeAlgebra` (`lie`), finite fields
+  $\operatorname{GF}(p^m)$ (`galois`), and unified algebraic topology (`topology`: homology, cohomology cup products,
+  persistent barcodes, DEC, cellular sheaves, fiber bundles, topological K-theory & Chern classes, and path groupoids
+  $\Pi_1(K)$).
 * 🧪 **Axiomatic Law Verification (`algebrax.verification`)**: Automated axiom suites and multi-layered verification
-  cross-checked against NumPy, SciPy, Hypothesis, Schwartz–Zippel PIT, and `z3-solver` SMT proofs.
+  cross-checked against NumPy, SciPy, Hypothesis, Schwartz–Zippel PIT, Ramanujan expander checks, and `z3-solver` SMT
+  proofs.
 
 ---
 
@@ -116,10 +121,10 @@ print(solve(a, b, field=ModularField(11)))
 
 | Pillar | Submodules | Highlights |
 |:-------|:-----------|:-----------|
-| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 22 orthogonal mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`, `GrothendieckRing`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
+| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 26 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`PAdicField`, `GrothendieckRing`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
 | **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, `AlgebraicTrie` |
-| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH), $\operatorname{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
-| **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | Cartesian Closed Categories, semiring coeffects, Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature, entropy, NumPy/SciPy bridges, axiom verifiers |
+| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), $\operatorname{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
+| **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | 9 categorical mixins, Cartesian Closed Categories, semiring coeffects, Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature/Ramanujan expanders & RKHS, entropy, NumPy/SciPy bridges, axiom verifiers |
 
 ---
 

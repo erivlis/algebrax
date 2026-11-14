@@ -1,6 +1,6 @@
 ---
 title: Semiring Taxonomy
-description: Comprehensive directory and interactive dependency graph of all 34 semirings in AlgebraX.
+description: Comprehensive directory and interactive dependency graph of all 33 semirings and algebras in AlgebraX.
 ---
 
 # Semiring Architecture & Mathematical Taxonomy

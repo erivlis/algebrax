@@ -254,7 +254,7 @@ external oracle or mathematical law verified, and numerical precision.
 You can run the entire verification suite or filter by verification methodology using `pytest` markers:
 
 ```bash
-# Run all verification tests (148 tests in tests/verifications/ + 35 in tests/algebrax/test_verification.py = 183 total)
+# Run all verification tests (173 tests in tests/verifications/ + 37 in tests/algebrax/test_verification.py = 210 total)
 uv run pytest tests/verifications/ tests/algebrax/test_verification.py -v
 
 # Run only comparative / differential tests against NumPy, SciPy, NetworkX & SymPy

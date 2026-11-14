@@ -21,7 +21,7 @@ concepts helps clarify why certain operations are grouped together and how they 
 
 ## The Periodic Table of Algebraic Mixins (`algebrax.algebra`)
 
-Every algebraic protocol in `algebrax.algebra` is assembled from **22 purely orthogonal atomic operational mixins**. Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
+Every algebraic and categorical protocol in `algebrax.algebra` and `algebrax.category` is assembled from **35 purely orthogonal atomic operational mixins** (26 algebraic `Has*` + 9 categorical `Has*`). Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
 
 $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Coalgebraic Cluster } (\Delta, \epsilon, S) \longrightarrow \text{Closure / Bounds / Quotients } ({}^*, \vee, \wedge, \bot, \top, \neg, \in, \bmod I)$$
 
@@ -38,7 +38,11 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 | **Coalgebra & Duality**| `HasCoproduct[C]`           | `coproduct(c) -> dict`   | —                    | $\Delta: C \to C \otimes C$                     |
 |                       | `HasCounit[R, C]`            | `counit(c) -> R`         | —                    | $\epsilon: C \to R$                             |
 |                       | `HasAntipode[H]`             | `antipode(h) -> H`       | —                    | $S: H \to H$                                    |
-| **Closure**           | `HasStar[V]`                 | `star(a) -> V`           | —                    | ${}^*: V \to V$                                 |
+| **Closure & Action**  | `HasStar[V]`                 | `star(a) -> V`           | —                    | ${}^*: V \to V$                                 |
+|                       | `HasPlus[V]`                 | `plus(a) -> V`           | —                    | ${}^+: V \to V$                                 |
+|                       | `HasResiduals[V]`            | `lres`, `rres`           | —                    | $\backslash, /: V \times V \to V$               |
+| **Norm & Inner Prod** | `HasNorm[V]`                 | `norm(v) -> float`       | —                    | $\|\cdot\|: V \to \mathbb{R}_{\ge 0}$           |
+|                       | `HasInner[R, V]`             | `inner(u, v) -> R`       | —                    | $\langle \cdot, \cdot \rangle: V \times V \to R$ |
 | **Order / Lattice**   | `HasJoin[V]`                 | `join(a, b) -> V`        | —                    | $\vee: V \times V \to V$                        |
 |                       | `HasMeet[V]`                 | `meet(a, b) -> V`        | —                    | $\wedge: V \times V \to V$                      |
 |                       | `HasBounds[V]`               | `bot -> V`, `top -> V`   | —                    | $\bot, \top \in V$                              |
@@ -53,7 +57,7 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 |                       | `HasCatId[Obj, Mor]`         | `id(x) -> Mor`           | —                    | $\mathrm{id}_x \in \mathrm{Hom}(x, x)$          |
 |                       | `HasCompose[Mor]`            | `compose(f, g) -> Mor`   | —                    | $\circ: \mathrm{Hom} \times \mathrm{Hom} \to \mathrm{Hom}$ |
 |                       | `HasMorInv[Mor]`             | `invert_path(f) -> Mor`  | —                    | $()^{-1}: \mathrm{Hom}(x, y) \to \mathrm{Hom}(y, x)$ |
-|                       | `HasTerminal[Obj]`           | `terminal -> Obj`        | —                    | $\mathbf{1} \in \mathrm{Obj}$                   |
+|                       | `HasTerminal[Obj, Mor]`      | `terminal`, `to_terminal`| —                    | $\mathbf{1} \in \mathrm{Obj}, !_A: A \to \mathbf{1}$ |
 |                       | `HasProducts[Obj, Mor]`      | `product`, `proj1`, `proj2`, `pair` | —         | $A \times B, \pi_1, \pi_2, \langle f, g \rangle$ |
 |                       | `HasExponentials[Obj, Mor]`  | `exponential`, `eval_mor`, `curry`, `uncurry` | — | $B^A, \mathrm{eval}, \mathrm{curry}, \mathrm{uncurry}$ |
 |                       | `HasMapObj[Obj, Obj_co]`     | `map_obj(x) -> Obj_co`   | —                    | $F_{\mathrm{Obj}}: \mathrm{Obj}(\mathcal{C}) \to \mathrm{Obj}(\mathcal{D})$ |
@@ -291,6 +295,16 @@ The `algebrax.algebra` and `algebrax.topology` modules formalize the universal c
 * **Universal Grothendieck Group & Ring (`GrothendieckGroup[M]`, `GrothendieckRing[M]`)**: Left adjoint functor converting any additive commutative monoid $(M, +, 0)$ into an abelian group $K_0(M)$ of formal differences $[a] - [b]$ under stabilized equivalence $a + d + k = b + c + k$, lifting any monoid homomorphism $f: M \to G$ uniquely via `lift_homomorphism`.
 * **Vector Bundle Semiring & Virtual Bundle Ring (`TopologicalKTheoryRing`)**: Equips discrete orthogonal gauge connections (`DiscreteOrthogonalConnection`) with Whitney direct sums $E_1 \oplus E_2$ (`bundle_direct_sum`, block-diagonal transport) and Kronecker tensor products $E_1 \otimes E_2$ (`bundle_tensor_product`), completing them into the commutative ring $K^0(K)$ of virtual bundles $[E] - [F]$.
 * **Discrete Chern Character & Quantized Topological Charge (`chern_character`, `first_chern_number`)**: Maps 2-face curvature holonomy angles into simplicial cohomology classes $(\mathrm{ch}_0, \mathrm{ch}_1, \mathrm{ch}_2)$ satisfying Whitney sum additivity $\mathrm{ch}(E_1 \oplus E_2) = \mathrm{ch}(E_1) + \mathrm{ch}(E_2)$ and exact integer quantization $\int_\Sigma c_1(E) \in \mathbb{Z}$ over closed oriented 2-surfaces.
+
+---
+
+## Langlands Duality, Ramanujan Expanders & $p$-Adic Valuations
+
+Connecting Lie theory, spectral graph theory, and non-archimedean arithmetic (`EP-0209`):
+
+* **Langlands Root Duality & Iwahori–Hecke Algebras (`algebrax.lie`)**: `langlands_dual_root_system()` constructs $\Phi^\vee$ via Cartan transposition $A^\vee = A^T$ and coroot inversion $\alpha^\vee = \frac{2\alpha}{\langle \alpha, \alpha \rangle}$ (`coroot_in_dual()`), exchanging $B_n \leftrightarrow C_n$ while preserving simply-laced types; `IwahoriHeckeAlgebra` $q$-deforms Weyl group algebras via $(T_i - q)(T_i + 1) = 0$.
+* **Ramanujan Expander Graphs & Graph Hecke Operators (`algebrax.analysis`)**: `is_ramanujan_graph()` tests the optimal Alon–Boppana spectral bound $\max_{|\lambda_i| < d} |\lambda_i| \le 2\sqrt{d - 1}$ on $d$-regular graphs, while `hecke_graph_operator()` generates the commuting ring of non-backtracking walk operators $T_k$.
+* **Unboxed $p$-Adic Fields (`PAdicField` in `algebrax.algebra`)**: Implements exact $\mathbb{Q}_p$ arithmetic over unboxed sparse Laurent mappings `dict[int, int]` with Hensel-lifted inverses, non-archimedean ultrametric norm $|x + y|_p \le \max(|x|_p, |y|_p)$, and valuation $v_p(x)$ mapping multiplicatively into `TropicalSemiring`.
 
 ---
 

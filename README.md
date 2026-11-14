@@ -89,22 +89,26 @@ single pure-Python polymorphic framework.
 
 * ⚡ **Zero Heavy Dependencies**: Pure-Python core requiring no C++ compilation (`mappingtools` is the sole core runtime
   dependency), with optional bridges to NumPy, SciPy, and PIL.
-* 🧱 **Deductive Algebraic Hierarchy (`algebrax.algebra`)**: Lean 4 / Mathlib-aligned `@runtime_checkable` protocols
-  composed from **22 orthogonal atomic mixins** (`Has*`) — spanning `Magma`, `Monoid`, `Group`, `Lattice` &
-  `BooleanAlgebra`, `Semiring` / `StarSemiring` / `KleeneAlgebra`, `Ring` / `Field`, `Ideal` / `QuotientRing`,
-  `Module` / `Algebra`, and dual `Coalgebra` / `Bialgebra` / `HopfAlgebra`.
+* 🧱 **Deductive Algebraic Hierarchy (`algebrax.algebra`, `algebrax.category`)**: Lean 4 / Mathlib-aligned
+  `@runtime_checkable` protocols composed from **35 orthogonal atomic mixins** (26 algebraic `Has*` + 9 categorical
+  `Has*`) — spanning `Magma`, `Monoid`, `Group`, `Lattice` & `BooleanAlgebra`, `Semiring` / `StarSemiring` /
+  `KleeneAlgebra`, `Ring` / `Field` / `PAdicField`, `Ideal` / `QuotientRing`, `Module` / `Algebra` / `NormedSpace` /
+  `InnerProductSpace`, dual `Coalgebra` / `Bialgebra` / `HopfAlgebra`, and `Category` / `Groupoid` /
+  `CartesianClosedCategory`.
 * 🔄 **Polymorphic Semiring Computing (`algebrax.semiring`)**: 33 built-in semirings and algebras. Swap $(\oplus, \otimes)$
   in `matrix.dot`, `tensor.einsum`, or `AlgebraicTrie` to switch seamlessly between linear algebra, tropical shortest paths,
   Viterbi probabilities, statistical moments, or symbolic rule provenance.
-* 🎯 **Exact Drift-Free Linear Solvers (`algebrax.matrix`)**: Gaussian elimination, LU, QR, SVD, Cholesky, determinants,
-  and matrix inversion parameterized over any `Field[V]` — including exact rationals (`StandardField(Fraction)`) and
-  finite prime fields (`ModularField(p)`).
-* 🌌 **Geometry, Symmetry & Algebraic Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`), classical &
-  exceptional Lie algebras (`lie`), finite fields $\mathrm{GF}(p^m)$ (`galois`), and unified algebraic topology
-  (`topology`: homology, cohomology cup products, persistent barcodes, DEC, and cellular sheaves).
+* 🎯 **Exact Drift-Free Linear Solvers & $p$-Adic Fields (`algebrax.matrix`, `algebrax.algebra`)**: Gaussian elimination,
+  LU, QR, SVD, Cholesky, determinants, and matrix inversion parameterized over any `Field[V]` — including exact rationals
+  (`StandardField(Fraction)`), finite prime fields (`ModularField(p)`), and non-archimedean $p$-adic numbers
+  (`PAdicField(p)` bridging directly to `TropicalSemiring`).
+* 🌌 **Geometry, Symmetry, Langlands Duality & Algebraic Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`),
+  classical & exceptional Lie algebras, Langlands dual root systems & `IwahoriHeckeAlgebra` (`lie`), finite fields
+  $\mathrm{GF}(p^m)$ (`galois`), and unified algebraic topology (`topology`: homology, cohomology cup products, persistent
+  barcodes, DEC, cellular sheaves, discrete bundles, topological K-theory & Chern classes, and path groupoids $\Pi_1(K)$).
 * 🧪 **Axiomatic Law Verification & Interactive Lab**: Automated algebraic axiom checkers (`verification`) backed by
-  property-based testing and Z3 verification, plus a 12-module [DearPyGui](https://github.com/hoffstadt/DearPyGui)
-  desktop laboratory (`recipes/lab.py`).
+  property-based testing, Ramanujan expander verification (`is_ramanujan_graph`), and Z3 proofs, plus a 12-module
+  [DearPyGui](https://github.com/hoffstadt/DearPyGui) desktop laboratory (`recipes/lab.py`).
 
 ---
 
@@ -183,23 +187,27 @@ print(solve(a, b, field=ModularField(11)))
 
 | Pillar | Submodules | Highlights |
 |:-------|:-----------|:-----------|
-| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 22 orthogonal mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
+| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 26 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`PAdicField`, `GrothendieckRing`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
 | **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, `AlgebraicTrie` |
-| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH), $\mathrm{GF}(p^m)$, homology, cohomology, persistence, DEC & sheaves |
-| **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature, entropy, NumPy/SciPy bridges, Jupyter HTML/LaTeX cards, axiom verifiers |
+| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), $\mathrm{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
+| **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | 9 categorical mixins, `CartesianClosedCategory`, `CoeffectContext`, Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature/Ramanujan expanders & RKHS, entropy, NumPy/SciPy bridges, axiom verifiers |
 
 ---
 
 ## Recipe Highlights & Jupyter Notebooks
 
-The [`recipes/`](recipes) directory includes **38** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
+The [`recipes/`](recipes) directory includes **42** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
 sample across domains — see the full catalog in [**Recipes & Applications**](docs/recipes.md):
 
 | Domain | Recipe & Notebook | Algebraic Components |
 |:-------|:------------------|:---------------------|
 | **Graphs & Optimization** | **Traffic Resilience** — [`🐍`](recipes/traffic_network_resilience.py) [`📓`](recipes/traffic_network_resilience.ipynb) | `TropicalSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`, `markov_steady_state` |
 | **Spectral & Graph ML** | **Spectral Graph Clustering** — [`🐍`](recipes/spectral_graph_clustering.py) [`📓`](recipes/spectral_graph_clustering.ipynb) | `matrix.laplacian_matrix`, `analysis.fiedler_vector`, `analysis.laplacian_spectrum` |
+| **Kernel & Hilbert Methods** | **RKHS & Kernel Ridge** — [`🐍`](recipes/rkhs_kernel_methods.py) [`📓`](recipes/rkhs_kernel_methods.ipynb) | `EuclideanSpace`, `gram_schmidt`, `ReproducingKernelHilbertSpace`, `rbf_kernel` |
 | **Topology & Deep Learning** | **Topological Neural Networks** — [`🐍`](recipes/topological_neural_network.py) [`📓`](recipes/topological_neural_network.ipynb) | `topology.SimplicialComplex`, `helmholtz_hodge_decomposition`, Hodge 1-Laplacians |
+| **K-Theory & Gauge Bundles** | **Topological K-Theory & Chern** — [`🐍`](recipes/topological_k_theory_chern_classes.py) [`📓`](recipes/topological_k_theory_chern_classes.ipynb) | `TopologicalKTheoryRing`, `bundle_direct_sum`, `chern_character`, `first_chern_number` |
+| **Categories & Homotopy** | **CCC, Coeffects & $\Pi_1(K)$** — [`🐍`](recipes/ccc_coeffects_and_path_groupoids.py) [`📓`](recipes/ccc_coeffects_and_path_groupoids.ipynb) | `FiniteSetCCC`, `CoeffectContext`, `SemiringCoeffectTracker`, `SimplicialPathGroupoid` |
+| **Langlands, Expanders & $\mathbb{Q}_p$** | **Langlands, Hecke & $p$-Adics** — [`🐍`](recipes/langlands_ramanujan_and_padic.py) [`📓`](recipes/langlands_ramanujan_and_padic.ipynb) | `langlands_dual`, `IwahoriHeckeAlgebra`, `is_ramanujan_graph`, `hecke_graph_operator`, `PAdicField` |
 | **Duality & Quantum Symmetry** | **Coalgebras & Hopf Algebras** — [`🐍`](recipes/coalgebras_and_hopf_symmetries.py) [`📓`](recipes/coalgebras_and_hopf_symmetries.ipynb) | `Coalgebra`, `Bialgebra`, `HopfAlgebra`, `GroupHopfAlgebra`, `SimplicialChainCoalgebra`, `cup_product` |
 | **Geometric Physics** | **Relativistic Dirac Spinors** — [`🐍`](recipes/relativistic_dirac_spinor.py) [`📓`](recipes/relativistic_dirac_spinor.ipynb) | `clifford.CliffordAlgebra(1, 3)`, even subalgebra $Cl^+(1,3)$, $4\pi$ periodicity, Lorentz boosts |
 | **Automatic Differentiation** | **Forward-Mode Autodiff** — [`🐍`](recipes/forward_mode_autodiff.py) [`📓`](recipes/forward_mode_autodiff.ipynb) | `StandardSemiring(DualNumber)`, quotient ring $\mathbb{R}[\epsilon]/(\epsilon^2)$, `matrix.dot` |
@@ -234,7 +242,7 @@ Full documentation is published at **[erivlis.github.io/algebrax](https://erivli
 
 * 🚀 [**Start & Concepts**](docs/index.md): Installation, quickstart, [Periodic Table of Mixins](docs/concepts.md), [Library Comparison](docs/comparison.md), and [Axiomatic Verification](docs/verification.md).
 * 📖 [**7-Tier User Guide**](docs/guide/index.md): Deductive tour from Magmas & Monoids to Semirings, Rings, Exact Fields, Clifford & Lie Algebras, Hopf Algebras, Categories, and Topological Sheaves.
-* 🍳 [**All 38 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
+* 🍳 [**All 42 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
 * 📜 [**Enhancement Proposals**](docs/eps.md): Architectural design records and roadmap (`EP-0099`+).
 
 ---
