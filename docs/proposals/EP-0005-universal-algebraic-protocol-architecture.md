@@ -87,9 +87,9 @@ In [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), Algeb
 
 ## Specification
 
-### 1. Pillar 1: Layer 1 Atomic Operational Mixins (`src/algebrax/algebra/_mixins.py`)
+### 1. Pillar 1: Layer 1 Atomic Operational Mixins (`src/algebrax/algebra/_mixins.py` & `src/algebrax/category/_mixins.py`)
 
-Retains all orthogonal single-principle capabilities:
+Retains all orthogonal single-principle algebraic capabilities (`algebrax.algebra._mixins`):
 - `HasZero[V]`: `@property def zero(self) -> V: ...`
 - `HasZeroPred[V]`: `def is_zero(self, a: V) -> bool: ...` (derived generator from `zero`)
 - `HasOne[V]`: `@property def one(self) -> V: ...`
@@ -99,8 +99,24 @@ Retains all orthogonal single-principle capabilities:
 - `HasInv[V]`: `def inv(self, a: V) -> V: ...` (with derived generator `def div(self, a: V, b: V) -> V: return self.mul(a, self.inv(b))`)
 - `HasScale[R, M]`: `def smul(self, r: R, m: M) -> M: ...` (aliased as `HasSMul`)
 - `HasStar[V]`: `def star(self, a: V) -> V: ...`
+- `HasPlus[V]`: `def plus(self, a: V) -> V: ...`
+- `HasResiduals[V]`: `def ldiv(self, a: V, b: V) -> V: ...`, `def rdiv(self, a: V, b: V) -> V: ...`
 - `HasBracket[V]`: `def bracket(self, a: V, b: V) -> V: ...`
+- `HasCoproduct[C]`, `HasCounit[R, C]`, `HasAntipode[H]`, `HasNorm[V]`, `HasInner[R, V]`.
 - `HasJoin[V]`, `HasMeet[V]`, `HasBounds[V]`, `HasComplement[V]`, `HasOp[V]`, `HasIdentity[V]`.
+
+And the orthogonal single-principle **categorical capabilities** (`algebrax.category._mixins`, enacted in [EP-0208](EP-0208-categorical-type-theory-and-homotopy-groupoids.md)):
+- `HasQuiver[Obj, Mor]`: `def source(self, f: Mor) -> Obj: ...`, `def target(self, f: Mor) -> Obj: ...`
+- `HasCatId[Obj, Mor]`: `def id(self, x: Obj) -> Mor: ...`
+- `HasCompose[Mor]`: `def compose(self, f: Mor, g: Mor) -> Mor: ...`
+- `HasMorInv[Mor]`: `def invert_path(self, path: Mor) -> Mor: ...`
+- `HasTerminal[Obj]`: `@property def terminal(self) -> Obj: ...`
+- `HasProducts[Obj, Mor]`: `def product(self, a: Obj, b: Obj) -> Obj: ...`, `proj1`, `proj2`, `pair`
+- `HasExponentials[Obj, Mor]`: `def exponential(self, base: Obj, exp: Obj) -> Obj: ...`, `eval_mor`, `curry`, `uncurry`
+- `HasMapObj[Obj, Obj_co]`: `def map_obj(self, x: Obj) -> Obj_co: ...`
+- `HasMapMor[Mor, Mor_co]`: `def map_mor(self, f: Mor) -> Mor_co: ...`
+
+These compose into flat Layer-2 categorical protocols (`Quiver`, `Category`, `Groupoid`, `CartesianCategory`, `CartesianClosedCategory`, `Functor`) with zero Layer-2-to-Layer-2 inheritance.
 
 ---
 

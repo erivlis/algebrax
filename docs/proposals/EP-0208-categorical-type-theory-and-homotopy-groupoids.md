@@ -2,7 +2,7 @@
 title: "EP-0208: Categorical Type Theory, Semiring Coeffects & Homotopy Groupoids"
 description: "Formalize Cartesian Closed Categories, the Curry-Howard-Lambek correspondence, semiring-graded coeffects for resource bounds, and simplicial homotopy path groupoids."
 icon: lucide/binary
-status: draft
+status: final
 ---
 
 # EP-0208: Categorical Type Theory, Semiring Coeffects & Homotopy Groupoids
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                         |
 | **Sponsor**       | Core Maintainers                                                    |
 | **Delegate**      | 🧩 Russell (Type Stratification) & 🛡️ Golem (Type Safety Contracts) |
-| **Status**        | Draft                                                               |
+| **Status**        | Final                                                               |
 | **Type**          | Standards Track                                                     |
 | **Created**       | 2026-10-28                                                          |
-| **Updated**       | 2026-10-28                                                          |
+| **Updated**       | 2026-11-14                                                          |
 | **Replaces**      | —                                                                   |
 | **Superseded-By** | —                                                                   |
 
@@ -89,49 +89,52 @@ modern theoretical computer science.
 
 ## Specification
 
-### 1. Flat Cartesian Closed Category Protocol (`src/algebrax/category/ccc.py`)
+### 1. Atomic Categorical Mixins & Flat Protocol Composition (`src/algebrax/category/_mixins.py`, `core.py`, `ccc.py`)
 
-In strict compliance with [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) (**Law of Flat Protocol Composition**), `CartesianClosedCategory` is a flat `Protocol` (without inheriting from the Layer 2 `Category` protocol):
+In strict compliance with [EP-0005](EP-0005-universal-algebraic-protocol-architecture.md) and [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md) (**Law of Flat Protocol Composition**), `algebrax.category` decomposes categorical capabilities into **9 orthogonal Layer-1 operational mixins (`Has*`)** in `src/algebrax/category/_mixins.py`:
+
+| Atomic Mixin | Type Parameters | Required Member(s) | Mathematical Signature |
+| :--- | :--- | :--- | :--- |
+| `HasQuiver[Obj, Mor]` | `(Obj, Mor)` | `source(f) -> Obj`, `target(f) -> Obj` | $\langle \mathrm{Obj}, \mathrm{Hom}, \mathrm{source}, \mathrm{target} \rangle$ |
+| `HasCatId[Obj, Mor]` | `(Obj, Mor)` | `id(x) -> Mor` | $\langle \mathrm{Obj}, \mathrm{Hom}, \mathrm{id} \rangle$ |
+| `HasCompose[Mor]` | `(Mor,)` | `compose(f, g) -> Mor` | $\langle \mathrm{Hom}, \circ \rangle$ |
+| `HasMorInv[Mor]` | `(Mor,)` | `invert_path(f) -> Mor` | $\langle \mathrm{Hom}, ()^{-1} \rangle$ |
+| `HasTerminal[Obj]` | `(Obj,)` | `terminal -> Obj` | $\langle \mathrm{Obj}, \mathbf{1} \rangle$ |
+| `HasProducts[Obj, Mor]` | `(Obj, Mor)` | `product(a, b)`, `proj1(a, b)`, `proj2(a, b)`, `pair(f, g)` | $\langle \mathrm{Obj}, \mathrm{Hom}, \times, \pi_1, \pi_2, \langle -,- \rangle \rangle$ |
+| `HasExponentials[Obj, Mor]` | `(Obj, Mor)` | `exponential(base, exp)`, `eval_mor(base, exp)`, `curry(...)`, `uncurry(...)` | $\langle \mathrm{Obj}, \mathrm{Hom}, B^A, \mathrm{eval}, \mathrm{curry}, \mathrm{uncurry} \rangle$ |
+| `HasMapObj[Obj, Obj_co]` | `(Obj, Obj_co)` | `map_obj(x) -> Obj_co` | $\langle \mathrm{Obj}_{\mathcal{C}}, \mathrm{Obj}_{\mathcal{D}}, F_{\mathrm{Obj}} \rangle$ |
+| `HasMapMor[Mor, Mor_co]` | `(Mor, Mor_co)` | `map_mor(f) -> Mor_co` | $\langle \mathrm{Hom}_{\mathcal{C}}, \mathrm{Hom}_{\mathcal{D}}, F_{\mathrm{Mor}} \rangle$ |
+
+All Layer-2 categorical protocols inherit **exclusively** from Layer-1 `Has*` mixins and `typing.Protocol` with zero diamond inheritance:
 
 ```python
-from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
-from algebrax.category.core import Category
-
-Obj = TypeVar("Obj")
-Mor = TypeVar("Mor")
-
+@runtime_checkable
+class Quiver(HasQuiver[Obj, Mor], Protocol[Obj, Mor]): ...
 
 @runtime_checkable
-class CartesianClosedCategory(Protocol[Obj, Mor]):
-    r"""A Cartesian Closed Category (CCC) $\langle \mathcal{C}, \times, \mathbf{1}, (-)^A \rangle$.
+class Category(HasQuiver[Obj, Mor], HasCatId[Obj, Mor], HasCompose[Mor], Protocol[Obj, Mor]): ...
 
-    Provides:
-    - Category operations (`id`, `compose`, `source`, `target`)
-    - Terminal object $\mathbf{1}$
-    - Binary products $A \times B$ and projections $\pi_1, \pi_2$
-    - Exponential objects $B^A$ and evaluation map $\mathrm{eval} : B^A \times A \to B$
-    - Currying isomorphism: $\mathrm{Hom}(A \times B, C) \cong \mathrm{Hom}(A, C^B)$
-    """
+@runtime_checkable
+class Groupoid(
+    HasQuiver[Obj, Mor], HasCatId[Obj, Mor], HasCompose[Mor], HasMorInv[Mor], Protocol[Obj, Mor]
+): ...
 
-    def id(self, x: Obj) -> Mor: ...
+@runtime_checkable
+class CartesianCategory(
+    HasQuiver[Obj, Mor], HasCatId[Obj, Mor], HasCompose[Mor],
+    HasTerminal[Obj], HasProducts[Obj, Mor], Protocol[Obj, Mor]
+): ...
 
-    def compose(self, f: Mor, g: Mor) -> Mor: ...
+@runtime_checkable
+class CartesianClosedCategory(
+    HasQuiver[Obj, Mor], HasCatId[Obj, Mor], HasCompose[Mor],
+    HasTerminal[Obj], HasProducts[Obj, Mor], HasExponentials[Obj, Mor], Protocol[Obj, Mor]
+): ...
 
-    def source(self, f: Mor) -> Obj: ...
-
-    def target(self, f: Mor) -> Obj: ...
-
-    def product(self, a: Obj, b: Obj) -> Obj:
-        """Categorical product object."""
-        ...
-
-    def exponential(self, base: Obj, exp: Obj) -> Obj:
-        r"""Exponential object $B^A$."""
-        ...
-
-    def curry(self, mor: Mor) -> Mor:
-        r"""Curry a morphism $f : A \times B \to C$ into $\hat{f} : A \to C^B$."""
-        ...
+@runtime_checkable
+class Functor(
+    HasMapObj[Obj, Obj_co], HasMapMor[Mor, Mor_co], Protocol[Obj, Mor, Obj_co, Mor_co]
+): ...
 ```
 
 ### 2. Semiring-Graded Coeffects (`src/algebrax/category/coeffect.py`)
@@ -163,7 +166,7 @@ class SemiringCoeffectTracker(Generic[Obj]):
 ### 3. Simplicial Homotopy Path Groupoid (`src/algebrax/topology/groupoid.py`)
 
 ```python
-class SimplicialPathGroupoid(Category[Any, tuple[Any, ...]]):
+class SimplicialPathGroupoid(Groupoid[Any, tuple[Any, ...]]):
     r"""Fundamental groupoid $\Pi_1(K)$ over simplicial complex $K$.
 
     Objects: Vertices $v \in K_0$.
@@ -196,7 +199,7 @@ Strictly additive. Extends `algebrax.category` and `algebrax.topology`.
 
 ## How to Teach This / Documentation Plan
 
-1. **User Guide (`docs/guides/categorical-type-theory.md`)**:
+1. **User Guide (`docs/guide/discrete/category.md`)**:
     - The Curry-Howard-Lambek triangle: logic, programs, categories.
     - Resource bound estimation using semiring coeffects.
     - Synthetic topology: paths as proofs in simplicial complexes.
@@ -205,8 +208,7 @@ Strictly additive. Extends `algebrax.category` and `algebrax.topology`.
 
 ## Reference Implementation
 
-Evaluated and confirmed under Council review in
-`references/explorations/EXP-0005-categorical-foundations-and-enriched-mechanics/README.md`.
+Implemented across `src/algebrax/category/ccc.py`, `src/algebrax/category/coeffect.py`, `src/algebrax/topology/groupoid.py`, and `src/algebrax/verification.py`, with unit and MMS tests in `tests/algebrax/test_type_theory_and_groupoids.py` and `tests/verifications/test_mms_sheaves_and_categories.py`.
 
 ---
 
@@ -229,3 +231,5 @@ Evaluated and confirmed under Council review in
 ## Change Log
 
 - **2026-10-28**: Initial draft authored following Council consensus.
+- **2026-11-14**: Implemented `CartesianClosedCategory`, `FiniteSetCCC`, `CoeffectContext`, `SemiringCoeffectTracker`, `SimplicialPathGroupoid`, and axiomatic verifiers; promoted status to Final.
+
