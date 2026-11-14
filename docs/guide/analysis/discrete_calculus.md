@@ -104,6 +104,25 @@ centrality = ax.analysis.eigen_centrality(network)
 print('Eigenvector Centrality:', centrality)
 ```
 
+### 5. Ramanujan Expander Graphs & Discrete Hecke Operators
+
+A $d$-regular network is an optimal **Ramanujan expander graph** if every non-trivial adjacency eigenvalue $|\lambda_i| < d$ satisfies the Alon–Boppana / Hasse–Weil bound $|\lambda_i| \le 2\sqrt{d - 1}$. Moreover, `hecke_graph_operator(adjacency, k)` generates the commutative algebra of non-backtracking walk operators $T_k$:
+
+```python
+from algebrax.analysis import hecke_graph_operator, is_ramanujan_graph
+from algebrax.verification import verify_ramanujan_spectral_gap
+
+# Complete graph K_4 is 3-regular with spectrum {3, -1, -1, -1} (1 <= 2*sqrt(2) ≈ 2.828)
+k4 = {i: {j: 1.0 for j in range(4) if j != i} for i in range(4)}
+is_ram, max_nontrivial, threshold = is_ramanujan_graph(k4, degree=3)
+assert is_ram is True and max_nontrivial <= threshold
+assert all(verify_ramanujan_spectral_gap(k4, degree=3).values())
+
+# T_2 = A^2 - 3*I counts non-backtracking walks of length 2 (sparse zeros pruned)
+t2 = hecke_graph_operator(k4, 2, degree=3)
+assert t2[0][1] == 2.0 and t2[0].get(0, 0.0) == 0.0
+```
+
 ---
 
 ## Discrete Exterior Calculus & Curvature

@@ -65,6 +65,25 @@ assert chevalley_sl3.dim == 8
 assert chevalley_sl3.structure_constants.verify_jacobi() is True
 ```
 
+### Langlands Root Duality ($\Phi \leftrightarrow \Phi^\vee$) & Iwahori–Hecke Algebras ($\mathcal{H}_q(W)$)
+
+Under **Langlands root duality**, transposing the Cartan matrix ($A^\vee = A^T$) and inverting roots into coroots $\alpha^\vee = \frac{2\alpha}{\langle \alpha, \alpha \rangle}$ exchanges odd orthogonal Lie algebras $\mathfrak{so}_{2n+1}$ ($B_n$) with symplectic Lie algebras $\mathfrak{sp}_{2n}$ ($C_n$), while preserving simply-laced types ($A_n, D_n, E_6, E_7, E_8$). Furthermore, `IwahoriHeckeAlgebra` deforms the Weyl group algebra $\mathbb{R}[W]$ by a parameter $q$ via the quadratic relation $(T_i - q)(T_i + 1) = 0$:
+
+```python
+from algebrax.lie import IwahoriHeckeAlgebra, RootSystem, coroot_in_dual, langlands_dual_root_system
+from algebrax.verification import verify_cartan_duality
+
+b3 = RootSystem.from_dynkin('B', 3)
+c3 = langlands_dual_root_system(b3)
+assert c3.dynkin_type == 'C3'
+assert all(verify_cartan_duality(b3).values())
+
+# Iwahori-Hecke algebra H_q(W) over A_2 satisfies quadratic & braid relations T_0 T_1 T_0 == T_1 T_0 T_1
+hecke = IwahoriHeckeAlgebra(RootSystem.from_dynkin('A', 2), q=2.0)
+t0, t1 = hecke.generator(0), hecke.generator(1)
+assert hecke.mul(hecke.mul(t0, t1), t0) == hecke.mul(hecke.mul(t1, t0), t1)
+```
+
 ---
 
 ## 4. Falsifiability: Jacobi Verification & Non-Associativity Counterexample

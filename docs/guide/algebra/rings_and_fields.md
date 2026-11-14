@@ -117,6 +117,26 @@ with pytest.raises(ZeroDivisionError):
     f7.inv(0)
 ```
 
+### Unboxed $p$-Adic Fields ($\mathbb{Q}_p$) & Tropical Valuations
+
+`PAdicField(p, precision)` implements the non-archimedean $p$-adic field $\mathbb{Q}_p$ over unboxed sparse Laurent digit mappings `dict[int, int]`. Its $p$-adic valuation $v_p(x) = \min\{k \mid a_k \ne 0\}$ forms an exact homomorphism into the **Tropical Min-Plus Semiring** (`TropicalSemiring`):
+$$v_p(x \cdot y) = v_p(x) + v_p(y), \quad v_p(x + y) \ge \min(v_p(x), v_p(y)), \quad |x + y|_p \le \max(|x|_p, |y|_p)$$
+
+```python
+from algebrax.algebra import PAdicField
+from algebrax.semiring import TropicalSemiring
+from algebrax.verification import verify_padic_ultrametric_inequality
+
+q5 = PAdicField(p=5, precision=10)
+trop = TropicalSemiring()
+
+x = q5.from_rational(25, 3)  # v_5(x) = 2
+y = q5.from_rational(2, 5)   # v_5(y) = -1
+assert q5.mul(x, q5.inv(x)) == q5.one
+assert q5.valuation(q5.mul(x, y)) == trop.mul(q5.valuation(x), q5.valuation(y)) == 1.0
+assert all(verify_padic_ultrametric_inequality(q5, [q5.zero, q5.one, x, y]).values())
+```
+
 ---
 
 ## 5. Frontier Horizons & Cross-Domain Bridges
