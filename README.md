@@ -196,14 +196,16 @@ print(solve(a, b, field=ModularField(11)))
 
 ## Recipe Highlights & Jupyter Notebooks
 
-The [`recipes/`](recipes) directory includes **42** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
+The [`recipes/`](recipes) directory includes **45** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
 sample across domains — see the full catalog in [**Recipes & Applications**](docs/recipes.md):
 
 | Domain | Recipe & Notebook | Algebraic Components |
 |:-------|:------------------|:---------------------|
 | **Graphs & Optimization** | **Traffic Resilience** — [`🐍`](recipes/traffic_network_resilience.py) [`📓`](recipes/traffic_network_resilience.ipynb) | `TropicalSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`, `markov_steady_state` |
 | **Spectral & Graph ML** | **Spectral Graph Clustering** — [`🐍`](recipes/spectral_graph_clustering.py) [`📓`](recipes/spectral_graph_clustering.ipynb) | `matrix.laplacian_matrix`, `analysis.fiedler_vector`, `analysis.laplacian_spectrum` |
-| **Kernel & Hilbert Methods** | **RKHS & Kernel Ridge** — [`🐍`](recipes/rkhs_kernel_methods.py) [`📓`](recipes/rkhs_kernel_methods.ipynb) | `EuclideanSpace`, `gram_schmidt`, `ReproducingKernelHilbertSpace`, `rbf_kernel` |
+| **TDA + Kernel ML** | **TDA $\to$ RKHS Shape Classifier** — [`🐍`](recipes/tda_rkhs_shape_classifier.py) [`📓`](recipes/tda_rkhs_shape_classifier.ipynb) | `FilteredSimplicialComplex`, `persistent_homology`, `betti_curve`, `ReproducingKernelHilbertSpace` |
+| **Robotics & SLAM** | **Pose Sync & Loop Holonomy** — [`🐍`](recipes/slam_pose_sync_holonomy.py) [`📓`](recipes/slam_pose_sync_holonomy.ipynb) | `DiscreteOrthogonalConnection`, `build_connection_laplacian`, `compute_face_holonomy` |
+| **Exact Math & Secret Sharing** | **Zero-Drift Fields & Quotients** — [`🐍`](recipes/zero_drift_crypto_and_quotients.py) [`📓`](recipes/zero_drift_crypto_and_quotients.ipynb) | `StandardField(Fraction)`, `ModularField`, `PolynomialTruncationIdeal`, `QuotientRing` |
 | **Topology & Deep Learning** | **Topological Neural Networks** — [`🐍`](recipes/topological_neural_network.py) [`📓`](recipes/topological_neural_network.ipynb) | `topology.SimplicialComplex`, `helmholtz_hodge_decomposition`, Hodge 1-Laplacians |
 | **K-Theory & Gauge Bundles** | **Topological K-Theory & Chern** — [`🐍`](recipes/topological_k_theory_chern_classes.py) [`📓`](recipes/topological_k_theory_chern_classes.ipynb) | `TopologicalKTheoryRing`, `bundle_direct_sum`, `chern_character`, `first_chern_number` |
 | **Categories & Homotopy** | **CCC, Coeffects & $\Pi_1(K)$** — [`🐍`](recipes/ccc_coeffects_and_path_groupoids.py) [`📓`](recipes/ccc_coeffects_and_path_groupoids.ipynb) | `FiniteSetCCC`, `CoeffectContext`, `SemiringCoeffectTracker`, `SimplicialPathGroupoid` |
@@ -242,7 +244,7 @@ Full documentation is published at **[erivlis.github.io/algebrax](https://erivli
 
 * 🚀 [**Start & Concepts**](docs/index.md): Installation, quickstart, [Periodic Table of Mixins](docs/concepts.md), [Library Comparison](docs/comparison.md), and [Axiomatic Verification](docs/verification.md).
 * 📖 [**7-Tier User Guide**](docs/guide/index.md): Deductive tour from Magmas & Monoids to Semirings, Rings, Exact Fields, Clifford & Lie Algebras, Hopf Algebras, Categories, and Topological Sheaves.
-* 🍳 [**All 42 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
+* 🍳 [**All 45 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
 * 📜 [**Enhancement Proposals**](docs/eps.md): Architectural design records and roadmap (`EP-0099`+).
 
 ---

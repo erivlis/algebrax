@@ -347,6 +347,30 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Topological ML Pipeline: Persistent Homology to RKHS Shape Classification
+* **Files**: [`tda_rkhs_shape_classifier.py`](https://github.com/erivlis/algebrax/blob/main/recipes/tda_rkhs_shape_classifier.py) | [`tda_rkhs_shape_classifier.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/tda_rkhs_shape_classifier.ipynb)
+* **Run**: `uv run recipes/tda_rkhs_shape_classifier.py`
+* **Components**: `topology.FilteredSimplicialComplex`, `topology.persistent_homology`, `topology.betti_curve`, `analysis.EuclideanSpace`, `analysis.ReproducingKernelHilbertSpace`, `analysis.rbf_kernel`
+* **Summary**: End-to-end pure-Python topological machine learning pipeline bridging Phase 4 TDA and Phase 7 Hilbert kernel methods: extracts Vietoris-Rips persistence Betti curves ($\beta_0, \beta_1$) from noisy 2D point clouds into sparse dicts and trains one-vs-rest RBF kernel ridge classifiers to achieve 100% separation across clusters, single rings, and figure-eight double loops.
+
+---
+
+### Multi-Robot Pose Synchronization & Loop-Closure Fault Detection (SLAM)
+* **Files**: [`slam_pose_sync_holonomy.py`](https://github.com/erivlis/algebrax/blob/main/recipes/slam_pose_sync_holonomy.py) | [`slam_pose_sync_holonomy.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/slam_pose_sync_holonomy.ipynb)
+* **Run**: `uv run recipes/slam_pose_sync_holonomy.py`
+* **Components**: `topology.DiscreteOrthogonalConnection`, `topology.build_connection_laplacian`, `topology.apply_gauge_transformation`, `topology.compute_face_holonomy`, `topology.compute_face_curvature_angle`, `matrix.solve`
+* **Summary**: Applies Phase 7 discrete gauge connections with Phase 1 sparse linear solvers to solve multi-robot $SO(2)$ pose synchronization ($L_\nabla x = 0$), verifies reference-frame gauge invariance, and automatically isolates $+90^\circ$ corrupted loop-closure edges via non-zero triangle Wilson loop holonomy.
+
+---
+
+### Zero-Drift Computing: Shamir Secret Sharing, Exact Rationals & Taylor Quotients
+* **Files**: [`zero_drift_crypto_and_quotients.py`](https://github.com/erivlis/algebrax/blob/main/recipes/zero_drift_crypto_and_quotients.py) | [`zero_drift_crypto_and_quotients.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/zero_drift_crypto_and_quotients.ipynb)
+* **Run**: `uv run recipes/zero_drift_crypto_and_quotients.py`
+* **Components**: `algebra.StandardField`, `algebra.ModularField`, `algebra.PolynomialAlgebra`, `algebra.PolynomialTruncationIdeal`, `algebra.QuotientRing`, `matrix.solve`, `matrix.det`
+* **Summary**: Combines Phase 1 sparse matrix solvers with Phase 6 exact fields, ideals, and quotient rings to eliminate IEEE-754 ill-conditioning on a $6 \times 6$ Hilbert matrix over $\mathbb{Q}$, implement Shamir $(3, 5)$ threshold secret sharing over $\mathbb{F}_{65521}$, and compute exact truncated Taylor power series inverses modulo $(x^6)$.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
