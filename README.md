@@ -1,9 +1,7 @@
-<p align="center">
-  <img src="docs/assets/images/banner.png" alt="AlgebraX Banner" width="100%">
-</p>
+# **AlgebraX - Algebraic primitives over sparse data structures in pure Python**
 
-<p align="center">
-  <b>AlgebraX - Algebraic Primitives for Sparse Data Structures in Python</b>
+<p style="text-align: center; align-content: center">
+  <img src="docs/assets/images/banner.png" alt="AlgebraX Banner" style="display: block; width: 100%; max-width: 100%; height: auto;">
 </p>
 
 <table>
@@ -13,7 +11,7 @@
       <img alt="PyPI - Version" class="off-glb" loading="lazy" src="https://img.shields.io/pypi/v/algebrax.svg?logo=pypi&logoColor=lightblue">
       <img alt="PyPI - Status" class="off-glb" loading="lazy" src="https://img.shields.io/pypi/status/algebrax.svg?logo=pypi&logoColor=lightblue">
       <img alt="PyPI - Python Version" class="off-glb" loading="lazy" src="https://img.shields.io/pypi/pyversions/algebrax.svg?logo=python&label=Python&logoColor=lightblue">
-      <!--img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dd/algebrax?logo=pypi&logoColor=lightblue"-->
+      <img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dd/algebrax?logo=pypi&logoColor=lightblue">
       <img alt="PyPI - Dependents" src="https://dependents.info/erivlis/algebrax/badge?logo=pypi&logoColor=lightblue">
       <img alt="Libraries.io SourceRank" src="https://img.shields.io/librariesio/sourcerank/pypi/algebrax.svg?logo=Libraries.io&label=SourceRank">
     </td>
@@ -102,7 +100,7 @@ single pure-Python polymorphic framework.
   and matrix inversion parameterized over any `Field[V]` — including exact rationals (`StandardField(Fraction)`) and
   finite prime fields (`ModularField(p)`).
 * 🌌 **Geometry, Symmetry & Algebraic Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`), classical &
-  exceptional Lie algebras (`lie`), finite fields $\operatorname{GF}(p^m)$ (`galois`), and unified algebraic topology
+  exceptional Lie algebras (`lie`), finite fields $\mathrm{GF}(p^m)$ (`galois`), and unified algebraic topology
   (`topology`: homology, cohomology cup products, persistent barcodes, DEC, and cellular sheaves).
 * 🧪 **Axiomatic Law Verification & Interactive Lab**: Automated algebraic axiom checkers (`verification`) backed by
   property-based testing and Z3 verification, plus a 12-module [DearPyGui](https://github.com/hoffstadt/DearPyGui)
@@ -187,7 +185,7 @@ print(solve(a, b, field=ModularField(11)))
 |:-------|:-----------|:-----------|
 | **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 22 orthogonal mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
 | **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, `AlgebraicTrie` |
-| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH), $\operatorname{GF}(p^m)$, homology, cohomology, persistence, DEC & sheaves |
+| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH), $\mathrm{GF}(p^m)$, homology, cohomology, persistence, DEC & sheaves |
 | **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature, entropy, NumPy/SciPy bridges, Jupyter HTML/LaTeX cards, axiom verifiers |
 
 ---

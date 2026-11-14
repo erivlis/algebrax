@@ -1,7 +1,7 @@
 [project]
 name = "algebrax"
 version = "0.14.0"
-description = "Pure-Python abstract algebra, semiring linear algebra, and discrete topology over sparse mappings"
+description = "Algebraic primitives over sparse data structures in pure Python"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
