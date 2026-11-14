@@ -46,6 +46,7 @@ __all__ = [
     'verify_coalgebra_laws',
     'verify_coassociativity',
     'verify_coboundary_nilpotency',
+    'verify_coeffect_grading',
     'verify_comm_group_laws',
     'verify_comm_monoid_laws',
     'verify_comm_ring_laws',
@@ -54,6 +55,7 @@ __all__ = [
     'verify_counitality',
     'verify_distributive_lattice_laws',
     'verify_division_ring_laws',
+    'verify_exponential_adjunction',
     'verify_field_laws',
     'verify_functor_laws',
     'verify_gauge_covariance',
@@ -78,6 +80,7 @@ __all__ = [
     'verify_non_assoc_ring_laws',
     'verify_normed_space_laws',
     'verify_parallelogram_law',
+    'verify_path_groupoid_laws',
     'verify_poisson_laws',
     'verify_quotient_ring_laws',
     'verify_residuation_laws',
@@ -2625,6 +2628,216 @@ def verify_chern_number_integrality(
     c1_val = first_chern_number(conn, oriented_faces)
     nearest_int = round(c1_val)
     return math.isclose(c1_val, float(nearest_int), rel_tol=tol, abs_tol=tol)
+
+
+# =============================================================================
+# Categorical Type Theory, Semiring Coeffects & Homotopy Path Groupoids
+# =============================================================================
+
+
+def _check_product_universal_pairing(
+    ccc: Any,
+    a: Any,
+    b: Any,
+    f_ab_to_c: Any,
+) -> bool:
+    r"""Check $\langle \pi_1, \pi_2 \rangle = \mathrm{id}_{A \times B}$ and projection laws."""
+    p1 = ccc.proj1(a, b)
+    p2 = ccc.proj2(a, b)
+    paired_id = ccc.pair(p1, p2)
+    prod_ab = ccc.product(a, b)
+    if paired_id != ccc.id(prod_ab):
+        return False
+
+    paired_f = ccc.pair(f_ab_to_c, p2)
+    c_obj = ccc.target(f_ab_to_c)
+    proj1_cb = ccc.proj1(c_obj, b)
+    proj2_cb = ccc.proj2(c_obj, b)
+    return ccc.compose(paired_f, proj1_cb) == f_ab_to_c and ccc.compose(paired_f, proj2_cb) == p2
+
+
+def verify_exponential_adjunction(
+    ccc: Any,
+    a: Any,
+    b: Any,
+    c: Any,
+    morphisms_ab_to_c: Iterable[Any],
+    morphisms_a_to_cb: Iterable[Any] | None = None,
+) -> dict[str, bool]:
+    r"""Verify Cartesian Closed Category (CCC) universal product and exponential adjunction laws:
+    - Product Universal Pairing: $\pi_1 \circ \langle f, g \rangle = f$, $\pi_2 \circ \langle f, g \rangle = g$,
+      and $\langle \pi_1, \pi_2 \rangle = \mathrm{id}_{A \times B}$
+    - Beta Reduction (Evaluation): $\mathrm{eval}_{C, B} \circ (\mathrm{curry}(f) \times \mathrm{id}_B) = f$
+    - Currying Roundtrip ($\mathrm{uncurry} \circ \mathrm{curry}$): $\mathrm{uncurry}(\mathrm{curry}(f)) = f$
+    - Eta Expansion ($\mathrm{curry} \circ \mathrm{uncurry}$): $\mathrm{curry}(\mathrm{uncurry}(g)) = g$
+    """
+    f_list = _require_samples(morphisms_ab_to_c, min_count=1)
+    g_list = list(morphisms_a_to_cb) if morphisms_a_to_cb is not None else [ccc.curry(f, a, b) for f in f_list]
+
+    product_ok = True
+    beta_ok = True
+    uncurry_curry_ok = True
+    curry_uncurry_ok = True
+
+    ev_cb = ccc.eval_mor(c, b)
+    id_b = ccc.id(b)
+
+    for f in f_list:
+        if not _check_product_universal_pairing(ccc, a, b, f):
+            product_ok = False
+
+        curried = ccc.curry(f, a, b)
+        uncurried = ccc.uncurry(curried, a, b, c)
+        if uncurried != f:
+            uncurry_curry_ok = False
+
+        p1 = ccc.compose(ccc.proj1(a, b), curried)
+        p2 = ccc.compose(ccc.proj2(a, b), id_b)
+        curried_times_id = ccc.pair(p1, p2)
+        evaluated = ccc.compose(curried_times_id, ev_cb)
+        if evaluated != f:
+            beta_ok = False
+
+    for g in g_list:
+        rec = ccc.curry(ccc.uncurry(g, a, b, c), a, b)
+        if rec != g:
+            curry_uncurry_ok = False
+
+    return {
+        'product_universal_pairing': product_ok,
+        'beta_evaluation': beta_ok,
+        'uncurry_curry_bijection': uncurry_curry_ok,
+        'curry_uncurry_bijection': curry_uncurry_ok,
+    }
+
+
+def _check_coeffect_distributivity(
+    ctx_alg: Any,
+    g_list: list[Any],
+    c_list: list[dict[Any, Any]],
+    tol: float,
+) -> tuple[bool, bool, bool]:
+    r"""Check left distributivity, right distributivity, and modal associativity on coeffect contexts."""
+    s = ctx_alg.semiring
+    left_dist = True
+    right_dist = True
+    modal_assoc = True
+
+    for r in g_list:
+        for ctx1, ctx2 in itertools.product(c_list, repeat=2):
+            lhs = ctx_alg.scale(r, ctx_alg.add(ctx1, ctx2))
+            rhs = ctx_alg.add(ctx_alg.scale(r, ctx1), ctx_alg.scale(r, ctx2))
+            if not semiring_elements_equal(lhs, rhs, tol):
+                left_dist = False
+
+    for r, t in itertools.product(g_list, repeat=2):
+        for ctx in c_list:
+            lhs_r = ctx_alg.scale(s.add(r, t), ctx)
+            rhs_r = ctx_alg.add(ctx_alg.scale(r, ctx), ctx_alg.scale(t, ctx))
+            if not semiring_elements_equal(lhs_r, rhs_r, tol):
+                right_dist = False
+
+            lhs_m = ctx_alg.scale(s.mul(r, t), ctx)
+            rhs_m = ctx_alg.scale(r, ctx_alg.scale(t, ctx))
+            if not semiring_elements_equal(lhs_m, rhs_m, tol):
+                modal_assoc = False
+
+    return left_dist, right_dist, modal_assoc
+
+
+def verify_coeffect_grading(
+    ctx_alg: Any,
+    grade_samples: Iterable[Any],
+    context_samples: Iterable[dict[Any, Any]],
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify left $S$-semimodule laws for semiring-graded coeffect contexts `CoeffectContext`:
+    - Context Additive Commutativity & Associativity: $\Gamma_1 + \Gamma_2 = \Gamma_2 + \Gamma_1$
+    - Left Distributivity of Modal Scaling: $r \cdot (\Gamma_1 + \Gamma_2) = r \cdot \Gamma_1 + r \cdot \Gamma_2$
+    - Right Distributivity of Grade Addition: $(r \oplus s) \cdot \Gamma = r \cdot \Gamma + s \cdot \Gamma$
+    - Modal Composition Associativity: $(r \otimes s) \cdot \Gamma = r \cdot (s \cdot \Gamma)$
+    - Unitality & Zero Annihilation: $\mathbf{1}_S \cdot \Gamma = \Gamma$ and $\mathbf{0}_S \cdot \Gamma = \mathbf{0}$
+    """
+    g_list = _require_samples(grade_samples)
+    c_list = _require_samples(context_samples)
+    s = ctx_alg.semiring
+
+    comm_ok = True
+    for ctx1, ctx2 in itertools.product(c_list, repeat=2):
+        if not semiring_elements_equal(ctx_alg.add(ctx1, ctx2), ctx_alg.add(ctx2, ctx1), tol):
+            comm_ok = False
+
+    unit_ok = True
+    zero_ok = True
+    for ctx in c_list:
+        if not semiring_elements_equal(ctx_alg.scale(s.one, ctx), ctx, tol):
+            unit_ok = False
+        if not semiring_elements_equal(ctx_alg.scale(s.zero, ctx), ctx_alg.zero, tol):
+            zero_ok = False
+
+    left_dist, right_dist, modal_assoc = _check_coeffect_distributivity(ctx_alg, g_list, c_list, tol)
+    return {
+        'context_commutativity': comm_ok,
+        'left_distributivity': left_dist,
+        'right_distributivity': right_dist,
+        'modal_associativity': modal_assoc,
+        'unit_scaling': unit_ok,
+        'zero_annihilation': zero_ok,
+    }
+
+
+def verify_path_groupoid_laws(
+    groupoid: Any,
+    sample_paths: Iterable[tuple[Any, ...]],
+) -> dict[str, bool]:
+    r"""Verify fundamental path groupoid $\Pi_1(K)$ axioms up to simplicial homotopy ($\sim$):
+    - Left/Right Identity: $\mathrm{id}_{\mathrm{target}(p)} \circ p = p = p \circ \mathrm{id}_{\mathrm{source}(p)}$
+    - Left Inverse Homotopy: $p^{-1} \circ p \sim \mathrm{id}_{\mathrm{source}(p)}$
+    - Right Inverse Homotopy: $p \circ p^{-1} \sim \mathrm{id}_{\mathrm{target}(p)}$
+    - Involution of Inversion: $(p^{-1})^{-1} = p$
+    - 2-Simplex Face Homotopy: $\forall \{u, v, w\} \in K_2,\; (u, v, w) \sim (u, w)$
+    """
+    paths = _require_samples(sample_paths, min_count=1)
+    id_ok = True
+    left_inv_ok = True
+    right_inv_ok = True
+    involution_ok = True
+
+    for p in paths:
+        u = groupoid.source(p)
+        v = groupoid.target(p)
+        id_u = groupoid.id(u)
+        id_v = groupoid.id(v)
+        if groupoid.compose(p, id_u) != p or groupoid.compose(id_v, p) != p:
+            id_ok = False
+
+        p_inv = groupoid.invert_path(p)
+        if groupoid.invert_path(p_inv) != p:
+            involution_ok = False
+
+        # p_inv o p: first traverse p (u -> v), then p_inv (v -> u), yielding loop at u
+        loop_u = groupoid.compose(p_inv, p)
+        if not groupoid.are_homotopic(loop_u, id_u):
+            left_inv_ok = False
+
+        # p o p_inv: first traverse p_inv (v -> u), then p (u -> v), yielding loop at v
+        loop_v = groupoid.compose(p, p_inv)
+        if not groupoid.are_homotopic(loop_v, id_v):
+            right_inv_ok = False
+
+    face_homotopy_ok = True
+    for tri in groupoid.triangles:
+        u, v, w = tuple(tri)
+        if not groupoid.are_homotopic((u, v, w), (u, w)):
+            face_homotopy_ok = False
+
+    return {
+        'identity_laws': id_ok,
+        'left_inverse_homotopy': left_inv_ok,
+        'right_inverse_homotopy': right_inv_ok,
+        'inversion_involution': involution_ok,
+        'triangle_face_homotopy': face_homotopy_ok,
+    }
 
 
 
