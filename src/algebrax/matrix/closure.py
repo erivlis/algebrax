@@ -21,6 +21,56 @@ __all__ = [
 ]
 
 
+def _partition_2x2_blocks(
+    matrix: SparseMatrix[K, V],
+    set1: set[K],
+    set2: set[K],
+) -> tuple[dict[K, dict[K, V]], dict[K, dict[K, V]], dict[K, dict[K, V]], dict[K, dict[K, V]]]:
+    """Partition a sparse matrix into 2x2 block submatrices induced by key sets."""
+    a11: dict[K, dict[K, V]] = {}
+    a12: dict[K, dict[K, V]] = {}
+    a21: dict[K, dict[K, V]] = {}
+    a22: dict[K, dict[K, V]] = {}
+
+    for r, row in matrix.items():
+        if r in set1:
+            t11, t12 = a11, a12
+        elif r in set2:
+            t11, t12 = a21, a22
+        else:
+            continue
+        r_left = {c: v for c, v in row.items() if c in set1}
+        r_right = {c: v for c, v in row.items() if c in set2}
+        if r_left:
+            t11[r] = r_left
+        if r_right:
+            t12[r] = r_right
+
+    return a11, a12, a21, a22
+
+
+def _merge_2x2_blocks(
+    r11: SparseMatrix[K, V],
+    r12: SparseMatrix[K, V],
+    r21: SparseMatrix[K, V],
+    r22: SparseMatrix[K, V],
+    k1: Sequence[K],
+    k2: Sequence[K],
+) -> SparseMatrix[K, V]:
+    """Reassemble four sparse submatrix blocks into a single sparse matrix."""
+    res: dict[K, dict[K, V]] = {}
+    for keys, left, right in ((k1, r11, r12), (k2, r21, r22)):
+        for r in keys:
+            row_res: dict[K, V] = {}
+            if r in left:
+                row_res.update(left[r])
+            if r in right:
+                row_res.update(right[r])
+            if row_res:
+                res[r] = row_res
+    return res
+
+
 def _conway_star(
     matrix: SparseMatrix[K, V],
     sr: StarSemiring[V],
@@ -42,29 +92,7 @@ def _conway_star(
     m = n // 2
     k1 = k_list[:m]
     k2 = k_list[m:]
-    set1 = set(k1)
-    set2 = set(k2)
-
-    a11: dict[K, dict[K, V]] = {}
-    a12: dict[K, dict[K, V]] = {}
-    a21: dict[K, dict[K, V]] = {}
-    a22: dict[K, dict[K, V]] = {}
-
-    for r, row in matrix.items():
-        if r in set1:
-            r11 = {c: v for c, v in row.items() if c in set1}
-            r12 = {c: v for c, v in row.items() if c in set2}
-            if r11:
-                a11[r] = r11
-            if r12:
-                a12[r] = r12
-        elif r in set2:
-            r21 = {c: v for c, v in row.items() if c in set1}
-            r22 = {c: v for c, v in row.items() if c in set2}
-            if r21:
-                a21[r] = r21
-            if r22:
-                a22[r] = r22
+    a11, a12, a21, a22 = _partition_2x2_blocks(matrix, set(k1), set(k2))
 
     # Conway 2x2 Block Identities:
     # 1. A22*
@@ -96,26 +124,7 @@ def _conway_star(
     r21_t = dot(r21, t, semiring=sr)
     r22 = add(a22_star, r21_t, semiring=sr)
 
-    res: dict[K, dict[K, V]] = {}
-    for r in k1:
-        row_res = {}
-        if r in r11:
-            row_res.update(r11[r])
-        if r in r12:
-            row_res.update(r12[r])
-        if row_res:
-            res[r] = row_res
-
-    for r in k2:
-        row_res = {}
-        if r in r21:
-            row_res.update(r21[r])
-        if r in r22:
-            row_res.update(r22[r])
-        if row_res:
-            res[r] = row_res
-
-    return res
+    return _merge_2x2_blocks(r11, r12, r21, r22, k1, k2)
 
 
 def matrix_star(
