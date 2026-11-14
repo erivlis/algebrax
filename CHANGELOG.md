@@ -1,3 +1,23 @@
+## v0.15.0 (2026-11-14)
+
+### Feat
+
+- **verification**: add functions to verify Cartan duality, Ramanujan spectral gap, and p-adic ultrametric inequality
+- **langlands**: implement Langlands dual root systems and Iwahori-Hecke algebra
+- **spectral**: add functions for Ramanujan graph verification and Hecke operators
+- **algebra**: introduce PAdicField class for $p$-adic numbers with operations and properties
+- add verification functions for coeffect grading and path groupoid laws
+- add SimplicialPathGroupoid implementation and update imports
+- introduce atomic mixin protocols for categorical capabilities and formalize Cartesian categories
+- add unit tests for Universal Grothendieck Groups/Rings and Topological K-Theory
+- add verification functions for Grothendieck groups and Chern character properties
+- add Topological K-Theory implementations and related operations
+- add Grothendieck group and ring implementations
+
+### Refactor
+
+- reorganize imports and variable names for clarity in prototype_varieties.py and prototype_harmonic_analysis.py
+
 ## v0.14.1 (2026-11-14)
 
 ### Refactor
