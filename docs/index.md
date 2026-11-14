@@ -118,8 +118,8 @@ print(solve(a, b, field=ModularField(11)))
 |:-------|:-----------|:-----------|
 | **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 22 orthogonal mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`, `GrothendieckRing`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
 | **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, `AlgebraicTrie` |
-| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH), $\operatorname{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves & K-theory |
-| **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature, entropy, NumPy/SciPy bridges, Jupyter HTML/LaTeX cards, axiom verifiers |
+| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH), $\operatorname{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
+| **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | Cartesian Closed Categories, semiring coeffects, Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature, entropy, NumPy/SciPy bridges, axiom verifiers |
 
 ---
 

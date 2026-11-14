@@ -49,6 +49,15 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 | **Ideals & Quotients**| `HasContains[V]`             | `contains(x) -> bool`    | —                    | $\in: V \to \{\top, \bot\}$                     |
 |                       | `HasReduce[V]`               | `reduce(x) -> V`         | —                    | $x \mapsto [x] \in R / I$                       |
 |                       | `HasGenerator[V]`            | `generator -> V`         | —                    | $a \in R \text{ where } I = (a)$                |
+| **Categorical (`category`)** | `HasQuiver[Obj, Mor]` | `source(f)`, `target(f)` | —                    | $\mathrm{dom}, \mathrm{cod}: \mathrm{Hom} \to \mathrm{Obj}$ |
+|                       | `HasCatId[Obj, Mor]`         | `id(x) -> Mor`           | —                    | $\mathrm{id}_x \in \mathrm{Hom}(x, x)$          |
+|                       | `HasCompose[Mor]`            | `compose(f, g) -> Mor`   | —                    | $\circ: \mathrm{Hom} \times \mathrm{Hom} \to \mathrm{Hom}$ |
+|                       | `HasMorInv[Mor]`             | `invert_path(f) -> Mor`  | —                    | $()^{-1}: \mathrm{Hom}(x, y) \to \mathrm{Hom}(y, x)$ |
+|                       | `HasTerminal[Obj]`           | `terminal -> Obj`        | —                    | $\mathbf{1} \in \mathrm{Obj}$                   |
+|                       | `HasProducts[Obj, Mor]`      | `product`, `proj1`, `proj2`, `pair` | —         | $A \times B, \pi_1, \pi_2, \langle f, g \rangle$ |
+|                       | `HasExponentials[Obj, Mor]`  | `exponential`, `eval_mor`, `curry`, `uncurry` | — | $B^A, \mathrm{eval}, \mathrm{curry}, \mathrm{uncurry}$ |
+|                       | `HasMapObj[Obj, Obj_co]`     | `map_obj(x) -> Obj_co`   | —                    | $F_{\mathrm{Obj}}: \mathrm{Obj}(\mathcal{C}) \to \mathrm{Obj}(\mathcal{D})$ |
+|                       | `HasMapMor[Mor, Mor_co]`     | `map_mor(f) -> Mor_co`   | —                    | $F_{\mathrm{Mor}}: \mathrm{Hom}(\mathcal{C}) \to \mathrm{Hom}(\mathcal{D})$ |
 
 > [!NOTE]
 > **Subclassing vs. Structural Duck-Typing (The Golem Safety Contract)**
@@ -124,7 +133,8 @@ A **Groupoid** generalizes a Group to multi-state systems. It can be defined as 
 
 * **Group vs Groupoid**: A Group is a Groupoid with *only one object* (all elements are everywhere composable).
 * **Patch Theory (Darcs VCS)**: Repository states are objects; diff patches $P: \text{State}_1 \to \text{State}_2$ are groupoid morphisms. Every patch has a formal inverse $P^{-1}$, and patches compose along valid execution paths.
-* **Topological Fundamental Groupoid $\Pi_1(X)$**: Continuous path transformations in point clouds and simplicial complexes (`algebrax.topology`).
+* **Topological Fundamental Groupoid $\Pi_1(K)$**: `SimplicialPathGroupoid` in `algebrax.topology` models edge paths $(v_0, \dots, v_n)$ modulo 1-simplex backtracking $(u, v, u) \sim (u,)$ and 2-simplex face homotopies $(u, v, w) \sim (u, w)$.
+* **Cartesian Closed Categories & Coeffects (`algebrax.category`)**: `CartesianClosedCategory` and `FiniteSetCCC` model products $A \times B$, exponentials $C^B$, and the Curry–Howard–Lambek currying adjunction, while `CoeffectContext` and `SemiringCoeffectTracker` grade variable-usage contexts over any semiring.
 * **Permutations** (`algebrax.group`): Full permutations form a single-object groupoid (a Group), while partial bijection transformations form a multi-object groupoid.
 
 ### 5. Semiring $(S, \oplus, \otimes)$
