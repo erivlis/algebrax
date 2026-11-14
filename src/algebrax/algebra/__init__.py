@@ -18,6 +18,10 @@ from algebrax.algebra._field import (
     RealField,
     StandardField,
 )
+from algebrax.algebra._grothendieck import (
+    GrothendieckGroup,
+    GrothendieckRing,
+)
 from algebrax.algebra._group import (
     AddCommGroup,
     AddGroup,
@@ -198,6 +202,8 @@ __all__ = [
     'DivisionRing',
     'DualNumberAlgebra',
     'Field',
+    'GrothendieckGroup',
+    'GrothendieckRing',
     'Group',
     'GroupAction',
     'GroupHom',
