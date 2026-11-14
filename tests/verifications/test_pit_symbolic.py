@@ -308,3 +308,47 @@ def test_pit_hopf_algebra_antipode_and_coassociativity() -> None:
         assert verify_coassociativity(dpc, [dpc_sample])
         assert verify_counitality(dpc, [dpc_sample])
 
+
+# ---------------------------------------------------------------------------
+# PIT 7: Grothendieck Ring & Universal Property (EP-0207)
+# ---------------------------------------------------------------------------
+
+
+def test_pit_grothendieck_ring_and_universal_property() -> None:
+    """Verify GrothendieckRing homomorphism (a-b)(c-d) == ac+bd - (ad+bc) over PolynomialAlgebra(Q)."""
+    from algebrax.algebra import GrothendieckRing, PolynomialAlgebra, StandardField
+    from algebrax.verification import verify_grothendieck_universal_property
+
+    q_field = StandardField(Fraction)
+    poly_alg = PolynomialAlgebra(q_field)
+    k0_poly = GrothendieckRing(poly_alg)
+    lifted_diff = k0_poly.lift_homomorphism(poly_alg, lambda p: p)
+
+    rng = random.Random(20260207)
+    samples: list[dict[int, Fraction]] = []
+    for _ in range(NUM_TRIALS):
+        a = {d: Fraction(rng.randint(-8, 8)) for d in range(3)}
+        b = {d: Fraction(rng.randint(-8, 8)) for d in range(3)}
+        c = {d: Fraction(rng.randint(-8, 8)) for d in range(3)}
+        d_poly = {d: Fraction(rng.randint(-8, 8)) for d in range(3)}
+        samples.append(a)
+
+        pair_x = (a, b)
+        pair_y = (c, d_poly)
+
+        # Ring homomorphism: Phi((a - b) * (c - d)) == (a - b) * (c - d) in Q[x]
+        prod_k0 = k0_poly.mul(pair_x, pair_y)
+        lhs = lifted_diff(prod_k0)
+        rhs = poly_alg.mul(lifted_diff(pair_x), lifted_diff(pair_y))
+        assert lhs == rhs
+
+    # Universal property verification over sampled polynomials
+    props = verify_grothendieck_universal_property(
+        k0_poly,
+        poly_alg,
+        monoid_map=lambda p: p,
+        monoid_samples=samples[:4],
+    )
+    assert all(props.values())
+
+

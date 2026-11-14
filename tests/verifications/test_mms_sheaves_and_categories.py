@@ -463,3 +463,72 @@ def test_mms_alexander_whitney_duality_with_cup_product() -> None:
     assert math.isclose(eval_cup_3, 1.5 * 3.5, rel_tol=1e-12, abs_tol=1e-12)
 
 
+# ---------------------------------------------------------------------------
+# 8. EP-0207: Topological K-Theory, Virtual Bundles & Chern Quantization MMS
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.mms
+def test_mms_k_theory_monopole_chern_quantization_and_whitney_additivity() -> None:
+    """Verify via MMS that a manufactured Dirac monopole bundle on S^2 has quantized integer Chern number."""
+    from algebrax.topology import (
+        DiscreteOrthogonalConnection,
+        TopologicalKTheoryRing,
+        bundle_direct_sum,
+        bundle_tensor_product,
+        first_chern_number,
+        trivial_bundle,
+    )
+    from algebrax.verification import (
+        verify_chern_character_additivity,
+        verify_chern_number_integrality,
+    )
+
+    def rot2d(theta: float) -> dict[int, dict[int, float]]:
+        c, s = math.cos(theta), math.sin(theta)
+        return {0: {0: c, 1: -s}, 1: {0: s, 1: c}}
+
+    # Boundary of tetrahedron [0, 1, 2, 3] with coherent outward orientation
+    oriented_faces = [(1, 2, 3), (0, 3, 2), (0, 1, 3), (0, 2, 1)]
+    edges = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+
+    # Manufactured monopole connection with +1 and -1 topological charges
+    monopole_neg = DiscreteOrthogonalConnection(2)
+    monopole_pos = DiscreteOrthogonalConnection(2)
+    for u, v in [(0, 1), (0, 2), (0, 3)]:
+        monopole_neg.set_transport(u, v, rot2d(0.0))
+        monopole_pos.set_transport(u, v, rot2d(0.0))
+    monopole_neg.set_transport(1, 2, rot2d(2.2))
+    monopole_neg.set_transport(2, 3, rot2d(2.2))
+    monopole_neg.set_transport(1, 3, rot2d(-2.2))
+
+    monopole_pos.set_transport(1, 2, rot2d(-2.2))
+    monopole_pos.set_transport(2, 3, rot2d(-2.2))
+    monopole_pos.set_transport(1, 3, rot2d(2.2))
+
+    # 1. Exact integer quantization on S^2: c_1(E_-) == -1, c_1(E_+) == +1
+    assert math.isclose(first_chern_number(monopole_neg, oriented_faces), -1.0, abs_tol=1e-11)
+    assert math.isclose(first_chern_number(monopole_pos, oriented_faces), 1.0, abs_tol=1e-11)
+    assert verify_chern_number_integrality(monopole_neg, oriented_faces)
+    assert verify_chern_number_integrality(monopole_pos, oriented_faces)
+
+    # 2. Whitney direct sum E_- (+) E_+ has net topological charge -1 + 1 == 0
+    whitney_sum = bundle_direct_sum(monopole_neg, monopole_pos, edges)
+    assert math.isclose(first_chern_number(whitney_sum, oriented_faces), 0.0, abs_tol=1e-11)
+    additivity = verify_chern_character_additivity(monopole_neg, monopole_pos, oriented_faces)
+    assert all(additivity.values())
+
+    # 3. Kronecker tensor product I_2 (x) E_- has block-diagonal 2x2 SO(2) fibers and doubles ch_1: 2 * (-1) == -2
+    flat2 = trivial_bundle(2, edges)
+    tensor_prod = bundle_tensor_product(flat2, monopole_neg, edges)
+    assert math.isclose(first_chern_number(tensor_prod, oriented_faces), -2.0, abs_tol=1e-11)
+
+    # 4. Virtual bundle [E_+] - [E_-] in K^0(S^2) has virtual rank 0 and virtual Chern number +2
+    k_ring = TopologicalKTheoryRing(edges)
+    virtual_diff = (monopole_pos, monopole_neg)
+    assert k_ring.virtual_rank(virtual_diff) == 0
+    v_ch1 = k_ring.virtual_chern_1(virtual_diff, oriented_faces)
+    assert math.isclose(sum(v_ch1.values()), 2.0, abs_tol=1e-11)
+
+
+
