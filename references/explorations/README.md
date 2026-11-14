@@ -17,3 +17,5 @@ formal Enhancement Proposals (EPs).
 | **EXP-0007** | Canonical Surface Consolidation & Zero-Alias Purge                                                  | **Concluded** | 2026-11-04 | EP-0195, EP-0196                   | [EXP-0007](./EXP-0007-canonical-surface-and-alias-consolidation/README.md)       |
 | **EXP-0008** | Equational Theories, Law Witness Mixins & Characteristic Mathematical Operations                    | **Concluded** | 2026-11-12 | EP-0005, EP-0194, EP-0204          | [EXP-0008](./EXP-0008-equational-theories-and-typeclass-axioms/README.md)        |
 | **EXP-0009** | Algebraic & Tropical Varieties — Exact Quotients, Companion Matrices & Polyhedral Duals             | **Concluded** | 2026-11-14 | EP-0220, EP-0221, EP-0222          | [EXP-0009](./EXP-0009-algebraic-and-tropical-varieties/README.md)              |
+| **EXP-0010** | Generalized Harmonic Analysis — Non-Abelian Peter–Weyl, Algebraic Signal Models, Spectral Wavelets & Exact NTT | **Concluded** | 2026-11-14 | EP-0230, EP-0231, EP-0232          | [EXP-0010](./EXP-0010-generalized-harmonic-analysis/README.md)                 |
+
