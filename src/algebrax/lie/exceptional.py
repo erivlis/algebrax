@@ -132,6 +132,64 @@ def _solve_sparse_nullspace(  # noqa: C901  # NOSONAR - sparse Gauss-Jordan null
     return null_basis
 
 
+def _cocycle_sign(a: tuple[int, ...], b: tuple[int, ...], eps_simple: dict[tuple[int, int], int]) -> int:
+    """Compute the Frenkel-Kac 2-cocycle sign eps(a, b) in {+1, -1}."""
+    sign = 1
+    for i, a_i in enumerate(a):
+        if not a_i:
+            continue
+        for j, b_j in enumerate(b):
+            if b_j and (i, j) in eps_simple and (a_i * b_j) % 2 != 0:
+                sign = -sign
+    return sign
+
+
+def _add_cartan_root_brackets(
+    f_tensor: dict[tuple[int, int, int], float | complex],
+    all_roots: list[tuple[int, ...]],
+    root_to_idx: dict[tuple[int, ...], int],
+    cartan: list[list[int]],
+    eps_simple: dict[tuple[int, int], int],
+    r: int,
+) -> None:
+    """Populate [H_i, E_a], [E_a, H_i], and [E_a, E_{-a}] structure constants."""
+    for a_idx, a in enumerate(all_roots):
+        gen_a = r + a_idx
+        for i in range(r):
+            val = float(sum(a[j] * cartan[j][i] for j in range(r)))
+            if val:
+                f_tensor[(i, gen_a, gen_a)] = val
+                f_tensor[(gen_a, i, gen_a)] = -val
+
+        neg_a = tuple(-x for x in a)
+        gen_neg = r + root_to_idx[neg_a]
+        sign = float(_cocycle_sign(a, neg_a, eps_simple))
+        for i in range(r):
+            val = sign * float(a[i])
+            if val:
+                f_tensor[(gen_a, gen_neg, i)] = val
+
+
+def _add_root_brackets(
+    f_tensor: dict[tuple[int, int, int], float | complex],
+    all_roots: list[tuple[int, ...]],
+    root_to_idx: dict[tuple[int, ...], int],
+    cartan: list[list[int]],
+    eps_simple: dict[tuple[int, int], int],
+    r: int,
+) -> None:
+    """Populate [E_a, E_b] = eps(a, b) E_{a+b} structure constants for <a, b> = -1."""
+    for a_idx, a in enumerate(all_roots):
+        for b_idx, b in enumerate(all_roots):
+            ip_ab = sum(a[i] * b[j] * cartan[i][j] for i in range(r) for j in range(r))
+            if ip_ab != -1:
+                continue
+            a_plus_b = tuple(a[k] + b[k] for k in range(r))
+            if a_plus_b in root_to_idx:
+                sum_idx = root_to_idx[a_plus_b]
+                f_tensor[(r + a_idx, r + b_idx, r + sum_idx)] = float(_cocycle_sign(a, b, eps_simple))
+
+
 def _build_simply_laced_algebra(
     dynkin_or_roots: str | RootSystem,
     names: Sequence[str] | None = None,
@@ -143,52 +201,14 @@ def _build_simply_laced_algebra(
     all_roots = rs.roots
     root_to_idx = {root: idx for idx, root in enumerate(all_roots)}
     cartan = rs.cartan_matrix
-
-    def ip(a: tuple[int, ...], b: tuple[int, ...]) -> int:
-        return sum(a[i] * b[j] * cartan[i][j] for i in range(r) for j in range(r))
-
     eps_simple: dict[tuple[int, int], int] = {
         (i, j): -1 for i in range(r) for j in range(r) if i > j and cartan[i][j] == -1
     }
 
-    def eps(a: tuple[int, ...], b: tuple[int, ...]) -> int:
-        sign = 1
-        for i, a_i in enumerate(a):
-            if a_i:
-                for j, b_j in enumerate(b):
-                    if b_j and (i, j) in eps_simple and (a_i * b_j) % 2 != 0:
-                        sign = -sign
-        return sign
-
     dim = r + len(all_roots)
     f_tensor: dict[tuple[int, int, int], float | complex] = {}
-
-    for a_idx, a in enumerate(all_roots):
-        gen_a = r + a_idx
-        for i in range(r):
-            val = float(sum(a[j] * cartan[j][i] for j in range(r)))
-            if val != 0:
-                f_tensor[(i, gen_a, gen_a)] = val
-                f_tensor[(gen_a, i, gen_a)] = -val
-
-    for a_idx, a in enumerate(all_roots):
-        neg_a = tuple(-x for x in a)
-        neg_idx = root_to_idx[neg_a]
-        gen_a = r + a_idx
-        gen_neg = r + neg_idx
-        sign = float(eps(a, neg_a))
-        for i in range(r):
-            val = sign * float(a[i])
-            if val != 0:
-                f_tensor[(gen_a, gen_neg, i)] = val
-
-    for a_idx, a in enumerate(all_roots):
-        for b_idx, b in enumerate(all_roots):
-            if ip(a, b) == -1:
-                a_plus_b = tuple(a[k] + b[k] for k in range(r))
-                if a_plus_b in root_to_idx:
-                    sum_idx = root_to_idx[a_plus_b]
-                    f_tensor[(r + a_idx, r + b_idx, r + sum_idx)] = float(eps(a, b))
+    _add_cartan_root_brackets(f_tensor, all_roots, root_to_idx, cartan, eps_simple, r)
+    _add_root_brackets(f_tensor, all_roots, root_to_idx, cartan, eps_simple, r)
 
     basis_names = (
         list(names) if names is not None else [f'H_{i}' for i in range(r)] + [f'E_{i}' for i in range(len(all_roots))]
@@ -284,6 +304,80 @@ def e8() -> LieAlgebra:
     return _build_simply_laced_algebra('E8')
 
 
+def _e6_outer_automorphism_matrix(alg_e6: LieAlgebra, rs: RootSystem) -> dict[int, dict[int, float | complex]]:
+    """Construct the Z2 outer automorphism action on E6 basis generators."""
+    r = rs.rank
+    all_roots = rs.roots
+    root_to_idx = {root: i for i, root in enumerate(all_roots)}
+    cartan = rs.cartan_matrix
+
+    tau_perm = {0: 5, 5: 0, 2: 4, 4: 2, 1: 1, 3: 3}
+    m_tau: dict[int, dict[int, float | complex]] = {i: {tau_perm[i]: 1.0} for i in range(r)}
+    simple = rs.simple_roots
+    for i in range(r):
+        simple_root = simple[i]
+        tau_root = tuple(simple_root[tau_perm[k]] for k in range(r))
+        m_tau[r + root_to_idx[simple_root]] = {r + root_to_idx[tau_root]: 1.0}
+        m_tau[r + root_to_idx[tuple(-x for x in simple_root)]] = {r + root_to_idx[tuple(-x for x in tau_root)]: 1.0}
+
+    for gamma in sorted(all_roots, key=lambda a: (abs(sum(a)), abs(sum(a)) if a[0] >= 0 else -1)):
+        g_idx = r + root_to_idx[gamma]
+        if g_idx in m_tau:
+            continue
+        for i in range(r):
+            alpha_i = simple[i] if sum(gamma) > 0 else tuple(-x for x in simple[i])
+            beta = tuple(gamma[k] - alpha_i[k] for k in range(r))
+            ip_ab = sum(alpha_i[p] * beta[q] * cartan[p][q] for p in range(r) for q in range(r))
+            if beta in root_to_idx and ip_ab == -1:
+                a_idx = r + root_to_idx[alpha_i]
+                b_idx = r + root_to_idx[beta]
+                brk = alg_e6.bracket({a_idx: 1.0}, {b_idx: 1.0})
+                if g_idx in brk:
+                    c = brk[g_idx]
+                    tau_brk = alg_e6.bracket(m_tau[a_idx], m_tau[b_idx])
+                    m_tau[g_idx] = {k: v / c for k, v in tau_brk.items()}
+                    break
+    return m_tau
+
+
+def _project_f4_fixed_points(dim_e6: int, m_tau: dict[int, dict[int, float | complex]]) -> list[dict[int, float]]:
+    """Orthonormalize the +1 eigenspace of the E6 outer automorphism to yield the 52-D F4 basis."""
+    f4_basis: list[dict[int, float]] = []
+    for i in range(dim_e6):
+        vec: dict[int, float] = {i: 0.5}
+        for out_k, out_v in m_tau[i].items():
+            vec[out_k] = vec.get(out_k, 0.0) + 0.5 * float(out_v.real if isinstance(out_v, complex) else out_v)
+        for b in f4_basis:
+            dot_b = sum(b.get(k, 0.0) * vec.get(k, 0.0) for k in set(b) & set(vec))
+            norm_b = sum(v * v for v in b.values())
+            fac = dot_b / norm_b
+            for k, v in b.items():
+                vec[k] = vec.get(k, 0.0) - fac * v
+        clean = {k: v for k, v in vec.items() if abs(v) > 1e-10}
+        norm = sum(v * v for v in clean.values())
+        if norm > 1e-8:
+            inv_n = 1.0 / (norm**0.5)
+            f4_basis.append({k: v * inv_n for k, v in clean.items()})
+    return f4_basis
+
+
+def _f4_structure_constants(
+    alg_e6: LieAlgebra,
+    f4_basis: list[dict[int, float]],
+) -> dict[tuple[int, int, int], float | complex]:
+    """Project E6 brackets onto the orthonormalized F4 fixed-point basis."""
+    f_f4: dict[tuple[int, int, int], float | complex] = {}
+    for i in range(52):
+        for j in range(i + 1, 52):
+            comm = alg_e6.bracket(f4_basis[i], f4_basis[j])
+            for k in range(52):
+                proj = sum(f4_basis[k].get(idx, 0.0) * comm.get(idx, 0.0) for idx in set(f4_basis[k]) & set(comm))
+                if abs(proj) > 1e-10:
+                    f_f4[(i, j, k)] = proj
+                    f_f4[(j, i, k)] = -proj
+    return f_f4
+
+
 @functools.lru_cache(maxsize=1)
 def f4() -> LieAlgebra:
     r"""The 52-dimensional exceptional Lie algebra F₄ (rank 4).
@@ -300,76 +394,9 @@ def f4() -> LieAlgebra:
     """
     alg_e6 = e6()
     rs = RootSystem.from_dynkin('E6')
-    r = rs.rank
-    all_roots = rs.roots
-    root_to_idx = {root: i for i, root in enumerate(all_roots)}
-    cartan = rs.cartan_matrix
-
-    def ip(a: tuple[int, ...], b: tuple[int, ...]) -> int:
-        return sum(a[i] * b[j] * cartan[i][j] for i in range(r) for j in range(r))
-
-    # Outer automorphism permutation of E6 Dynkin diagram
-    tau_perm = {0: 5, 5: 0, 2: 4, 4: 2, 1: 1, 3: 3}
-    m_tau: dict[int, dict[int, float]] = {i: {tau_perm[i]: 1.0} for i in range(r)}
-    simple = rs.simple_roots
-    for i in range(r):
-        simple_root = simple[i]
-        tau_root = tuple(simple_root[tau_perm[k]] for k in range(r))
-        e_i = r + root_to_idx[simple_root]
-        e_tau = r + root_to_idx[tau_root]
-        m_tau[e_i] = {e_tau: 1.0}
-        f_i = r + root_to_idx[tuple(-x for x in simple_root)]
-        f_tau = r + root_to_idx[tuple(-x for x in tau_root)]
-        m_tau[f_i] = {f_tau: 1.0}
-
-    for gamma in sorted(all_roots, key=lambda a: (abs(sum(a)), abs(sum(a)) if a[0] >= 0 else -1)):
-        g_idx = r + root_to_idx[gamma]
-        if g_idx in m_tau:
-            continue
-        for i in range(r):
-            alpha_i = simple[i] if sum(gamma) > 0 else tuple(-x for x in simple[i])
-            beta = tuple(gamma[k] - alpha_i[k] for k in range(r))
-            if beta in root_to_idx and ip(alpha_i, beta) == -1:
-                a_idx = r + root_to_idx[alpha_i]
-                b_idx = r + root_to_idx[beta]
-                brk = alg_e6.bracket({a_idx: 1.0}, {b_idx: 1.0})
-                if g_idx in brk:
-                    c = brk[g_idx]
-                    tau_a = m_tau[a_idx]
-                    tau_b = m_tau[b_idx]
-                    tau_brk = alg_e6.bracket(tau_a, tau_b)
-                    m_tau[g_idx] = {k: v / c for k, v in tau_brk.items()}
-                    break
-
-    dim_e6 = alg_e6.dim
-    f4_basis: list[dict[int, float]] = []
-    for i in range(dim_e6):
-        vec: dict[int, float] = {i: 0.5}
-        for out_k, out_v in m_tau[i].items():
-            vec[out_k] = vec.get(out_k, 0.0) + 0.5 * out_v
-        for b in f4_basis:
-            dot_b = sum(b.get(k, 0.0) * vec.get(k, 0.0) for k in set(b) & set(vec))
-            norm_b = sum(v * v for v in b.values())
-            fac = dot_b / norm_b
-            for k, v in b.items():
-                vec[k] = vec.get(k, 0.0) - fac * v
-        clean = {k: v for k, v in vec.items() if abs(v) > 1e-10}
-        norm = sum(v * v for v in clean.values())
-        if norm > 1e-8:
-            inv_n = 1.0 / (norm**0.5)
-            clean_unit = {k: v * inv_n for k, v in clean.items()}
-            f4_basis.append(clean_unit)
-
-    f_f4: dict[tuple[int, int, int], float | complex] = {}
-    for i in range(52):
-        for j in range(i + 1, 52):
-            comm = alg_e6.bracket(f4_basis[i], f4_basis[j])
-            for k in range(52):
-                proj = sum(f4_basis[k].get(idx, 0.0) * comm.get(idx, 0.0) for idx in set(f4_basis[k]) & set(comm))
-                if abs(proj) > 1e-10:
-                    f_f4[(i, j, k)] = proj
-                    f_f4[(j, i, k)] = -proj
-
+    m_tau = _e6_outer_automorphism_matrix(alg_e6, rs)
+    f4_basis = _project_f4_fixed_points(alg_e6.dim, m_tau)
+    f_f4 = _f4_structure_constants(alg_e6, f4_basis)
     sc_f4 = StructureConstants(dim=52, tensor=f_f4)
     names = [f'F_{i}' for i in range(52)]
     return LieAlgebra(dim=52, structure_constants=sc_f4, basis_names=names)
