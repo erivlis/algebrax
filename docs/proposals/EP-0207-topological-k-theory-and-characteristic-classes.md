@@ -2,7 +2,7 @@
 title: "EP-0207: Topological K-Theory, Grothendieck Groups & Characteristic Classes"
 description: "Formalize the Grothendieck group construction, topological K-theory ring of discrete vector bundles, and characteristic Chern classes bridging curvature to cohomology."
 icon: lucide/orbit
-status: draft
+status: final
 ---
 
 # EP-0207: Topological K-Theory, Grothendieck Groups & Characteristic Classes
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                         |
 | **Sponsor**       | Core Maintainers                                                    |
 | **Delegate**      | ⚖️ Noether (Chern Invariants) & 🧩 Russell (Universal Grothendieck) |
-| **Status**        | Draft                                                               |
+| **Status**        | Final                                                               |
 | **Type**          | Standards Track                                                     |
 | **Created**       | 2026-10-28                                                          |
-| **Updated**       | 2026-10-28                                                          |
+| **Updated**       | 2026-11-14                                                          |
 | **Replaces**      | —                                                                   |
 | **Superseded-By** | —                                                                   |
 
@@ -210,8 +210,12 @@ Strictly additive. Extends `algebrax.topology` and `algebrax.algebra` without br
 
 ## Reference Implementation
 
-Evaluated and confirmed under Council review in
-`references/explorations/EXP-0005-categorical-foundations-and-enriched-mechanics/README.md`.
+Implemented in:
+- `src/algebrax/algebra/_grothendieck.py` (`GrothendieckGroup`, `GrothendieckRing`)
+- `src/algebrax/topology/k_theory.py` (`TopologicalKTheoryRing`, `trivial_bundle`, `bundle_direct_sum`, `bundle_tensor_product`, `compute_face_curvature_angle`, `compute_chern_character_1`, `compute_chern_character_2`, `first_chern_number`, `chern_character`)
+- `src/algebrax/verification.py` (`verify_grothendieck_universal_property`, `verify_chern_character_additivity`, `verify_chern_number_integrality`)
+- `tests/algebrax/test_k_theory.py`
+- `docs/guide/topology/k_theory.md`
 
 ---
 
@@ -234,3 +238,5 @@ Evaluated and confirmed under Council review in
 ## Change Log
 
 - **2026-10-28**: Initial draft authored following Council consensus.
+- **2026-11-14**: Implemented `GrothendieckGroup`, `GrothendieckRing`, `TopologicalKTheoryRing`, discrete Chern character forms, and axiomatic verifiers; promoted status to Final.
+

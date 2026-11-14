@@ -170,7 +170,7 @@ homomorphisms, ideals, canonical quotients, and functorial cellular sheaves.
 | [EP-0204](proposals/EP-0204-non-associative-quantum-algebras-jordan-octonions-poisson.md) | Non-Associative & Quantum Algebras (Jordan, Octonions, Poisson) | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 | [EP-0205](proposals/EP-0205-normed-banach-hilbert-spaces-and-rkhs.md)                     | Normed, Banach & Hilbert Spaces (Inner Products, RKHS)          | ⚡ Shannon & 🔬 Popper  | :material-check-all: Final |
 | [EP-0206](proposals/EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)                   | Coalgebras, Bialgebras & Hopf Algebras                          | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
-| [EP-0207](proposals/EP-0207-topological-k-theory-and-characteristic-classes.md)           | Topological K-Theory & Characteristic Classes                   | ⚖️ Noether & 🧩 Russell | :material-pencil: Draft |
+| [EP-0207](proposals/EP-0207-topological-k-theory-and-characteristic-classes.md)           | Topological K-Theory & Characteristic Classes                   | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 | [EP-0208](proposals/EP-0208-categorical-type-theory-and-homotopy-groupoids.md)            | Categorical Type Theory & Homotopy Groupoids                    | 🧩 Russell & 🛡️ Golem   | :material-pencil: Draft |
 | [EP-0209](proposals/EP-0209-langlands-root-duality-hecke-padic-valuations.md)             | Langlands Root Duality, Hecke & p-Adic Valuations               | ⚖️ Noether & 🔬 Popper  | :material-pencil: Draft |
 
