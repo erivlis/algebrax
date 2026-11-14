@@ -65,6 +65,11 @@ from algebrax.analysis.rkhs import (
     polynomial_kernel,
     rbf_kernel,
 )
+from algebrax.analysis.spectral import (
+    adjacency_spectrum,
+    hecke_graph_operator,
+    is_ramanujan_graph,
+)
 
 __all__ = [
     'BanachContractionVerifier',
@@ -81,6 +86,7 @@ __all__ = [
     'StalkCoord',
     '_get_common_neighbors',
     '_is_graph_weighted',
+    'adjacency_spectrum',
     'algebraic_connectivity',
     'canonicalize_form',
     'cochain_to_flow',
@@ -97,10 +103,12 @@ __all__ = [
     'gaussian_kernel',
     'gradient',
     'gram_schmidt',
+    'hecke_graph_operator',
     'helmholtz_hodge_decomposition',
     'hodge_laplacian',
     'hodge_star',
     'inner_euclidean',
+    'is_ramanujan_graph',
     'laplacian',
     'laplacian_matrix',
     'laplacian_smoothing',
