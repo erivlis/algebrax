@@ -27,14 +27,16 @@ def test_determinant_3x3():
     # Identity
     m = {0: {0: 1}, 1: {1: 1}, 2: {2: 1}}
     with pytest.warns(PerformanceWarning):
-        assert determinant(m) == pytest.approx(1)
+        res = determinant(m)
+    assert res == pytest.approx(1)
 
 
 def test_determinant_singular():
     # Row 0 is zero
     m = {0: {}, 1: {1: 1}}
     with pytest.warns(PerformanceWarning):
-        assert determinant(m) == pytest.approx(0)
+        res = determinant(m)
+    assert res == pytest.approx(0)
 
 
 def test_determinant_row_swap():
@@ -46,12 +48,14 @@ def test_determinant_row_swap():
     # Det = -1.
     m = {0: {0: 0, 1: 1}, 1: {0: 1, 1: 0}}
     with pytest.warns(PerformanceWarning):
-        assert determinant(m) == pytest.approx(-1)
+        res = determinant(m)
+    assert res == pytest.approx(-1)
 
 
 def test_determinant_empty():
     with pytest.warns(PerformanceWarning):
-        assert determinant({}) == pytest.approx(1)
+        res = determinant({})
+    assert res == pytest.approx(1)
 
 
 def test_inverse():
