@@ -386,16 +386,19 @@ class CoordinateHopfAlgebra(Generic[V]):
     def comultiply_generator(self, row: int, col: int) -> list[tuple[SparseMPoly[V], SparseMPoly[V]]]: ...
 ```
 
-### 6. Algebraic K-Theory, Serre–Swan Bundles & Schubert Cohomology Rings (`src/algebrax/variety/k_theory.py`)
+### 6. Algebraic & Higher K-Theory ($K_0, K_1, K_2^M$), Serre–Swan Bundles & Schubert Rings (`src/algebrax/variety/k_theory.py`)
 
-Bridges `algebrax.variety` directly with `algebrax.topology.k_theory` ([`EP-0207`](EP-0207-topological-k-theory-and-characteristic-classes.md)) and `GrothendieckRing` (`algebrax.algebra._grothendieck`):
+Bridges `algebrax.variety` across the algebraic K-theory tower ($K_0 \to K_1 \to K_2^M$) with `algebrax.topology.k_theory` ([`EP-0207`](EP-0207-topological-k-theory-and-characteristic-classes.md)), `GrothendieckRing` (`algebrax.algebra._grothendieck`), `algebrax.clifford` ([`EP-0111`](EP-0111-clifford-geometric-algebra.md)), and $p$-adic valuations ([`EP-0209`](EP-0209-langlands-root-duality-hecke-padic-valuations.md)):
 
 ```python
+from fractions import Fraction
+
+
 def is_serre_swan_projective_bundle(
     variety: AffineVariety[V],
     projector_matrix: SparseMatrix[int, SparseMPoly[V]],
 ) -> bool:
-    r"""Verify the Serre–Swan theorem condition $P^2 \equiv P \pmod{I(V)}$ for an algebraic vector bundle.
+    r"""Verify the Serre–Swan $K_0(V)$ theorem condition $P^2 \equiv P \pmod{I(V)}$ for an algebraic vector bundle.
 
     An idempotent matrix $P \in M_r(k[V])$ over `variety.coordinate_ring` defines a finitely generated
     projective module over $k[V]$ (and hence an algebraic vector bundle $E \to V$ in $K_0(V)$).
@@ -423,6 +426,44 @@ def motivic_point_count_homomorphism(
     r"""Evaluate the $\mathbb{F}_p$-point counting homomorphism $\#V(\mathbb{F}_p) - \#W(\mathbb{F}_p)$ on $K_0(\mathbf{Var}_{\mathbb{F}_p})$.
 
     Satisfies cut-and-paste scissor congruence $[V] = [Z] + [V \setminus Z]$ in `GrothendieckRing`.
+    """
+    ...
+
+
+def coordinate_ring_unit_inverse(
+    variety: AffineVariety[V],
+    poly: SparseMPoly[V],
+) -> SparseMPoly[V] | None:
+    r"""Test whether `poly` is a unit $[u] \in k[V]^\times \hookrightarrow K_1(k[V])$ and return its inverse $u^{-1} \bmod I(V)$.
+
+    Uses the auxiliary tag variable $t$ in $\langle I(V),\, t \cdot u - 1 \rangle$: `poly` is invertible in
+    `variety.coordinate_ring` iff $1 \notin \langle I(V), u \rangle$, returning the reduced inverse in $k[V]$.
+    """
+    ...
+
+
+def tame_symbol_padic(
+    a: int | Fraction,
+    b: int | Fraction,
+    prime: int,
+) -> int:
+    r"""Evaluate the $K_2(\mathbb{Q}) \to \mathbb{F}_p^\times$ Tame Symbol $T_p(a, b) = (-1)^{v_p(a)v_p(b)} \frac{a^{v_p(b)}}{b^{v_p(a)}} \pmod p$.
+
+    Satisfies Matsumoto's Steinberg relation $T_p(a, 1 - a) \equiv 1 \pmod p$ for all $a \not\in \{0, 1\}$ (`EP-0209` bridge).
+    """
+    ...
+
+
+def milnor_symbol_conic_variety(
+    ring: MultivariatePolynomialAlgebra[V],
+    a: V,
+    b: V,
+) -> AffineVariety[V]:
+    r"""Construct the norm-residue conic variety $a x^2 + b y^2 - 1 = 0$ witnessing $\{a, b\} \in K_2^M(k)/2$ (`EP-0111` bridge).
+
+    By the Milnor–Voevodsky Norm Residue Theorem, the mod-2 Milnor K-theory symbol $\{a, b\} \in K_2^M(k)/2$
+    (and the 2-generator Clifford/quaternion algebra $\mathrm{Cl}_{a,b}(k)$) splits iff this conic variety has a $k$-rational point
+    (immediately satisfied by $(1, 1)$ when $b = 1 - a$, geometrically witnessing the Steinberg relation $\{a, 1 - a\} = 0$).
     """
     ...
 ```
