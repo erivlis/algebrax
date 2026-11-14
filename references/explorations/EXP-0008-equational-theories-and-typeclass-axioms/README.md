@@ -9,7 +9,7 @@
 | **Type**        | Architectural & Research Exploration                                                                  |
 | **Created**     | 2026-11-12                                                                                            |
 | **Updated**     | 2026-11-12                                                                                            |
-| **Related EPs** | [EP-0194](../../docs/proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), [EP-0204](../../docs/proposals/EP-0204-non-associative-quantum-algebras-jordan-octonions-poisson.md), [EP-0216](../../docs/proposals/EP-0216-law-witness-mixins-and-equational-differentiation.md) |
+| **Related EPs** | [EP-0005](../../docs/proposals/EP-0005-universal-algebraic-protocol-architecture.md), [EP-0194](../../docs/proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md), [EP-0204](../../docs/proposals/EP-0204-non-associative-quantum-algebras-jordan-octonions-poisson.md) |
 
 ---
 
@@ -176,6 +176,6 @@ Structures that possess unique canonical operations derived from their equationa
 ## 6. Actionable Verdict & Standards Track Roadmap
 
 1. **Compendium Concluded**: The architectural design is verified, prototyped, and archived with primary literature in `references/explorations/EXP-0008-equational-theories-and-typeclass-axioms/`.
-2. **Proposed Standards Track EP**:
-   - Author **EP-0216: Law Witness Mixins & Equational Protocol Differentiation**.
-   - Scope: Update `_mixins.py`, `_ring.py`, `_group.py`, and `_non_assoc.py` with Pillar 2 and Pillar 3, while preserving 100% backward compatibility for all existing algorithms and carrier data.
+2. **Resulting Foundational Canon EP**:
+   - Canonized as [**EP-0005: Universal Algebraic Protocol Architecture**](../../docs/proposals/EP-0005-universal-algebraic-protocol-architecture.md).
+   - Scope: Updates `_mixins.py`, `_ring.py`, `_group.py`, and `_non_assoc.py` with Pillar 2 and Pillar 3, while preserving 100% backward compatibility for all existing algorithms and carrier data.
