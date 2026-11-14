@@ -153,6 +153,9 @@ from algebrax.algebra._normed import (
     InnerProductSpace,
     NormedSpace,
 )
+from algebrax.algebra._padic import (
+    PAdicField,
+)
 from algebrax.algebra._polynomial import (
     PolynomialAlgebra,
 )
@@ -275,6 +278,7 @@ __all__ = [
     'OpMagma',
     'OpMonoid',
     'OpSemigroup',
+    'PAdicField',
     'PoissonAlgebra',
     'PolynomialAlgebra',
     'PolynomialTruncationIdeal',
