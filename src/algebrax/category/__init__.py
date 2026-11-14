@@ -12,7 +12,26 @@ from __future__ import annotations
 
 from typing import TypeVar
 
-from algebrax.category.core import Category, Functor, OppositeCategory
+from algebrax.category._mixins import (
+    HasCatId,
+    HasCompose,
+    HasExponentials,
+    HasMapMor,
+    HasMapObj,
+    HasMorInv,
+    HasProducts,
+    HasQuiver,
+    HasTerminal,
+)
+from algebrax.category.ccc import (
+    CartesianCategory,
+    CartesianClosedCategory,
+    FiniteMor,
+    FiniteObj,
+    FiniteSetCCC,
+)
+from algebrax.category.coeffect import CoeffectContext, SemiringCoeffectTracker
+from algebrax.category.core import Category, Functor, Groupoid, OppositeCategory, Quiver
 from algebrax.category.enriched import LawvereMetricCategory
 from algebrax.category.matrix import (
     MatrixCategory,
@@ -97,15 +116,33 @@ def kan_extension_left(
 
 
 __all__ = [
+    'CartesianCategory',
+    'CartesianClosedCategory',
     'Category',
     'Cell',
     'CellPosetCategory',
+    'CoeffectContext',
     'FaceInclusion',
+    'FiniteMor',
+    'FiniteObj',
+    'FiniteSetCCC',
     'Functor',
+    'Groupoid',
+    'HasCatId',
+    'HasCompose',
+    'HasExponentials',
+    'HasMapMor',
+    'HasMapObj',
+    'HasMorInv',
+    'HasProducts',
+    'HasQuiver',
+    'HasTerminal',
     'LawvereMetricCategory',
     'MatrixCategory',
     'OppositeCategory',
+    'Quiver',
     'SemiringChangeOfBaseFunctor',
+    'SemiringCoeffectTracker',
     'TransposeFunctor',
     'kan_extension_left',
     'kleisli_compose',

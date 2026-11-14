@@ -1,14 +1,24 @@
 """
-Core Category Theory Protocols: Category, Functor, and OppositeCategory.
+Core Category Theory Protocols: Quiver, Category, Groupoid, Functor, and OppositeCategory.
 
-Aligned with Lean 4 Mathlib (`Mathlib.CategoryTheory.Category.Basic` and
-`Mathlib.CategoryTheory.Functor.Basic`), adhering strictly to AlgebraX's
-zero-overhead unboxed carrier architecture.
+Aligned with Lean 4 Mathlib (`Mathlib.CategoryTheory.Category.Basic`,
+`Mathlib.CategoryTheory.Groupoid`, and `Mathlib.CategoryTheory.Functor.Basic`),
+composed from Layer-1 atomic operational mixins (`HasQuiver`, `HasCatId`,
+`HasCompose`, `HasMorInv`, `HasMapObj`, `HasMapMor`) with zero diamond inheritance.
 """
 
 from __future__ import annotations
 
 from typing import Generic, Protocol, TypeVar, runtime_checkable
+
+from algebrax.category._mixins import (
+    HasCatId,
+    HasCompose,
+    HasMapMor,
+    HasMapObj,
+    HasMorInv,
+    HasQuiver,
+)
 
 Obj = TypeVar('Obj')
 Mor = TypeVar('Mor')
@@ -17,7 +27,17 @@ Mor_co = TypeVar('Mor_co', covariant=True)
 
 
 @runtime_checkable
-class Category(Protocol[Obj, Mor]):
+class Quiver(HasQuiver[Obj, Mor], Protocol[Obj, Mor]):
+    r"""A directed multigraph (quiver) $\mathcal{Q} = \langle \mathrm{Obj}, \mathrm{Hom} \rangle$."""
+
+
+@runtime_checkable
+class Category(
+    HasQuiver[Obj, Mor],
+    HasCatId[Obj, Mor],
+    HasCompose[Mor],
+    Protocol[Obj, Mor],
+):
     r"""A mathematical category $\mathcal{C} = \langle \mathrm{Obj}, \mathrm{Hom}, \mathrm{id}, \circ \rangle$.
 
     Algebraic Signature:
@@ -35,25 +55,28 @@ class Category(Protocol[Obj, Mor]):
         - Associativity: $\mathrm{compose}(\mathrm{compose}(f, g), h) = \mathrm{compose}(f, \mathrm{compose}(g, h))$.
     """
 
-    def id(self, x: Obj) -> Mor:
-        r"""Identity morphism $\mathrm{id}_x : x \to x$."""
-        ...
 
-    def compose(self, f: Mor, g: Mor) -> Mor:
-        r"""Composition of morphisms $g \circ f$ ($f$ followed by $g$)."""
-        ...
+@runtime_checkable
+class Groupoid(
+    HasQuiver[Obj, Mor],
+    HasCatId[Obj, Mor],
+    HasCompose[Mor],
+    HasMorInv[Mor],
+    Protocol[Obj, Mor],
+):
+    r"""A mathematical groupoid $\mathcal{G} = \langle \mathrm{Obj}, \mathrm{Hom}, \mathrm{id}, \circ, ()^{-1} \rangle$.
 
-    def source(self, f: Mor) -> Obj:
-        r"""Source object $\mathrm{dom}(f)$."""
-        ...
-
-    def target(self, f: Mor) -> Obj:
-        r"""Target object $\mathrm{cod}(f)$."""
-        ...
+    Every morphism $f : x \to y$ is an isomorphism equipped with an inverse $f^{-1} : y \to x$
+    satisfying $f^{-1} \circ f \sim \mathrm{id}_x$ and $f \circ f^{-1} \sim \mathrm{id}_y$.
+    """
 
 
 @runtime_checkable
-class Functor(Protocol[Obj, Mor, Obj_co, Mor_co]):
+class Functor(
+    HasMapObj[Obj, Obj_co],
+    HasMapMor[Mor, Mor_co],
+    Protocol[Obj, Mor, Obj_co, Mor_co],
+):
     r"""A covariant functor $F : \mathcal{C} \to \mathcal{D}$ between categories.
 
     Algebraic Signature:
@@ -64,14 +87,6 @@ class Functor(Protocol[Obj, Mor, Obj_co, Mor_co]):
         - Identity Preservation: $F(\mathrm{id}_x) = \mathrm{id}_{F(x)}$.
         - Composition Preservation: $F(g \circ_{\mathcal{C}} f) = F(g) \circ_{\mathcal{D}} F(f)$.
     """
-
-    def map_obj(self, x: Obj) -> Obj_co:
-        r"""Map an object $x \in \mathrm{Obj}(\mathcal{C})$ to $F(x) \in \mathrm{Obj}(\mathcal{D})$."""
-        ...
-
-    def map_mor(self, f: Mor) -> Mor_co:
-        r"""Map a morphism $f \in \mathrm{Hom}_{\mathcal{C}}(x, y)$ to $F(f)$."""
-        ...
 
 
 class OppositeCategory(Category[Obj, Mor], Generic[Obj, Mor]):
@@ -111,5 +126,7 @@ class OppositeCategory(Category[Obj, Mor], Generic[Obj, Mor]):
 __all__ = [
     'Category',
     'Functor',
+    'Groupoid',
     'OppositeCategory',
+    'Quiver',
 ]
