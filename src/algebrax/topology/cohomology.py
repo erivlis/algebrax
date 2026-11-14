@@ -38,7 +38,7 @@ def _resolve_bidirectional_edge_flux(
         return f_uv - f_vu
     if mode == 'auto':
         if (
-            f_uv != 0.0
+            f_uv != 0.0  # NOSONAR - exact sentinel presence check
             and f_vu != 0.0  # NOSONAR - exact sentinel presence check
             and math.isclose(f_uv, -f_vu, rel_tol=1e-9, abs_tol=max(tol, 1e-12))
         ):

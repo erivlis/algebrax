@@ -876,7 +876,7 @@ def frobenius_inner(
     return val.real if abs(val.imag) < 1e-14 else val
 
 
-def inverse(  # noqa: C901, NOSONAR - Gauss-Jordan sparse elimination kernel with partial pivoting
+def inverse(  # noqa: C901  # NOSONAR - Gauss-Jordan sparse elimination kernel with partial pivoting
     matrix: SparseMatrix[K, N],
     tol: float = 1e-12,
 ) -> SparseMatrix[K, N]:

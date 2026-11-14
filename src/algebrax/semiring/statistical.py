@@ -53,13 +53,13 @@ class LogSemiring(Semiring[float]):
         return max_val + math.log(math.exp(a - max_val) + math.exp(b - max_val))
 
     def mul(self, a: float, b: float) -> float:
-        # log(exp(a) * exp(b)) = a + b
+        # Log-domain multiplication maps products to sums: log(exp(a) * exp(b)) -> a + b
         return a + b
 
     def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('LogSemiring does not support negative nsum')
-        # log(n * exp(a)) = log(n) + a
+        # Log-domain n-fold sum: log(n * exp(a)) -> log(n) + a
         if n == 0:
             return float('-inf')
         if a == float('-inf'):
@@ -195,7 +195,7 @@ class StatisticalMomentSemiring(BinomialConvolutionSemiring):
         mu = raw[1] if len(raw) > 1 else 0.0
         pascal = self._pascal
 
-        central = [1.0]  # μ_0 = 1
+        central = [1.0]  # 0th central moment (normalized unit mass)
         for k in range(1, len(raw)):
             val = sum(pascal[k][j] * ((-mu) ** (k - j)) * raw[j] for j in range(k + 1))
             central.append(val)

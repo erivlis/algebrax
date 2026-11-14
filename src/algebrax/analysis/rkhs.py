@@ -123,7 +123,7 @@ class ReproducingKernelHilbertSpace:
             reg_gram[i][i] = reg_gram[i].get(i, 0.0) + alpha
 
         # Right-hand side vector y
-        rhs = {i: float(train_y[i]) for i in range(n) if train_y[i] != 0.0}
+        rhs = {i: float(train_y[i]) for i in range(n) if train_y[i] != 0.0}  # NOSONAR - exact sparse zero check
 
         # Solve for dual weights w
         w_sparse = solve(reg_gram, rhs)

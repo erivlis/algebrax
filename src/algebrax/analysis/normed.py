@@ -50,9 +50,9 @@ def norm_p(vec: SparseVector[Any, float], p: float = 2.0) -> float:
 
     if p == float('inf'):
         return max((abs(v) for v in vec.values()), default=0.0)
-    if p == 1.0:
+    if p == 1.0:  # NOSONAR - exact fast-path for L1 norm
         return sum(abs(v) for v in vec.values())
-    if p == 2.0:
+    if p == 2.0:  # NOSONAR - exact fast-path for Euclidean L2 norm
         return math.sqrt(sum(v * v for v in vec.values()))
 
     return math.pow(sum(abs(v) ** p for v in vec.values()), 1.0 / p)
@@ -206,18 +206,18 @@ class EuclideanSpace(InnerProductSpace[float, SparseVector[K, float]], NormedSpa
         res = dict(a)
         for k, v in b.items():
             res[k] = res.get(k, 0.0) + v
-        return {k: v for k, v in res.items() if v != 0.0}
+        return {k: v for k, v in res.items() if v != 0.0}  # NOSONAR - exact sparse zero pruning
 
     def neg(self, a: SparseVector[K, float]) -> SparseVector[K, float]:
-        return {k: -v for k, v in a.items() if v != 0.0}
+        return {k: -v for k, v in a.items() if v != 0.0}  # NOSONAR - exact sparse zero pruning
 
     def sub(self, a: SparseVector[K, float], b: SparseVector[K, float]) -> SparseVector[K, float]:
         return self.add(a, self.neg(b))
 
     def smul(self, r: float, m: SparseVector[K, float]) -> SparseVector[K, float]:
-        if r == 0.0:
+        if r == 0.0:  # NOSONAR - exact scalar zero fast-path
             return {}
-        return {k: r * v for k, v in m.items() if r * v != 0.0}
+        return {k: r * v for k, v in m.items() if r * v != 0.0}  # NOSONAR - exact sparse zero pruning
 
     def norm(self, v: SparseVector[K, float]) -> float:
         return norm_p(v, 2.0)

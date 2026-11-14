@@ -681,7 +681,7 @@ def _require_samples(samples: Iterable[Any], min_count: int = 3) -> list[Any]:
 def verify_magma_laws(
     magma: Magma[V],
     samples: Iterable[V],
-    tol: float = 1e-7,
+    tol: float = 1e-7,  # NOSONAR - retained for uniform verify_*_laws API signature
 ) -> dict[str, bool]:
     r"""Test Magma closure law: $\forall a, b \in M, \ a \cdot b \in M$."""
     elements = _require_samples(samples)
@@ -831,7 +831,7 @@ def verify_comm_group_laws(
 def verify_add_magma_laws(
     magma: AddMagma[V],
     samples: Iterable[V],
-    tol: float = 1e-7,
+    tol: float = 1e-7,  # NOSONAR - retained for uniform verify_*_laws API signature
 ) -> dict[str, bool]:
     r"""Test Additive Magma closure law: $\forall a, b \in M, \ a + b \in M$."""
     elements = _require_samples(samples)

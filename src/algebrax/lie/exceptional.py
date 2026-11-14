@@ -67,7 +67,7 @@ def _fano_3form_sparse_equations(so7_basis: list[tuple[int, int]]) -> dict[int, 
     return eqs
 
 
-def _solve_sparse_nullspace(  # noqa: C901, NOSONAR - sparse Gauss-Jordan nullspace solver with partial pivoting
+def _solve_sparse_nullspace(  # noqa: C901  # NOSONAR - sparse Gauss-Jordan nullspace solver with partial pivoting
     eqs: dict[int, dict[int, float]],
     num_cols: int,
     tol: float = 1e-10,

@@ -616,7 +616,7 @@ def _solve_float(
         l_row = l_mat.get(rows[i], {})
         for j in range(i):
             val = l_row.get(cols[j], 0.0)
-            if val != 0.0:
+            if val != 0.0:  # NOSONAR - exact sparse zero-skipping
                 s -= val * y[j]
         y[i] = s
 
@@ -627,7 +627,7 @@ def _solve_float(
         u_row = u_mat.get(rows[i], {})
         for j in range(i + 1, n):
             val = u_row.get(cols[j], 0.0)
-            if val != 0.0:
+            if val != 0.0:  # NOSONAR - exact sparse zero-skipping
                 s -= val * x[j]
         diag = u_row.get(cols[i], 0.0)
         x[i] = s / diag

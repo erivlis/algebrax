@@ -201,7 +201,7 @@ class RootSystem:
                 euc[i + 1] -= float(c)
             return tuple(euc)
         if dt == 'G2':
-            # e_1 = (0, 1, -1), e_2 = (1, -2, 1)
+            # Basis: e_1 -> (0, 1, -1), e_2 -> (1, -2, 1)
             euc = [0.0, 0.0, 0.0]
             c1, c2 = root[0], root[1]
             euc[0] = float(c2)
@@ -209,7 +209,8 @@ class RootSystem:
             euc[2] = float(-c1 + c2)
             return tuple(euc)
         if dt == 'F4':
-            # alpha_1 = (0, 1, -1, 0), alpha_2 = (0, 0, 1, -1), alpha_3 = (0, 0, 0, 1), alpha_4 = 0.5*(1, -1, -1, -1)
+            # Simple roots: alpha_1: (0, 1, -1, 0), alpha_2: (0, 0, 1, -1),
+            # alpha_3: (0, 0, 0, 1), alpha_4: 0.5*(1, -1, -1, -1)
             euc = [0.0] * 4
             c1, c2, c3, c4 = root
             euc[0] = 0.5 * c4
