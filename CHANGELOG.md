@@ -1,3 +1,16 @@
+## v0.14.1 (2026-11-14)
+
+### Refactor
+
+- extract boundary column reduction logic into a dedicated function
+- modularize LU decomposition logic by extracting field-specific handling into dedicated functions
+- modularize Cartan matrix logic by extracting exceptional and classical family handling into dedicated functions
+- modularize E6 to F4 projection logic by extracting cocycle sign computation and bracket population into dedicated functions
+- modularize matrix operations by extracting Gram matrix inversion, commutator projection, and adjoint block construction into dedicated functions
+- encapsulate scalar action law verification in a dedicated function
+- extract Frobenius inner product logic into a separate function for clarity
+- extract partitioning and merging logic for 2x2 sparse matrix blocks
+
 ## v0.14.0 (2026-11-13)
 
 ### Feat
