@@ -2840,5 +2840,121 @@ def verify_path_groupoid_laws(
     }
 
 
+def verify_cartan_duality(rs: Any) -> dict[str, bool]:
+    r"""Verify Langlands root duality $\Phi \leftrightarrow \Phi^\vee$:
+    - Cartan Involution: $((\Phi^\vee)^\vee) = \Phi$ ($({A^T})^T = A$)
+    - Cartan Transposition: $A^\vee_{ij} = A_{ji}$
+    - Coroot Bijection: $\alpha \mapsto \alpha^\vee = \frac{2\alpha}{\langle \alpha, \alpha \rangle}$
+      maps $\Phi^+$ bijectively onto $(\Phi^\vee)^+$
+    """
+    from algebrax.lie.langlands import coroot_in_dual, langlands_dual_root_system
+
+    dual = langlands_dual_root_system(rs)
+    dual_dual = langlands_dual_root_system(dual)
+
+    r = rs.rank
+    trans_ok = all(dual.cartan_matrix[i][j] == rs.cartan_matrix[j][i] for i in range(r) for j in range(r))
+    inv_ok = dual_dual.cartan_matrix == rs.cartan_matrix
+
+    mapped_pos = {coroot_in_dual(rs, alpha) for alpha in rs.positive_roots}
+    bijection_ok = mapped_pos == set(dual.positive_roots) and len(mapped_pos) == len(rs.positive_roots)
+
+    return {
+        'cartan_transposition': trans_ok,
+        'cartan_involution': inv_ok,
+        'coroot_bijection': bijection_ok,
+    }
+
+
+def verify_ramanujan_spectral_gap(
+    adjacency: Any,
+    degree: int | None = None,
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify the Ramanujan expander bound and Hecke operator commutativity on a $d$-regular graph:
+    - Degree Regularity: $\lambda_1 = d$
+    - Ramanujan Bound: $\max_{|\lambda_i| < d} |\lambda_i| \le 2\sqrt{d - 1}$
+    - Hecke Operator Commutativity: $T_1 T_2 = T_2 T_1$ where $T_1 = A,\; T_2 = A^2 - d I$
+    """
+    from algebrax.analysis.spectral import adjacency_spectrum, hecke_graph_operator, is_ramanujan_graph
+    from algebrax.matrix.core import dot
+
+    try:
+        is_ram, _max_nt, _thresh = is_ramanujan_graph(adjacency, degree=degree, tol=tol)
+        spec = adjacency_spectrum(adjacency)
+        d = degree if degree is not None else round(spec[0])
+        deg_ok = bool(spec) and abs(spec[0] - d) <= 1e-5
+        t1 = hecke_graph_operator(adjacency, 1, degree=d)
+        t2 = hecke_graph_operator(adjacency, 2, degree=d)
+        comm_ok = semiring_elements_equal(dot(t1, t2), dot(t2, t1), tol=1e-6)
+    except ValueError:
+        return {
+            'degree_regularity': False,
+            'ramanujan_bound': False,
+            'hecke_commutativity': False,
+        }
+
+    return {
+        'degree_regularity': deg_ok,
+        'ramanujan_bound': is_ram,
+        'hecke_commutativity': comm_ok,
+    }
+
+
+def verify_padic_ultrametric_inequality(
+    field: Any,
+    samples: Iterable[dict[int, int]],
+    tol: float = 1e-12,
+) -> dict[str, bool]:
+    r"""Verify non-archimedean ultrametric and tropical valuation laws on `PAdicField`:
+    - Strong Ultrametric Inequality: $|x + y|_p \le \max(|x|_p, |y|_p)$
+    - Isosceles Principle: $|x|_p \ne |y|_p \implies |x + y|_p = \max(|x|_p, |y|_p)$
+    - Tropical Valuation Multiplicativity: $v_p(x \cdot y) = v_p(x) + v_p(y)$
+    - Tropical Valuation Superadditivity: $v_p(x + y) \ge \min(v_p(x), v_p(y))$
+    """
+    s_list = _require_samples(samples)
+    ultrametric_ok = True
+    isosceles_ok = True
+    trop_mul_ok = True
+    trop_add_ok = True
+
+    for x, y in itertools.product(s_list, repeat=2):
+        nx = field.norm(x)
+        ny = field.norm(y)
+        n_sum = field.norm(field.add(x, y))
+        max_n = max(nx, ny)
+        if n_sum > max_n + tol:
+            ultrametric_ok = False
+        if abs(nx - ny) > tol and abs(n_sum - max_n) > tol:
+            isosceles_ok = False
+
+        vx = field.valuation(x)
+        vy = field.valuation(y)
+        v_sum = field.valuation(field.add(x, y))
+        if v_sum < min(vx, vy) - tol:
+            trop_add_ok = False
+
+        xy = field.mul(x, y)
+        v_xy = field.valuation(xy)
+        if (
+            math.isfinite(vx)
+            and math.isfinite(vy)
+            and math.isfinite(v_xy)
+            and vx + vy < field.precision
+            and abs(v_xy - (vx + vy)) > tol
+        ):
+            trop_mul_ok = False
+
+    return {
+        'ultrametric_inequality': ultrametric_ok,
+        'isosceles_equality': isosceles_ok,
+        'tropical_valuation_multiplicativity': trop_mul_ok,
+        'tropical_valuation_superadditivity': trop_add_ok,
+    }
+
+
+verify_padic_ultrametric = verify_padic_ultrametric_inequality
+
+
 
 
