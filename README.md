@@ -47,7 +47,7 @@
       <a href="https://github.com/erivlis/algebrax/actions/workflows/test-beta.yml"><img alt="Publish" src="https://github.com/erivlis/algebrax/actions/workflows/test-beta.yml/badge.svg"></a>
       <a href="https://github.com/erivlis/algebrax/actions/workflows/benchmark.yml"><img alt="Benchmarks" src="https://github.com/erivlis/algebrax/actions/workflows/benchmark.yml/badge.svg"></a>
       <a href="https://github.com/erivlis/algebrax/actions/workflows/publish.yml"><img alt="Publish" src="https://github.com/erivlis/algebrax/actions/workflows/publish.yml/badge.svg"></a>
-      <a href="https://github.com/erivlis/algebrax/actions/workflows/publish-docs.yaml"><img alt="Publish Docs" src="https://github.com/erivlis/algebrax/actions/workflows/publish-docs.yml/badge.svg"></a>
+      <a href="https://github.com/erivlis/algebrax/actions/workflows/publish-docs.yml"><img alt="Publish Docs" src="https://github.com/erivlis/algebrax/actions/workflows/publish-docs.yml/badge.svg"></a>
     </td>
   </tr>
   <tr>
@@ -83,19 +83,30 @@
 
 ---
 
-`AlgebraX` treats Python's native `dict` as a first-class sparse algebraic object, unifying linear algebra, graph
-algorithms, formal language theory, signal transforms, and information metrics under a single polymorphic framework.
+`AlgebraX` treats Python's native `dict` (and `Mapping`) as a first-class sparse algebraic object, unifying linear algebra,
+abstract algebra, graph algorithms, discrete geometry & topology, signal transforms, and information metrics under a
+single pure-Python polymorphic framework.
 
 ## Key Features
 
-* ⚡ **Zero Heavy Dependencies**: Pure Python core requiring no C++ build steps. Includes native bidirectional converters
-  between sparse dict mappings and dense multidimensional arrays.
-* 🔄 **Polymorphic Semiring Computing**: By swapping the algebraic semiring $(\oplus, \otimes)$, the exact same matrix
-  algorithms compute standard linear algebra, tropical shortest path latencies, or symbolic rule provenance.
-* 🌌 **Sparse Multidimensional Tensors**: Arbitrary nested mappings behave as infinite-dimensional sparse tensors, tries,
-  and lattices (`AlgebraicTrie`) with custom key operators.
-* 🔬 **Interactive Desktop GUI**: Repo includes [DearPyGui](https://github.com/hoffstadt/DearPyGui)  with 12 interactive
-  modules, dynamic texture previews, force-directed graph canvases, and signal transforms.
+* ⚡ **Zero Heavy Dependencies**: Pure-Python core requiring no C++ compilation (`mappingtools` is the sole core runtime
+  dependency), with optional bridges to NumPy, SciPy, and PIL.
+* 🧱 **Deductive Algebraic Hierarchy (`algebrax.algebra`)**: Lean 4 / Mathlib-aligned `@runtime_checkable` protocols
+  composed from **22 orthogonal atomic mixins** (`Has*`) — spanning `Magma`, `Monoid`, `Group`, `Lattice` &
+  `BooleanAlgebra`, `Semiring` / `StarSemiring` / `KleeneAlgebra`, `Ring` / `Field`, `Ideal` / `QuotientRing`,
+  `Module` / `Algebra`, and dual `Coalgebra` / `Bialgebra` / `HopfAlgebra`.
+* 🔄 **Polymorphic Semiring Computing (`algebrax.semiring`)**: 33 built-in semirings and algebras. Swap $(\oplus, \otimes)$
+  in `matrix.dot`, `tensor.einsum`, or `AlgebraicTrie` to switch seamlessly between linear algebra, tropical shortest paths,
+  Viterbi probabilities, statistical moments, or symbolic rule provenance.
+* 🎯 **Exact Drift-Free Linear Solvers (`algebrax.matrix`)**: Gaussian elimination, LU, QR, SVD, Cholesky, determinants,
+  and matrix inversion parameterized over any `Field[V]` — including exact rationals (`StandardField(Fraction)`) and
+  finite prime fields (`ModularField(p)`).
+* 🌌 **Geometry, Symmetry & Algebraic Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`), classical &
+  exceptional Lie algebras (`lie`), finite fields $\operatorname{GF}(p^m)$ (`galois`), and unified algebraic topology
+  (`topology`: homology, cohomology cup products, persistent barcodes, DEC, and cellular sheaves).
+* 🧪 **Axiomatic Law Verification & Interactive Lab**: Automated algebraic axiom checkers (`verification`) backed by
+  property-based testing and Z3 verification, plus a 12-module [DearPyGui](https://github.com/hoffstadt/DearPyGui)
+  desktop laboratory (`recipes/lab.py`).
 
 ---
 
@@ -113,8 +124,10 @@ pip install algebrax
 
 ## 5-Minute Quickstart
 
-By changing the `semiring` parameter in `matrix.dot`, you can transform standard linear matrix multiplication into
-shortest-path solvers or symbolic rule derivation tracking:
+### 1. Polymorphic Semiring Matrix Multiplication
+
+By changing the `semiring` parameter in `matrix.dot`, the exact same sparse matrix multiplication computes standard
+linear combinations, tropical shortest paths, or symbolic rule derivations:
 
 ```python
 import algebrax as ax
@@ -128,12 +141,12 @@ graph = {
 # 1. Standard Linear Matrix Multiplication (+, *)
 linear_mult = ax.matrix.dot(graph, graph, semiring=ax.semiring.StandardSemiring())
 print('Linear Combination (0->2):', linear_mult[0][2])
-# Output: 30.0
+# Output: 6.0 (2.0 * 3.0)
 
 # 2. Tropical Shortest Path (min, +)
 shortest_path = ax.matrix.dot(graph, graph, semiring=ax.semiring.TropicalSemiring())
 print('Shortest Path Cost (0->1->2):', shortest_path[0][2])
-# Output: 5.0
+# Output: 5.0 (min(2.0 + 3.0, 10.0 + inf))
 
 # 3. Symbolic Provenance Rule Tracking
 provenance_graph = {
@@ -145,50 +158,62 @@ print('Symbolic Derivation Polynomial:', provenance_mult[0][2])
 # Output: {('rule_A', 'rule_B'): 1}
 ```
 
+### 2. Exact Drift-Free Solvers over Rational & Finite Fields
+
+Parameterize sparse linear solvers over any `Field[V]` to eliminate IEEE-754 floating-point cancellation:
+
+```python
+from fractions import Fraction
+from algebrax.algebra import ModularField, StandardField
+from algebrax.matrix import det, solve
+
+# Exact rational Hilbert matrix determinant over Q
+h2 = {0: {0: Fraction(1, 1), 1: Fraction(1, 2)}, 1: {0: Fraction(1, 2), 1: Fraction(1, 3)}}
+print(det(h2, field=StandardField(Fraction)))
+# Output: Fraction(1, 12)
+
+# Exact sparse linear system over prime field F_11
+a = {'eq1': {'x': 3, 'y': 2}, 'eq2': {'x': 4, 'y': 9}}
+b = {'eq1': 5, 'eq2': 1}
+print(solve(a, b, field=ModularField(11)))
+# Output: {'x': 4, 'y': 2}
+```
+
 ---
 
-## Use Case Recipes & Jupyter Notebooks
+## Architecture & Module Map
 
-The [`recipes/`](recipes) directory contains standalone CLI scripts and matching interactive `.ipynb` notebooks for 29
-real-world scenarios:
+| Pillar | Submodules | Highlights |
+|:-------|:-----------|:-----------|
+| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 22 orthogonal mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
+| **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, `AlgebraicTrie` |
+| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH), $\operatorname{GF}(p^m)$, homology, cohomology, persistence, DEC & sheaves |
+| **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature, entropy, NumPy/SciPy bridges, Jupyter HTML/LaTeX cards, axiom verifiers |
 
-| Category                       |                                               Recipe & Notebook                                               | Core Algebraic Components                                                                                                |
-|:-------------------------------|:-------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------|
-| **Image Processing**           |               [`🐍`](recipes/image_processing.py) &nbsp; [`📓`](recipes/image_processing.ipynb)               | `transforms.convolve`, `StandardSemiring`, `ArcticSemiring`, `TropicalSemiring`                                          |
-| **Traffic Resilience**         |     [`🐍`](recipes/traffic_network_resilience.py) &nbsp; [`📓`](recipes/traffic_network_resilience.ipynb)     | `semiring.TropicalSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`                                           |
-| **NLP Parsing**                |          [`🐍`](recipes/nlp_provenance_parser.py) &nbsp; [`📓`](recipes/nlp_provenance_parser.ipynb)          | `matrix.dot`, `semiring.ProvenanceSemiring`, `probability.entropy`                                                       |
-| **Post-Quantum Security**      |   [`🐍`](recipes/post_quantum_crypto_exchange.py) &nbsp; [`📓`](recipes/post_quantum_crypto_exchange.ipynb)   | `semiring.DigitalSemiring`, `transforms.z_transform`, `probability.mutual_information`                                   |
-| **Supply Chain Logistics**     | [`🐍`](recipes/supply_chain_optimal_transport.py) &nbsp; [`📓`](recipes/supply_chain_optimal_transport.ipynb) | `trie.AlgebraicTrie`, `lattice.join`, `lattice.meet`, `probability.kl_divergence`                                        |
-| **Financial Risk**             |       [`🐍`](recipes/financial_risk_portfolio.py) &nbsp; [`📓`](recipes/financial_risk_portfolio.ipynb)       | `automata.simulate_dfa`, `analysis.eigen_centrality`, `semiring.VarianceSemiring`                                        |
-| **Structural Analysis**        |  [`🐍`](recipes/vibration_structural_analysis.py) &nbsp; [`📓`](recipes/vibration_structural_analysis.ipynb)  | `group.compose`, `group.signature`, `matrix.academic.determinant`, `transforms.hilbert`                                  |
-| **Telecommunications**         |        [`🐍`](recipes/telecom_fractal_network.py) &nbsp; [`📓`](recipes/telecom_fractal_network.ipynb)        | `transforms.walsh_hadamard`, `analysis.laplacian`, `metrics.box_counting_dimension`                                      |
-| **Quantum Optimization**       |    [`🐍`](recipes/quantum_convex_optimization.py) &nbsp; [`📓`](recipes/quantum_convex_optimization.ipynb)    | `transforms.legendre_fenchel`, `matrix.block_diag`, `matrix.trace`, `automata.simulate_nfa`                              |
-| **Sensor Reliability**         |     [`🐍`](recipes/sensor_network_reliability.py) &nbsp; [`📓`](recipes/sensor_network_reliability.ipynb)     | `semiring.ViterbiSemiring`, `matrix.power`, `analysis.gaussian_kernel`, `analysis.gradient`                              |
-| **Holographic Duality**        |      [`🐍`](recipes/holographic_bulk_boundary.py) &nbsp; [`📓`](recipes/holographic_bulk_boundary.ipynb)      | `analysis.forman_ricci_curvature`, `analysis.divergence`, `trie.AlgebraicTrie`, `probability.entropy`                    |
-| **Optical Holography**         |  [`🐍`](recipes/optical_holography_simulation.py) &nbsp; [`📓`](recipes/optical_holography_simulation.ipynb)  | `transforms.dft`, `transforms.idft`, `probability.entropy`                                                               |
-| **Topological Data Analysis**  |      [`🐍`](recipes/topological_data_analysis.py) &nbsp; [`📓`](recipes/topological_data_analysis.ipynb)      | `semiring.BooleanSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`, `matrix.academic.determinant`             |
-| **Control Theory**             |     [`🐍`](recipes/control_theory_state_space.py) &nbsp; [`📓`](recipes/control_theory_state_space.ipynb)     | `matrix.power`, `transforms.z_transform`, `matrix.academic.determinant`                                                  |
-| **Algebraic Knot Theory**      |          [`🐍`](recipes/algebraic_knot_theory.py) &nbsp; [`📓`](recipes/algebraic_knot_theory.ipynb)          | `semiring.KnotSemiring`, `semiring.MonoidAlgebraSemiring`, `group.compose`, `group.signature`                            |
-| **Sheaf Cohomology**           |     [`🐍`](recipes/sheaf_cohomology_consensus.py) &nbsp; [`📓`](recipes/sheaf_cohomology_consensus.ipynb)     | `analysis.gradient`, `analysis.laplacian`, `semiring.MonoidAlgebraSemiring`                                              |
-| **Trajectoid Kinematics**      |  [`🐍`](recipes/trajectoid_rolling_kinematics.py) &nbsp; [`📓`](recipes/trajectoid_rolling_kinematics.ipynb)  | `analysis.gradient`, `matrix.dot`, `metrics.sparsity`                                                                    |
-| **Sparse Tensor Einsum**       |           [`🐍`](recipes/sparse_tensor_einsum.py) &nbsp; [`📓`](recipes/sparse_tensor_einsum.ipynb)           | `tensor.einsum`, `tensor.outer_product`, `tensor.tensordot`, `tensor.flatten_tensor`                                     |
-| **Black Hole Spacetime**       | [`🐍`](recipes/blackhole_spacetime_simulation.py) &nbsp; [`📓`](recipes/blackhole_spacetime_simulation.ipynb) | `tensor.einsum`, `transforms.z_transform`, `analysis.gradient`, `probability.entropy`                                    |
-| **3D Gaussian Splatting**      |   [`🐍`](recipes/gaussian_splatting_rendering.py) &nbsp; [`📓`](recipes/gaussian_splatting_rendering.ipynb)   | `matrix.dot`, `matrix.transpose`, `analysis.gaussian_kernel`                                                             |
-| **Simplicial Homology**        |     [`🐍`](recipes/topological_homology_betti.py) &nbsp; [`📓`](recipes/topological_homology_betti.ipynb)     | `homology.SimplicialComplex`, `homology.betti_numbers`, `analysis.SparseChainComplex`                                    |
-| **Clifford Geometric Algebra** |      [`🐍`](recipes/clifford_rotor_kinematics.py) &nbsp; [`📓`](recipes/clifford_rotor_kinematics.ipynb)      | `clifford.CliffordSemiring`, `clifford.rotor_rotation`, `semiring.QuotientMonoidAlgebraSemiring`                         |
-| **Galois Finite Fields**       |      [`🐍`](recipes/galois_field_cryptography.py) &nbsp; [`📓`](recipes/galois_field_cryptography.ipynb)      | `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `semiring.QuotientMonoidAlgebraSemiring`                           |
-| **Forward-Mode Autodiff**      |          [`🐍`](recipes/forward_mode_autodiff.py) &nbsp; [`📓`](recipes/forward_mode_autodiff.ipynb)          | `StandardSemiring(DualNumber)`, `GradientDualNumber`, multi-hop gradient flow                                            |
-| **Sparse Neural Backprop**     |         [`🐍`](recipes/sparse_neural_backprop.py) &nbsp; [`📓`](recipes/sparse_neural_backprop.ipynb)         | `matrix.transpose`, `matrix.dot`, adjoint pullback $W^T \cdot \bar{z}$, outer products                                   |
-| **Functional Autograd Engine** |     [`🐍`](recipes/functional_autograd_engine.py) &nbsp; [`📓`](recipes/functional_autograd_engine.ipynb)     | `Value` computational DAG, reverse topological VJP traversal, parameter optimization                                     |
-| **Quantum Path Integrals**     |  [`🐍`](recipes/quantum_feynman_path_integral.py) &nbsp; [`📓`](recipes/quantum_feynman_path_integral.ipynb)  | `StandardSemiring(dtype=complex)`, native `complex`, discrete Feynman path summation, Born's rule, Aharonov-Bohm         |
-| **Relativistic Dirac Spinors** |      [`🐍`](recipes/relativistic_dirac_spinor.py) &nbsp; [`📓`](recipes/relativistic_dirac_spinor.ipynb)      | `clifford.CliffordSemiring(1,3)`, Dirac spinors $\psi \in Cl^+(1,3)$, $4\pi$ rotation periodicity, 4-current $J$         |
-| **Distributed Vector Clocks**  |      [`🐍`](recipes/distributed_vector_clocks.py) &nbsp; [`📓`](recipes/distributed_vector_clocks.ipynb)      | `lattice.combine` (supremum join), `semiring.ArcticSemiring`, causal Happened-Before $\to$, CRDT version vectors         |
-| **Spectral Graph Clustering**  |      [`🐍`](recipes/spectral_graph_clustering.py) &nbsp; [`📓`](recipes/spectral_graph_clustering.ipynb)      | `matrix.core.laplacian_matrix`, `analysis.fiedler_vector`, `analysis.laplacian_smoothing`, `analysis.laplacian_spectrum` |
+---
 
-Run any recipe using `uv`:
+## Recipe Highlights & Jupyter Notebooks
+
+The [`recipes/`](recipes) directory includes **38** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
+sample across domains — see the full catalog in [**Recipes & Applications**](docs/recipes.md):
+
+| Domain | Recipe & Notebook | Algebraic Components |
+|:-------|:------------------|:---------------------|
+| **Graphs & Optimization** | **Traffic Resilience** — [`🐍`](recipes/traffic_network_resilience.py) [`📓`](recipes/traffic_network_resilience.ipynb) | `TropicalSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`, `markov_steady_state` |
+| **Spectral & Graph ML** | **Spectral Graph Clustering** — [`🐍`](recipes/spectral_graph_clustering.py) [`📓`](recipes/spectral_graph_clustering.ipynb) | `matrix.laplacian_matrix`, `analysis.fiedler_vector`, `analysis.laplacian_spectrum` |
+| **Topology & Deep Learning** | **Topological Neural Networks** — [`🐍`](recipes/topological_neural_network.py) [`📓`](recipes/topological_neural_network.ipynb) | `topology.SimplicialComplex`, `helmholtz_hodge_decomposition`, Hodge 1-Laplacians |
+| **Duality & Quantum Symmetry** | **Coalgebras & Hopf Algebras** — [`🐍`](recipes/coalgebras_and_hopf_symmetries.py) [`📓`](recipes/coalgebras_and_hopf_symmetries.ipynb) | `Coalgebra`, `Bialgebra`, `HopfAlgebra`, `GroupHopfAlgebra`, `SimplicialChainCoalgebra`, `cup_product` |
+| **Geometric Physics** | **Relativistic Dirac Spinors** — [`🐍`](recipes/relativistic_dirac_spinor.py) [`📓`](recipes/relativistic_dirac_spinor.ipynb) | `clifford.CliffordAlgebra(1, 3)`, even subalgebra $Cl^+(1,3)$, $4\pi$ periodicity, Lorentz boosts |
+| **Automatic Differentiation** | **Forward-Mode Autodiff** — [`🐍`](recipes/forward_mode_autodiff.py) [`📓`](recipes/forward_mode_autodiff.ipynb) | `StandardSemiring(DualNumber)`, quotient ring $\mathbb{R}[\epsilon]/(\epsilon^2)$, `matrix.dot` |
+| **Group Theory & Combinatorics** | **Rubik's Cube Solver** — [`🐍`](recipes/rubiks_cube_group_solver.py) [`📓`](recipes/rubiks_cube_group_solver.ipynb) | `group.compose`, `group.invert`, `group.signature`, commutator surgery |
+| **Information & NLP** | **CYK Provenance Parser** — [`🐍`](recipes/nlp_provenance_parser.py) [`📓`](recipes/nlp_provenance_parser.ipynb) | `matrix.dot`, `semiring.ProvenanceSemiring`, `probability.entropy` |
+| **Cryptography & Finite Fields** | **Galois Finite Fields** — [`🐍`](recipes/galois_field_cryptography.py) [`📓`](recipes/galois_field_cryptography.ipynb) | `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `QuotientMonoidAlgebraSemiring` |
+| **Distributed Systems** | **Vector Clocks & CRDTs** — [`🐍`](recipes/distributed_vector_clocks.py) [`📓`](recipes/distributed_vector_clocks.ipynb) | `lattice.combine`, `ArcticSemiring`, `BooleanSemiring`, causal DAG contractions |
+
+Run any recipe directly using `uv`:
 
 ```bash
-uv run recipes/image_processing.py
+uv run recipes/coalgebras_and_hopf_symmetries.py
 ```
 
 ---
@@ -207,11 +232,12 @@ uv run recipes/lab.py
 
 ## Documentation
 
-Comprehensive documentation is hosted online and structured into distinct pillars:
+Full documentation is published at **[erivlis.github.io/algebrax](https://erivlis.github.io/algebrax)** and structured in `docs/`:
 
-* 🚀 [**Start**](docs/index.md): Installation, quickstart, and core philosophy.
-* 📖 [**User Guide**](docs/guide/semirings/index.md): In-depth reference for built-in Semirings, Matrices, Tries, Homology, Transforms, and Discrete Analysis.
-* 🍳 [**Recipes & GUI Lab**](docs/recipes.md): Real-world use cases, Jupyter notebooks, and laboratory documentation.
+* 🚀 [**Start & Concepts**](docs/index.md): Installation, quickstart, [Periodic Table of Mixins](docs/concepts.md), [Library Comparison](docs/comparison.md), and [Axiomatic Verification](docs/verification.md).
+* 📖 [**7-Tier User Guide**](docs/guide/index.md): Deductive tour from Magmas & Monoids to Semirings, Rings, Exact Fields, Clifford & Lie Algebras, Hopf Algebras, Categories, and Topological Sheaves.
+* 🍳 [**All 38 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
+* 📜 [**Enhancement Proposals**](docs/eps.md): Architectural design records and roadmap (`EP-0099`+).
 
 ---
 
@@ -240,8 +266,9 @@ uvx pre-commit install
 # Refresh all Jupyter notebooks from Golden Source scripts
 uvx jupytext --to notebook recipes/*.py
 
-# Run automated tests on all notebooks
-uv run pytest --nbmake recipes/
+# Run unit tests (or notebook execution tests)
+uv run --group test pytest
+uv run --group test pytest --nbmake recipes/
 ```
 
 ---
