@@ -2,7 +2,7 @@
 title: "EP-0209: Langlands Root Duality, Hecke Algebras & p-Adic Valuations"
 description: "Formalize the computational pillars of the Langlands program: Langlands dual root systems and Cartan transposition, Hecke convolution operators, Ramanujan expander bounds, and p-adic numbers with tropical valuations."
 icon: lucide/globe
-status: draft
+status: final
 ---
 
 # EP-0209: Langlands Root Duality, Hecke Algebras & p-Adic Valuations
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                          |
 | **Sponsor**       | Core Maintainers                                                     |
 | **Delegate**      | ⚖️ Noether (Dual Symmetries) & 🔬 Popper (Ramanujan Spectral Bounds) |
-| **Status**        | Draft                                                                |
+| **Status**        | Final                                                                |
 | **Type**          | Standards Track                                                      |
 | **Created**       | 2026-10-28                                                           |
-| **Updated**       | 2026-10-28                                                           |
+| **Updated**       | 2026-11-14                                                           |
 | **Replaces**      | —                                                                    |
 | **Superseded-By** | —                                                                    |
 
@@ -230,3 +230,4 @@ A prototype of Cartan transposition and Ramanujan bound verification was validat
 ## Change Log
 
 - **2026-10-28**: Initial draft authored following Council consensus.
+- **2026-11-14**: Implemented `langlands_dual_root_system`, `coroot_in_dual`, `IwahoriHeckeAlgebra`, `is_ramanujan_graph`, `hecke_graph_operator`, `PAdicField`, and verification suite (`verify_cartan_duality`, `verify_ramanujan_spectral_gap`, `verify_padic_ultrametric_inequality`); promoted status to `Final`.

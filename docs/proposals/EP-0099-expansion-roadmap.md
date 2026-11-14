@@ -289,7 +289,7 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0206: Coalgebras, Bialgebras & Hopf Algebras (Noether/Shannon) [Final]
   │     ├── EP-0207: Topological K-Theory & Characteristic Classes (Noether/Russell) [Final]
   │     ├── EP-0208: Categorical Type Theory, Coeffects & Homotopy Groupoids (Russell/Golem) [Final]
-  │     └── EP-0209: Langlands Root Duality, Hecke & p-Adic Valuations (Noether/Popper) [Draft]
+  │     └── EP-0209: Langlands Root Duality, Hecke & p-Adic Valuations (Noether/Popper) [Final]
   │
   ├── Phase 8: Representation Theory, Invariant Theory & Quantum Groups (EXP-0006)  ⏳ PLANNED
   │     ├── EP-0210: Group Representations, Character Tables & Schur's Lemma (Noether/Russell) [Draft]
@@ -369,7 +369,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0206** | Coalgebras, Bialgebras & Hopf  | Noether & Shannon | `algebrax.algebra`, `algebrax.topology`  | Final    | Comultiplication Δ, counit ε, Antipode S, Alexander-Whitney coproduct, divided power moment tensor                                         |
 | **EP-0207** | Topological K-Theory & Chern   | Noether & Russell | `algebrax.topology`, `algebrax.algebra`  | Final    | Universal Grothendieck group, Whitney sums ⊕, ⊗, discrete Chern character ch(E) to cohomology                                              |
 | **EP-0208** | Categorical Type Theory & HoTT | Russell & Golem   | `algebrax.category`, `algebrax.topology` | Final    | Cartesian Closed Categories (CCC), Curry-Howard-Lambek, semiring coeffects, path groupoids Π₁                                              |
-| **EP-0209** | Langlands Duality & p-Adics    | Noether & Popper  | `algebrax.lie`, `algebrax.spectral`      | Draft    | Root coroot duality, Cartan transpose A ↦ Aᵀ, Ramanujan expander bound, p-adic tropical valuation                                          |
+| **EP-0209** | Langlands Duality & p-Adics    | Noether & Popper  | `algebrax.lie`, `algebrax.analysis`      | Final    | Root coroot duality, Cartan transpose A ↦ Aᵀ, Iwahori-Hecke algebras, Ramanujan expander bound, p-adic tropical valuation                  |
 | **EP-0210** | Group Reps & Characters        | Noether & Russell | `algebrax.rep`                           | Draft    | Group representations, character tables, Schur orthogonality, irrep multiplicity decomposition                                             |
 | **EP-0211** | Lie Reps & Clebsch-Gordan      | Noether & Shannon | `algebrax.lie`, `algebrax.rep`           | Draft    | Highest weights, weight spaces, quadratic Casimir operator, sparse Clebsch-Gordan 3-tensors                                                |
 | **EP-0212** | Quiver Reps & Gabriel's ADE    | Russell & Popper  | `algebrax.rep`, `algebrax.sheaf`         | Draft    | Quiver representations on directed graphs, path algebras, Gabriel's ADE classification theorem                                             |
@@ -425,3 +425,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-14 | Eran Rivlis & Antigravity | Implemented EP-0207 (Topological K-Theory, Grothendieck Groups & Characteristic Classes); updated status to Final.                          |
 | 2026-11-14 | Eran Rivlis & Antigravity | Implemented EP-0208 (Categorical Type Theory, Semiring Coeffects & Homotopy Groupoids); updated status to Final.                            |
 | 2026-11-14 | Eran Rivlis & Antigravity | Concluded EXP-0009; added Phase 9 (Commutative Algebra, Algebraic Varieties & Tropical Geometry): EP-0220 through EP-0222 (Draft).          |
+| 2026-11-14 | Eran Rivlis & Antigravity | Implemented EP-0209 (Langlands Root Duality, Hecke Algebras & p-Adic Valuations); updated status to Final (Phase 7 Complete).               |
