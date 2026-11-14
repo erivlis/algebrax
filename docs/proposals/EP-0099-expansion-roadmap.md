@@ -31,8 +31,9 @@ and Fiedler partitioning (`EP-0152`), the **Phase 4 Algebraic Continents & Next 
 `EP-0160` through `EP-0165`), the **Phase 5 Verification Track** (`EXP-0003`, `EP-0180` through `EP-0186`),
 the **Phase 6 Pure Algebraic Hierarchy** (`EXP-0004`, `EP-0190` through `EP-0198`),
 the **Phase 7 Categorical Foundations & Morphisms** (`EXP-0005`, `EP-0200` through `EP-0209`),
-the **Phase 8 Representation Theory & Quantum Symmetries** (`EXP-0006`, `EP-0210` through `EP-0215`), and
-the **Phase 9 Commutative Algebra, Algebraic Varieties & Tropical Geometry** (`EXP-0009`, `EP-0220` through `EP-0222`).
+the **Phase 8 Representation Theory & Quantum Symmetries** (`EXP-0006`, `EP-0210` through `EP-0215`),
+the **Phase 9 Commutative Algebra, Algebraic Varieties & Tropical Geometry** (`EXP-0009`, `EP-0220` through `EP-0222`), and
+the **Phase 10 Generalized Harmonic Analysis & Spectral Signal Theory** (`EXP-0010`, `EP-0230` through `EP-0232`).
 
 ---
 
@@ -118,7 +119,7 @@ flowchart TD
         EP0206_N["EP-0206 Coalgebras, Bialgebras & Hopf ✅\n⚖️ Noether & ⚡ Shannon"]
         EP0207_N["EP-0207 K-Theory & Chern Classes ✅\n⚖️ Noether & 🧩 Russell"]
         EP0208_N["EP-0208 Type Theory & Homotopy Groupoids ✅\n🧩 Russell & 🛡️ Golem"]
-        EP0209_N["EP-0209 Langlands Duality & p-Adics 💡\n⚖️ Noether & 🔬 Popper"]
+        EP0209_N["EP-0209 Langlands Duality & p-Adics ✅\n⚖️ Noether & 🔬 Popper"]
     end
 
     subgraph P8["Phase 8 — Representation Theory & Quantum Groups (EXP-0006)"]
@@ -134,6 +135,12 @@ flowchart TD
         EP0220_N["EP-0220 Multivariate Polys & Gröbner 💡\n⚡ Shannon, 🔬 Popper & ⚖️ Noether"]
         EP0221_N["EP-0221 Affine Varieties & Stickelberger 💡\n⚖️ Noether, 🧩 Russell & ⚡ Shannon"]
         EP0222_N["EP-0222 Tropical Varieties & Polyhedra 💡\n🧭 Explorer, ⚖️ Noether & ⚡ Shannon"]
+    end
+
+    subgraph P10["Phase 10 — Generalized Harmonic Analysis (EXP-0010)"]
+        EP0230_N["EP-0230 Non-Abelian Group FT & Peter-Weyl 💡\n⚖️ Noether, 🔬 Popper & ⚡ Shannon"]
+        EP0231_N["EP-0231 Algebraic Signal Models, NTT & Möbius 💡\n🧩 Russell, 🔬 Popper & ⚡ Shannon"]
+        EP0232_N["EP-0232 Graph, Hodge & Sheaf Wavelets 💡\n⚡ Shannon, ⚖️ Noether & 🔬 Popper"]
     end
 
     EP0152_N --> EP0160_N
@@ -165,6 +172,12 @@ flowchart TD
     EP0165_N --> EP0222_N
     EP0220_N --> EP0221_N
     EP0220_N --> EP0222_N
+    P9 --> P10
+    EP0210_N --> EP0230_N
+    EP0221_N --> EP0231_N
+    EP0112 --> EP0231_N
+    EP0160_N --> EP0232_N
+    EP0161_N --> EP0232_N
     style CORE fill: #4a90d9, color: #fff
     style P3 fill: #2d7d46, color: #fff
     style P35 fill: #8b5cf6, color: #fff
@@ -279,7 +292,7 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0197: Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras (Noether/Russell) [Final]
   │     └── EP-0198: Generalized Closure Operators — Kleene Plus, Matrix Star & Action Algebras (Noether/Russell) [Final]
   │
-  ├── Phase 7: Categorical Foundations, Morphisms & Duality (EXP-0005)  ⏳ IN PROGRESS
+  ├── Phase 7: Categorical Foundations, Morphisms & Duality (EXP-0005)  ✅ COMPLETE
   │     ├── EP-0200: Categorical Abstractions & Enriched Matrix Mechanics (Russell/Shannon) [Final]
   │     ├── EP-0201: Algebraic Homomorphisms, Ideals & Canonical Quotients (Noether/Russell) [Final]
   │     ├── EP-0202: Functorial Sheaves & Categorical DEC (Noether/Popper) [Final]
@@ -299,10 +312,15 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Draft]
   │     └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Draft]
   │
-  └── Phase 9: Commutative Algebra, Algebraic Varieties & Tropical Geometry (EXP-0009)  ⏳ PLANNED
-        ├── EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals (Shannon/Popper/Noether) [Draft]
-        ├── EP-0221: Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers (Noether/Russell/Shannon) [Draft]
-        └── EP-0222: Tropical Varieties, Newton Polytopes & Balanced Polyhedral Complexes (Explorer/Noether/Shannon) [Draft]
+  ├── Phase 9: Commutative Algebra, Algebraic Varieties & Tropical Geometry (EXP-0009)  ⏳ PLANNED
+  │     ├── EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals (Shannon/Popper/Noether) [Draft]
+  │     ├── EP-0221: Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers (Noether/Russell/Shannon) [Draft]
+  │     └── EP-0222: Tropical Varieties, Newton Polytopes & Balanced Polyhedral Complexes (Explorer/Noether/Shannon) [Draft]
+  │
+  └── Phase 10: Generalized Harmonic Analysis & Spectral Signal Theory (EXP-0010)  ⏳ PLANNED
+        ├── EP-0230: Non-Abelian Group Fourier Transforms, Peter–Weyl Duality & Equivariant Convolutions (Noether/Popper/Shannon) [Draft]
+        ├── EP-0231: Algebraic Signal Processing, Exact Finite-Field NTT & Poset Möbius Transforms (Russell/Popper/Shannon) [Draft]
+        └── EP-0232: Geometric, Simplicial Hodge & Cellular Sheaf Spectral Wavelets (Shannon/Noether/Popper) [Draft]
 ```
 
 ---
@@ -379,6 +397,9 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0220** | Multivariate Polys & Gröbner   | Shannon & Popper  | `algebrax.algebra`                       | Draft    | `MultivariatePolynomialAlgebra`, `lex`/`grlex`/`grevlex`, Buchberger & $F_4$ sparse Macaulay RREF, `GroebnerIdeal`                         |
 | **EP-0221** | Affine Varieties & Companion   | Noether & Russell | `algebrax.variety`                       | Draft    | `AffineVariety`, coordinate ring $k[V]$, Stickelberger companion matrix solvers, $\mathbb{F}_p$/$\mathbb{F}_2$ varieties, `PolynomialMap`  |
 | **EP-0222** | Tropical Varieties & Polyhedra | Explorer & Noether| `algebrax.variety`                       | Draft    | `TropicalHypersurface`, Newton polytope subdivisions, Noether zero-tension vertex balancing                                                |
+| **EP-0230** | Non-Abelian Group FT & P–W     | Noether & Popper  | `algebrax.transforms`, `harmonic`        | Draft    | `group_fourier_transform`, `inverse_group_fourier_transform`, Plancherel energy, Diaconis random walks                                     |
+| **EP-0231** | Algebraic Signal, NTT & Möbius | Russell & Popper  | `algebrax.transforms`, `algebra`, `lattice` | Draft | `PolynomialModulusIdeal`, `AlgebraicSignalModel` (DCT), exact `ModularField` `ntt`/`intt`, Fast Zeta/Möbius transforms                     |
+| **EP-0232** | Graph, Hodge & Sheaf Wavelets  | Shannon & Noether | `algebrax.transforms`, `topology`        | Draft    | `chebyshev_spectral_filter`, `spectral_wavelet_transform`, `hodge_spectral_filter` over sparse Laplacians                                  |
 
 ---
 
@@ -426,3 +447,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-14 | Eran Rivlis & Antigravity | Implemented EP-0208 (Categorical Type Theory, Semiring Coeffects & Homotopy Groupoids); updated status to Final.                            |
 | 2026-11-14 | Eran Rivlis & Antigravity | Concluded EXP-0009; added Phase 9 (Commutative Algebra, Algebraic Varieties & Tropical Geometry): EP-0220 through EP-0222 (Draft).          |
 | 2026-11-14 | Eran Rivlis & Antigravity | Implemented EP-0209 (Langlands Root Duality, Hecke Algebras & p-Adic Valuations); updated status to Final (Phase 7 Complete).               |
+| 2026-11-14 | Eran Rivlis & Antigravity | Concluded EXP-0010; added Phase 10 (Generalized Harmonic Analysis & Spectral Signal Theory): EP-0230 through EP-0232 (Draft).               |

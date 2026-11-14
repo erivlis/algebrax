@@ -136,6 +136,7 @@ Domain-specific subjects (such as semiring catalogs, homology, differential form
 - **`EP-0190` – `EP-0199`**: Granular Lean 4 Mathlib Alignment & Canonical Consolidations.
 - **`EP-0200` – `EP-0219`**: Categorical DEC, Fiber Bundles, Quantum/Non-Associative Algebras, and Representations.
 - **`EP-0220` – `EP-0229`**: Commutative Algebra, Algebraic Varieties, Companion Matrix Solvers & Tropical Geometry.
+- **`EP-0230` – `EP-0239`**: Generalized Harmonic Analysis, Peter–Weyl Group FT, Algebraic Signal Processing, Exact NTT & Spectral Wavelets.
 
 ---
 

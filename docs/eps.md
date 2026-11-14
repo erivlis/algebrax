@@ -207,3 +207,18 @@ affine algebraic varieties, coordinate rings, Stickelberger companion matrix sol
 | [EP-0221](proposals/EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md)    | Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers | ⚖️ Noether, 🧩 Russell & ⚡ Shannon      | :material-pencil: Draft |
 | [EP-0222](proposals/EP-0222-tropical-varieties-and-polyhedral-duals.md)                 | Tropical Varieties, Newton Polytopes & Balanced Polyhedral Complexes | 🧭 Explorer, ⚖️ Noether & ⚡ Shannon     | :material-pencil: Draft |
 
+---
+
+## Phase 10 — Generalized Harmonic Analysis & Spectral Signal Theory
+
+Proposals stemming from the **Generalized Harmonic Analysis Exploration**
+([EXP-0010](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md)),
+generalizing `algebrax.transforms` into non-Abelian Peter–Weyl matrix Fourier transforms, Püschel–Moura polynomial shift models, exact finite-field NTTs, Rota poset Möbius transforms, and matrix-free Chebyshev spectral wavelets.
+
+| EP                                                                                      | Title                                                                              | Council Sponsor                        |         Status          |
+|:----------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------|:---------------------------------------|:-----------------------:|
+| [EP-0230](proposals/EP-0230-non-abelian-group-fourier-transforms-and-peter-weyl.md)     | Non-Abelian Group Fourier Transforms, Peter–Weyl Duality & Equivariant Convolutions | ⚖️ Noether, 🔬 Popper & ⚡ Shannon      | :material-pencil: Draft |
+| [EP-0231](proposals/EP-0231-algebraic-signal-processing-ntt-and-mobius-transforms.md)   | Algebraic Signal Processing, Exact Finite-Field NTT & Poset Möbius Transforms      | 🧩 Russell, 🔬 Popper & ⚡ Shannon      | :material-pencil: Draft |
+| [EP-0232](proposals/EP-0232-geometric-hodge-and-sheaf-spectral-wavelets.md)             | Geometric, Simplicial Hodge & Cellular Sheaf Spectral Wavelets                     | ⚡ Shannon, ⚖️ Noether & 🔬 Popper     | :material-pencil: Draft |
+
+
