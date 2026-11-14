@@ -174,6 +174,12 @@ class RootSystem:
         new_a[simple_idx] -= val
         return tuple(new_a)
 
+    def langlands_dual(self) -> RootSystem:
+        r"""Construct the Langlands dual root system $\Phi^\vee$ with transposed Cartan matrix $A^T$."""
+        from algebrax.lie.langlands import langlands_dual_root_system
+
+        return langlands_dual_root_system(self)
+
     def to_euclidean(self, root: tuple[int, ...]) -> tuple[float, ...]:
         """Project a root expressed in simple root coordinates Z^r to standard Euclidean space."""
         # Standard Euclidean embeddings for simple roots

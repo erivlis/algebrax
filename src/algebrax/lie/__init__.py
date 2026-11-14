@@ -35,6 +35,12 @@ from algebrax.lie.exceptional import (
     f4,
     g2,
 )
+from algebrax.lie.langlands import (
+    IwahoriHeckeAlgebra,
+    coroot_in_dual,
+    langlands_dual_root_system,
+    root_inner_product,
+)
 from algebrax.lie.roots import (
     RootSystem,
     chevalley_lie_algebra,
@@ -42,17 +48,21 @@ from algebrax.lie.roots import (
 
 __all__ = [
     'ConvergenceWarning',
+    'IwahoriHeckeAlgebra',
     'LieAlgebra',
     'LieElement',
     'RootSystem',
     'StructureConstants',
     'chevalley_lie_algebra',
     'clifford_lie_algebra',
+    'coroot_in_dual',
     'e6',
     'e7',
     'e8',
     'f4',
     'g2',
+    'langlands_dual_root_system',
+    'root_inner_product',
     'se_n',
     'sl_n',
     'so_n',
