@@ -18,7 +18,7 @@ Submodules:
 
 from __future__ import annotations
 
-from algebrax.topology import bundle, coalgebra, cohomology, dec, homology, persistence, sheaf
+from algebrax.topology import bundle, coalgebra, cohomology, dec, homology, k_theory, persistence, sheaf
 from algebrax.topology.bundle import (
     DiscreteConnection,
     DiscreteOrthogonalConnection,
@@ -54,6 +54,17 @@ from algebrax.topology.dec import (
 from algebrax.topology.homology import (
     SimplicialComplex,
     SparseChainComplex,
+)
+from algebrax.topology.k_theory import (
+    TopologicalKTheoryRing,
+    bundle_direct_sum,
+    bundle_tensor_product,
+    chern_character,
+    compute_chern_character_1,
+    compute_chern_character_2,
+    compute_face_curvature_angle,
+    first_chern_number,
+    trivial_bundle,
 )
 from algebrax.topology.persistence import (
     FilteredSimplicialComplex,
@@ -98,6 +109,7 @@ __all__ = [
     'SimplicialComplex',
     'SparseChainComplex',
     'StalkCoord',
+    'TopologicalKTheoryRing',
     'apply_gauge_transformation',
     'betti_curve',
     'bottleneck_distance',
@@ -105,25 +117,33 @@ __all__ = [
     'build_sheaf_coboundary_matrix',
     'build_sheaf_laplacian',
     'bundle',
+    'bundle_direct_sum',
+    'bundle_tensor_product',
     'canonicalize_form',
     'cap_product',
+    'chern_character',
     'coalgebra',
     'coboundary',
     'cochain_to_flow',
     'codifferential',
     'cohomology',
     'cohomology_rank',
+    'compute_chern_character_1',
+    'compute_chern_character_2',
+    'compute_face_curvature_angle',
     'compute_face_holonomy',
     'covariant_exterior_derivative',
     'cup_product',
     'dec',
     'exterior_derivative',
+    'first_chern_number',
     'flow_to_cochain',
     'helmholtz_hodge_decomposition',
     'hodge_laplacian',
     'hodge_star',
     'homology',
     'is_flat_bundle',
+    'k_theory',
     'persistence',
     'persistence_entropy',
     'persistent_cohomology',
@@ -132,5 +152,6 @@ __all__ = [
     'sheaf_diffusion',
     'sheaf_harmonic_extension',
     'sheaf_laplacian',
+    'trivial_bundle',
 ]
 
