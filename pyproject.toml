@@ -1,12 +1,12 @@
 [project]
 name = "algebrax"
 version = "0.14.0"
-description = "Algebraic Structures and Semirings for Python"
+description = "Pure-Python abstract algebra, semiring linear algebra, and discrete topology over sparse mappings"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
-keywords = ["math", "mathematics", "algebra", "semiring", "ring", "field", "group", "monoid", "mapping", "matrix"]
+keywords = ["math", "mathematics", "algebra", "semiring", "ring", "field", "group", "monoid", "mapping", "matrix", "topology", "clifford", "lie-algebra", "hopf-algebra", "sparse"]
 authors = [
     { name = "Eran Rivlis", email = "eran@rivlis.info" }
 ]
