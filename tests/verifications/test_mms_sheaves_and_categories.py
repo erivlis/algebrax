@@ -585,3 +585,62 @@ def test_mms_path_groupoid_homotopy_obstruction_and_ccc_adjunction() -> None:
             context_samples=[{}, {'x': 1.0}, {'x': 2.0, 'y': 0.5}],
         ).values()
     )
+
+
+# ---------------------------------------------------------------------------
+# 10. EP-0209: Langlands Duality, Ramanujan Expanders & p-Adic Valuations
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.mms
+def test_mms_langlands_duality_ramanujan_and_padic_tropical_valuation() -> None:
+    """Verify Langlands B_3 <-> C_3 coroot duality, Petersen Ramanujan bound, and p-adic tropical bridge."""
+    from algebrax.algebra import PAdicField
+    from algebrax.analysis import hecke_graph_operator, is_ramanujan_graph
+    from algebrax.lie import IwahoriHeckeAlgebra, RootSystem, langlands_dual_root_system
+    from algebrax.semiring import TropicalSemiring
+    from algebrax.verification import (
+        verify_cartan_duality,
+        verify_padic_ultrametric_inequality,
+        verify_ramanujan_spectral_gap,
+    )
+
+    # 1. Langlands Root Duality: B_3 (so_7) <-> C_3 (sp_6)
+    b3 = RootSystem.from_dynkin('B', 3)
+    c3 = RootSystem.from_dynkin('C', 3)
+    assert langlands_dual_root_system(b3).cartan_matrix == c3.cartan_matrix
+    assert all(verify_cartan_duality(b3).values())
+    assert all(verify_cartan_duality(c3).values())
+
+    # 2. Iwahori-Hecke quadratic & braid relations on B_2
+    hecke = IwahoriHeckeAlgebra(RootSystem.from_dynkin('B', 2), q=2.0)
+    t0, t1 = hecke.generator(0), hecke.generator(1)
+    assert hecke.is_zero(
+        hecke.sub(
+            hecke.mul(hecke.mul(hecke.mul(t0, t1), t0), t1),
+            hecke.mul(hecke.mul(hecke.mul(t1, t0), t1), t0),
+        )
+    )
+
+    # 3. Cube graph Q_3 (3-regular bipartite on 8 vertices): spectrum {3, 1, 1, 1, -1, -1, -1, -3}
+    # Non-trivial |lambda| = 1 <= 2*sqrt(2) ≈ 2.8284 -> Ramanujan!
+    cube_adj: dict[int, dict[int, float]] = {
+        v: {v ^ (1 << b): 1.0 for b in range(3)}
+        for v in range(8)
+    }
+    is_ram, max_nt, thresh = is_ramanujan_graph(cube_adj, degree=3)
+    assert is_ram is True
+    assert math.isclose(max_nt, 1.0, abs_tol=1e-6)
+    assert max_nt <= thresh
+    assert all(verify_ramanujan_spectral_gap(cube_adj, degree=3).values())
+    assert hecke_graph_operator(cube_adj, 1) == cube_adj
+
+    # 4. p-Adic Field Q_7 and exact homomorphism to TropicalSemiring
+    q7 = PAdicField(p=7, precision=8)
+    trop = TropicalSemiring()
+    x = q7.from_rational(49, 3)   # v_7(x) = 2
+    y = q7.from_rational(5, 7)    # v_7(y) = -1
+    assert q7.mul(x, q7.inv(x)) == q7.one
+    assert q7.valuation(q7.mul(x, y)) == trop.mul(q7.valuation(x), q7.valuation(y)) == 1.0
+    assert q7.valuation(q7.add(x, y)) == trop.add(q7.valuation(x), q7.valuation(y)) == -1.0
+    assert all(verify_padic_ultrametric_inequality(q7, [q7.zero, q7.one, x, y]).values())
