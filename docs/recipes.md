@@ -315,6 +315,38 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Functional Analysis, Gram-Schmidt & RKHS Kernel Methods
+* **Files**: [`rkhs_kernel_methods.py`](https://github.com/erivlis/algebrax/blob/main/recipes/rkhs_kernel_methods.py) | [`rkhs_kernel_methods.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/rkhs_kernel_methods.ipynb)
+* **Run**: `uv run recipes/rkhs_kernel_methods.py`
+* **Components**: `analysis.EuclideanSpace`, `analysis.gram_schmidt`, `analysis.ReproducingKernelHilbertSpace`, `analysis.rbf_kernel`, `analysis.polynomial_kernel`, `analysis.cosine_kernel`
+* **Summary**: Orthonormalizes sparse dict bases via Gram-Schmidt, audits `InnerProductSpace` Cauchy-Schwarz & parallelogram axioms, evaluates induced Mercer feature-space distances $d_{\mathcal{H}}(u, v)$, and solves sparse non-linear kernel ridge regression $(K + \alpha I)w = y$ on XOR.
+
+---
+
+### Topological K-Theory & Quantized Chern Classes
+* **Files**: [`topological_k_theory_chern_classes.py`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_k_theory_chern_classes.py) | [`topological_k_theory_chern_classes.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_k_theory_chern_classes.ipynb)
+* **Run**: `uv run recipes/topological_k_theory_chern_classes.py`
+* **Components**: `topology.TopologicalKTheoryRing`, `topology.DiscreteOrthogonalConnection`, `topology.bundle_direct_sum`, `topology.bundle_tensor_product`, `topology.chern_character`, `topology.first_chern_number`
+* **Summary**: Constructs quantized discrete $SO(2) \cong U(1)$ Dirac monopole and anti-monopole line bundles over an oriented closed $S^2$ tetrahedron, verifies integer Chern number quantization $\int_{S^2} c_1(E) \in \mathbb{Z}$, demonstrates Whitney sum Chern character additivity, and computes virtual bundle arithmetic $[E] - [F]$ inside $K^0(S^2)$.
+
+---
+
+### Cartesian Closed Categories, Coeffects & Path Groupoids
+* **Files**: [`ccc_coeffects_and_path_groupoids.py`](https://github.com/erivlis/algebrax/blob/main/recipes/ccc_coeffects_and_path_groupoids.py) | [`ccc_coeffects_and_path_groupoids.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/ccc_coeffects_and_path_groupoids.ipynb)
+* **Run**: `uv run recipes/ccc_coeffects_and_path_groupoids.py`
+* **Components**: `category.FiniteSetCCC`, `category.CoeffectContext`, `category.SemiringCoeffectTracker`, `topology.SimplicialPathGroupoid`
+* **Summary**: Demonstrates the Curry-Howard-Lambek exponential adjunction ($\beta/\eta$ currying) in $\mathbf{FinSet}$, executes semiring-graded static resource & Tropical latency coeffect analysis, and distinguishes filled vs. punctured simplicial spaces via homotopy equivalence in $\Pi_1(K)$.
+
+---
+
+### Langlands Duality, Iwahori-Hecke Algebras, Ramanujan Expanders & $p$-Adic Valuations
+* **Files**: [`langlands_ramanujan_and_padic.py`](https://github.com/erivlis/algebrax/blob/main/recipes/langlands_ramanujan_and_padic.py) | [`langlands_ramanujan_and_padic.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/langlands_ramanujan_and_padic.ipynb)
+* **Run**: `uv run recipes/langlands_ramanujan_and_padic.py`
+* **Components**: `lie.RootSystem.langlands_dual`, `lie.coroot_in_dual`, `lie.IwahoriHeckeAlgebra`, `analysis.is_ramanujan_graph`, `analysis.hecke_graph_operator`, `algebra.PAdicField`
+* **Summary**: Transposes Cartan matrices for $B_3 \leftrightarrow C_3$ Langlands duality and coroot inversion, verifies quadratic and braid relations in $\mathcal{H}_q(A_2)$, certifies optimal Ramanujan spectral expansion and commutative Hecke walk operators $T_k$ on the Petersen graph, and bridges $\mathbb{Q}_5$ Hensel arithmetic directly to `TropicalSemiring` valuations.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
