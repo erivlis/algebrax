@@ -2,9 +2,11 @@
 
 Validates five foundational pillars of Generalized Harmonic Analysis in AlgebraX:
 1. Experiment 1: Non-Abelian Group Fourier Transform (Peter-Weyl on S_3) vs. 1D Gelfand Character Collapse.
-2. Experiment 2: Puschel-Moura Algebraic Signal Processing (Polynomial QuotientRing Shift Models -> DFT & Chebyshev DCT).
+2. Experiment 2: Puschel-Moura Algebraic Signal Processing
+   (Polynomial QuotientRing Shift Models -> DFT & Chebyshev DCT).
 3. Experiment 3: Exact Finite-Field Number-Theoretic Transform (NTT over ModularField(p)) vs. Float64 FFT Drift.
-4. Experiment 4: Graph & Hodge Simplicial Spectral Filtering via Fast Chebyshev Recurrence (Hammond-Vandergheynst-Gribonval).
+4. Experiment 4: Graph & Hodge Simplicial Spectral Filtering via Fast Chebyshev Recurrence
+   (Hammond-Vandergheynst-Gribonval).
 5. Experiment 5: Poset & Lattice Harmonic Analysis (Rota Incidence Algebra & Fast Zeta/Mobius Transform on 2^[n]).
 """
 
@@ -190,7 +192,8 @@ def run_experiment_1() -> None:
     # Plancherel / Parseval Identity
     lhs_energy = sum(abs(v) ** 2 for v in f1.values())
     rhs_energy = sum(len(hat_f1[name]) * mat_frob_norm_sq(hat_f1[name]) for name in irreps) / len(s3)
-    print(f"Plancherel Energy: spatial={lhs_energy:.6f}, spectral={rhs_energy:.6f}, diff={abs(lhs_energy - rhs_energy):.2e}")
+    print(f"Plancherel Energy: spatial={lhs_energy:.6f}, spectral={rhs_energy:.6f},"
+          f" diff={abs(lhs_energy - rhs_energy):.2e}")
 
     # Diaconis random transposition walk convergence to uniform distribution on S_3
     # Walk: stay at identity with prob 1/4, or apply one of 3 transpositions with prob 1/4 each
@@ -380,7 +383,7 @@ def run_experiment_3() -> None:
     dft_a = dft({k: float(v) for k, v in a.items()}, n)
     dft_b = dft({k: float(v) for k, v in b.items()}, n)
     float_conv = idft({k: dft_a.get(k, 0j) * dft_b.get(k, 0j) for k in range(n)}, n)
-    float_rounded_mod_p = {k: int(round(float_conv.get(k, 0j).real)) % p for k in exact_int_conv}
+    float_rounded_mod_p = {k: round(float_conv.get(k, 0j).real) % p for k in exact_int_conv}
     float_mismatches = sum(1 for k in exact_mod_p if float_rounded_mod_p[k] != exact_mod_p[k])
 
     # Exact NTT convolution over ModularField(p)
@@ -391,7 +394,8 @@ def run_experiment_3() -> None:
     ntt_mismatches = sum(1 for k in exact_mod_p if ntt_conv.get(k, 0) != exact_mod_p[k])
 
     print(f"NTT Prime p = {p}, N = {n}, primitive {n}-th root omega = {omega}")
-    print(f"Float64 DFT/IDFT wrong modular coefficients: {float_mismatches}/{len(exact_mod_p)} (53-bit precision overflow!)")
+    print(f"Float64 DFT/IDFT wrong modular coefficients: {float_mismatches}/{len(exact_mod_p)}"
+          f" (53-bit precision overflow!)")
     print(f"Exact ModularField(p) NTT wrong coefficients: {ntt_mismatches}/{len(exact_mod_p)} (100% bit-exact!)")
     print()
 
@@ -452,7 +456,8 @@ def run_experiment_4() -> None:
 
     signal = np.zeros(n)
     signal[0] = 1.0  # Dirac impulse at vertex 0
-    kernel = lambda lam: lam * math.exp(-1.5 * lam)  # Mexican-hat spectral graph wavelet
+    def kernel(lam):
+        return lam * math.exp(-1.5 * lam)  # Mexican-hat spectral graph wavelet
 
     t0 = time.perf_counter()
     eigvals, eigvecs = np.linalg.eigh(lap)
@@ -557,7 +562,8 @@ def run_experiment_5() -> None:
     print(f"Boolean Lattice 2^[{n_bits}] ({size} elements):")
     print(f"  Rota Mobius Inversion error ||f - FMT(FZT(f))||_inf: {inv_err:.2e}")
     print(f"  Join-Convolution error ||Naive - Spectral||_inf:     {max_err:.2e}")
-    print(f"  Runtime: Naive O(4^n) = {t_naive:.2f} ms vs. Fast Mobius O(n 2^n) = {t_fast:.2f} ms ({t_naive / t_fast:.1f}x speedup!)")
+    print(f"  Runtime: Naive O(4^n) = {t_naive:.2f} ms"
+          f" vs. Fast Mobius O(n 2^n) = {t_fast:.2f} ms ({t_naive / t_fast:.1f}x speedup!)")
     print()
 
 

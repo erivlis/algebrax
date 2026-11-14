@@ -14,10 +14,10 @@ Also performs differential verification against SymPy (oracle) when installed.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
-from fractions import Fraction
 import itertools
 import time
+from collections.abc import Callable, Sequence
+from fractions import Fraction
 from typing import Generic, TypeVar
 
 import numpy as np
@@ -32,7 +32,7 @@ from algebrax.algebra import (
     QuotientRing,
     StandardField,
 )
-from algebrax.matrix import commutator, dot
+from algebrax.matrix import commutator
 from algebrax.semiring import TropicalSemiring
 
 V = TypeVar('V')
@@ -219,16 +219,16 @@ class MultivariatePolynomialAlgebra(MonoidAlgebra[Monomial, V], Generic[V]):
 # =============================================================================
 
 
-def _reduce_basis(ring: MultivariatePolynomialAlgebra[V], G: list[SparseMPoly[V]]) -> list[SparseMPoly[V]]:
+def _reduce_basis(ring: MultivariatePolynomialAlgebra[V], g: list[SparseMPoly[V]]) -> list[SparseMPoly[V]]:
     """Minimalize and autoreduce a Groebner basis, returning sorted monic canonical basis."""
-    G = [ring.make_monic(g) for g in G if g]
+    g = [ring.make_monic(gv) for gv in g if gv]
     # Remove redundant elements whose LM is divisible by another LM
     minimal: list[SparseMPoly[V]] = []
-    lms = [ring.lm(g) for g in G]
-    for i, g in enumerate(G):
+    lms = [ring.lm(gv) for gv in g]
+    for i, gv in enumerate(g):
         lm_i = lms[i]
         divisible = False
-        for j in range(len(G)):
+        for j in range(len(g)):
             if i == j:
                 continue
             lm_j = lms[j]
@@ -236,7 +236,7 @@ def _reduce_basis(ring: MultivariatePolynomialAlgebra[V], G: list[SparseMPoly[V]
                 divisible = True
                 break
         if not divisible:
-            minimal.append(g)
+            minimal.append(gv)
 
     # Autoreduce tails
     reduced: list[SparseMPoly[V]] = []
@@ -253,16 +253,16 @@ def _reduce_basis(ring: MultivariatePolynomialAlgebra[V], G: list[SparseMPoly[V]
 
 
 def groebner_buchberger(
-    ring: MultivariatePolynomialAlgebra[V],
-    generators: Sequence[SparseMPoly[V]],
+        ring: MultivariatePolynomialAlgebra[V],
+        generators: Sequence[SparseMPoly[V]],
 ) -> tuple[list[SparseMPoly[V]], dict[str, int]]:
     """Classical Buchberger with Buchberger's Product & Chain criteria."""
-    G = [ring.make_monic(ring.clean(g)) for g in generators if ring.clean(g)]
-    if not G:
+    g = [ring.make_monic(ring.clean(gv)) for gv in generators if ring.clean(gv)]
+    if not g:
         return [], {'s_polys': 0, 'skipped_product': 0, 'skipped_chain': 0}
 
-    pairs: list[tuple[int, int]] = [(i, j) for i in range(len(G)) for j in range(i + 1, len(G))]
-    lms = [ring.lm(g) for g in G]
+    pairs: list[tuple[int, int]] = [(i, j) for i in range(len(g)) for j in range(i + 1, len(g))]
+    lms = [ring.lm(gv) for gv in g]
     stats = {'s_polys': 0, 'skipped_product': 0, 'skipped_chain': 0}
 
     while pairs:
@@ -279,42 +279,41 @@ def groebner_buchberger(
 
         # Chain criterion (Gebauer-Moller style check)
         chain_hit = False
-        for k in range(len(G)):
-            if k == i or k == j:
+        for k in range(len(g)):
+            if k in (i, j):
                 continue
-            if monomial_divides(lms[k], lcm_ij):
-                if (min(i, k), max(i, k)) not in pairs and (min(j, k), max(j, k)) not in pairs:
-                    chain_hit = True
-                    break
+            if (monomial_divides(lms[k], lcm_ij)
+                    and (min(i, k), max(i, k)) not in pairs and (min(j, k), max(j, k)) not in pairs):
+                chain_hit = True
+                break
         if chain_hit:
             stats['skipped_chain'] += 1
             continue
 
         stats['s_polys'] += 1
-        s = ring.s_poly(G[i], G[j])
-        r = ring.reduce_poly(s, G)
+        s = ring.s_poly(g[i], g[j])
+        r = ring.reduce_poly(s, g)
         if r:
             r = ring.make_monic(r)
-            new_idx = len(G)
-            G.append(r)
+            new_idx = len(g)
+            g.append(r)
             lms.append(ring.lm(r))
             if lms[-1] == (0,) * ring.n_vars:
                 return [ring.one], stats
             for k in range(new_idx):
                 pairs.append((k, new_idx))
 
-    return _reduce_basis(ring, G), stats
+    return _reduce_basis(ring, g), stats
 
 
 def _sparse_macaulay_rref(
-    ring: MultivariatePolynomialAlgebra[V],
-    rows: list[SparseMPoly[V]],
+        ring: MultivariatePolynomialAlgebra[V],
+        rows: list[SparseMPoly[V]],
 ) -> list[SparseMPoly[V]]:
     """Exact sparse Gaussian elimination on polynomial rows over Field[V].
 
     Represents the Macaulay matrix purely as sparse dicts (zero dense allocation).
     """
-    field = ring.field
     pivots: dict[Monomial, SparseMPoly[V]] = {}
 
     for row in rows:
@@ -344,16 +343,16 @@ def _sparse_macaulay_rref(
 
 
 def groebner_f4(
-    ring: MultivariatePolynomialAlgebra[V],
-    generators: Sequence[SparseMPoly[V]],
+        ring: MultivariatePolynomialAlgebra[V],
+        generators: Sequence[SparseMPoly[V]],
 ) -> tuple[list[SparseMPoly[V]], dict[str, int]]:
     """F4-style Groebner basis via symbolic preprocessing & sparse Macaulay RREF."""
-    G = [ring.make_monic(ring.clean(g)) for g in generators if ring.clean(g)]
-    if not G:
+    g = [ring.make_monic(ring.clean(g)) for g in generators if ring.clean(g)]
+    if not g:
         return [], {'rounds': 0, 'matrix_rows': 0, 'new_pivots': 0}
 
-    lms = [ring.lm(g) for g in G]
-    pairs: list[tuple[int, int]] = [(i, j) for i in range(len(G)) for j in range(i + 1, len(G))]
+    lms = [ring.lm(g) for g in g]
+    pairs: list[tuple[int, int]] = [(i, j) for i in range(len(g)) for j in range(i + 1, len(g))]
     stats = {'rounds': 0, 'matrix_rows': 0, 'new_pivots': 0}
 
     while pairs:
@@ -378,8 +377,8 @@ def groebner_f4(
             lcm_ij = monomial_lcm(lm_i, lm_j)
             if monomial_add(lm_i, lm_j) == lcm_ij:
                 continue
-            r1 = ring.mul_term(G[i], monomial_sub(lcm_ij, lm_i), ring.field.one)
-            r2 = ring.mul_term(G[j], monomial_sub(lcm_ij, lm_j), ring.field.one)
+            r1 = ring.mul_term(g[i], monomial_sub(lcm_ij, lm_i), ring.field.one)
+            r2 = ring.mul_term(g[j], monomial_sub(lcm_ij, lm_j), ring.field.one)
             rows.append(r1)
             rows.append(r2)
             known_lms.add(lcm_ij)
@@ -395,14 +394,14 @@ def groebner_f4(
             if m in done_monomials:
                 continue
             done_monomials.add(m)
-            for g, g_lm in zip(G, lms, strict=True):
+            for g, g_lm in zip(g, lms, strict=True):
                 if monomial_divides(g_lm, m):
                     if m not in known_lms:
                         known_lms.add(m)
                     u = monomial_sub(m, g_lm)
                     reducer_row = ring.mul_term(g, u, ring.field.one)
                     rows.append(reducer_row)
-                    todo_monomials.update(k for k in reducer_row.keys() if k not in done_monomials)
+                    todo_monomials.update(k for k in reducer_row if k not in done_monomials)
                     break
 
         stats['matrix_rows'] += len(rows)
@@ -414,8 +413,8 @@ def groebner_f4(
             # Any pivot whose LM is not divisible by any current G leading monomial is a new basis element
             if rlm not in existing_lm_set and not any(monomial_divides(glm, rlm) for glm in lms):
                 stats['new_pivots'] += 1
-                new_idx = len(G)
-                G.append(row)
+                new_idx = len(g)
+                g.append(row)
                 lms.append(rlm)
                 existing_lm_set.add(rlm)
                 if rlm == (0,) * ring.n_vars:
@@ -423,7 +422,7 @@ def groebner_f4(
                 for k in range(new_idx):
                     pairs.append((k, new_idx))
 
-    return _reduce_basis(ring, G), stats
+    return _reduce_basis(ring, g), stats
 
 
 # =============================================================================
@@ -523,19 +522,18 @@ def tropical_curve_2d_skeleton(poly: SparseMPoly[float]) -> dict[str, object]:
     vertices: list[tuple[float, float]] = []
     vertex_active: list[set[Monomial]] = []
     for (a, ca), (b, cb), (c, cc) in itertools.combinations(terms, 3):
-        A = np.array([[a[0] - b[0], a[1] - b[1]], [a[0] - c[0], a[1] - c[1]]], dtype=float)
-        if abs(np.linalg.det(A)) < 1e-12:
+        arr = np.array([[a[0] - b[0], a[1] - b[1]], [a[0] - c[0], a[1] - c[1]]], dtype=float)
+        if abs(np.linalg.det(arr)) < 1e-12:
             continue
         rhs = np.array([cb - ca, cc - ca], dtype=float)
-        x, y = np.linalg.solve(A, rhs)
+        x, y = np.linalg.solve(arr, rhs)
         vals = {m: cm + m[0] * x + m[1] * y for m, cm in terms}
         mval = min(vals.values())
         active = {m for m, v in vals.items() if abs(v - mval) < 1e-9}
-        if len(active) >= 3:
+        if len(active) >= 3 and not any(abs(vx - x) < 1e-8 and abs(vy - y) < 1e-8 for vx, vy in vertices):
             # Deduplicate vertex
-            if not any(abs(vx - x) < 1e-8 and abs(vy - y) < 1e-8 for vx, vy in vertices):
-                vertices.append((float(x), float(y)))
-                vertex_active.append(active)
+            vertices.append((float(x), float(y)))
+            vertex_active.append(active)
 
     # Check Noether balancing condition at every vertex:
     # Each edge incident to a vertex corresponds to an edge of the dual Newton polygon subdivision.
@@ -576,7 +574,7 @@ def run_experiments() -> None:
     # f1 = x^2 + y^2 - 1, f2 = (1 + eps)*x^2 + y^2 - 1 - eps*1/4  (intersection at x = +-1/2)
     # Wait: make f2 = x^2 + y^2 - 1 + eps*x, where eps = 1e-17 (under float64: 1.0 + 1e-17 == 1.0,
     # or eps = 1e-13 with tol=1e-12 vs tol=0.0):
-    eps_exact = Fraction(1, 10**14)
+    eps_exact = Fraction(1, 10 ** 14)
     q_ring = MultivariatePolynomialAlgebra(StandardField(Fraction), 2, 'lex')
     f1_q = {(2, 0): Fraction(1), (0, 2): Fraction(1), (0, 0): Fraction(-1)}
     f2_q = {(2, 0): Fraction(1), (0, 2): Fraction(1), (1, 0): eps_exact, (0, 0): Fraction(-1)}
@@ -603,10 +601,10 @@ def run_experiments() -> None:
     f2_ft = {m: float(c) for m, c in f2_q.items()}
     gb_f_tol, _ = groebner_f4(f_ring_tol, [f1_ft, f2_ft])
 
-    print(f'Case A (IEEE-754 rounding residual, tol=0.0):')
+    print('Case A (IEEE-754 rounding residual, tol=0.0):')
     print(f'  Exact Q Groebner basis: {gb_q2}  (2 points: (1,1), (19/13, 4/13))')
     print(f'  Naive float64 GB:       {gb_f_naive}  (FALSE UNIT IDEAL => V(I) = EMPTY!)')
-    print(f'Case B (Genuine 1e-14 coefficient, tol=1e-12):')
+    print('Case B (Genuine 1e-14 coefficient, tol=1e-12):')
     print(f'  Exact Q Groebner basis: {gb_q}  (0-dim: x=0, y^2-1=0)')
     print(f'  Float64 (tol=1e-12) GB: {gb_f_tol}  (LOST x=0, inflated to 1-dim circle!)')
 
@@ -621,7 +619,7 @@ def run_experiments() -> None:
             mon = sp.Integer(1)
             for s, e in zip(syms, m, strict=True):
                 if e:
-                    mon *= s**e
+                    mon *= s ** e
             expr += (sp.Rational(c.numerator, c.denominator) if isinstance(c, Fraction) else int(c)) * mon
         return expr
 
@@ -716,14 +714,16 @@ def run_experiments() -> None:
     q_basis = ideal.quotient_monomial_basis()
     mx = ideal.companion_matrix(0)
     my = ideal.companion_matrix(1)
-    assert q_basis is not None and mx is not None and my is not None
+    assert q_basis is not None
+    assert mx is not None
+    assert my is not None
 
     # Check AlgebraX Protocol conformance & commutativity [Mx, My] = 0
     comm_xy = commutator(mx, my)
     print(f'isinstance(ideal, Ideal):           {isinstance(ideal, Ideal)}')
     print(f'isinstance(coord_ring, CommRing):   {isinstance(coord_ring, CommRing)}')
     print(f'Quotient basis dim_Q(Q[V]):         {len(q_basis)} -> {q_basis}')
-    print(f'Companion [M_x, M_y] == 0:          {comm_xy == {}}')
+    print(f'Companion [M_x, M_y] == 0:          {comm_xy == {} }')
 
     # Verify QuotientRing arithmetic: (x^2 + y^2) mod I == 5, and (x*y)^3 mod I == 8
     f_test = {(2, 0): Fraction(1), (0, 2): Fraction(1)}
@@ -744,7 +744,7 @@ def run_experiments() -> None:
             my_np[r, c] = float(val)
 
     # Random linear combination separates eigenvalues cleanly
-    rng = np.random.default_rng(42)
+    np.random.default_rng(42)
     comb = 0.73 * mx_np + 0.27 * my_np
     _, vecs = np.linalg.eig(comb)
     pts = []
@@ -756,7 +756,7 @@ def run_experiments() -> None:
         pts.append((round(vx, 6), round(vy, 6)))
     pts.sort()
     residuals = [
-        max(abs(px**2 + py**2 - 5.0), abs(px * py - 2.0)) for px, py in pts
+        max(abs(px ** 2 + py ** 2 - 5.0), abs(px * py - 2.0)) for px, py in pts
     ]
     print(f'Stickelberger extracted V(I):       {pts}')
     print(f'Max polynomial residual on V(I):    {max(residuals):.2e}')
@@ -770,7 +770,10 @@ def run_experiments() -> None:
     ms1 = ik_ideal.companion_matrix(1)
     mc2 = ik_ideal.companion_matrix(2)
     ms2 = ik_ideal.companion_matrix(3)
-    assert mc1 is not None and ms1 is not None and mc2 is not None and ms2 is not None
+    assert mc1 is not None
+    assert ms1 is not None
+    assert mc2 is not None
+    assert ms2 is not None
     # Verify exact commutativity
     assert commutator(mc1, ms2) == {}
     mats = []
@@ -797,9 +800,10 @@ def run_experiments() -> None:
     ec_poly = {(0, 2): 1, (3, 0): 6, (1, 0): 6, (0, 0): 6}  # y^2 - x^3 - x - 1 mod 7
     ec_points = [(x0, y0) for x0 in range(7) for y0 in range(7) if f7_ring.eval(ec_poly, (x0, y0)) == 0]
     # Include point at infinity => total projective points = len(ec_points) + 1
-    hasse_bound = 2 * (7**0.5)
+    hasse_bound = 2 * (7 ** 0.5)
     print(f'Elliptic Curve y^2=x^3+x+1 over F_7: affine pts={len(ec_points)}, '
-          f'#E(F_7)={len(ec_points)+1} (Hasse |{len(ec_points)+1}-8|={abs(len(ec_points)+1-8)} <= {hasse_bound:.2f})')
+          f'#E(F_7)={len(ec_points) + 1}'
+          f' (Hasse |{len(ec_points) + 1}-8|={abs(len(ec_points) + 1 - 8)} <= {hasse_bound:.2f})')
 
     # F_2 Algebraic SAT:
     # Clauses over (x0, x1, x2):
@@ -811,12 +815,12 @@ def run_experiments() -> None:
     f2_ring = MultivariatePolynomialAlgebra(ModularField(2), 3, 'lex')
     sat_gens = [
         {(0, 0, 0): 1, (1, 0, 0): 1, (0, 1, 0): 1, (1, 1, 0): 1},  # (1+x0)(1+x1)
-        {(1, 0, 0): 1, (1, 0, 1): 1},                                # x0(1+x2)
-        {(0, 1, 1): 1},                                              # x1*x2
-        {(0, 0, 1): 1, (1, 0, 1): 1},                                # (1+x0)x2
-        {(2, 0, 0): 1, (1, 0, 0): 1},                                # x0^2 + x0
-        {(0, 2, 0): 1, (0, 1, 0): 1},                                # x1^2 + x1
-        {(0, 0, 2): 1, (0, 0, 1): 1},                                # x2^2 + x2
+        {(1, 0, 0): 1, (1, 0, 1): 1},  # x0(1+x2)
+        {(0, 1, 1): 1},  # x1*x2
+        {(0, 0, 1): 1, (1, 0, 1): 1},  # (1+x0)x2
+        {(2, 0, 0): 1, (1, 0, 0): 1},  # x0^2 + x0
+        {(0, 2, 0): 1, (0, 1, 0): 1},  # x1^2 + x1
+        {(0, 0, 2): 1, (0, 0, 1): 1},  # x2^2 + x2
     ]
     sat_ideal = GroebnerIdeal(f2_ring, sat_gens)
     sat_basis = sat_ideal.quotient_monomial_basis()
