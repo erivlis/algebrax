@@ -64,7 +64,7 @@ Jump directly to the guide matching your engineering domain:
 - 🎯 **The Exact Math & Crypto Solver**: Jump straight to [Exact Matrix Solvers](algebra/exact_matrix_solvers.md) and [Rings & Fields](algebra/rings_and_fields.md) for drift-free rational LU, determinants, matrix inverse, and Galois field $\operatorname{GF}(p^m)$ arithmetic.
 
 - 🛰️ **The Robotics, 3D & Physics Engineer**: Jump straight to [Clifford Geometric Algebra](algebra/clifford_geometric_algebra.md) and [Lie Algebras](algebra/lie_algebras.md) for gimbal-lock-free rotor rotations and Baker–Campbell–Hausdorff (BCH) dynamics.
-- 🌐 **The Data & Shape Explorer**: Jump straight to [Simplicial Homology](topology/homology.md), [Cohomology Rings](topology/cohomology.md), and [Discrete Exterior Calculus](topology/dec.md) for persistent barcodes, Hodge star operators, and Helmholtz–Hodge flow decomposition.
+- 🌐 **The Data & Shape Explorer**: Jump straight to [Simplicial Homology](topology/homology.md), [Cohomology Rings](topology/cohomology.md), [Discrete Exterior Calculus](topology/dec.md), and [Topological K-Theory & Chern Classes](topology/k_theory.md) for persistent barcodes, Hodge star operators, Helmholtz–Hodge flow decomposition, and quantized Chern invariants.
 
 ---
 
@@ -72,9 +72,10 @@ Jump directly to the guide matching your engineering domain:
 
 1. **[Single-Operation Structures](algebra/magmas_and_monoids.md)**: Atomic operational mixins (`Has*`), magmas, semigroups, bands, monoids, and [groups & permutation symmetries](algebra/groups_and_symmetries.md).
 2. **[Two-Operation Systems](algebra/lattices_and_order.md)**: Order-theoretic [lattices & Boolean algebras](algebra/lattices_and_order.md) and the [34 built-in semirings](semirings/index.md).
-3. **[Additive Inverses (Rings, Ideals & Fields)](algebra/rings_and_fields.md)**: [Rings and fields](algebra/rings_and_fields.md), [homomorphisms, ideals, canonical quotients & polynomials](algebra/polynomials_and_quotients.md), and [exact sparse matrix solvers](algebra/exact_matrix_solvers.md).
-4. **[Two-Sorted Systems (Modules, Algebras & Tensors)](algebra/modules_and_vector_spaces.md)**: [Semimodules, modules & vector spaces](algebra/modules_and_vector_spaces.md), [Clifford geometric algebras](algebra/clifford_geometric_algebra.md), [Lie algebras](algebra/lie_algebras.md), and sparse [tensors & einsum](tensor/einsum.md).
-5. **[Discrete Geometry & Topology](topology/homology.md)**: Simplicial homology, graded cohomology rings, persistent homology barcodes, Discrete Exterior Calculus (DEC), and cellular sheaves.
+3. **[Additive Inverses (Rings, Ideals & Fields)](algebra/rings_and_fields.md)**: [Rings, Grothendieck completions & fields](algebra/rings_and_fields.md), [homomorphisms, ideals, canonical quotients & polynomials](algebra/polynomials_and_quotients.md), and [exact sparse matrix solvers](algebra/exact_matrix_solvers.md).
+4. **[Two-Sorted Systems (Modules, Algebras & Tensors)](algebra/modules_and_vector_spaces.md)**: [Semimodules, modules & vector spaces](algebra/modules_and_vector_spaces.md), [Clifford geometric algebras](algebra/clifford_geometric_algebra.md), [Lie algebras](algebra/lie_algebras.md), [coalgebras & Hopf algebras](algebra/coalgebras_and_hopf.md), and sparse [tensors & einsum](tensor/einsum.md).
+5. **[Discrete Geometry & Topology](topology/homology.md)**: Simplicial homology, graded cohomology rings, persistent homology barcodes, Discrete Exterior Calculus (DEC), [cellular sheaves & fiber bundles](topology/sheaf.md), and [topological K-theory & characteristic Chern classes](topology/k_theory.md).
 6. **[Categories, Automata & Dynamics](discrete/category.md)**: Matrix categories $\mathbf{Mat}(\mathcal{S})$, Lawvere metric spaces, Kleisli composition, weighted finite automata, information theory, spectral graph theory, and discrete graph calculus.
 7. **[Ecosystem Bridges & Decompositions](matrix/decompositions.md)**: Matrix decompositions (LU, QR, SVD, Cholesky), CodSpeed micro-benchmarks, and academic reference operators.
+
 

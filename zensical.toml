@@ -58,6 +58,7 @@ nav = [
             "guide/topology/persistence.md",
             "guide/topology/dec.md",
             "guide/topology/sheaf.md",
+            "guide/topology/k_theory.md",
         ] },
         { "6. Categories, Automata & Dynamics" = [
             "guide/discrete/category.md",

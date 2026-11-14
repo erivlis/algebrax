@@ -121,6 +121,8 @@ with pytest.raises(ZeroDivisionError):
 
 ## 5. Frontier Horizons & Cross-Domain Bridges
 
+- **[Topological K-Theory, Grothendieck Groups & Characteristic Classes](../topology/k_theory.md)**: Universally complete any commutative monoid or semiring into an abelian group (`GrothendieckGroup`) or commutative ring (`GrothendieckRing`) via formal differences $[a] - [b]$.
 - **[Polynomials, Dual Numbers & Quotient Algebras](polynomials_and_quotients.md)**: Build polynomial rings $R[x]$ and quotient rings $R[M]/\mathcal{I}$ over any ring or field.
 - **[Exact Sparse Matrix Solvers](exact_matrix_solvers.md)**: Use `Field[V]` to compute drift-free LU decompositions, determinants, RREF, and nullspaces.
 - **[Simplicial Homology & Persistent Barcodes](../topology/persistence.md)**: Compute topological invariants over $\mathbb{F}_2 = \text{ModularField}(2)$ and $\mathbb{Q}$.
+

@@ -132,8 +132,10 @@ When every vertex stalk has identical fiber dimension $d$ and every edge restric
 
 ## Related Guides
 
+* [Topological K-Theory, Grothendieck Groups & Characteristic Classes](k_theory.md)
 * [Discrete Exterior Calculus (DEC) & Hodge Decomposition](dec.md)
 * [Simplicial Cohomology & Cup Product Ring](cohomology.md)
 * [Category Theory & Enriched Matrix Mechanics](../discrete/category.md)
 * [Modules, Vector Spaces & Algebras](../algebra/modules_and_vector_spaces.md)
+
 
