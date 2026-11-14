@@ -1289,41 +1289,64 @@ def verify_field_laws(
     return res
 
 
+def _verify_scalar_action_laws(
+    smodule: Semimodule[R, M],
+    semiring: Semiring[R],
+    r_elements: list[R],
+    m_elements: list[M],
+    tol: float,
+) -> dict[str, bool]:
+    """Verify external scalar action axioms over a semiring or ring."""
+    smul = smodule.smul
+    add_m = smodule.add
+    m_zero = smodule.zero
+    r_one = semiring.one
+    r_zero = semiring.zero
+    add_r = semiring.add
+    mul_r = semiring.mul
+
+    left_dist = all(
+        semiring_elements_equal(smul(r, add_m(m1, m2)), add_m(smul(r, m1), smul(r, m2)), tol)
+        for r in r_elements
+        for m1, m2 in itertools.combinations(m_elements, 2)
+    )
+    right_dist = all(
+        semiring_elements_equal(smul(add_r(r1, r2), m), add_m(smul(r1, m), smul(r2, m)), tol)
+        for r1, r2 in itertools.combinations(r_elements, 2)
+        for m in m_elements
+    )
+    assoc = all(
+        semiring_elements_equal(smul(mul_r(r1, r2), m), smul(r1, smul(r2, m)), tol)
+        for r1, r2 in itertools.product(r_elements, repeat=2)
+        for m in m_elements
+    )
+    id_scalar = all(semiring_elements_equal(smul(r_one, m), m, tol) for m in m_elements)
+    annihil = all(semiring_elements_equal(smul(r_zero, m), m_zero, tol) for m in m_elements) and all(
+        semiring_elements_equal(smul(r, m_zero), m_zero, tol) for r in r_elements
+    )
+
+    return {
+        'scalar_left_distributivity': left_dist,
+        'scalar_right_distributivity': right_dist,
+        'scalar_associativity': assoc,
+        'scalar_identity': id_scalar,
+        'scalar_annihilation': annihil,
+    }
+
+
 def verify_semimodule_laws(
     smodule: Semimodule[R, M],
-    semiring: AddCommMonoid[R],
+    semiring: Semiring[R],
     r_samples: Iterable[R],
     m_samples: Iterable[M],
     tol: float = 1e-7,
 ) -> dict[str, bool]:
-    r"""Test Semimodule laws: additive commutative monoid on M plus scalar distributivity."""
+    r"""Test Semimodule laws: additive commutative monoid on M plus semiring scalar action laws."""
     r_elements = _require_samples(r_samples)
     m_elements = _require_samples(m_samples)
 
     res = verify_add_comm_monoid_laws(smodule, m_elements, tol)
-    smul = smodule.smul
-    add_m = smodule.add
-    m_zero = smodule.zero
-
-    left_dist = True
-    for r in r_elements:
-        for m1, m2 in itertools.combinations(m_elements, 2):
-            lhs = smul(r, add_m(m1, m2))
-            rhs = add_m(smul(r, m1), smul(r, m2))
-            if not semiring_elements_equal(lhs, rhs, tol):
-                left_dist = False
-                break
-        if not left_dist:
-            break
-
-    annihil_m = True
-    for r in r_elements:
-        if not semiring_elements_equal(smul(r, m_zero), m_zero, tol):
-            annihil_m = False
-            break
-
-    res['scalar_left_distributivity'] = left_dist
-    res['scalar_module_zero_annihilation'] = annihil_m
+    res.update(_verify_scalar_action_laws(smodule, semiring, r_elements, m_elements, tol))
     return res
 
 
@@ -1339,68 +1362,7 @@ def verify_module_laws(
     m_elements = _require_samples(m_samples)
 
     res = verify_add_comm_group_laws(module, m_elements, tol)
-    smul = module.smul
-    add_m = module.add
-    m_zero = module.zero
-    r_one = ring.one
-    r_zero = ring.zero
-    add_r = ring.add
-    mul_r = ring.mul
-
-    left_dist = True
-    for r in r_elements:
-        for m1, m2 in itertools.combinations(m_elements, 2):
-            lhs = smul(r, add_m(m1, m2))
-            rhs = add_m(smul(r, m1), smul(r, m2))
-            if not semiring_elements_equal(lhs, rhs, tol):
-                left_dist = False
-                break
-        if not left_dist:
-            break
-
-    right_dist = True
-    for r1, r2 in itertools.combinations(r_elements, 2):
-        for m in m_elements:
-            lhs = smul(add_r(r1, r2), m)
-            rhs = add_m(smul(r1, m), smul(r2, m))
-            if not semiring_elements_equal(lhs, rhs, tol):
-                right_dist = False
-                break
-        if not right_dist:
-            break
-
-    assoc = True
-    for r1, r2 in itertools.product(r_elements, repeat=2):
-        for m in m_elements:
-            lhs = smul(mul_r(r1, r2), m)
-            rhs = smul(r1, smul(r2, m))
-            if not semiring_elements_equal(lhs, rhs, tol):
-                assoc = False
-                break
-        if not assoc:
-            break
-
-    id_scalar = True
-    for m in m_elements:
-        if not semiring_elements_equal(smul(r_one, m), m, tol):
-            id_scalar = False
-            break
-
-    annihil = True
-    for m in m_elements:
-        if not semiring_elements_equal(smul(r_zero, m), m_zero, tol):
-            annihil = False
-            break
-    for r in r_elements:
-        if not semiring_elements_equal(smul(r, m_zero), m_zero, tol):
-            annihil = False
-            break
-
-    res['scalar_left_distributivity'] = left_dist
-    res['scalar_right_distributivity'] = right_dist
-    res['scalar_associativity'] = assoc
-    res['scalar_identity'] = id_scalar
-    res['scalar_annihilation'] = annihil
+    res.update(_verify_scalar_action_laws(module, ring, r_elements, m_elements, tol))
     return res
 
 
