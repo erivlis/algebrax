@@ -15,98 +15,84 @@ if TYPE_CHECKING:
     from algebrax.lie.core import LieAlgebra
 
 
-def _standard_cartan_matrix(family: str, rank: int | None = None) -> tuple[list[list[int]], str, int]:
-    """Return the standard integer Cartan matrix, canonical label, and rank for a Dynkin type."""
-    fam = family.upper().strip()
-    if fam in ('G2', 'G'):
-        return [[2, -1], [-3, 2]], 'G2', 2
-    if fam in ('F4', 'F'):
-        return (
-            [
-                [2, -1, 0, 0],
-                [-1, 2, -2, 0],
-                [0, -1, 2, -1],
-                [0, 0, -1, 2],
-            ],
-            'F4',
-            4,
-        )
-    if fam in ('E6',):
-        return (
-            [
-                [2, 0, -1, 0, 0, 0],
-                [0, 2, 0, -1, 0, 0],
-                [-1, 0, 2, -1, 0, 0],
-                [0, -1, -1, 2, -1, 0],
-                [0, 0, 0, -1, 2, -1],
-                [0, 0, 0, 0, -1, 2],
-            ],
-            'E6',
-            6,
-        )
-    if fam in ('E7',):
-        return (
-            [
-                [2, 0, -1, 0, 0, 0, 0],
-                [0, 2, 0, -1, 0, 0, 0],
-                [-1, 0, 2, -1, 0, 0, 0],
-                [0, -1, -1, 2, -1, 0, 0],
-                [0, 0, 0, -1, 2, -1, 0],
-                [0, 0, 0, 0, -1, 2, -1],
-                [0, 0, 0, 0, 0, -1, 2],
-            ],
-            'E7',
-            7,
-        )
-    if fam in ('E8',):
-        return (
-            [
-                [2, 0, -1, 0, 0, 0, 0, 0],
-                [0, 2, 0, -1, 0, 0, 0, 0],
-                [-1, 0, 2, -1, 0, 0, 0, 0],
-                [0, -1, -1, 2, -1, 0, 0, 0],
-                [0, 0, 0, -1, 2, -1, 0, 0],
-                [0, 0, 0, 0, -1, 2, -1, 0],
-                [0, 0, 0, 0, 0, -1, 2, -1],
-                [0, 0, 0, 0, 0, 0, -1, 2],
-            ],
-            'E8',
-            8,
-        )
+_EXCEPTIONAL_ALIASES: dict[str, str] = {
+    'G': 'G2',
+    'F': 'F4',
+}
 
-    # Classical series A_n, B_n, C_n, D_n
-    if rank is None:
-        raise ValueError(f'Rank must be specified for classical family {fam}.')
-    if fam == 'A':
-        if rank < 1:
-            raise ValueError('A_n requires rank >= 1.')
-        mat = [[2 if i == j else (-1 if abs(i - j) == 1 else 0) for j in range(rank)] for i in range(rank)]
-        return mat, f'A{rank}', rank
+_EXCEPTIONAL_CARTAN: dict[str, list[list[int]]] = {
+    'G2': [[2, -1], [-3, 2]],
+    'F4': [
+        [2, -1, 0, 0],
+        [-1, 2, -2, 0],
+        [0, -1, 2, -1],
+        [0, 0, -1, 2],
+    ],
+    'E6': [
+        [2, 0, -1, 0, 0, 0],
+        [0, 2, 0, -1, 0, 0],
+        [-1, 0, 2, -1, 0, 0],
+        [0, -1, -1, 2, -1, 0],
+        [0, 0, 0, -1, 2, -1],
+        [0, 0, 0, 0, -1, 2],
+    ],
+    'E7': [
+        [2, 0, -1, 0, 0, 0, 0],
+        [0, 2, 0, -1, 0, 0, 0],
+        [-1, 0, 2, -1, 0, 0, 0],
+        [0, -1, -1, 2, -1, 0, 0],
+        [0, 0, 0, -1, 2, -1, 0],
+        [0, 0, 0, 0, -1, 2, -1],
+        [0, 0, 0, 0, 0, -1, 2],
+    ],
+    'E8': [
+        [2, 0, -1, 0, 0, 0, 0, 0],
+        [0, 2, 0, -1, 0, 0, 0, 0],
+        [-1, 0, 2, -1, 0, 0, 0, 0],
+        [0, -1, -1, 2, -1, 0, 0, 0],
+        [0, 0, 0, -1, 2, -1, 0, 0],
+        [0, 0, 0, 0, -1, 2, -1, 0],
+        [0, 0, 0, 0, 0, -1, 2, -1],
+        [0, 0, 0, 0, 0, 0, -1, 2],
+    ],
+}
+
+
+def _classical_cartan_matrix(fam: str, rank: int) -> tuple[list[list[int]], str, int]:
+    """Return the standard integer Cartan matrix for classical families A_n, B_n, C_n, D_n."""
+    min_rank = {'A': 1, 'B': 2, 'C': 2, 'D': 4}
+    if rank < min_rank[fam]:
+        raise ValueError(f'{fam}_n requires rank >= {min_rank[fam]}.')
+
+    mat = [[2 if i == j else (-1 if abs(i - j) == 1 else 0) for j in range(rank)] for i in range(rank)]
     if fam == 'B':
-        if rank < 2:
-            raise ValueError('B_n requires rank >= 2.')
-        mat = [[2 if i == j else (-1 if abs(i - j) == 1 else 0) for j in range(rank)] for i in range(rank)]
         mat[rank - 2][rank - 1] = -2
         mat[rank - 1][rank - 2] = -1
-        return mat, f'B{rank}', rank
-    if fam == 'C':
-        if rank < 2:
-            raise ValueError('C_n requires rank >= 2.')
-        mat = [[2 if i == j else (-1 if abs(i - j) == 1 else 0) for j in range(rank)] for i in range(rank)]
+    elif fam == 'C':
         mat[rank - 2][rank - 1] = -1
         mat[rank - 1][rank - 2] = -2
-        return mat, f'C{rank}', rank
-    if fam == 'D':
-        if rank < 4:
-            raise ValueError('D_n requires rank >= 4.')
-        mat = [[2 if i == j else (-1 if abs(i - j) == 1 else 0) for j in range(rank)] for i in range(rank)]
+    elif fam == 'D':
         mat[rank - 2][rank - 1] = 0
         mat[rank - 1][rank - 2] = 0
         mat[rank - 3][rank - 1] = -1
         mat[rank - 1][rank - 3] = -1
-        return mat, f'D{rank}', rank
+    return mat, f'{fam}{rank}', rank
 
-    raise ValueError(f"Unknown Dynkin family '{family}'. Supported: 'A', 'B', 'C', 'D', 'G2', 'F4', 'E6', 'E7', 'E8'.")
+
+def _standard_cartan_matrix(family: str, rank: int | None = None) -> tuple[list[list[int]], str, int]:
+    """Return the standard integer Cartan matrix, canonical label, and rank for a Dynkin type."""
+    fam = _EXCEPTIONAL_ALIASES.get(family.upper().strip(), family.upper().strip())
+    if fam in _EXCEPTIONAL_CARTAN:
+        mat = [list(row) for row in _EXCEPTIONAL_CARTAN[fam]]
+        return mat, fam, len(mat)
+
+    if fam not in ('A', 'B', 'C', 'D'):
+        raise ValueError(
+            f"Unknown Dynkin family '{family}'. Supported: 'A', 'B', 'C', 'D', 'G2', 'F4', 'E6', 'E7', 'E8'."
+        )
+    if rank is None:
+        raise ValueError(f'Rank must be specified for classical family {fam}.')
+    return _classical_cartan_matrix(fam, rank)
 
 
 @dataclass(frozen=True)
@@ -413,64 +399,82 @@ def _render_svg_edge(x1: float, y1: float, x2: float, y2: float, kind: str = 'si
     return ''
 
 
+def _dynkin_e_layout(
+    r: int,
+) -> tuple[int, int, list[tuple[float, float, str]], list[tuple[float, float, float, float, str]]]:
+    """Compute SVG layout for exceptional E6, E7, E8 Dynkin diagrams."""
+    w, h = 60 + (r - 2) * 60, 105
+    h_order = [1, 3, 4, *list(range(5, r + 1))]
+    coords = {lbl: (30.0 + idx * 60.0, 80.0) for idx, lbl in enumerate(h_order)}
+    coords[2] = (coords[4][0], 25.0)
+    nodes = [(coords[lbl][0], coords[lbl][1], str(lbl)) for lbl in sorted(coords)]
+    edges: list[tuple[float, float, float, float, str]] = [
+        (*coords[1], *coords[3], 'single'),
+        (*coords[3], *coords[4], 'single'),
+        (*coords[2], *coords[4], 'single'),
+    ]
+    for idx in range(4, r):
+        edges.append((*coords[idx], *coords[idx + 1], 'single'))
+    return w, h, nodes, edges
+
+
+def _dynkin_d_layout(
+    r: int,
+) -> tuple[int, int, list[tuple[float, float, str]], list[tuple[float, float, float, float, str]]]:
+    """Compute SVG layout for classical D_n Dynkin diagrams."""
+    w, h = 60 + (r - 2) * 60, 100
+    nodes: list[tuple[float, float, str]] = [(30.0 + (i - 1) * 60.0, 50.0, str(i)) for i in range(1, r - 1)]
+    bx = 30.0 + (r - 2) * 60.0
+    nodes.append((bx, 22.0, str(r - 1)))
+    nodes.append((bx, 78.0, str(r)))
+    edges: list[tuple[float, float, float, float, str]] = [
+        (nodes[i - 1][0], 50.0, nodes[i][0], 50.0, 'single') for i in range(1, r - 2)
+    ]
+    fork_x = nodes[r - 3][0]
+    edges.append((fork_x, 50.0, bx, 22.0, 'single'))
+    edges.append((fork_x, 50.0, bx, 78.0, 'single'))
+    return w, h, nodes, edges
+
+
+def _dynkin_linear_edges(
+    dt: str,
+    r: int,
+    nodes: list[tuple[float, float, str]],
+) -> list[tuple[float, float, float, float, str]]:
+    """Compute edges for linear Dynkin diagrams (A, B, C, F4, G2)."""
+    if dt == 'G2':
+        return [(nodes[0][0], 35.0, nodes[1][0], 35.0, 'triple_right')]
+    if dt == 'F4':
+        return [
+            (nodes[0][0], 35.0, nodes[1][0], 35.0, 'single'),
+            (nodes[1][0], 35.0, nodes[2][0], 35.0, 'double_right'),
+            (nodes[2][0], 35.0, nodes[3][0], 35.0, 'single'),
+        ]
+    edges: list[tuple[float, float, float, float, str]] = []
+    if dt.startswith(('B', 'C')) and (len(dt) == 1 or dt[1:].isdigit()):
+        for i in range(r - 2):
+            edges.append((nodes[i][0], 35.0, nodes[i + 1][0], 35.0, 'single'))
+        if r >= 2:
+            kind = 'double_right' if dt.startswith('B') else 'double_left'
+            edges.append((nodes[r - 2][0], 35.0, nodes[r - 1][0], 35.0, kind))
+        return edges
+    if dt.startswith('A') and (len(dt) == 1 or dt[1:].isdigit()):
+        return [(nodes[i][0], 35.0, nodes[i + 1][0], 35.0, 'single') for i in range(r - 1)]
+    return edges
+
+
 def _dynkin_svg_layout(
     dt: str, r: int
 ) -> tuple[int, int, list[tuple[float, float, str]], list[tuple[float, float, float, float, str]]]:
     """Compute (width, height, nodes, edges) geometry for SVG Dynkin diagram."""
-    nodes: list[tuple[float, float, str]] = []
-    edges: list[tuple[float, float, float, float, str]] = []
-
     if dt in ('E6', 'E7', 'E8'):
-        w, h = 60 + (r - 2) * 60, 105
-        h_order = [1, 3, 4, *list(range(5, r + 1))]
-        coords = {lbl: (30.0 + idx * 60.0, 80.0) for idx, lbl in enumerate(h_order)}
-        coords[2] = (coords[4][0], 25.0)
-        nodes.extend((coords[lbl][0], coords[lbl][1], str(lbl)) for lbl in sorted(coords))
-        edges.append((*coords[1], *coords[3], 'single'))
-        edges.append((*coords[3], *coords[4], 'single'))
-        edges.append((*coords[2], *coords[4], 'single'))
-        for idx in range(4, r):
-            edges.append((*coords[idx], *coords[idx + 1], 'single'))
-        return w, h, nodes, edges
-
+        return _dynkin_e_layout(r)
     if dt.startswith('D') and (len(dt) == 1 or dt[1:].isdigit()):
-        w, h = 60 + (r - 2) * 60, 100
-        for i in range(1, r - 1):
-            nodes.append((30.0 + (i - 1) * 60.0, 50.0, str(i)))
-        bx = 30.0 + (r - 2) * 60.0
-        nodes.append((bx, 22.0, str(r - 1)))
-        nodes.append((bx, 78.0, str(r)))
-        for i in range(1, r - 2):
-            edges.append((nodes[i - 1][0], 50.0, nodes[i][0], 50.0, 'single'))
-        fork_x = nodes[r - 3][0]
-        edges.append((fork_x, 50.0, bx, 22.0, 'single'))
-        edges.append((fork_x, 50.0, bx, 78.0, 'single'))
-        return w, h, nodes, edges
+        return _dynkin_d_layout(r)
 
     w, h = max(60, 60 + (r - 1) * 60), 70
-    for i in range(1, r + 1):
-        nodes.append((30.0 + (i - 1) * 60.0, 35.0, str(i)))
-
-    if dt == 'G2':
-        edges.append((nodes[0][0], 35.0, nodes[1][0], 35.0, 'triple_right'))
-    elif dt == 'F4':
-        edges.append((nodes[0][0], 35.0, nodes[1][0], 35.0, 'single'))
-        edges.append((nodes[1][0], 35.0, nodes[2][0], 35.0, 'double_right'))
-        edges.append((nodes[2][0], 35.0, nodes[3][0], 35.0, 'single'))
-    elif dt.startswith('B') and (len(dt) == 1 or dt[1:].isdigit()):
-        for i in range(r - 2):
-            edges.append((nodes[i][0], 35.0, nodes[i + 1][0], 35.0, 'single'))
-        if r >= 2:
-            edges.append((nodes[r - 2][0], 35.0, nodes[r - 1][0], 35.0, 'double_right'))
-    elif dt == 'C' or (dt.startswith('C') and dt[1:].isdigit()):
-        for i in range(r - 2):
-            edges.append((nodes[i][0], 35.0, nodes[i + 1][0], 35.0, 'single'))
-        if r >= 2:
-            edges.append((nodes[r - 2][0], 35.0, nodes[r - 1][0], 35.0, 'double_left'))
-    elif dt.startswith('A') and (len(dt) == 1 or dt[1:].isdigit()):
-        for i in range(r - 1):
-            edges.append((nodes[i][0], 35.0, nodes[i + 1][0], 35.0, 'single'))
-
+    nodes: list[tuple[float, float, str]] = [(30.0 + (i - 1) * 60.0, 35.0, str(i)) for i in range(1, r + 1)]
+    edges = _dynkin_linear_edges(dt, r, nodes)
     return w, h, nodes, edges
 
 
