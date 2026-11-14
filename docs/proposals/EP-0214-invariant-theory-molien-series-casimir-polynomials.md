@@ -221,8 +221,8 @@ Prototype implementations will reside in `src/algebrax/rep/reynolds.py` and `src
 
 ## Rejected Ideas
 
-1. **Pure Monomial Gröbner Basis Engines**:
-   - *Rejected*: Computing invariant rings exclusively via general Gröbner bases (Buchberger’s algorithm) is doubly exponential. Molien’s formula provides the dimensions in polynomial time using linear algebra determinants.
+1. **Pure Monomial Gröbner Basis Engines for Dimension Counting**:
+   - *Rejected*: Computing invariant Hilbert dimensions exclusively via general Gröbner bases (Buchberger’s algorithm) is doubly exponential, whereas Molien’s formula provides the dimensions in polynomial time using linear algebra determinants. (Once invariant generators $\pi_1, \dots, \pi_m$ are found, their algebraic syzygies and GIT quotient variety $V // G$ are computed via [`EP-0220`](EP-0220-multivariate-polynomial-algebra-and-groebner-ideals.md) and `syzygy_variety` in [`EP-0221`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md)).
 2. **Dense Multidimensional Arrays for High-Order Casimirs**:
    - *Rejected*: High-order invariant tensors $d_{i_1 \dots i_k}$ have $n^k$ entries but are highly symmetric and sparse. They must be stored in `algebrax.tensor.SparseTensor`.
 

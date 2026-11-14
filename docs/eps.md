@@ -192,3 +192,18 @@ quiver representations, and quantum groups.
 | [EP-0214](proposals/EP-0214-invariant-theory-molien-series-casimir-polynomials.md)  | Invariant Theory, Molien Series & Casimir Polynomials | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
 | [EP-0215](proposals/EP-0215-quantum-groups-yang-baxter-braided-categories.md)       | Quantum Groups, Yang–Baxter Equation & R-Matrices     | ⚖️ Noether & 🛡️ Golem   | :material-pencil: Draft |
 
+---
+
+## Phase 9 — Commutative Algebra, Algebraic Varieties & Tropical Geometry
+
+Proposals stemming from the **Algebraic & Tropical Varieties Exploration**
+([EXP-0009](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0009-algebraic-and-tropical-varieties/README.md)),
+establishing unboxed multivariate polynomial algebras, exact Gröbner basis ideals (Buchberger & $F_4$ sparse Macaulay RREF),
+affine algebraic varieties, coordinate rings, Stickelberger companion matrix solvers, and tropical polyhedral varieties.
+
+| EP                                                                                      | Title                                                               | Council Sponsor                          |         Status          |
+|:----------------------------------------------------------------------------------------|:--------------------------------------------------------------------|:-----------------------------------------|:-----------------------:|
+| [EP-0220](proposals/EP-0220-multivariate-polynomial-algebra-and-groebner-ideals.md)     | Multivariate Polynomial Algebra & Exact Gröbner Ideals              | ⚡ Shannon, 🔬 Popper & ⚖️ Noether       | :material-pencil: Draft |
+| [EP-0221](proposals/EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md)    | Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers | ⚖️ Noether, 🧩 Russell & ⚡ Shannon      | :material-pencil: Draft |
+| [EP-0222](proposals/EP-0222-tropical-varieties-and-polyhedral-duals.md)                 | Tropical Varieties, Newton Polytopes & Balanced Polyhedral Complexes | 🧭 Explorer, ⚖️ Noether & ⚡ Shannon     | :material-pencil: Draft |
+

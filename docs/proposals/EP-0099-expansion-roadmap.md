@@ -27,8 +27,12 @@ the Phase 3.5 Council Refinement Track (`EP-0140` through `EP-0146`), formalized
 universal binomial convolution statistical moment semirings (`EP-0149`), standardized mathematical docstrings
 (`EP-0150`),
 algebraic PageRank contraction solvers over semirings (`EP-0151`), Spectral Graph Theory with Graph Laplacians
-and Fiedler partitioning (`EP-0152`), and the **Phase 4 Algebraic Continents & Next Frontiers** (`EXP-0001`,
-`EP-0160` through `EP-0163`) extending into Discrete Exterior Calculus and continuous Lie symmetries.
+and Fiedler partitioning (`EP-0152`), the **Phase 4 Algebraic Continents & Next Frontiers** (`EXP-0001`,
+`EP-0160` through `EP-0165`), the **Phase 5 Verification Track** (`EXP-0003`, `EP-0180` through `EP-0186`),
+the **Phase 6 Pure Algebraic Hierarchy** (`EXP-0004`, `EP-0190` through `EP-0198`),
+the **Phase 7 Categorical Foundations & Morphisms** (`EXP-0005`, `EP-0200` through `EP-0209`),
+the **Phase 8 Representation Theory & Quantum Symmetries** (`EXP-0006`, `EP-0210` through `EP-0215`), and
+the **Phase 9 Commutative Algebra, Algebraic Varieties & Tropical Geometry** (`EXP-0009`, `EP-0220` through `EP-0222`).
 
 ---
 
@@ -126,6 +130,12 @@ flowchart TD
         EP0215_N["EP-0215 Quantum Groups & Yang-Baxter 💡\n⚖️ Noether & 🛡️ Golem"]
     end
 
+    subgraph P9["Phase 9 — Algebraic & Tropical Varieties (EXP-0009)"]
+        EP0220_N["EP-0220 Multivariate Polys & Gröbner 💡\n⚡ Shannon, 🔬 Popper & ⚖️ Noether"]
+        EP0221_N["EP-0221 Affine Varieties & Stickelberger 💡\n⚖️ Noether, 🧩 Russell & ⚡ Shannon"]
+        EP0222_N["EP-0222 Tropical Varieties & Polyhedra 💡\n🧭 Explorer, ⚖️ Noether & ⚡ Shannon"]
+    end
+
     EP0152_N --> EP0160_N
     EP0153_N --> EP0160_N
     EP0110 --> EP0162_N
@@ -148,6 +158,13 @@ flowchart TD
     EP0201_N --> EP0210_N
     EP0206_N --> EP0215_N
     EP0209_N --> EP0211_N
+    P8 --> P9
+    EP0201_N --> EP0220_N
+    EP0207_N --> EP0221_N
+    EP0214_N --> EP0221_N
+    EP0165_N --> EP0222_N
+    EP0220_N --> EP0221_N
+    EP0220_N --> EP0222_N
     style CORE fill: #4a90d9, color: #fff
     style P3 fill: #2d7d46, color: #fff
     style P35 fill: #8b5cf6, color: #fff
@@ -274,13 +291,18 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0208: Categorical Type Theory, Coeffects & Homotopy Groupoids (Russell/Golem) [Final]
   │     └── EP-0209: Langlands Root Duality, Hecke & p-Adic Valuations (Noether/Popper) [Draft]
   │
-  └── Phase 8: Representation Theory, Invariant Theory & Quantum Groups (EXP-0006)  ⏳ PLANNED
-        ├── EP-0210: Group Representations, Character Tables & Schur's Lemma (Noether/Russell) [Planned]
-        ├── EP-0211: Lie Algebra Representations, Weights & Clebsch–Gordan Tensors (Noether/Shannon) [Planned]
-        ├── EP-0212: Quiver Representations, Path Algebras & Gabriel's Theorem (Russell/Popper) [Planned]
-        ├── EP-0213: Induced Representations, Mackey Theory & Frobenius Reciprocity (Russell/Noether) [Planned]
-        ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Planned]
-        └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Planned]
+  ├── Phase 8: Representation Theory, Invariant Theory & Quantum Groups (EXP-0006)  ⏳ PLANNED
+  │     ├── EP-0210: Group Representations, Character Tables & Schur's Lemma (Noether/Russell) [Draft]
+  │     ├── EP-0211: Lie Algebra Representations, Weights & Clebsch–Gordan Tensors (Noether/Shannon) [Draft]
+  │     ├── EP-0212: Quiver Representations, Path Algebras & Gabriel's Theorem (Russell/Popper) [Draft]
+  │     ├── EP-0213: Induced Representations, Mackey Theory & Frobenius Reciprocity (Russell/Noether) [Draft]
+  │     ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Draft]
+  │     └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Draft]
+  │
+  └── Phase 9: Commutative Algebra, Algebraic Varieties & Tropical Geometry (EXP-0009)  ⏳ PLANNED
+        ├── EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals (Shannon/Popper/Noether) [Draft]
+        ├── EP-0221: Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers (Noether/Russell/Shannon) [Draft]
+        └── EP-0222: Tropical Varieties, Newton Polytopes & Balanced Polyhedral Complexes (Explorer/Noether/Shannon) [Draft]
 ```
 
 ---
@@ -354,6 +376,9 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0213** | Induced Reps & Frobenius       | Russell & Noether | `algebrax.rep`                           | Draft    | Subgroup induction Ind_H^G, Frobenius reciprocity adjunction Ind ⊣ Res, Mackey decomposition                                               |
 | **EP-0214** | Invariant Theory & Molien      | Noether & Shannon | `algebrax.rep`, `algebrax.algebra`       | Draft    | Reynolds projection operator, Molien generating series, primary/secondary polynomial invariants                                            |
 | **EP-0215** | Quantum Groups & Yang-Baxter   | Noether & Golem   | `algebrax.rep`, `algebrax.hopf`          | Draft    | U_q(𝔤) quantum group deformations, universal R-matrix, Yang-Baxter equation, Jones polynomials                                             |
+| **EP-0220** | Multivariate Polys & Gröbner   | Shannon & Popper  | `algebrax.algebra`                       | Draft    | `MultivariatePolynomialAlgebra`, `lex`/`grlex`/`grevlex`, Buchberger & $F_4$ sparse Macaulay RREF, `GroebnerIdeal`                         |
+| **EP-0221** | Affine Varieties & Companion   | Noether & Russell | `algebrax.variety`                       | Draft    | `AffineVariety`, coordinate ring $k[V]$, Stickelberger companion matrix solvers, $\mathbb{F}_p$/$\mathbb{F}_2$ varieties, `PolynomialMap`  |
+| **EP-0222** | Tropical Varieties & Polyhedra | Explorer & Noether| `algebrax.variety`                       | Draft    | `TropicalHypersurface`, Newton polytope subdivisions, Noether zero-tension vertex balancing                                                |
 
 ---
 
@@ -399,3 +424,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-13 | Eran Rivlis & Antigravity | Implemented EP-0206 (Coalgebras, Bialgebras & Hopf Algebras — Duality & Quantum Symmetries); updated status to Final.                       |
 | 2026-11-14 | Eran Rivlis & Antigravity | Implemented EP-0207 (Topological K-Theory, Grothendieck Groups & Characteristic Classes); updated status to Final.                          |
 | 2026-11-14 | Eran Rivlis & Antigravity | Implemented EP-0208 (Categorical Type Theory, Semiring Coeffects & Homotopy Groupoids); updated status to Final.                            |
+| 2026-11-14 | Eran Rivlis & Antigravity | Concluded EXP-0009; added Phase 9 (Commutative Algebra, Algebraic Varieties & Tropical Geometry): EP-0220 through EP-0222 (Draft).          |
