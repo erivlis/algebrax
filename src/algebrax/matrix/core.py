@@ -827,6 +827,24 @@ def vstack(matrices: Sequence[SparseMatrix[int, V]]) -> SparseMatrix[int, V]:
     return result
 
 
+def _frobenius_inner_semiring(
+    m1: SparseMatrix[K, N],
+    m2: SparseMatrix[K, N],
+    sr: Semiring[N],
+) -> N:
+    sr_add = sr.add
+    sr_mul = sr.mul
+    res = sr.zero
+    for r, row in m1.items():
+        row2 = m2.get(r)
+        if row2 is None:
+            continue
+        for c, v1 in row.items():
+            if c in row2:
+                res = sr_add(res, sr_mul(v1, row2[c]))
+    return res
+
+
 def frobenius_inner(
     m1: SparseMatrix[K, N],
     m2: SparseMatrix[K, N],
@@ -852,28 +870,18 @@ def frobenius_inner(
         Scalar inner product value.
     """
     if semiring is not None:
-        sr = Semiring.normalize(semiring)
-        sr_add = sr.add
-        sr_mul = sr.mul
-        res = sr.zero
-        for r, row in m1.items():
-            if r in m2:
-                row2 = m2[r]
-                for c, v1 in row.items():
-                    if c in row2:
-                        term = sr_mul(v1, row2[c])
-                        res = sr_add(res, term)
-        return res
+        return _frobenius_inner_semiring(m1, m2, Semiring.normalize(semiring))
 
     val: complex = 0.0 + 0.0j
     for r, row in m1.items():
-        if r in m2:
-            row2 = m2[r]
-            for c, v in row.items():
-                if c in row2:
-                    v_conj = v.conjugate() if (conjugate and isinstance(v, complex)) else v
-                    val += v_conj * row2[c]
-    return val.real if abs(val.imag) < 1e-14 else val
+        row2 = m2.get(r)
+        if row2 is None:
+            continue
+        for c, v in row.items():
+            if c in row2:
+                v_conj = v.conjugate() if (conjugate and isinstance(v, complex)) else v
+                val += v_conj * row2[c]
+    return val.real if abs(val.imag) < 1e-14 else val  # type: ignore[return-value]
 
 
 def inverse(  # noqa: C901  # NOSONAR - Gauss-Jordan sparse elimination kernel with partial pivoting
