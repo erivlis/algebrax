@@ -75,6 +75,75 @@ def _verify_closure(
             )
 
 
+def _matrix_gram_inverse(
+    basis_matrices: Sequence[SparseMatrix[int, float | complex]],
+    tol: float,
+) -> SparseMatrix[int, float | complex]:
+    """Compute the inverse of the Frobenius Gram matrix G_ij = <T_i, T_j>."""
+    dim = len(basis_matrices)
+    g: SparseMatrix[int, float | complex] = {}
+    for i in range(dim):
+        for j in range(dim):
+            val = frobenius_inner(basis_matrices[i], basis_matrices[j])
+            if abs(val) > tol:
+                if i not in g:
+                    g[i] = {}
+                g[i][j] = val
+    return inverse(g, tol=tol)
+
+
+def _project_commutators(
+    basis_matrices: Sequence[SparseMatrix[int, float | complex]],
+    g_inv: SparseMatrix[int, float | complex],
+    tol: float,
+) -> dict[tuple[int, int, int], float | complex]:
+    """Project all pairwise commutators [T_a, T_b] onto the basis using G^{-1}."""
+    dim = len(basis_matrices)
+    f_tensor: dict[tuple[int, int, int], float | complex] = {}
+    for a in range(dim):
+        for b in range(dim):
+            comm = commutator(basis_matrices[a], basis_matrices[b])
+            b_vec: dict[int, float | complex] = {}
+            for k in range(dim):
+                v_k = frobenius_inner(basis_matrices[k], comm)
+                if abs(v_k) > tol:
+                    b_vec[k] = v_k
+            f_ab = mat_vec(g_inv, b_vec)
+            _verify_closure(basis_matrices, comm, f_ab, a, b, tol)
+
+            for c, coeff in f_ab.items():
+                clean_c = coeff.real if abs(getattr(coeff, 'imag', 0.0)) < tol else coeff
+                if abs(clean_c) > tol:
+                    f_tensor[(a, b, c)] = clean_c
+    return f_tensor
+
+
+def _build_adjoint_blocks(
+    dim: int,
+    tensor: dict[tuple[int, int, int], float | complex],
+) -> list[dict[int, dict[int, float | complex]]]:
+    """Build per-generator adjoint index maps adj[a][c][d] = f_{ad}^c."""
+    adj: list[dict[int, dict[int, float | complex]]] = [{} for _ in range(dim)]
+    for (a, d, c), val in tensor.items():
+        if c not in adj[a]:
+            adj[a][c] = {}
+        adj[a][c][d] = val
+    return adj
+
+
+def _killing_trace(
+    mat_a: dict[int, dict[int, float | complex]],
+    mat_b: dict[int, dict[int, float | complex]],
+) -> float | complex:
+    """Compute Tr(ad_{T_a} o ad_{T_b}) = sum_{c, d} f_{ad}^c f_{bc}^d."""
+    tr: complex = 0.0 + 0.0j
+    for c, row_c in mat_a.items():
+        for d, val_acd in row_c.items():
+            if d in mat_b and c in mat_b[d]:
+                tr += val_acd * mat_b[d][c]
+    return tr.real if abs(tr.imag) < 1e-12 else tr
+
+
 @dataclass(frozen=True)
 class StructureConstants:
     r"""Sparse rank-3 tensor representing structure constants $f_{ab}^c$ for a Lie algebra.
@@ -146,15 +215,7 @@ class LieAlgebra(NonAssocAlgebra[float | complex, LieElement]):
         self.matrix_basis = list(matrix_basis) if matrix_basis is not None else None
         self._gram_inv: SparseMatrix[int, float | complex] | None = None
         if self.matrix_basis is not None:
-            g: SparseMatrix[int, float | complex] = {}
-            for i in range(dim):
-                for j in range(dim):
-                    val = frobenius_inner(self.matrix_basis[i], self.matrix_basis[j])
-                    if abs(val) > 1e-12:
-                        if i not in g:
-                            g[i] = {}
-                        g[i][j] = val
-            self._gram_inv = inverse(g)
+            self._gram_inv = _matrix_gram_inverse(self.matrix_basis, tol=1e-12)
 
     @classmethod
     def from_matrix_basis(
@@ -180,37 +241,12 @@ class LieAlgebra(NonAssocAlgebra[float | complex, LieElement]):
         if dim == 0:
             raise ValueError('Cannot construct LieAlgebra from an empty basis.')
 
-        g: SparseMatrix[int, float | complex] = {}
-        for i in range(dim):
-            for j in range(dim):
-                val = frobenius_inner(basis_matrices[i], basis_matrices[j])
-                if abs(val) > tol:
-                    if i not in g:
-                        g[i] = {}
-                    g[i][j] = val
         try:
-            g_inv = inverse(g, tol=tol)
+            g_inv = _matrix_gram_inverse(basis_matrices, tol=tol)
         except ValueError as e:
             raise ValueError(f'Matrix basis is singular or linearly dependent: {e}') from e
 
-        f_tensor: dict[tuple[int, int, int], float | complex] = {}
-
-        for a in range(dim):
-            for b in range(dim):
-                comm = commutator(basis_matrices[a], basis_matrices[b])
-                b_vec: dict[int, float | complex] = {}
-                for k in range(dim):
-                    v_k = frobenius_inner(basis_matrices[k], comm)
-                    if abs(v_k) > tol:
-                        b_vec[k] = v_k
-                f_ab = mat_vec(g_inv, b_vec)
-                _verify_closure(basis_matrices, comm, f_ab, a, b, tol)
-
-                for c, coeff in f_ab.items():
-                    clean_c = coeff.real if abs(getattr(coeff, 'imag', 0.0)) < tol else coeff
-                    if abs(clean_c) > tol:
-                        f_tensor[(a, b, c)] = clean_c
-
+        f_tensor = _project_commutators(basis_matrices, g_inv, tol=tol)
         sc = StructureConstants(dim=dim, tensor=f_tensor)
         return cls(dim=dim, structure_constants=sc, basis_names=names, matrix_basis=basis_matrices)
 
@@ -337,23 +373,11 @@ class LieAlgebra(NonAssocAlgebra[float | complex, LieElement]):
         Formula: $K_{ab} = \sum_{c, d} f_{ad}^c f_{bc}^d$.
         """
         dim = self.dim
-        adj: list[dict[int, dict[int, float | complex]]] = [{} for _ in range(dim)]
-        for (a, d, c), val in self.structure_constants.tensor.items():
-            if c not in adj[a]:
-                adj[a][c] = {}
-            adj[a][c][d] = val
-
+        adj = _build_adjoint_blocks(dim, self.structure_constants.tensor)
         k_mat: dict[int, dict[int, float | complex]] = {}
         for a in range(dim):
             for b in range(a, dim):
-                tr: complex = 0.0 + 0.0j
-                mat_a = adj[a]
-                mat_b = adj[b]
-                for c, row_c in mat_a.items():
-                    for d, val_acd in row_c.items():
-                        if d in mat_b and c in mat_b[d]:
-                            tr += val_acd * mat_b[d][c]
-                tr_val = tr.real if abs(tr.imag) < 1e-12 else tr
+                tr_val = _killing_trace(adj[a], adj[b])
                 if abs(tr_val) > 1e-12:
                     if a not in k_mat:
                         k_mat[a] = {}
