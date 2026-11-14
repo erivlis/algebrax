@@ -59,7 +59,160 @@ def cholesky(matrix: SparseMatrix) -> SparseMatrix:
     return prune_sparse(l_dict)
 
 
-def lu_decompose(  # noqa: C901
+def _lu_decompose_float(
+    matrix: SparseMatrix[K, Any],
+    rows: list[K],
+    cols: list[K],
+    tol: float,
+) -> tuple[SparseMatrix[K, Any], SparseMatrix[K, Any], SparseMatrix[K, Any]]:
+    """Optimized native float64 partial-pivoted LU decomposition."""
+    n_rows = len(rows)
+    n_cols = len(cols)
+    min_dim = min(n_rows, n_cols)
+    p_perm = list(range(n_rows))
+    w_mat = sparse_to_grid(matrix, rows, cols, fill_value=0.0)
+
+    for k in range(min_dim):
+        pivot_row = max(range(k, n_rows), key=lambda i: abs(w_mat[i][k]))
+        if pivot_row != k:
+            w_mat[k], w_mat[pivot_row] = w_mat[pivot_row], w_mat[k]
+            p_perm[k], p_perm[pivot_row] = p_perm[pivot_row], p_perm[k]
+
+        pivot_val = w_mat[k][k]
+        if abs(pivot_val) > tol:
+            inv_pivot = 1.0 / pivot_val  # Shannon: pivot inversion hoisting
+            for i in range(k + 1, n_rows):
+                aik = w_mat[i][k]
+                if abs(aik) <= tol:  # Shannon: inner zero-skipping
+                    continue
+                factor = aik * inv_pivot
+                w_mat[i][k] = factor
+                for j in range(k + 1, n_cols):
+                    akj = w_mat[k][j]
+                    if akj != 0.0:  # NOSONAR - exact sparse zero-skipping
+                        w_mat[i][j] -= factor * akj
+
+    p_res = {rows[i]: {rows[p_perm[i]]: 1.0} for i in range(n_rows)}
+    l_grid = [[1.0 if i == j else (w_mat[i][j] if j < i else 0.0) for j in range(min_dim)] for i in range(n_rows)]
+    u_grid = [[w_mat[i][j] if j >= i else 0.0 for j in range(n_cols)] for i in range(min_dim)]
+
+    return (
+        prune_sparse(p_res),
+        grid_to_sparse(l_grid, rows, cols[:min_dim]),
+        grid_to_sparse(u_grid, rows[:min_dim], cols),
+    )
+
+
+def _find_field_pivot(
+    w_mat: list[list[Any]],
+    k: int,
+    n_rows: int,
+    is_zero: Any,
+) -> int:
+    """Find best partial pivot row for column k over a generic Field."""
+    pivot_row = k
+    try:
+        max_v = abs(w_mat[k][k])
+    except (TypeError, ValueError):
+        if is_zero(w_mat[k][k]):
+            return next((i for i in range(k + 1, n_rows) if not is_zero(w_mat[i][k])), k)
+        return k
+
+    for i in range(k + 1, n_rows):
+        try:
+            val_abs = abs(w_mat[i][k])
+            if val_abs > max_v:
+                max_v = val_abs
+                pivot_row = i
+        except (TypeError, ValueError):
+            if is_zero(w_mat[pivot_row][k]) and not is_zero(w_mat[i][k]):
+                pivot_row = i
+    return pivot_row
+
+
+def _extract_field_lu(
+    w_mat: list[list[Any]],
+    rows: list[K],
+    cols: list[K],
+    min_dim: int,
+    f_one: Any,
+    is_zero: Any,
+) -> tuple[dict[Any, dict[Any, Any]], dict[Any, dict[Any, Any]]]:
+    """Extract sparse L and U matrices from an in-place eliminated Field grid."""
+    n_rows = len(rows)
+    n_cols = len(cols)
+    l_sparse: dict[Any, dict[Any, Any]] = {}
+    for i in range(n_rows):
+        r_dict: dict[Any, Any] = {}
+        for j in range(min_dim):
+            if i == j:
+                val = f_one
+            elif j < i:
+                val = w_mat[i][j]
+            else:
+                continue
+            if not is_zero(val):
+                r_dict[cols[j]] = val
+        if r_dict:
+            l_sparse[rows[i]] = r_dict
+
+    u_sparse: dict[Any, dict[Any, Any]] = {}
+    for i in range(min_dim):
+        r_dict = {cols[j]: w_mat[i][j] for j in range(i, n_cols) if not is_zero(w_mat[i][j])}
+        if r_dict:
+            u_sparse[rows[i]] = r_dict
+
+    return l_sparse, u_sparse
+
+
+def _lu_decompose_field(
+    matrix: SparseMatrix[K, V],
+    rows: list[K],
+    cols: list[K],
+    field: Field[V],
+) -> tuple[SparseMatrix[K, V], SparseMatrix[K, V], SparseMatrix[K, V]]:
+    """Exact polymorphic partial-pivoted LU decomposition over any Field[V]."""
+    n_rows = len(rows)
+    n_cols = len(cols)
+    min_dim = min(n_rows, n_cols)
+    p_perm = list(range(n_rows))
+
+    f_zero = field.zero
+    f_one = field.one
+    is_zero = field.is_zero
+    mul = field.mul
+    sub = field.sub
+    inv = field.inv
+
+    w_mat = sparse_to_grid(matrix, rows, cols, fill_value=f_zero)
+
+    for k in range(min_dim):
+        pivot_row = _find_field_pivot(w_mat, k, n_rows, is_zero)
+        if pivot_row != k:
+            w_mat[k], w_mat[pivot_row] = w_mat[pivot_row], w_mat[k]
+            p_perm[k], p_perm[pivot_row] = p_perm[pivot_row], p_perm[k]
+
+        pivot = w_mat[k][k]
+        if is_zero(pivot):
+            continue
+        inv_pivot = inv(pivot)  # Shannon: pivot inversion hoisting
+        for i in range(k + 1, n_rows):
+            aik = w_mat[i][k]
+            if is_zero(aik):  # Shannon: inner zero-skipping
+                continue
+            factor = mul(aik, inv_pivot)
+            w_mat[i][k] = factor
+            for j in range(k + 1, n_cols):
+                akj = w_mat[k][j]
+                if not is_zero(akj):  # Shannon: inner zero-skipping
+                    w_mat[i][j] = sub(w_mat[i][j], mul(factor, akj))
+
+    p_res: SparseMatrix[K, V] = {rows[i]: {rows[p_perm[i]]: f_one} for i in range(n_rows)}
+    l_sparse, u_sparse = _extract_field_lu(w_mat, rows, cols, min_dim, f_one, is_zero)
+    return p_res, l_sparse, u_sparse
+
+
+def lu_decompose(
     matrix: SparseMatrix[K, V],
     *,
     field: Field[V] | None = None,
@@ -79,135 +232,11 @@ def lu_decompose(  # noqa: C901
         A tuple (P, L, U) of sparse matrices satisfying P @ A == L @ U.
     """
     rows, cols = get_matrix_keys(matrix)
-    n_rows = len(rows)
-    n_cols = len(cols)
-    if n_rows == 0 or n_cols == 0:
+    if not rows or not cols:
         return {}, {}, {}
-    min_dim = min(n_rows, n_cols)
-
-    p_perm = list(range(n_rows))
-
     if field is None:
-        # Native float fast-path
-        w_mat = sparse_to_grid(matrix, rows, cols, fill_value=0.0)
-
-        for k in range(min_dim):
-            pivot_row = k
-            max_v = abs(w_mat[k][k])
-            for i in range(k + 1, n_rows):
-                if abs(w_mat[i][k]) > max_v:
-                    max_v = abs(w_mat[i][k])
-                    pivot_row = i
-
-            if pivot_row != k:
-                w_mat[k], w_mat[pivot_row] = w_mat[pivot_row], w_mat[k]
-                p_perm[k], p_perm[pivot_row] = p_perm[pivot_row], p_perm[k]
-
-            pivot_val = w_mat[k][k]
-            if abs(pivot_val) > tol:
-                inv_pivot = 1.0 / pivot_val  # Shannon: pivot inversion hoisting
-                for i in range(k + 1, n_rows):
-                    aik = w_mat[i][k]
-                    if aik == 0.0 or abs(aik) <= tol:  # Shannon: inner zero-skipping
-                        continue
-                    factor = aik * inv_pivot
-                    w_mat[i][k] = factor
-                    for j in range(k + 1, n_cols):
-                        akj = w_mat[k][j]
-                        if akj != 0.0:
-                            w_mat[i][j] -= factor * akj
-
-        p_res = {rows[i]: {rows[p_perm[i]]: 1.0} for i in range(n_rows)}
-        l_grid = [[1.0 if i == j else (w_mat[i][j] if j < i else 0.0) for j in range(min_dim)] for i in range(n_rows)]
-        u_grid = [[w_mat[i][j] if j >= i else 0.0 for j in range(n_cols)] for i in range(min_dim)]
-
-        return (
-            prune_sparse(p_res),
-            grid_to_sparse(l_grid, rows, cols[:min_dim]),
-            grid_to_sparse(u_grid, rows[:min_dim], cols),
-        )
-
-    # Polymorphic Field path
-    f_zero = field.zero
-    f_one = field.one
-    is_zero = field.is_zero
-    mul = field.mul
-    sub = field.sub
-    inv = field.inv
-
-    w_mat = sparse_to_grid(matrix, rows, cols, fill_value=f_zero)
-
-    for k in range(min_dim):
-        pivot_row = k
-        has_abs = True
-        try:
-            max_v = abs(w_mat[k][k])
-        except (TypeError, ValueError):
-            has_abs = False
-
-        if has_abs:
-            for i in range(k + 1, n_rows):
-                try:
-                    val_abs = abs(w_mat[i][k])
-                    if val_abs > max_v:
-                        max_v = val_abs
-                        pivot_row = i
-                except (TypeError, ValueError):
-                    if is_zero(w_mat[pivot_row][k]) and not is_zero(w_mat[i][k]):
-                        pivot_row = i
-        else:
-            if is_zero(w_mat[k][k]):
-                for i in range(k + 1, n_rows):
-                    if not is_zero(w_mat[i][k]):
-                        pivot_row = i
-                        break
-
-        if pivot_row != k:
-            w_mat[k], w_mat[pivot_row] = w_mat[pivot_row], w_mat[k]
-            p_perm[k], p_perm[pivot_row] = p_perm[pivot_row], p_perm[k]
-
-        pivot = w_mat[k][k]
-        if not is_zero(pivot):
-            inv_pivot = inv(pivot)  # Shannon: pivot inversion hoisting
-            for i in range(k + 1, n_rows):
-                aik = w_mat[i][k]
-                if is_zero(aik):  # Shannon: inner zero-skipping
-                    continue
-                factor = mul(aik, inv_pivot)
-                w_mat[i][k] = factor
-                for j in range(k + 1, n_cols):
-                    akj = w_mat[k][j]
-                    if is_zero(akj):  # Shannon: inner zero-skipping
-                        continue
-                    w_mat[i][j] = sub(w_mat[i][j], mul(factor, akj))
-
-    p_res = {rows[i]: {rows[p_perm[i]]: f_one} for i in range(n_rows)}
-
-    l_sparse: dict[Any, dict[Any, Any]] = {}
-    for i in range(n_rows):
-        r_key = rows[i]
-        r_dict: dict[Any, Any] = {}
-        for j in range(min_dim):
-            c_key = cols[j]
-            val = f_one if i == j else (w_mat[i][j] if j < i else f_zero)
-            if not is_zero(val):
-                r_dict[c_key] = val
-        if r_dict:
-            l_sparse[r_key] = r_dict
-
-    u_sparse: dict[Any, dict[Any, Any]] = {}
-    for i in range(min_dim):
-        r_key = rows[i]
-        r_dict = {}
-        for j in range(n_cols):
-            c_key = cols[j]
-            val = w_mat[i][j] if j >= i else f_zero
-            if not is_zero(val):
-                r_dict[c_key] = val
-        if r_dict:
-            u_sparse[r_key] = r_dict
-
-    return p_res, l_sparse, u_sparse
+        return _lu_decompose_float(matrix, rows, cols, tol)  # type: ignore[return-value]
+    return _lu_decompose_field(matrix, rows, cols, field)
 
 
 
