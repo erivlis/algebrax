@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                             |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-10-28                                                                        |
-| **Updated**       | 2026-10-28                                                                        |
+| **Updated**       | 2026-11-15                                                                        |
 | **Replaces**      | —                                                                                 |
 | **Superseded-By** | —                                                                                 |
 
@@ -25,10 +25,10 @@ status: draft
 
 ## Abstract
 
-This proposal establishes the computational foundations of **Quantum Groups and Non-Cocommutative Symmetries** in AlgebraX, formalizing $q$-deformed enveloping algebras, the Yang–Baxter equation, and braided monoidal categories. EP-0215 introduces:
+This proposal establishes the computational foundations of **Quantum Groups and Non-Cocommutative Symmetries** in AlgebraX, formalizing $q$-deformed enveloping algebras, the Yang–Baxter equation, and braided monoidal categories inside `src/algebrax/rep/quantum.py` atop [`algebrax.algebra`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md) (`HopfAlgebra`) and [`algebrax.rep`](EP-0210-group-representations-character-tables-schurs-lemma.md). EP-0215 introduces:
 
-1. **Drinfeld–Jimbo Quantum Group $U_q(\mathfrak{sl}_2)$ (`algebrax.quantum.algebra`)**:
-   Deforming the universal enveloping algebra $U(\mathfrak{sl}_2)$ into a non-cocommutative Hopf algebra ([`EP-0206`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)) with generators $E, F, K, K^{-1}$ satisfying:
+1. **Drinfeld–Jimbo Quantum Group $U_q(\mathfrak{sl}_2)$ (`QuantumSL2` in `algebrax.rep.quantum`)**:
+   Deforming the universal enveloping algebra $U(\mathfrak{sl}_2)$ into a non-cocommutative Hopf algebra implementing [`HopfAlgebra`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md) (`algebrax.algebra._hopf`) with generators $E, F, K, K^{-1}$ satisfying:
    $$K E K^{-1} = q^2 E, \quad K F K^{-1} = q^{-2} F, \quad [E, F] = \frac{K - K^{-1}}{q - q^{-1}}$$
    with comultiplication $\Delta$, counit $\epsilon$, and antipode $S$:
    $$\Delta(K) = K \otimes K, \quad \Delta(E) = E \otimes 1 + K \otimes E, \quad \Delta(F) = F \otimes K^{-1} + 1 \otimes F$$
@@ -36,14 +36,14 @@ This proposal establishes the computational foundations of **Quantum Groups and 
    Quasi-triangular structure governed by the universal $R$-matrix $R \in U_q \otimes U_q$ satisfying:
    $$R_{12} R_{13} R_{23} = R_{23} R_{13} R_{12}$$
    realized as an explicit sparse $d^2 \times d^2$ braiding operator $R : V \otimes V \to V \otimes V$.
-3. **Braided Monoidal Category of Representations (`algebrax.quantum.braid`)**:
+3. **Braided Monoidal Category of Representations (`braiding_operator` in `algebrax.rep.quantum`)**:
    Enriching the representation category $\mathbf{Rep}(U_q(\mathfrak{g}))$ with a non-trivial braiding isomorphism:
    $$\beta_{V, W} = P \circ (\rho_V \otimes \rho_W)(R) : V \otimes W \longrightarrow W \otimes V$$
    where $P(v \otimes w) = w \otimes v$ is the flip operator, satisfying the hexagon axioms.
-4. **Knot Invariants & The Jones Polynomial (`algebrax.quantum.knots`)**:
-   Evaluating the quantum trace $\operatorname{Tr}_q(X) = \operatorname{Tr}(\rho(K^{-1}) X)$ to compute link invariants and the **Jones polynomial** of braids directly from the universal $R$-matrix.
-5. **Property-Based Verification (`algebrax.verification.quantum`)**:
-   Automated verification of the $U_q(\mathfrak{sl}_2)$ commutation relations, Hopf antipode axioms ($m \circ (S \otimes \operatorname{id}) \circ \Delta = \eta \circ \epsilon$), the Yang–Baxter matrix equation, and braid group relations $\sigma_1 \sigma_2 \sigma_1 = \sigma_2 \sigma_1 \sigma_2$.
+4. **Knot Invariants & The Jones Polynomial (`braid_to_matrix`, `jones_polynomial_eval`)**:
+   Evaluating the quantum trace $\operatorname{Tr}_q(X) = \operatorname{Tr}(\rho(K^{-1}) X)$ to compute link invariants and the **Jones polynomial** of braids directly from the universal $R$-matrix using shared `algebrax.rep` Kronecker/tensor helpers.
+5. **Property-Based Verification (`src/algebrax/verification.py`)**:
+   Automated verification of the $U_q(\mathfrak{sl}_2)$ commutation relations (`verify_quantum_sl2_relations`), Hopf antipode axioms ($m \circ (S \otimes \operatorname{id}) \circ \Delta = \eta \circ \epsilon$), the Yang–Baxter matrix equation (`verify_yang_baxter_equation`), and braid group relations $\sigma_1 \sigma_2 \sigma_1 = \sigma_2 \sigma_1 \sigma_2$ (`verify_artin_braid_relations`) returning `dict[str, bool]`.
 
 ---
 
@@ -60,11 +60,11 @@ Quantum groups (introduced independently by Vladimir Drinfeld and Michio Jimbo i
 ## Rationale & Council Alignment
 
 - **⚖️ Noether (Deformed Quantum Symmetries)**:
-  Quantum groups describe symmetries in systems where the classical Lie group symmetry is broken down to a quantum deformation parameter $q = e^{\hbar}$. When $q \to 1$, all formulas smoothly recover the classical Lie algebra $\mathfrak{sl}_2$ ([`EP-0163`](EP-0163-lie-algebras-and-bch-dynamics.md)).
+  Quantum groups describe symmetries in systems where the classical Lie group symmetry is broken down to a quantum deformation parameter $q = e^{\hbar}$. When $q \to 1$, all formulas smoothly recover the classical Lie algebra $\mathfrak{sl}_2$ ([`EP-0163`](EP-0163-lie-algebras-and-bch-dynamics.md), [`EP-0211`](EP-0211-lie-algebra-representations-clebsch-gordan.md)).
 - **🛡️ Golem (Formal Yang–Baxter Verification)**:
   The Yang–Baxter equation $R_{12} R_{13} R_{23} = R_{23} R_{13} R_{12}$ is an exact, unyielding matrix equality over $V \otimes V \otimes V$. Golem insists on rigorous numerical and symbolic validation that rejects invalid braiding candidates.
 - **⚡ Shannon (Zero Bloat & Sparse $R$-Matrix Carriers)**:
-  For spin-1/2, $R$ is a $4 \times 4$ sparse matrix with only 6 non-zero entries. For spin-$j$, $R$ is stored as a `SparseMatrix` in `algebrax.matrix.sparse`, eliminating tensor product allocations.
+  For spin-1/2, $R$ is a $4 \times 4$ sparse matrix with only 6 non-zero entries. For spin-$j$, $R$ is stored as a `SparseMatrix` in `algebrax.matrix` and reuses Kronecker/tensor representation helpers inside `algebrax.rep`, avoiding redundant top-level module proliferation.
 - **🔬 Popper (Falsifiability via Braid Invariants)**:
   The braid relation $(\sigma_1 \sigma_2 \sigma_1 = \sigma_2 \sigma_1 \sigma_2)$ and Markov trace invariance provide strict falsifiable assertions.
 - **💡 Feynman (Freshman Test & Intuitive Demystification)**:
@@ -74,21 +74,23 @@ Quantum groups (introduced independently by Vladimir Drinfeld and Michio Jimbo i
 
 ## Specification
 
-### 1. $U_q(\mathfrak{sl}_2)$ Quantum Algebra (`src/algebrax/quantum/sl2.py`)
+### 1. $U_q(\mathfrak{sl}_2)$ Quantum Group, $R$-Matrix & Knot Invariants (`src/algebrax/rep/quantum.py`)
 
 ```python
-"""Drinfeld–Jimbo quantum group U_q(sl_2)."""
+"""Drinfeld–Jimbo quantum group U_q(sl_2), universal R-matrices, braiding, and Jones invariants."""
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
-from algebrax.typing import SparseMatrix
+from algebrax.algebra._hopf import HopfAlgebra
+from algebrax.typing import SparseMatrix, SparseVector
 
 
 @dataclass(frozen=True)
-class QuantumSL2:
-    """U_q(sl_2) with deformation parameter q != 0, 1."""
+class QuantumSL2(HopfAlgebra[complex, SparseVector[str, complex]]):
+    """U_q(sl_2) Hopf algebra with deformation parameter q != 0, 1."""
 
     q: complex
 
@@ -100,49 +102,20 @@ class QuantumSL2:
 
     def spin_representation(self, j_halves: int) -> dict[str, SparseMatrix[int, complex]]:
         """Construct spin-j representation matrices for E, F, K, K_inv.
-        
+
         Dimension is d = 2j + 1. Matrices are exact sparse dictionaries.
         """
         ...
-```
-
-### 2. Universal $R$-Matrix & Braiding Operator (`src/algebrax/quantum/braid.py`)
-
-```python
-"""Universal R-matrix and braiding operators for quantum groups."""
-
-from algebrax.quantum.sl2 import QuantumSL2
-from algebrax.typing import SparseMatrix
 
 
 def universal_r_matrix_sl2_fundamental(q: complex) -> SparseMatrix[int, complex]:
-    """Return explicit 4x4 R-matrix for fundamental 2D representation of U_q(sl_2).
-    
-    Acts on C^2 (x) C^2 with basis |++>, |+->, |-+>, |-->:
-    R = q^{1/2} * [
-        [1, 0,          0,         0],
-        [0, q^{-1},     0,         0],
-        [0, 1 - q^{-2}, q^{-1},    0],
-        [0, 0,          0,         1]
-    ]
-    """
+    """Return explicit 4x4 R-matrix for fundamental 2D representation of U_q(sl_2)."""
     ...
 
 
-def braiding_operator(r_matrix: SparseMatrix[int, complex]) -> SparseMatrix[int, complex]:
+def braiding_operator(r_matrix: SparseMatrix[int, complex], dim: int = 2) -> SparseMatrix[int, complex]:
     """Compute braiding map B = P @ R where P is the swap operator P(v (x) w) = w (x) v."""
     ...
-```
-
-### 3. Knot Invariants & Jones Polynomial (`src/algebrax/quantum/knots.py`)
-
-```python
-"""Knot invariants from quantum group braid representations."""
-
-from typing import Sequence
-
-from algebrax.quantum.sl2 import QuantumSL2
-from algebrax.typing import SparseMatrix
 
 
 def braid_to_matrix(
@@ -159,26 +132,38 @@ def jones_polynomial_eval(braid_word: Sequence[int], num_strands: int, q: comple
     ...
 ```
 
-### 4. Verification Suite (`src/algebrax/verification/quantum.py`)
+### 2. Verification Suite (`src/algebrax/verification.py`)
 
 ```python
 """Property-based verification for quantum groups and Yang-Baxter equation."""
 
-def verify_yang_baxter_equation(r_matrix: SparseMatrix[int, complex], dim: int = 2) -> bool:
+def verify_yang_baxter_equation(
+    r_matrix: SparseMatrix[int, complex],
+    dim: int = 2,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
     """Verify R_{12} @ R_{13} @ R_{23} == R_{23} @ R_{13} @ R_{12} in V (x) V (x) V.
-    
+
     Guards against dense d^3 x d^3 Kronecker allocations; embeddings are evaluated lazily
     via unboxed sparse dictionary indexing.
     """
     ...
 
-def verify_artin_braid_relations(b1: SparseMatrix[int, complex], b2: SparseMatrix[int, complex]) -> bool:
+def verify_artin_braid_relations(
+    b1: SparseMatrix[int, complex],
+    b2: SparseMatrix[int, complex],
+    tol: float = 1e-9,
+) -> dict[str, bool]:
     """Verify B_1 @ B_2 @ B_1 == B_2 @ B_1 @ B_2."""
     ...
 
-def verify_quantum_sl2_relations(q: complex, rep: dict[str, SparseMatrix[int, complex]]) -> bool:
-    """Verify K E K^{-1} == q^2 E, K F K^{-1} == q^{-2} F, and [E, F] == [K - K^{-1}] / (q - q^{-1}).
-    
+def verify_quantum_sl2_relations(
+    q: complex,
+    rep: dict[str, SparseMatrix[int, complex]],
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    """Verify K E K^{-1} == q^2 E, K F K^{-1} == q^{-2} F, and [E, F] == (K - K^{-1}) / (q - q^{-1}).
+
     Includes defensive L'Hopital expansion guard as q -> 1 recovering the classical [E, F] = H.
     """
     ...
@@ -188,7 +173,7 @@ def verify_quantum_sl2_relations(q: complex, rep: dict[str, SparseMatrix[int, co
 
 ## Backwards Compatibility
 
-Non-breaking and strictly additive. All structures reside in `algebrax.quantum` and `algebrax.verification.quantum`, building upon Hopf algebras ([`EP-0206`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)).
+Non-breaking and strictly additive. All structures reside in `algebrax.rep` (`src/algebrax/rep/quantum.py`, re-exported via `algebrax.rep`) and `src/algebrax/verification.py`, building directly upon Hopf algebras in `algebrax.algebra` ([`EP-0206`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)).
 
 ---
 
@@ -204,7 +189,7 @@ Non-breaking and strictly additive. All structures reside in `algebrax.quantum` 
 
 ## Reference Implementation
 
-Prototype implementations will reside in `src/algebrax/quantum/sl2.py`, `src/algebrax/quantum/braid.py`, and `src/algebrax/quantum/knots.py`.
+Implementations will reside in `src/algebrax/rep/quantum.py` (re-exported in `algebrax.rep`), reusing `algebrax.algebra.HopfAlgebra` protocols and verified in `src/algebrax/verification.py`.
 
 ---
 
@@ -214,6 +199,8 @@ Prototype implementations will reside in `src/algebrax/quantum/sl2.py`, `src/alg
    - *Rejected*: In a 3-fold tensor product with $d=4$, the dense matrix is $64 \times 64$, but for higher spins, $d^3 \times d^3$ explodes. Shannon sparse matrix tensor products must be used.
 2. **Purely Combinatorial Knot Engines**:
    - *Rejected*: Computing knot invariants solely via planar diagram crossings obscures the deep algebraic reality that knot invariants are quantum group representation traces.
+3. **Standalone Top-Level `src/algebrax/quantum/` Package**:
+   - *Rejected*: Creating a separate top-level package would fragment representation-theoretic $R$-matrices, braided tensor products, and spin-$j$ $q$-deformations away from `algebrax.rep` and `algebrax.algebra.HopfAlgebra`.
 
 ---
 
@@ -228,3 +215,5 @@ Prototype implementations will reside in `src/algebrax/quantum/sl2.py`, `src/alg
 
 * **2026-10-28:**
   * Initial Draft authored for Phase 8.
+* **2026-11-15:**
+  * Aligned specification to consolidate `QuantumSL2` (`HopfAlgebra`), $R$-matrices, braiding operators, and Jones knot invariants into `src/algebrax/rep/quantum.py`, with verifiers returning `dict[str, bool]` in `src/algebrax/verification.py`.
