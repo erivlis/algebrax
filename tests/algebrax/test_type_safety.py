@@ -211,16 +211,30 @@ def test_structural_protocol_attrs_lattice():
     assert attrs(AddMagma) == attrs(AddSemigroup)
     assert attrs(AddSemigroup) < attrs(AddMonoid) == {'zero', 'add'}
     assert attrs(AddMonoid) == attrs(AddCommMonoid)
-    assert attrs(AddMonoid) < attrs(AddGroup) == {'zero', 'add', 'neg', 'sub'}
-    assert attrs(AddGroup) == attrs(AddCommGroup)
+    assert attrs(AddMonoid) < attrs(AddGroup) == {'zero', 'add', 'neg', 'sub', 'is_add_associative'}
+    assert attrs(AddGroup) < attrs(AddCommGroup) == {
+        'zero',
+        'add',
+        'neg',
+        'sub',
+        'is_add_associative',
+        'is_add_commutative',
+    }
 
     # Multiplicative chain
     assert attrs(Magma) == {'mul'}
     assert attrs(Magma) == attrs(Semigroup)
     assert attrs(Semigroup) < attrs(Monoid) == {'one', 'mul'}
     assert attrs(Monoid) == attrs(CommMonoid)
-    assert attrs(Monoid) < attrs(Group) == {'one', 'mul', 'inv', 'div'}
-    assert attrs(Group) == attrs(CommGroup)
+    assert attrs(Monoid) < attrs(Group) == {'one', 'mul', 'inv', 'div', 'is_associative'}
+    assert attrs(Group) < attrs(CommGroup) == {
+        'one',
+        'mul',
+        'inv',
+        'div',
+        'is_associative',
+        'is_commutative',
+    }
 
     # Abstract OpMagma/OpMonoid chain
     assert attrs(OpMagma) == {'op'}
@@ -229,7 +243,7 @@ def test_structural_protocol_attrs_lattice():
     assert attrs(OpMonoid) == attrs(OpCommMonoid)
 
     # Ring & Field chain
-    assert attrs(AddCommGroup) < attrs(NonAssocRing) == {'zero', 'add', 'neg', 'sub', 'mul'}
+    assert attrs(AddMonoid) < attrs(NonAssocRing) == {'zero', 'add', 'neg', 'sub', 'mul'}
     assert attrs(NonAssocRing) < attrs(Ring) == {'zero', 'one', 'add', 'neg', 'sub', 'mul', 'is_associative'}
     assert attrs(Ring) < attrs(CommRing) == {
         'zero',
