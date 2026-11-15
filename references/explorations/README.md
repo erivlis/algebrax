@@ -18,4 +18,5 @@ formal Enhancement Proposals (EPs).
 | **EXP-0008** | Equational Theories, Law Witness Mixins & Characteristic Mathematical Operations                    | **Concluded** | 2026-11-12 | EP-0005, EP-0194, EP-0204          | [EXP-0008](./EXP-0008-equational-theories-and-typeclass-axioms/README.md)        |
 | **EXP-0009** | Algebraic & Tropical Varieties — Exact Quotients, Companion Matrices & Polyhedral Duals             | **Concluded** | 2026-11-14 | EP-0220, EP-0221, EP-0222          | [EXP-0009](./EXP-0009-algebraic-and-tropical-varieties/README.md)              |
 | **EXP-0010** | Generalized Harmonic Analysis — Non-Abelian Peter–Weyl, Algebraic Signal Models, Spectral Wavelets & Exact NTT | **Concluded** | 2026-11-14 | EP-0230, EP-0231, EP-0232          | [EXP-0010](./EXP-0010-generalized-harmonic-analysis/README.md)                 |
+| **EXP-0011** | Differential & Ore Algebras — Weyl D-Modules, Skew Polynomials, Hermite Integration & Taylor Jets              | **Concluded** | 2026-11-14 | EP-0240, EP-0241, EP-0242          | [EXP-0011](./EXP-0011-differential-and-ore-algebras/README.md)                 |
 
