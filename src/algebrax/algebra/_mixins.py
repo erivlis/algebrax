@@ -28,6 +28,7 @@ Algebraic Signatures:
 
 Law Witnesses (EP-0005, EP-0197):
     LawCommutative, LawAnticommutative, LawAssociative,
+    LawAddAssociative, LawAddCommutative,
     LawJordan, LawAlternative, LawMalcev, LawLie, LawIdempotent
 """
 
@@ -382,6 +383,24 @@ class LawAssociative(Protocol):
 
     @property
     def is_associative(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawAddAssociative(Protocol):
+    r"""Equational axiom witness: binary addition is associative ($(a + b) + c = a + (b + c)$)."""
+
+    @property
+    def is_add_associative(self) -> Literal[True]:
+        return True
+
+
+@runtime_checkable
+class LawAddCommutative(Protocol):
+    r"""Equational axiom witness: binary addition is commutative ($a + b = b + a$)."""
+
+    @property
+    def is_add_commutative(self) -> Literal[True]:
         return True
 
 

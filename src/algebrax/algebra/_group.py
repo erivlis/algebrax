@@ -11,9 +11,20 @@ Algebraic Signatures:
                                  and $\mathbf{1} \cdot x = x$
 """
 
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Literal, Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._mixins import HasAdd, HasInv, HasMul, HasNeg, HasOne, HasZero
+from algebrax.algebra._mixins import (
+    HasAdd,
+    HasInv,
+    HasMul,
+    HasNeg,
+    HasOne,
+    HasZero,
+    LawAddAssociative,
+    LawAddCommutative,
+    LawAssociative,
+    LawCommutative,
+)
 
 G = TypeVar('G')
 V = TypeVar('V')
@@ -21,7 +32,7 @@ X = TypeVar('X')
 
 
 @runtime_checkable
-class Group(HasOne[V], HasMul[V], HasInv[V], Protocol):
+class Group(HasOne[V], HasMul[V], HasInv[V], LawAssociative, Protocol):
     r"""A monoid where every element possesses a two-sided multiplicative inverse $a^{-1}$.
 
     Algebraic Signature:
@@ -37,6 +48,7 @@ class Group(HasOne[V], HasMul[V], HasInv[V], Protocol):
         - `div(a, b)`: Derived quotient $a \cdot b^{-1}$ (`HasInv[V]`).
 
     Properties:
+        - Associativity: $(a \cdot b) \cdot c = a \cdot (b \cdot c)$ (`LawAssociative`).
         - Invertibility: $\forall a \in V, \ a \cdot a^{-1} = a^{-1} \cdot a = \mathbf{1}$.
         - Quotient Duality: $a / b = a \cdot b^{-1}$.
 
@@ -44,12 +56,14 @@ class Group(HasOne[V], HasMul[V], HasInv[V], Protocol):
         Discrete and continuous symmetries, permutation groups, geometric rotations, ciphers, reversible computing.
     """
 
-    ...
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
 
 
 @runtime_checkable
-class CommGroup(HasOne[V], HasMul[V], HasInv[V], Protocol):
-    r"""An abelian group satisfying commutativity: $a \cdot b = b \cdot a$.
+class CommGroup(HasOne[V], HasMul[V], HasInv[V], LawAssociative, LawCommutative, Protocol):
+    r"""An abelian group satisfying associativity and commutativity: $a \cdot b = b \cdot a$.
 
     Algebraic Signature:
         $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ with $a \cdot b = b \cdot a$
@@ -61,15 +75,20 @@ class CommGroup(HasOne[V], HasMul[V], HasInv[V], Protocol):
         - `div(a, b)`: Derived quotient $a \cdot b^{-1}$ (`HasInv[V]`).
     """
 
-    ...
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
 
+    @property
+    def is_commutative(self) -> Literal[True]:
+        return True
 
 
 # --- Additive Dual Branch ---
 
 
 @runtime_checkable
-class AddGroup(HasZero[V], HasAdd[V], HasNeg[V], Protocol):
+class AddGroup(HasZero[V], HasAdd[V], HasNeg[V], LawAddAssociative, Protocol):
     r"""An additive monoid where every element possesses an additive inverse (negation) $-a$.
 
     Algebraic Signature:
@@ -82,12 +101,14 @@ class AddGroup(HasZero[V], HasAdd[V], HasNeg[V], Protocol):
         - `sub(a, b)`: Derived difference $a - b = a + (-b)$ (`HasNeg[V]`).
     """
 
-    ...
+    @property
+    def is_add_associative(self) -> Literal[True]:
+        return True
 
 
 @runtime_checkable
-class AddCommGroup(HasZero[V], HasAdd[V], HasNeg[V], Protocol):
-    r"""An additive abelian group satisfying commutativity: $a + b = b + a$.
+class AddCommGroup(HasZero[V], HasAdd[V], HasNeg[V], LawAddAssociative, LawAddCommutative, Protocol):
+    r"""An additive abelian group satisfying associativity and commutativity: $a + b = b + a$.
 
     Algebraic Signature:
         $\langle V, \mathbf{0}, +, - \rangle$ with $a + b = b + a$
@@ -99,7 +120,13 @@ class AddCommGroup(HasZero[V], HasAdd[V], HasNeg[V], Protocol):
         - `sub(a, b)`: Derived difference $a - b = a + (-b)$ (`HasNeg[V]`).
     """
 
-    ...
+    @property
+    def is_add_associative(self) -> Literal[True]:
+        return True
+
+    @property
+    def is_add_commutative(self) -> Literal[True]:
+        return True
 
 
 # --- Group Action Protocol ---
