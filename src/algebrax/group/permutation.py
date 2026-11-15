@@ -1,30 +1,20 @@
 """
-Functions for operations on mappings, such as composition, inversion, and signature computation.
+Permutation mapping operations: composition, inversion, and cycle parity.
 
-This module provides utility functions for manipulating mappings (dictionaries), specifically
-those representing permutations. These functions include the ability to compose mappings,
-invert mappings, and compute the signature (parity) of a permutation.
+Provides sparse-mapping utilities for finite permutations over native Python dicts,
+including permutation composition, bijection inversion, and cycle signature parity.
 """
+
+from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any
 
-from algebrax.algebra._group import CommGroup, Group, GroupAction
 from algebrax.typing import K, V
-
-__all__ = [
-    'CommGroup',
-    'Group',
-    'GroupAction',
-    'compose',
-    'invert',
-    'signature',
-]
 
 
 def compose(m1: Mapping[K, V], m2: Mapping[V, Any]) -> dict[K, Any]:
-    """
-    Compose two mappings (permutations): result[k] = m2[m1[k]].
+    """Compose two mappings (permutations): result[k] = m2[m1[k]].
 
     Args:
         m1: The first mapping (inner function).
@@ -37,8 +27,8 @@ def compose(m1: Mapping[K, V], m2: Mapping[V, Any]) -> dict[K, Any]:
 
 
 def invert(mapping: Mapping[K, V]) -> dict[V, K]:
-    """
-    Invert a mapping (swap keys and values).
+    """Invert a mapping (swap keys and values).
+
     Useful for finding the inverse of a permutation.
     If the mapping is not injective, keys will be overwritten.
 
@@ -52,8 +42,7 @@ def invert(mapping: Mapping[K, V]) -> dict[V, K]:
 
 
 def signature(mapping: Mapping[K, K]) -> int:
-    """
-    Compute the signature (parity) of a permutation.
+    """Compute the signature (parity) of a permutation.
 
     Args:
         mapping: A mapping representing a permutation (must be bijective on its domain).
@@ -64,7 +53,7 @@ def signature(mapping: Mapping[K, K]) -> int:
     Raises:
         ValueError: If the mapping is not a valid permutation.
     """
-    visited = set()
+    visited: set[K] = set()
     cycles = 0
     elements = set(mapping.keys()) | set(mapping.values())
 
@@ -73,15 +62,19 @@ def signature(mapping: Mapping[K, K]) -> int:
             continue
 
         cycles += 1
-        curr = k
+        curr: K | None = k
         while curr not in visited:
             visited.add(curr)
             curr = mapping.get(curr)
             if curr is None:
-                # This happens if the mapping is not a complete permutation on the set of keys
-                # For a sparse mapping, we might assume fixed points for missing keys?
-                # But here we strictly check the cycle.
                 raise ValueError(f'Mapping is not a complete permutation: broken cycle at {curr}')
 
     n = len(elements)
     return -1 if (n - cycles) % 2 else 1
+
+
+__all__ = [
+    'compose',
+    'invert',
+    'signature',
+]
