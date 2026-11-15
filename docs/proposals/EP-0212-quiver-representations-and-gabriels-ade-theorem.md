@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                             |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-10-28                                                                        |
-| **Updated**       | 2026-10-28                                                                        |
+| **Updated**       | 2026-11-15                                                                        |
 | **Replaces**      | —                                                                                 |
 | **Superseded-By** | —                                                                                 |
 
@@ -31,16 +31,16 @@ This proposal establishes the computational foundations of **Quiver Representati
    A quiver $Q = (V_Q, E_Q)$ is a directed multigraph. A representation $M$ assigns:
    - A vector space $V_i = K^{d_i}$ to each vertex $i \in V_Q$.
    - A sparse linear map $M_\alpha : V_{\operatorname{source}(\alpha)} \to V_{\operatorname{target}(\alpha)}$ to each directed edge $\alpha \in E_Q$.
-2. **Unified Sheaf-Quiver Equivalence**:
-   Formalizing the structural identity: a Quiver Representation is mathematically identical to a **Cellular Sheaf ([EP-0202](EP-0202-functorial-sheaves-and-categorical-dec.md))** on a 1-dimensional cell complex where restriction maps follow edge orientations.
-3. **Path Algebra Constructor (`algebrax.algebra.path_algebra`)**:
-   Associative algebra $K Q$ spanned by directed paths in $Q$, with multiplication defined by path concatenation ($p \cdot q = pq$ if $\operatorname{target}(p) = \operatorname{source}(q)$, else $0$).
-4. **The Tits Quadratic Form & Gabriel's ADE Theorem**:
-   Evaluating the Euler-Tits form for dimension vector $\mathbf{d} = (d_1, \dots, d_n)$:
+2. **Unified Sheaf-Quiver Equivalence (`algebrax.topology.sheaf`)**:
+   Formalizing the structural identity (`to_cellular_sheaf` / `from_cellular_sheaf`): a Quiver Representation is mathematically identical to a **Cellular Sheaf ([EP-0202](EP-0202-functorial-sheaves-and-categorical-dec.md))** on a 1-dimensional cell complex where restriction maps follow edge orientations.
+3. **Path Algebra Constructor (`algebrax.algebra._path_algebra`)**:
+   Associative algebra $K Q$ spanned by directed paths in $Q$, with multiplication defined by path concatenation ($p \cdot q = pq$ if $\operatorname{target}(p) = \operatorname{source}(q)$, else $0$), exported cleanly via `algebrax.algebra`.
+4. **The Tits Quadratic Form & Gabriel's ADE Theorem (`algebrax.rep.quiver`)**:
+   Evaluating the Euler–Tits form for dimension vector $\mathbf{d} = (d_1, \dots, d_n)$:
    $$q_Q(\mathbf{d}) = \sum_{i \in V_Q} d_i^2 - \sum_{\alpha \in E_Q} d_{\operatorname{source}(\alpha)} d_{\operatorname{target}(\alpha)}$$
    Implementing Pierre Gabriel's landmark theorem (1972): a quiver has **finite representation type** if and only if its underlying undirected graph is a simply-laced Dynkin diagram ($A_n, D_n, E_6, E_7, E_8$), with indecomposables in exact 1-to-1 bijection with the positive roots $\Phi^+$ from [`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md).
-5. **Property-Based Verification (`algebrax.verification.quiver`)**:
-   Verification of quiver morphism commutativity ($f_v \circ M_\alpha = N_\alpha \circ f_u$), direct sum decomposition, and positive definiteness of the Tits form on ADE graphs.
+5. **Property-Based Verification (`algebrax.verification`)**:
+   Verification of quiver morphism commutativity ($f_v \circ M_\alpha = N_\alpha \circ f_u$), direct sum decomposition, and positive definiteness of the Tits form on ADE graphs in `src/algebrax/verification.py`.
 
 ---
 
@@ -57,17 +57,13 @@ Quivers provide the modern categorical language for linear algebra problems invo
 ## Rationale & Council Alignment
 
 - **🧩 Russell (Taxonomy & Sheaf-Quiver Identity)**:
-  Recognizes that a quiver representation is an instance of a functor $\mathcal{F}: \mathbf{Path}(Q) \to \mathbf{Vect}_K$. Unifies quiver representations with AlgebraX's existing `CellularSheaf` engine, avoiding duplicative class hierarchies.
+  Recognizes that a quiver representation is an instance of a functor $\mathcal{F}: \mathbf{Path}(Q) \to \mathbf{Vect}_K$. Unifies quiver representations with AlgebraX's existing `CellularSheaf` engine (`algebrax.topology.sheaf`), avoiding duplicative class hierarchies.
 - **🔬 Popper (Falsifiability & Tits Form Definiteness)**:
   Gabriel's condition is strictly falsifiable: $q_Q(\mathbf{d}) > 0$ for all non-zero $\mathbf{d}$ if and only if $Q$ is ADE. If the graph contains a cycle or bad branching, $q_Q(\mathbf{d}) \le 0$ immediately detects infinite/wild representation type.
 - **⚡ Shannon (Zero Bloat & Sparse Dictionary Carrier)**:
-  A quiver representation is represented without wrappers:
-  ```python
-  QuiverRep = tuple[dict[Vertex, int], dict[Edge, SparseMatrix]]
-  ```
-  Path algebras represent basis elements as tuples of edges `(e1, e2, ...)`.
+  Edge maps are bare `SparseMatrix` dictionaries and path basis elements are tuples of edges `(e1, e2, ...)`.
 - **⚖️ Noether (Structural Symmetries)**:
-  The isomorphism classes of indecomposables mirror the root orbits under the Weyl group.
+  The isomorphism classes of indecomposables mirror the root orbits under the Weyl group (`algebrax.lie.RootSystem`).
 - **💡 Feynman (Freshman Test & Intuitive Demystification)**:
   *"A quiver is just an arrow diagram where each dot gets a vector space and each arrow gets a matrix. Gabriel found that only very special diagrams don't blow up into infinitely many uncontrollable matrix patterns."*
 
@@ -75,10 +71,10 @@ Quivers provide the modern categorical language for linear algebra problems invo
 
 ## Specification
 
-### 1. Quiver & Representation Data Structures (`src/algebrax/rep/quiver.py`)
+### 1. Quiver, Tits Form & Gabriel Classifier (`src/algebrax/rep/quiver.py`)
 
 ```python
-"""Quiver representations and morphisms."""
+"""Quiver representations, Tits quadratic form, Gabriel's ADE theorem, and CellularSheaf adapters."""
 
 from __future__ import annotations
 
@@ -114,40 +110,24 @@ class QuiverRepresentation(Generic[K, V, E]):
     def dimension_vector(self) -> tuple[int, ...]:
         """Return dimension vector (d_1, ..., d_n)."""
         return tuple(self.dimensions[v] for v in self.quiver.vertices)
-```
-
-### 2. The Tits Quadratic Form & Gabriel Classifier (`src/algebrax/rep/gabriel.py`)
-
-```python
-"""Tits quadratic form and Gabriel's ADE representation type classifier."""
-
-from algebrax.rep.quiver import Quiver
 
 
 def tits_quadratic_form(quiver: Quiver[V, E], dim_vec: dict[V, int]) -> int:
     """Evaluate Euler-Tits form q_Q(d) = sum d_i^2 - sum_{(u,v)} d_u d_v."""
-    vertex_sum = sum(d * d for d in dim_vec.values())
-    edge_sum = sum(
-        dim_vec[quiver.source[e]] * dim_vec[quiver.target[e]]
-        for e in quiver.edges
-    )
-    return vertex_sum - edge_sum
+    ...
 
 
 def classify_representation_type(quiver: Quiver[V, E]) -> str:
-    """Classify quiver representation type using Gabriel's criteria.
-    
-    Returns 'finite' (ADE), 'tame' (affine ADE), or 'wild'.
-    """
+    """Classify quiver representation type using Gabriel's criteria ('finite', 'tame', or 'wild')."""
     ...
 ```
 
-### 3. Path Algebra Constructor (`src/algebrax/algebra/path_algebra.py`)
+### 2. Path Algebra Constructor (`src/algebrax/algebra/_path_algebra.py`)
 
 ```python
-"""Path algebras KQ of quivers."""
+"""Path algebras KQ of quivers (re-exported from algebrax.algebra)."""
 
-from algebrax.algebra import QuotientMonoidAlgebra
+from algebrax.algebra._monoid_algebra import QuotientMonoidAlgebra
 
 
 def path_algebra(quiver: Quiver[V, E]) -> QuotientMonoidAlgebra[tuple[E, ...], K]:
@@ -155,7 +135,7 @@ def path_algebra(quiver: Quiver[V, E]) -> QuotientMonoidAlgebra[tuple[E, ...], K
     ...
 ```
 
-### 4. Verification Suite (`src/algebrax/verification/quiver.py`)
+### 3. Verification Suite (`src/algebrax/verification.py`)
 
 ```python
 """Property-based verification for quiver representations and Gabriel's theorem."""
@@ -164,11 +144,12 @@ def verify_quiver_morphism_commutation(
     rep1: QuiverRepresentation[K, V, E],
     rep2: QuiverRepresentation[K, V, E],
     morphism_maps: dict[V, SparseMatrix[int, K]],
-) -> bool:
+    tol: float = 1e-9,
+) -> dict[str, bool]:
     """Verify f_{t(e)} @ M_e == N_e @ f_{s(e)} for all edges e."""
     ...
 
-def verify_tits_positive_definiteness(quiver: Quiver[V, E]) -> bool:
+def verify_tits_positive_definiteness(quiver: Quiver[V, E]) -> dict[str, bool]:
     """Verify q_Q(d) > 0 for all non-zero dimension vectors on ADE quivers."""
     ...
 ```
@@ -177,7 +158,7 @@ def verify_tits_positive_definiteness(quiver: Quiver[V, E]) -> bool:
 
 ## Backwards Compatibility
 
-Non-breaking and strictly additive. Quiver representations reside in `algebrax.rep.quiver` and integrate seamlessly with `CellularSheaf` in `algebrax.sheaf` ([`EP-0202`](EP-0202-functorial-sheaves-and-categorical-dec.md)).
+Non-breaking and strictly additive. Quiver representations reside in `algebrax.rep.quiver` and integrate seamlessly with `CellularSheaf` in `algebrax.topology.sheaf` ([`EP-0202`](EP-0202-functorial-sheaves-and-categorical-dec.md)) and `RootSystem` in `algebrax.lie` ([`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md)).
 
 ---
 
@@ -193,14 +174,14 @@ Non-breaking and strictly additive. Quiver representations reside in `algebrax.r
 
 ## Reference Implementation
 
-Prototype implementations will reside in `src/algebrax/rep/quiver.py` and `src/algebrax/rep/gabriel.py`.
+Implementations will reside in `src/algebrax/rep/quiver.py`, `src/algebrax/algebra/_path_algebra.py` (exported in `algebrax.algebra`), and `src/algebrax/verification.py`.
 
 ---
 
 ## Rejected Ideas
 
 1. **Duplicating Sheaf Logic with a Separate `QuiverSheaf` Class**:
-   - *Rejected*: A quiver representation on a directed graph is mathematically identical to a cellular sheaf. Duplicating coboundary operators or restriction logic violates the zero-bloat principle.
+   - *Rejected*: A quiver representation on a directed graph is mathematically identical to a 1-dimensional cellular sheaf. Duplicating coboundary operators or restriction logic violates the zero-bloat principle.
 2. **Dense Adjacency Tensors for Paths**:
    - *Rejected*: Paths can have arbitrary length; using dense matrices for path multiplication causes explosive memory usage. Paths are represented as tuple sequences of edge identifiers.
 
@@ -217,3 +198,5 @@ Prototype implementations will reside in `src/algebrax/rep/quiver.py` and `src/a
 
 * **2026-10-28:**
   * Initial Draft authored for Phase 8.
+* **2026-11-15:**
+  * Consolidated module layout into `src/algebrax/rep/quiver.py`, `src/algebrax/algebra/_path_algebra.py`, and `src/algebrax/verification.py`; aligned cellular sheaf interoperability with `algebrax.topology.sheaf.CellularSheaf`.
