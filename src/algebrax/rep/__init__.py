@@ -1,0 +1,91 @@
+r"""
+Group Representation Theory, Character Tables & Schur's Lemma.
+
+Provides sparse matrix group representations $\rho : G \to \mathrm{GL}(V)$, class functions
+and orthonormal character tables, Maschke/isotypic projection operators, Reynolds intertwiners,
+and canonical representations for cyclic, dihedral, quaternion, symmetric, and alternating groups.
+"""
+
+from algebrax.rep import canonical, character, group
+from algebrax.rep.canonical import (
+    a4_character_table,
+    alternating_defining_rep,
+    alternating_elements,
+    alternating_standard_rep,
+    cyclic_character_table,
+    cyclic_rep,
+    dihedral_character_table,
+    dihedral_elements,
+    dihedral_mul,
+    dihedral_rep,
+    q8_character_table,
+    quaternion_elements,
+    quaternion_mul,
+    quaternion_rep,
+    regular_rep,
+    s3_character_table,
+    s4_character_table,
+    symmetric_defining_rep,
+    symmetric_elements,
+    symmetric_inv,
+    symmetric_mul,
+    symmetric_sign_rep,
+    symmetric_standard_rep,
+    trivial_rep,
+)
+from algebrax.rep.character import (
+    Character,
+    CharacterTable,
+    conjugacy_classes,
+)
+from algebrax.rep.group import (
+    ExplicitGroupRep,
+    GroupRepresentation,
+    RepOperator,
+    direct_sum_rep,
+    is_intertwiner,
+    isotypic_projector,
+    reynolds_average,
+    tensor_product_rep,
+)
+
+__all__ = [
+    'Character',
+    'CharacterTable',
+    'ExplicitGroupRep',
+    'GroupRepresentation',
+    'RepOperator',
+    'a4_character_table',
+    'alternating_defining_rep',
+    'alternating_elements',
+    'alternating_standard_rep',
+    'canonical',
+    'character',
+    'conjugacy_classes',
+    'cyclic_character_table',
+    'cyclic_rep',
+    'dihedral_character_table',
+    'dihedral_elements',
+    'dihedral_mul',
+    'dihedral_rep',
+    'direct_sum_rep',
+    'group',
+    'is_intertwiner',
+    'isotypic_projector',
+    'q8_character_table',
+    'quaternion_elements',
+    'quaternion_mul',
+    'quaternion_rep',
+    'regular_rep',
+    'reynolds_average',
+    's3_character_table',
+    's4_character_table',
+    'symmetric_defining_rep',
+    'symmetric_elements',
+    'symmetric_inv',
+    'symmetric_mul',
+    'symmetric_sign_rep',
+    'symmetric_standard_rep',
+    'tensor_product_rep',
+    'trivial_rep',
+]

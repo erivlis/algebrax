@@ -36,7 +36,8 @@ Submodules & Domain Taxonomy
    - `probability`: Information theory & Markov chains (`entropy`, `kl_divergence`, `bayes_update`).
    - `automata`: Finite state machines (`simulate_dfa`, `simulate_nfa`).
    - `lattice`: Set-theoretic & fuzzy logic key/value operations (`join`, `meet`, `combine`).
-   - `group`: Permutation groups & Artin braid crossings (`compose`, `signature`).
+   - `group`: Finite groups, coset/quotient laws & permutation symmetries (`FiniteGroup`, `symmetric_group`).
+   - `rep`: Representation theory, character tables & Schur orthogonality (`ExplicitGroupRep`, `CharacterTable`).
 
 4. Tools & Ecosystem Bridges
    - `converters`: Sparse-dense array conversion & PyData bridges (`to_numpy`, `from_numpy`, `to_scipy`).
@@ -61,6 +62,7 @@ from algebrax import (
     matrix,
     metrics,
     probability,
+    rep,
     semiring,
     tensor,
     topology,
@@ -107,6 +109,7 @@ __all__ = [
     'matrix',
     'metrics',
     'probability',
+    'rep',
     'semiring',
     'tensor',
     'topology',
