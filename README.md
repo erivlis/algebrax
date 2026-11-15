@@ -102,10 +102,11 @@ single pure-Python polymorphic framework.
   LU, QR, SVD, Cholesky, determinants, and matrix inversion parameterized over any `Field[V]` — including exact rationals
   (`StandardField(Fraction)`), finite prime fields (`ModularField(p)`), and non-archimedean $p$-adic numbers
   (`PAdicField(p)` bridging directly to `TropicalSemiring`).
-* 🌌 **Geometry, Symmetry, Langlands Duality & Algebraic Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`),
+* 🌌 **Geometry, Symmetry, Representation Theory & Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`),
   classical & exceptional Lie algebras, Langlands dual root systems & `IwahoriHeckeAlgebra` (`lie`), finite fields
-  $\mathrm{GF}(p^m)$ (`galois`), and unified algebraic topology (`topology`: homology, cohomology cup products, persistent
-  barcodes, DEC, cellular sheaves, discrete bundles, topological K-theory & Chern classes, and path groupoids $\Pi_1(K)$).
+  $\mathrm{GF}(p^m)$ (`galois`), finite group representations, character tables & Schur projectors (`rep`), and unified
+  algebraic topology (`topology`: homology, cohomology cup products, persistent barcodes, DEC, cellular sheaves, discrete
+  bundles, topological K-theory & Chern classes, and path groupoids $\Pi_1(K)$).
 * 🧪 **Axiomatic Law Verification & Interactive Lab**: Automated algebraic axiom checkers (`verification`) backed by
   property-based testing, Ramanujan expander verification (`is_ramanujan_graph`), and Z3 proofs, plus a 12-module
   [DearPyGui](https://github.com/hoffstadt/DearPyGui) desktop laboratory (`recipes/lab.py`).
