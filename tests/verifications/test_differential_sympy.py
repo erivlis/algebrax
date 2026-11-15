@@ -11,6 +11,7 @@ from __future__ import annotations
 import math
 import warnings
 from fractions import Fraction
+from typing import Any
 
 import numpy as np
 import pytest
@@ -520,6 +521,211 @@ def test_hypothesis_differential_permutation_group_vs_sympy(
     inv1_sp = ~p1_sp
     assert [inv1_ax[i] for i in range(n)] == list(inv1_sp.array_form)
     assert ax.group.compose(p1_ax, inv1_ax) == {i: i for i in range(n)}
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_finite_groups_and_conjugacy_classes_vs_sympy() -> None:
+    """Verify FiniteGroup, FiniteCommGroup, conjugacy classes, and centers vs sympy.combinatorics.named_groups."""
+    from sympy.combinatorics.named_groups import AlternatingGroup as SymPyAlternatingGroup
+    from sympy.combinatorics.named_groups import CyclicGroup as SymPyCyclicGroup
+    from sympy.combinatorics.named_groups import DihedralGroup as SymPyDihedralGroup
+    from sympy.combinatorics.named_groups import SymmetricGroup as SymPySymmetricGroup
+
+    from algebrax.algebra import CommGroup, Group
+    from algebrax.group import (
+        FiniteCommGroup,
+        alternating_group,
+        cyclic_group,
+        dihedral_group,
+        symmetric_group,
+    )
+    from algebrax.verification import verify_comm_group_laws, verify_group_laws
+
+    cases = [
+        (cyclic_group(5), SymPyCyclicGroup(5)),
+        (cyclic_group(6), SymPyCyclicGroup(6)),
+        (dihedral_group(2), SymPyDihedralGroup(2)),
+        (dihedral_group(3), SymPyDihedralGroup(3)),
+        (dihedral_group(4), SymPyDihedralGroup(4)),
+        (symmetric_group(2), SymPySymmetricGroup(2)),
+        (symmetric_group(3), SymPySymmetricGroup(3)),
+        (symmetric_group(4), SymPySymmetricGroup(4)),
+        (alternating_group(3), SymPyAlternatingGroup(3)),
+        (alternating_group(4), SymPyAlternatingGroup(4)),
+    ]
+
+    for grp_ax, grp_sp in cases:
+        assert grp_ax.order == int(grp_sp.order())
+        assert grp_ax.is_abelian() == bool(grp_sp.is_abelian)
+        assert isinstance(grp_ax, Group)
+        assert isinstance(grp_ax, FiniteCommGroup) is bool(grp_sp.is_abelian)
+        assert isinstance(grp_ax, CommGroup) is bool(grp_sp.is_abelian)
+
+        # Conjugacy class size multisets must match SymPy exactly
+        sizes_ax = sorted(len(c) for c in grp_ax.conjugacy_classes())
+        sizes_sp = sorted(len(c) for c in grp_sp.conjugacy_classes())
+        assert sizes_ax == sizes_sp
+
+        # Center order and abelian witness
+        center_ax = grp_ax.center()
+        assert isinstance(center_ax, FiniteCommGroup)
+        assert center_ax.order == int(grp_sp.center().order())
+
+        # Exhaustive group law checks (with CommGroup axioms on abelian groups)
+        samples = grp_ax.elements if grp_ax.order >= 3 else (*grp_ax.elements, grp_ax.identity)
+        if isinstance(grp_ax, CommGroup):
+            assert all(verify_comm_group_laws(grp_ax, samples).values())
+        else:
+            assert all(verify_group_laws(grp_ax, samples).values())
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_group_representations_and_character_tables_vs_numpy_sympy() -> None:  #noqa: C901
+    """Verify CharacterTable class invariants vs SymPy and Maschke isotypic projectors via NumPy."""
+    from sympy.combinatorics.named_groups import AlternatingGroup as SymPyAlternatingGroup
+    from sympy.combinatorics.named_groups import CyclicGroup as SymPyCyclicGroup
+    from sympy.combinatorics.named_groups import DihedralGroup as SymPyDihedralGroup
+    from sympy.combinatorics.named_groups import SymmetricGroup as SymPySymmetricGroup
+
+    from algebrax.group import (
+        FiniteGroup,
+        alternating_group,
+        cyclic_group,
+        dihedral_group,
+        quaternion_group,
+        symmetric_group,
+    )
+    from algebrax.rep import (
+        CharacterTable,
+        a4_character_table,
+        cyclic_character_table,
+        dihedral_character_table,
+        is_intertwiner,
+        isotypic_projector,
+        q8_character_table,
+        regular_rep,
+        reynolds_average,
+        s3_character_table,
+        s4_character_table,
+    )
+    from algebrax.verification import (
+        verify_burnside_dimension_formula,
+        verify_representation_homomorphism,
+        verify_schur_orthogonality,
+    )
+
+    def _class_index_map(grp: FiniteGroup[Any], tbl: CharacterTable, name: str) -> dict[Any, int]:
+        if name == 'C5':
+            return {g: int(g) for g in grp.elements}
+        if name == 'S3':
+            return {g: tbl.classes.index({1: '1^3', 2: '2^1 1^1', 3: '3^1'}[grp.order_of(g)]) for g in grp.elements}
+        if name == 'S4':
+            size_of = {g: len(cls) for cls in grp.conjugacy_classes() for g in cls}
+            mapping: dict[Any, int] = {}
+            for g in grp.elements:
+                ord_g, sz_g = grp.order_of(g), size_of[g]
+                if ord_g == 1:
+                    col = '1^4'
+                elif ord_g == 2:
+                    col = '2 1^2' if sz_g == 6 else '2^2'
+                elif ord_g == 3:
+                    col = '3 1'
+                else:
+                    col = '4'
+                mapping[g] = tbl.classes.index(col)
+            return mapping
+        if name == 'A4':
+            classes = grp.conjugacy_classes()
+            c_123 = next(c for c in classes if (1, 2, 0, 3) in c)
+            c_132 = next(c for c in classes if (2, 0, 1, 3) in c)
+            mapping = {}
+            for g in grp.elements:
+                if g == grp.identity:
+                    col = 'e'
+                elif grp.order_of(g) == 2:
+                    col = '(12)(34)'
+                elif g in c_123:
+                    col = '(123)'
+                else:
+                    assert g in c_132
+                    col = '(132)'
+                mapping[g] = tbl.classes.index(col)
+            return mapping
+        if name == 'D4':
+            label_for = {
+                'r0': 'e',
+                'r1': 'r^1',
+                'r3': 'r^1',
+                'r2': 'r^2',
+                's0': 's_even',
+                's2': 's_even',
+                's1': 's_odd',
+                's3': 's_odd',
+            }
+            return {g: tbl.classes.index(label_for[str(g)]) for g in grp.elements}
+        label_for_q8 = {
+            '1': '{1}',
+            '-1': '{-1}',
+            'i': '{+-i}',
+            '-i': '{+-i}',
+            'j': '{+-j}',
+            '-j': '{+-j}',
+            'k': '{+-k}',
+            '-k': '{+-k}',
+        }
+        return {g: tbl.classes.index(label_for_q8[str(g)]) for g in grp.elements}
+
+    table_pairs: list[tuple[str, CharacterTable, FiniteGroup[Any], Any]] = [
+        ('C5', cyclic_character_table(5), cyclic_group(5), SymPyCyclicGroup(5)),
+        ('S3', s3_character_table(), symmetric_group(3), SymPySymmetricGroup(3)),
+        ('S4', s4_character_table(), symmetric_group(4), SymPySymmetricGroup(4)),
+        ('A4', a4_character_table(), alternating_group(4), SymPyAlternatingGroup(4)),
+        ('D4', dihedral_character_table(4), dihedral_group(4), SymPyDihedralGroup(4)),
+        ('Q8', q8_character_table(), quaternion_group(), None),
+    ]
+
+    for tag, tbl, grp, sym_g in table_pairs:
+        assert tbl.group_order == grp.order
+        assert all(verify_schur_orthogonality(tbl).values())
+        assert all(verify_burnside_dimension_formula(tbl).values())
+        if sym_g is not None:
+            assert sorted(tbl.class_sizes) == sorted(len(c) for c in sym_g.conjugacy_classes())
+
+        # Regular representation: complete orthogonal idempotent projector decomposition in NumPy
+        reg = regular_rep(grp)
+        assert all(verify_representation_homomorphism(reg, grp).values())
+
+        d = reg.dimension
+        assert d == grp.order
+        class_map = _class_index_map(grp, tbl, tag)
+
+        projectors_np: list[np.ndarray] = []
+        for irrep_idx, _irrep_name in enumerate(tbl.irreps):
+            row = tbl.table[irrep_idx]
+            dim_chi = round(complex(row[0]).real)
+            chi_map = {g: complex(row[class_map[g]]) for g in grp.elements}
+            p_sparse = isotypic_projector(reg, grp, chi_map, irrep_dim=dim_chi)
+            p_np = np.asarray(ax.converters.to_numpy(p_sparse, shape=(d, d)), dtype=np.complex128)
+
+            # Idempotence P^2 == P and Burnside multiplicity Tr(P) == d_chi^2 in regular rep
+            np.testing.assert_allclose(p_np @ p_np, p_np, rtol=1e-9, atol=1e-9)
+            assert math.isclose(float(np.real(np.trace(p_np))), float(dim_chi**2), rel_tol=1e-9, abs_tol=1e-9)
+            assert is_intertwiner(p_sparse, reg, reg, grp)
+            projectors_np.append(p_np)
+
+        # Completeness sum_i P_i == I_d and pairwise orthogonality P_i P_j == 0
+        np.testing.assert_allclose(sum(projectors_np), np.eye(d, dtype=np.complex128), rtol=1e-9, atol=1e-9)
+        for i, pi in enumerate(projectors_np):
+            for j, pj in enumerate(projectors_np):
+                if i != j:
+                    np.testing.assert_allclose(pi @ pj, np.zeros((d, d), dtype=np.complex128), atol=1e-9)
+
+        # Reynolds average of an arbitrary seed matrix must intertwine reg with itself
+        seed_mat = {r: {c: float((r + 2 * c) % 5 - 2) for c in range(d)} for r in range(d)}
+        avg_op = reynolds_average(seed_mat, reg, reg, grp)
+        assert is_intertwiner(avg_op, reg, reg, grp)
 
 
 # =============================================================================

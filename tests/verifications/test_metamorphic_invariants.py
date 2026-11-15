@@ -341,3 +341,65 @@ def test_metamorphic_matrix_closure_permutation_equivariance() -> None:
 
     assert semiring_elements_equal(plus_perm, expected_plus_perm, tol=1e-9)
 
+
+# ---------------------------------------------------------------------------
+# Metamorphic Relation 10: Finite Group Class Equation, Lagrange & Quotient Hom
+# ---------------------------------------------------------------------------
+
+
+def test_metamorphic_finite_group_class_equation_lagrange_and_quotient() -> None:
+    """Verify Class Equation, Lagrange's Theorem, and quotient projection homomorphism."""
+    from algebrax.group import FiniteCommGroup, dihedral_group, quaternion_group, symmetric_group
+
+    for grp in (symmetric_group(3), symmetric_group(4), dihedral_group(4), quaternion_group()):
+        classes = grp.conjugacy_classes()
+        # Class equation: sum |C_i| == |G| and each |C_i| divides |G|
+        assert sum(len(c) for c in classes) == grp.order
+        assert all(grp.order % len(c) == 0 for c in classes)
+
+    # Lagrange's theorem & quotient projection homomorphism on S_3 / A_3 and Q_8 / Z(Q_8)
+    s3 = symmetric_group(3)
+    a3 = s3.subgroup([(1, 2, 0)], generate=True)
+    cosets = s3.left_cosets(a3)
+    assert len(cosets) * a3.order == s3.order
+
+    q_s3 = s3.quotient(a3)
+    assert isinstance(q_s3, FiniteCommGroup)
+    proj = {el: c for c in q_s3.elements for el in c}
+    for g in s3.elements:
+        for h in s3.elements:
+            assert proj[s3.mul(g, h)] == q_s3.mul(proj[g], proj[h])
+
+
+# ---------------------------------------------------------------------------
+# Metamorphic Relation 11: Representation Character Ring & Dual Identities
+# ---------------------------------------------------------------------------
+
+
+def test_metamorphic_group_representation_character_ring_identities() -> None:
+    """Verify character ring laws: chi(a (+) b) = chi(a)+chi(b), chi(a (x) b) = chi(a)*chi(b), chi(a*) = conj(chi)."""
+    from algebrax.group import cyclic_group, dihedral_group
+    from algebrax.rep import cyclic_rep, dihedral_rep
+
+    c5 = cyclic_group(5)
+    r1 = cyclic_rep(5, k=1)
+    r2 = cyclic_rep(5, k=2)
+    r_sum = r1.direct_sum(r2, c5)
+    r_prod = r1.tensor_product(r2, c5)
+    r_dual = r1.dual(c5.inv, c5)
+
+    for g in c5:
+        c1, c2 = complex(r1.trace(g)), complex(r2.trace(g))
+        assert abs(complex(r_sum.trace(g)) - (c1 + c2)) < 1e-11
+        assert abs(complex(r_prod.trace(g)) - (c1 * c2)) < 1e-11
+        assert abs(complex(r_dual.trace(g)) - c1.conjugate()) < 1e-11
+
+    d4 = dihedral_group(4)
+    dr = dihedral_rep(4, k=1)
+    dr_sq = dr.tensor_product(dr, d4)
+    dr_dual = dr.dual(d4.inv, d4)
+    for g in d4:
+        cg = complex(dr.trace(g))
+        assert abs(complex(dr_sq.trace(g)) - cg * cg) < 1e-11
+        assert abs(complex(dr_dual.trace(g)) - cg.conjugate()) < 1e-11
+

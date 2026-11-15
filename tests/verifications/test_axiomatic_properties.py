@@ -351,3 +351,59 @@ def test_matrix_conway_closure_axiomatic_properties() -> None:
     res_std = verify_matrix_conway_laws(graph_std, std)
     assert all(res_std.values()), f'Conway matrix laws failed on Standard: {res_std}'
 
+
+# ---------------------------------------------------------------------------
+# FiniteCommGroup & Exact Rational AddCommGroup Axiomatic Verification
+# ---------------------------------------------------------------------------
+
+
+@given(
+    n=st.integers(min_value=3, max_value=12),
+    v1=st.fractions(min_value=-20, max_value=20, max_denominator=10),
+    v2=st.fractions(min_value=-20, max_value=20, max_denominator=10),
+    v3=st.fractions(min_value=-20, max_value=20, max_denominator=10),
+)
+@settings(max_examples=25)
+def test_hypothesis_finite_comm_group_and_add_comm_group_axioms(
+    n: int,
+    v1: Fraction,
+    v2: Fraction,
+    v3: Fraction,
+) -> None:
+    """Verify CommGroup laws on FiniteCommGroup and AddCommGroup laws on exact Fraction sparse vectors."""
+    from algebrax.algebra import AddCommGroup, CommGroup, LawAddAssociative, LawAddCommutative
+    from algebrax.group import FiniteCommGroup, cyclic_group
+    from algebrax.verification import verify_add_comm_group_laws, verify_comm_group_laws
+
+    cn = cyclic_group(n)
+    assert isinstance(cn, FiniteCommGroup)
+    assert isinstance(cn, CommGroup)
+    assert all(verify_comm_group_laws(cn, cn.elements).values())
+
+    class RationalSparseVecGroup(AddCommGroup[dict[str, Fraction]]):
+        @property
+        def zero(self) -> dict[str, Fraction]:
+            return {}
+
+        def add(self, a: dict[str, Fraction], b: dict[str, Fraction]) -> dict[str, Fraction]:
+            res = {k: a.get(k, Fraction(0)) + b.get(k, Fraction(0)) for k in set(a) | set(b)}
+            return {k: v for k, v in res.items() if v != 0}
+
+        def neg(self, a: dict[str, Fraction]) -> dict[str, Fraction]:
+            return {k: -v for k, v in a.items()}
+
+        def sub(self, a: dict[str, Fraction], b: dict[str, Fraction]) -> dict[str, Fraction]:
+            return self.add(a, self.neg(b))
+
+    grp = RationalSparseVecGroup()
+    assert isinstance(grp, AddCommGroup)
+    assert isinstance(grp, LawAddAssociative)
+    assert isinstance(grp, LawAddCommutative)
+    samples = [
+        {},
+        {'x': v1} if v1 != 0 else {'x': Fraction(1)},
+        {'y': v2, 'z': Fraction(1, 2)} if v2 != 0 else {'y': Fraction(-1, 3), 'z': Fraction(1, 2)},
+        {'x': v3, 'y': Fraction(2, 3)} if v3 != 0 else {'x': Fraction(3, 5), 'y': Fraction(2, 3)},
+    ]
+    assert all(verify_add_comm_group_laws(grp, samples, tol=0.0).values())
+
