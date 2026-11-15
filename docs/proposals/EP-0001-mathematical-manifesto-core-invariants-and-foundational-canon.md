@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                             |
 | **Type**          | Process                                                                           |
 | **Created**       | 2026-11-12                                                                        |
-| **Updated**       | 2026-11-12                                                                        |
+| **Updated**       | 2026-11-15                                                                        |
 | **Replaces**      | —                                                                                 |
 | **Superseded-By** | —                                                                                 |
 
@@ -137,6 +137,7 @@ Domain-specific subjects (such as semiring catalogs, homology, differential form
 - **`EP-0200` – `EP-0219`**: Categorical DEC, Fiber Bundles, Quantum/Non-Associative Algebras, and Representations.
 - **`EP-0220` – `EP-0229`**: Commutative Algebra, Algebraic Varieties, Companion Matrix Solvers & Tropical Geometry.
 - **`EP-0230` – `EP-0239`**: Generalized Harmonic Analysis, Peter–Weyl Group FT, Algebraic Signal Processing, Exact NTT & Spectral Wavelets.
+- **`EP-0240` – `EP-0249`**: Algebraic Analysis, Differential Rings, Weyl Algebras, Ore Skew-Polynomials, Hermite/Gosper Reduction, Taylor Jets & Differential Galois Theory.
 
 ---
 
@@ -189,3 +190,4 @@ This proposal is an overarching process and architectural document; it introduce
 ## Change Log
 
 - **2026-11-12**: Initial constitutional draft authored following Grand Council consensus.
+- **2026-11-15**: Registered Phase 11 Differential & Ore Algebras domain track (`EP-0240` – `EP-0249`) from `EXP-0011`.

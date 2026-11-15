@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                                                    |
 | **Type**    | Informational                                             |
 | **Created** | 2026-08-01                                                |
-| **Updated** | 2026-11-14                                                |
+| **Updated** | 2026-11-15                                                |
 
 ## Abstract
 
@@ -32,8 +32,9 @@ and Fiedler partitioning (`EP-0152`), the **Phase 4 Algebraic Continents & Next 
 the **Phase 6 Pure Algebraic Hierarchy** (`EXP-0004`, `EP-0190` through `EP-0198`),
 the **Phase 7 Categorical Foundations & Morphisms** (`EXP-0005`, `EP-0200` through `EP-0209`),
 the **Phase 8 Representation Theory & Quantum Symmetries** (`EXP-0006`, `EP-0210` through `EP-0215`),
-the **Phase 9 Commutative Algebra, Algebraic Varieties & Tropical Geometry** (`EXP-0009`, `EP-0220` through `EP-0222`), and
-the **Phase 10 Generalized Harmonic Analysis & Spectral Signal Theory** (`EXP-0010`, `EP-0230` through `EP-0232`).
+the **Phase 9 Commutative Algebra, Algebraic Varieties & Tropical Geometry** (`EXP-0009`, `EP-0220` through `EP-0222`),
+the **Phase 10 Generalized Harmonic Analysis & Spectral Signal Theory** (`EXP-0010`, `EP-0230` through `EP-0232`), and
+the **Phase 11 Algebraic Analysis, Differential Rings & Ore Algebras** (`EXP-0011`, `EP-0240` through `EP-0242`).
 
 ---
 
@@ -143,6 +144,12 @@ flowchart TD
         EP0232_N["EP-0232 Graph, Hodge & Sheaf Wavelets 💡\n⚡ Shannon, ⚖️ Noether & 🔬 Popper"]
     end
 
+    subgraph P11["Phase 11 — Differential & Ore Algebras (EXP-0011)"]
+        EP0240_N["EP-0240 Differential Rings, Weyl & Kähler 💡\n⚖️ Noether, ⚡ Shannon & 🛡️ Golem"]
+        EP0241_N["EP-0241 Ore Algebras, D-Finite & Frobenius 💡\n⚖️ Noether, ⚡ Shannon & 🔬 Popper"]
+        EP0242_N["EP-0242 Hermite, Gosper, Telescoping & Jets 💡\n⚡ Shannon, 🔬 Popper & 🛡️ Golem"]
+    end
+
     EP0152_N --> EP0160_N
     EP0153_N --> EP0160_N
     EP0110 --> EP0162_N
@@ -178,6 +185,14 @@ flowchart TD
     EP0112 --> EP0231_N
     EP0160_N --> EP0232_N
     EP0161_N --> EP0232_N
+    P10 --> P11
+    EP0204_N --> EP0240_N
+    EP0220_N --> EP0240_N
+    EP0221_N --> EP0240_N
+    EP0231_N --> EP0241_N
+    EP0240_N --> EP0241_N
+    EP0241_N --> EP0242_N
+    EP0149_N --> EP0242_N
     style CORE fill: #4a90d9, color: #fff
     style P3 fill: #2d7d46, color: #fff
     style P35 fill: #8b5cf6, color: #fff
@@ -317,10 +332,16 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0221: Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers (Noether/Russell/Shannon) [Draft]
   │     └── EP-0222: Tropical Varieties, Newton Polytopes & Balanced Polyhedral Complexes (Explorer/Noether/Shannon) [Draft]
   │
-  └── Phase 10: Generalized Harmonic Analysis & Spectral Signal Theory (EXP-0010)  ⏳ PLANNED
-        ├── EP-0230: Non-Abelian Group Fourier Transforms, Peter–Weyl Duality & Equivariant Convolutions (Noether/Popper/Shannon) [Draft]
-        ├── EP-0231: Algebraic Signal Processing, Exact Finite-Field NTT & Poset Möbius Transforms (Russell/Popper/Shannon) [Draft]
-        └── EP-0232: Geometric, Simplicial Hodge & Cellular Sheaf Spectral Wavelets (Shannon/Noether/Popper) [Draft]
+  ├── Phase 10: Generalized Harmonic Analysis & Spectral Signal Theory (EXP-0010)  ⏳ PLANNED
+  │     ├── EP-0230: Non-Abelian Group Fourier Transforms, Peter–Weyl Duality & Equivariant Convolutions (Noether/Popper/Shannon) [Draft]
+  │     ├── EP-0231: Algebraic Signal Processing, Exact Finite-Field NTT & Poset Möbius Transforms (Russell/Popper/Shannon) [Draft]
+  │     └── EP-0232: Geometric, Simplicial Hodge & Cellular Sheaf Spectral Wavelets (Shannon/Noether/Popper) [Draft]
+  │
+  └── Phase 11: Algebraic Analysis, Differential Rings & Ore Algebras (EXP-0011)  ⏳ PLANNED
+        ├── EP-0240: Differential Rings, Weyl Algebras, Characteristic Varieties & Kähler Differentials (Noether/Shannon/Golem) [Draft]
+        ├── EP-0241: Unified Ore Skew-Polynomial Algebras, D-Finite Closure & Frobenius Solvers (Noether/Shannon/Popper) [Draft]
+        ├── EP-0242: Exact Symbolic Integration, Hermite & Gosper Reduction, Creative Telescoping & Multivariate Taylor Jets (Shannon/Popper/Golem) [Draft]
+        └── EP-0243: Picard–Vessiot Differential Galois Theory, Symmetric Powers & Kovacic Factorization (Noether/Popper/Golem) [Draft]
 ```
 
 ---
@@ -400,6 +421,10 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0230** | Non-Abelian Group FT & P–W     | Noether & Popper  | `algebrax.transforms`, `harmonic`        | Draft    | `group_fourier_transform`, `inverse_group_fourier_transform`, Plancherel energy, Diaconis random walks                                     |
 | **EP-0231** | Algebraic Signal, NTT & Möbius | Russell & Popper  | `algebrax.transforms`, `algebra`, `lattice` | Draft | `PolynomialModulusIdeal`, `AlgebraicSignalModel` (DCT), exact `ModularField` `ntt`/`intt`, Fast Zeta/Möbius transforms                     |
 | **EP-0232** | Graph, Hodge & Sheaf Wavelets  | Shannon & Noether | `algebrax.transforms`, `topology`        | Draft    | `chebyshev_spectral_filter`, `spectral_wavelet_transform`, `hodge_spectral_filter` over sparse Laplacians                                  |
+| **EP-0240** | Differential Rings & Weyl $A_n$| Noether & Golem   | `algebrax.differential`, `algebra`       | Draft    | `HasSkewDerivation`, `LawRotaBaxter`, `DifferentialPolynomialRing` (`euler_lagrange`), `CanonicalPoissonAlgebra` (`legendre_transform`), `WeylAlgebra`, `characteristic_variety`, `AlgebraicDeRhamComplex` (`exterior_derivative`, `poincare_homotopy`), `KahlerDifferentialModule` |
+| **EP-0241** | Ore Algebras, D-Finite & Frob  | Noether & Popper  | `algebrax.differential`                  | Draft    | Mode-parameterized `OreAlgebra`, `right_divmod`, `gcrd`, `lclm`, `symmetric_product`, `indicial_polynomial`, `differential_newton_polygon`, `guess_ore_operator`, `differential_companion_matrix` |
+| **EP-0242** | Hermite, Gosper, CT & Jets     | Shannon & Popper  | `algebrax.differential`                  | Draft    | `hermite_reduce`, `rothstein_trager_resultant`, `gosper_sum`, `creative_telescope`, `TaylorJetAlgebra`, `solve_ode_jet`, `solve_hamiltonian_jet` |
+| **EP-0243** | Differential Galois & Kovacic  | Noether & Popper  | `algebrax.differential`                  | Draft    | `wronskian_operator`, `symmetric_power`, `exterior_power`, `kovacic_classify`, `kovacic_factorize`, `PicardVessiotTorsor`                  |
 
 ---
 
@@ -448,3 +473,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-14 | Eran Rivlis & Antigravity | Concluded EXP-0009; added Phase 9 (Commutative Algebra, Algebraic Varieties & Tropical Geometry): EP-0220 through EP-0222 (Draft).          |
 | 2026-11-14 | Eran Rivlis & Antigravity | Implemented EP-0209 (Langlands Root Duality, Hecke Algebras & p-Adic Valuations); updated status to Final (Phase 7 Complete).               |
 | 2026-11-14 | Eran Rivlis & Antigravity | Concluded EXP-0010; added Phase 10 (Generalized Harmonic Analysis & Spectral Signal Theory): EP-0230 through EP-0232 (Draft).               |
+| 2026-11-15 | Eran Rivlis & Antigravity | Concluded EXP-0011; added Phase 11 (Algebraic Analysis, Differential Rings & Ore Algebras): EP-0240 through EP-0243 (Draft).                |

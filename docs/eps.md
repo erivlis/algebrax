@@ -221,4 +221,21 @@ generalizing `algebrax.transforms` into non-Abelian Peter–Weyl matrix Fourier 
 | [EP-0231](proposals/EP-0231-algebraic-signal-processing-ntt-and-mobius-transforms.md)   | Algebraic Signal Processing, Exact Finite-Field NTT & Poset Möbius Transforms      | 🧩 Russell, 🔬 Popper & ⚡ Shannon      | :material-pencil: Draft |
 | [EP-0232](proposals/EP-0232-geometric-hodge-and-sheaf-spectral-wavelets.md)             | Geometric, Simplicial Hodge & Cellular Sheaf Spectral Wavelets                     | ⚡ Shannon, ⚖️ Noether & 🔬 Popper     | :material-pencil: Draft |
 
+---
+
+## Phase 11 — Algebraic Analysis, Differential Rings & Ore Algebras
+
+Proposals stemming from the **Differential & Ore Algebras Exploration**
+([EXP-0011](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md)),
+establishing skew-derivation mixins, unboxed non-commutative Weyl algebras $A_n(k)$, left Gröbner $D$-modules,
+characteristic varieties, Kähler differentials $\Omega^1_{k[V]/k}$, unified Ore skew-polynomial rings
+$R[\partial; \sigma, \delta]$, Frobenius indicial equations, exact rational Hermite reduction, Gosper summation,
+creative telescoping, multivariate Taylor Jet solvers, and bounded-order Picard–Vessiot Differential Galois Theory.
+
+| EP                                                                                                | Title                                                                                                    | Council Sponsor                      |         Status          |
+|:--------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------|:-------------------------------------|:-----------------------:|
+| [EP-0240](proposals/EP-0240-differential-rings-weyl-algebras-and-kahler-differentials.md)         | Differential Rings, Weyl Algebras, Characteristic Varieties & Kähler Differentials                         | ⚖️ Noether, ⚡ Shannon & 🛡️ Golem    | :material-pencil: Draft |
+| [EP-0241](proposals/EP-0241-ore-skew-polynomial-algebras-dfinite-closure-and-frobenius.md)        | Unified Ore Skew-Polynomial Algebras, D-Finite Closure & Frobenius Solvers                               | ⚖️ Noether, ⚡ Shannon & 🔬 Popper   | :material-pencil: Draft |
+| [EP-0242](proposals/EP-0242-hermite-gosper-reduction-creative-telescoping-and-taylor-jets.md)     | Exact Symbolic Integration, Hermite & Gosper Reduction, Creative Telescoping & Multivariate Taylor Jets  | ⚡ Shannon, 🔬 Popper & 🛡️ Golem     | :material-pencil: Draft |
+| [EP-0243](proposals/EP-0243-picard-vessiot-differential-galois-and-kovacic.md)                    | Picard–Vessiot Differential Galois Theory, Symmetric Powers & Kovacic Factorization                      | ⚖️ Noether, 🔬 Popper & 🛡️ Golem     | :material-pencil: Draft |
 
