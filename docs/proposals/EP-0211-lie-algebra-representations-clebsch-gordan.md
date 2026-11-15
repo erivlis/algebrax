@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                             |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-10-28                                                                        |
-| **Updated**       | 2026-10-28                                                                        |
+| **Updated**       | 2026-11-15                                                                        |
 | **Replaces**      | —                                                                                 |
 | **Superseded-By** | —                                                                                 |
 
@@ -25,26 +25,27 @@ status: draft
 
 ## Abstract
 
-This proposal establishes the computational framework for **Lie Algebra Representations** in AlgebraX, formalizing infinitesimal symmetries and quantum angular momentum coupling over sparse matrix carriers. EP-0211 introduces:
+This proposal establishes the computational framework for **Lie Algebra Representations** in AlgebraX, formalizing infinitesimal symmetries and quantum angular momentum coupling over sparse matrix carriers while building cleanly atop [`algebrax.lie`](EP-0163-lie-algebras-and-bch-dynamics.md) and [`algebrax.rep`](EP-0210-group-representations-character-tables-schurs-lemma.md). EP-0211 introduces:
 
-1. **Lie Algebra Representation Protocol (`algebrax.lie.rep`)**:
+1. **Lie Algebra Representation Protocol (`algebrax.rep.lie`)**:
    $$\rho : \mathfrak{g} \longrightarrow \mathfrak{gl}(V)$$
-   mapping Lie generators $X \in \mathfrak{g}$ to sparse matrices satisfying the bracket homomorphism:
+   refining `algebra.LieAlgebraHom` and mapping Lie generators $X \in \mathfrak{g}$ to sparse matrices satisfying the bracket homomorphism:
    $$\rho([X, Y]) = [\rho(X), \rho(Y)] = \rho(X)\rho(Y) - \rho(Y)\rho(X)$$
+   Explicitly delegates `adjoint_representation(g)` and `defining_representation(g)` to existing `LieAlgebra.adjoint_matrix` and `LieAlgebra.element_to_matrix` mechanics without duplication, and bridges to group representations via $\exp(\rho(X))$.
 2. **Weight Spaces & Highest Weight Modules**:
    Decomposition of $V$ into simultaneous eigenspaces of the Cartan subalgebra $\mathfrak{h}$:
    $$V = \bigoplus_{\mu} V_\mu, \quad V_\mu = \{v \in V \mid \rho(H_i) v = \mu(H_i) v\}$$
    classified by highest weight vectors $v_\Lambda$ annihilated by all positive raising operators ($E_\alpha v_\Lambda = 0$).
-3. **The Quadratic Casimir Operator**:
-   Constructing the central invariant operator $C = \sum_i X_i X^i$ in the universal enveloping algebra $U(\mathfrak{g})$:
+3. **The Quadratic Casimir Operator (`algebrax.rep.lie`)**:
+   Constructing the central invariant operator $C = \sum_{i,j} g^{ij} \rho(X_i)\rho(X_j)$ in the universal enveloping algebra $U(\mathfrak{g})$:
    $$[C, \rho(X)] = \mathbf{0}, \quad C|_{V_\Lambda} = \langle \Lambda, \Lambda + 2\delta \rangle \mathbf{I}$$
    providing an automated, certified check for irreducibility.
 4. **Sparse Clebsch–Gordan Coupling 3-Tensors (`algebrax.tensor.coupling`)**:
-   Exact representation of tensor product decompositions $V_{\lambda_1} \otimes V_{\lambda_2} \cong \bigoplus_\mu V_\mu$ as sparse 3-tensors $C_{m_1 m_2}^{j m}$ in `algebrax.tensor`.
-5. **Property-Based Verification (`algebrax.verification.lie_rep`)**:
-   Automated verification of Lie bracket preservation, Casimir commutativity, and Wigner-Eckart tensor transformation laws.
+   Exact representation of tensor product decompositions $V_{\lambda_1} \otimes V_{\lambda_2} \cong \bigoplus_\mu V_\mu$ as sparse 3-tensors $C_{m_1 m_2}^{j m}$ in `algebrax.tensor` (re-exported in `algebrax.rep.lie`).
+5. **Property-Based Verification (`algebrax.verification`)**:
+   Automated verification of Lie bracket preservation (`verify_lie_representation_homomorphism`), Casimir commutativity (`verify_casimir_commutativity`), and Wigner–Eckart tensor transformation laws in `src/algebrax/verification.py`.
 
-All operators are built directly on AlgebraX's unboxed sparse matrices (`algebrax.matrix.sparse`) and root system engine ([`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md)).
+All operators build directly on AlgebraX's unboxed sparse matrices (`algebrax.matrix`), [`LieAlgebra`](EP-0163-lie-algebras-and-bch-dynamics.md), and root system engine ([`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md)).
 
 ---
 
@@ -52,7 +53,7 @@ All operators are built directly on AlgebraX's unboxed sparse matrices (`algebra
 
 Lie algebras govern continuous symmetries throughout physics and geometry—from 3D spatial rotations ($\mathfrak{so}(3)$) and Lorentz boosts ($\mathfrak{so}(3, 1)$) to gauge theories ($\mathfrak{su}(2), \mathfrak{su}(3)$).
 
-1. **Beyond Structure Constants**: [`EP-0163`](EP-0163-lie-algebras-and-bch-dynamics.md) and [`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md) established Lie algebra brackets and root systems. However, physics and geometric machine learning require representations acting on states (spinors, tensors, wavefunctions, and particle multiplets).
+1. **Beyond Structure Constants**: [`EP-0163`](EP-0163-lie-algebras-and-bch-dynamics.md) and [`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md) established Lie algebra brackets (`LieAlgebra.adjoint_matrix`, `LieAlgebra.element_to_matrix`) and root systems. Physics and geometric machine learning require unifying these into representation objects with tensor products ($\rho_1 \otimes I + I \otimes \rho_2$), contragredient duals ($-\rho(X)^T$), intertwiners, and Casimir invariants.
 2. **Coupling Quantum Systems (Angular Momentum Addition)**: When two particles of spin $j_1$ and $j_2$ interact, their combined state space is the tensor product $V_{j_1} \otimes V_{j_2}$. The Clebsch–Gordan coefficients decouple this into irreducible spin states $|j, m\rangle$. Currently, AlgebraX lacks sparse coupling tensor mechanics.
 3. **Casimir Invariant Eigenvalues**: In spectral analysis and graph quantum mechanics, the Casimir eigenvalue $\lambda_C = j(j+1)$ classifies energy levels and invariant laplacians on symmetric spaces.
 
@@ -62,15 +63,15 @@ Lie algebras govern continuous symmetries throughout physics and geometry—from
 
 - **⚖️ Noether (Continuous Symmetries & Invariant Charges)**:
   Lie algebra representations represent the differential generators of Noether charges. The Casimir operator provides the central conserved quantity (total angular momentum $J^2$, color Casimir $C_2$).
-- **⚡ Shannon (Zero Bloat & Sparse 3-Tensors)**:
-  Clebsch–Gordan coefficients are notoriously sparse: selection rules force $m = m_1 + m_2$ and $|j_1 - j_2| \le j \le j_1 + j_2$. Storing them as unboxed sparse dictionary 3-tensors `{(j, m1, m2): val}` eliminates the $O(d_1^2 d_2^2)$ memory explosion of dense arrays.
+- **⚡ Shannon (Zero Bloat & Zero Duplication)**:
+  Clebsch–Gordan coefficients are notoriously sparse: selection rules force $m = m_1 + m_2$ and $|j_1 - j_2| \le j \le j_1 + j_2$. Storing them as unboxed sparse dictionary 3-tensors `{(j, m1, m2): val}` eliminates dense $O(d_1^2 d_2^2)$ allocation, while housing Lie representation abstractions in `algebrax.rep.lie` shares sparse direct-sum, tensor-product, and intertwiner machinery with finite-group representations and delegates directly to `LieAlgebra`.
 - **🔬 Popper (Falsifiable Invariants)**:
   Every representation must satisfy:
   - $\rho([X, Y]) - (\rho(X)\rho(Y) - \rho(Y)\rho(X)) = \mathbf{0}$.
   - $[C, \rho(X)] = \mathbf{0}$ for all generators $X$.
   - Casimir scalar eigenvalue matches Freudenthal's formula: $\lambda_C = \langle \Lambda, \Lambda + 2\delta \rangle$.
 - **🧩 Russell (Taxonomy & Functorial Action)**:
-  Positions Lie algebra representation as a Lie algebra homomorphism $\mathfrak{g} \to \mathfrak{gl}(V)$, dual to group representation $\rho: G \to \mathrm{GL}(V)$ via the exponential map $\exp: \mathfrak{g} \to G$.
+  Positions `LieRepresentation` as a `LieAlgebraHom` $\mathfrak{g} \to \mathfrak{gl}(V)$, dual to `GroupRepresentation` $\rho: G \to \mathrm{GL}(V)$ (`GroupHom`) via the exponential map $\exp: \mathfrak{g} \to G$.
 - **💡 Feynman (Freshman Test & Intuitive Demystification)**:
   *"Angular momentum addition is just matrix multiplication! Clebsch-Gordan coefficients are the change-of-basis matrix between the separate-spin world and the total-spin world."*
 
@@ -78,16 +79,17 @@ Lie algebras govern continuous symmetries throughout physics and geometry—from
 
 ## Specification
 
-### 1. Lie Algebra Representation Protocol (`src/algebrax/lie/rep.py`)
+### 1. Lie Algebra Representation Protocol & Standard Constructions (`src/algebrax/rep/lie.py`)
 
 ```python
-"""Lie algebra representation protocols and operators."""
+"""Lie algebra representation protocols, spin-j modules, Casimir operators, and exp bridge."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Generic, Protocol, Sequence, TypeVar, runtime_checkable
 
+from algebrax.algebra._homomorphisms import LieAlgebraHom
 from algebrax.lie import LieAlgebra
 from algebrax.typing import SparseMatrix
 
@@ -95,7 +97,7 @@ K = TypeVar("K")
 
 
 @runtime_checkable
-class LieRepresentation(Protocol[K]):
+class LieRepresentation(LieAlgebraHom[int, SparseMatrix[int, K]], Protocol[K]):
     """Protocol for a linear representation of a Lie algebra g on K^d."""
 
     @property
@@ -109,8 +111,8 @@ class LieRepresentation(Protocol[K]):
 
 
 @dataclass(frozen=True)
-class ExplicitLieRep(LieRepresentation[K], Generic[K]):
-    """Lie representation backed by a sequence of sparse generator matrices."""
+class ExplicitLieRep(Generic[K]):
+    """Lie representation backed by sparse generator matrices (direct sum, tensor product, dual)."""
 
     algebra: LieAlgebra
     generator_matrices: Sequence[SparseMatrix[int, K]]
@@ -118,47 +120,34 @@ class ExplicitLieRep(LieRepresentation[K], Generic[K]):
 
     def __call__(self, idx: int) -> SparseMatrix[int, K]:
         return self.generator_matrices[idx]
-```
 
-### 2. Standard Representations for $\mathfrak{sl}_2$ and $\mathfrak{so}_3$ (`src/algebrax/lie/spin.py`)
-
-```python
-"""Standard spin-j and adjoint representations."""
 
 def spin_representation(j_halves: int) -> ExplicitLieRep[complex]:
-    """Construct irreducible representation of sl_2 / su_2 of spin j = j_halves / 2.
-    
-    Dimension is 2j + 1. Generators are J_z, J_+, J_-.
-    """
+    """Construct irreducible representation of sl_2 / su_2 of spin j = j_halves / 2."""
     ...
 
-def adjoint_representation(algebra: LieAlgebra) -> ExplicitLieRep[float]:
-    """Construct adjoint representation ad_X(Y) = [X, Y] of dimension dim(g)."""
+
+def adjoint_representation(algebra: LieAlgebra) -> ExplicitLieRep[float | complex]:
+    """Construct adjoint representation ad_X(Y) = [X, Y] delegating to algebra.adjoint_matrix."""
     ...
-```
 
-### 3. Casimir Operator Construction (`src/algebrax/lie/casimir.py`)
 
-```python
-"""Quadratic Casimir invariant operators."""
-
-from algebrax.lie import LieAlgebra
-from algebrax.lie.rep import LieRepresentation
-from algebrax.typing import SparseMatrix
+def defining_representation(algebra: LieAlgebra) -> ExplicitLieRep[float | complex]:
+    """Wrap algebra.matrix_basis as an ExplicitLieRep."""
+    ...
 
 
 def quadratic_casimir(
     rep: LieRepresentation[K],
-    killing_metric_inv: SparseMatrix[int, float],
+    killing_metric_inv: SparseMatrix[int, float] | None = None,
 ) -> SparseMatrix[int, K]:
-    """Compute quadratic Casimir operator C = sum_{i,j} g^{ij} rho(X_i) @ rho(X_j).
-    
-    By Schur's lemma, on an irreducible representation C is a scalar multiple of I.
-    """
+    """Compute quadratic Casimir operator C = sum_{i,j} g^{ij} rho(X_i) @ rho(X_j)."""
     ...
 ```
 
-### 4. Sparse Clebsch–Gordan Coupling 3-Tensors (`src/algebrax/tensor/coupling.py`)
+(Ergonomically re-exported in `algebrax.lie` via `adjoint_representation`, `spin_representation`, `quadratic_casimir`.)
+
+### 2. Sparse Clebsch–Gordan Coupling 3-Tensors (`src/algebrax/tensor/coupling.py`)
 
 ```python
 """Clebsch–Gordan coefficients and sparse coupling tensors."""
@@ -168,22 +157,30 @@ from algebrax.typing import SparseTensor
 
 def clebsch_gordan_tensor(j1_halves: int, j2_halves: int) -> SparseTensor[int, float]:
     """Compute sparse 3-tensor C_{m1, m2}^{(j, m)} coupling spins j1 and j2.
-    
+
     Sparse keys are tuples: ((j, m), m1, m2) where m = m1 + m2.
     """
     ...
 ```
 
-### 5. Verification Suite (`src/algebrax/verification/lie_rep.py`)
+### 3. Verification Suite (`src/algebrax/verification.py`)
 
 ```python
 """Property-based verification for Lie algebra representations."""
 
-def verify_lie_homomorphism(rep: LieRepresentation[K], algebra: LieAlgebra) -> bool:
+def verify_lie_representation_homomorphism(
+    rep: LieRepresentation[K],
+    algebra: LieAlgebra,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
     """Verify rho([X_i, X_j]) == rho(X_i) rho(X_j) - rho(X_j) rho(X_i)."""
     ...
 
-def verify_casimir_commutativity(rep: LieRepresentation[K], algebra: LieAlgebra) -> bool:
+def verify_casimir_commutativity(
+    rep: LieRepresentation[K],
+    algebra: LieAlgebra,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
     """Verify [C, rho(X_k)] == 0 for all generators X_k."""
     ...
 ```
@@ -192,7 +189,7 @@ def verify_casimir_commutativity(rep: LieRepresentation[K], algebra: LieAlgebra)
 
 ## Backwards Compatibility
 
-Non-breaking and strictly additive. Builds directly upon `algebrax.lie` ([`EP-0163`](EP-0163-lie-algebras-and-bch-dynamics.md), [`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md)) and `algebrax.tensor`.
+Non-breaking and strictly additive. Builds directly upon `algebrax.lie` ([`EP-0163`](EP-0163-lie-algebras-and-bch-dynamics.md), [`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md)), `algebrax.rep`, and `algebrax.tensor`.
 
 ---
 
@@ -208,7 +205,7 @@ Non-breaking and strictly additive. Builds directly upon `algebrax.lie` ([`EP-01
 
 ## Reference Implementation
 
-Prototype implementations will reside in `src/algebrax/lie/rep.py` and `src/algebrax/tensor/coupling.py`.
+Implementations will reside in `src/algebrax/rep/lie.py` (with re-exports from `algebrax.lie`), `src/algebrax/tensor/coupling.py`, and verifiers in `src/algebrax/verification.py`.
 
 ---
 
@@ -218,6 +215,8 @@ Prototype implementations will reside in `src/algebrax/lie/rep.py` and `src/alge
    - *Rejected*: Dense arrays scale as $O((2j_1+1)(2j_2+1)(2(j_1+j_2)+1))$, wasting $>90\%$ of entries due to angular momentum selection rules ($m = m_1 + m_2$). Sparse dictionaries are vastly more efficient.
 2. **Hardcoding $\mathfrak{su}(2)$ only**:
    - *Rejected*: Design must remain general for all semisimple Lie algebras ($\mathfrak{sl}_n, \mathfrak{so}_n, \mathfrak{sp}_n$) via root system weights.
+3. **Separate Representation Plumbing Inside `algebrax/lie/`**:
+   - *Rejected*: Creating `lie/rep.py`, `lie/spin.py`, `lie/casimir.py` as an isolated island would duplicate `direct_sum`, `tensor_product`, `dual`, and intertwiner logic already maintained in `algebrax.rep`, as well as duplicate `LieAlgebra.adjoint_matrix`.
 
 ---
 
@@ -232,3 +231,5 @@ Prototype implementations will reside in `src/algebrax/lie/rep.py` and `src/alge
 
 * **2026-10-28:**
   * Initial Draft authored for Phase 8.
+* **2026-11-15:**
+  * Aligned specification with unified `algebrax.rep.lie` + `algebrax.lie` re-exports, `LieAlgebraHom` refinement, delegation to existing `LieAlgebra.adjoint_matrix` / `element_to_matrix`, and `src/algebrax/verification.py`.
