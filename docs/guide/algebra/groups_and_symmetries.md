@@ -21,7 +21,7 @@ from algebrax.algebra import AddCommGroup, Group, zpow, zsmul
 
 
 # 1. Multiplicative Group of non-zero floats
-class NonZeroFloatGroup:
+class NonZeroFloatGroup(Group[float]):
     @property
     def one(self) -> float:
         return 1.0
@@ -51,14 +51,14 @@ assert group.signature(p) == 1  # Even permutation
 
 ## 3. Atomic Mixins & Protocol Contracts
 
-Groups extend monoids with the `HasInv[V]` (multiplicative) or `HasNeg[V]` (additive) mixin, which also provide derived division (`div(a, b) = mul(a, inv(b))`) and subtraction (`sub(a, b) = add(a, neg(b))`):
+Groups extend monoids with `HasInv[V]` (multiplicative) or `HasNeg[V]` (additive) plus equational law witnesses (`LawAssociative` / `LawCommutative` or `LawAddAssociative` / `LawAddCommutative`), and provide derived division (`div(a, b) = mul(a, inv(b))`) and subtraction (`sub(a, b) = add(a, neg(b))`):
 
 | Named Protocol | Mixin Composition | Algebraic Signature | Key Operations |
 |:---------------|:------------------|:--------------------|:---------------|
-| `Group[V]` | `(HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ | `one`, `mul`, `inv`, `div` |
-| `CommGroup[V]` | `(HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ | Commutative group ($a \cdot b = b \cdot a$) |
-| `AddGroup[V]` | `(HasZero[V], HasAdd[V], HasNeg[V], Protocol)` | $\langle V, \mathbf{0}, +, - \rangle$ | `zero`, `add`, `neg`, `sub` |
-| `AddCommGroup[V]` | `(HasZero[V], HasAdd[V], HasNeg[V], Protocol)` | $\langle V, \mathbf{0}, +, - \rangle$ | Additive abelian group ($a + b = b + a$) |
+| `Group[V]` | `(HasOne[V], HasMul[V], HasInv[V], LawAssociative, Protocol)` | $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ | `one`, `mul`, `inv`, `div`, `is_associative` |
+| `CommGroup[V]` | `(HasOne[V], HasMul[V], HasInv[V], LawAssociative, LawCommutative, Protocol)` | $\langle V, \mathbf{1}, \cdot, ^{-1} \rangle$ | Commutative group ($a \cdot b = b \cdot a$) |
+| `AddGroup[V]` | `(HasZero[V], HasAdd[V], HasNeg[V], LawAddAssociative, Protocol)` | $\langle V, \mathbf{0}, +, - \rangle$ | `zero`, `add`, `neg`, `sub`, `is_add_associative` |
+| `AddCommGroup[V]` | `(HasZero[V], HasAdd[V], HasNeg[V], LawAddAssociative, LawAddCommutative, Protocol)` | $\langle V, \mathbf{0}, +, - \rangle$ | Additive abelian group ($a + b = b + a$) |
 | `GroupAction[G, X]` | `(Protocol[G, X])` | $\langle G, X, \operatorname{gact} \rangle$ | Left group action $g \cdot (h \cdot x) = (gh) \cdot x$ |
 
 ### Unboxed Sparse Vectors as an `AddCommGroup`
@@ -66,7 +66,7 @@ Groups extend monoids with the `HasInv[V]` (multiplicative) or `HasNeg[V]` (addi
 In AlgebraX, sparse vectors `dict[K, float]` form a natural additive abelian group without wrapper classes:
 
 ```python
-class SparseVectorGroup:
+class SparseVectorGroup(AddCommGroup[dict[str, float]]):
     @property
     def zero(self) -> dict[str, float]:
         return {}
@@ -88,12 +88,36 @@ v = {'x': 2.0, 'y': -1.0}
 assert zsmul(svg, v, -3) == {'x': -6.0, 'y': 3.0}
 ```
 
-### Permutation Group Operations (`algebrax.group`)
+### Permutation & Finite Group Operations (`algebrax.group`)
 
 Permutations $\pi \in S_n$ are represented as bijective dictionaries `{i: pi_i}`:
 - **`group.compose(p1, p2)`**: Evaluates $(\pi_1 \circ \pi_2)(x) = \pi_1(\pi_2(x))$.
 - **`group.invert(p)`**: Computes the inverse bijection $\pi^{-1} = \{v: k\}$.
 - **`group.signature(p)`**: Computes the parity sign $\operatorname{sgn}(\pi) \in \{+1, -1\}$ via cycle decomposition in $O(N)$ time, powering exact symbolic determinants and exterior wedge products.
+
+For structured finite symmetry analysis, `FiniteGroup[G]` implements `Group[G]` and `FiniteCommGroup[G]` refines it for abelian groups (`CommGroup[G]`), automatically promoted across canonical constructors, centers, subgroups, quotients, and direct products (`cyclic_group`, `dihedral_group`, `quaternion_group`, `symmetric_group`, `alternating_group`, `direct_product`):
+
+```python
+from algebrax.algebra import CommGroup
+from algebrax.group import FiniteCommGroup, cyclic_group, quaternion_group, symmetric_group
+
+s3 = symmetric_group(3)
+assert s3.order == 6
+assert not isinstance(s3, CommGroup)
+assert [len(c) for c in s3.conjugacy_classes()] == [1, 3, 2]
+
+# Subgroup generation: A_3 = <(1, 2, 0)> is abelian & normal in S_3, giving quotient S_3 / A_3 ~= C_2
+a3 = s3.subgroup([(1, 2, 0)], generate=True)
+assert isinstance(a3, FiniteCommGroup) and isinstance(a3, CommGroup)
+assert s3.is_normal(a3)
+assert isinstance(s3.quotient(a3), FiniteCommGroup)
+
+# Quaternion group Q_8: center Z(Q_8) = {1, -1} and abelian Klein-4 quotient
+q8 = quaternion_group()
+assert isinstance(q8.center(), FiniteCommGroup)
+assert isinstance(q8.quotient(q8.center()), FiniteCommGroup)
+assert isinstance(cyclic_group(4), FiniteCommGroup)
+```
 
 ---
 
