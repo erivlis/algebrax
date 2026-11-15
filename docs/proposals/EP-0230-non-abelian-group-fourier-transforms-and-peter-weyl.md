@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                          |
 | **Type**          | Standards Track                                                                                |
 | **Created**       | 2026-11-14                                                                                     |
-| **Updated**       | 2026-11-14                                                                                     |
+| **Updated**       | 2026-11-15                                                                                     |
 | **Replaces**      | —                                                                                              |
 | **Superseded-By** | —                                                                                              |
 
@@ -25,7 +25,7 @@ status: draft
 
 ## Abstract
 
-This proposal generalizes [`algebrax.transforms.gelfand_transform`](https://github.com/erivlis/algebrax/blob/main/src/algebrax/transforms.py) from 1-dimensional scalar characters to full **Matrix-Valued Non-Abelian Group Fourier Transforms** over the irreducible matrix representations introduced in [`EP-0210`](EP-0210-group-representations-character-tables-schurs-lemma.md). Specifically, EP-0230 introduces:
+This proposal generalizes [`algebrax.transforms.gelfand_transform`](https://github.com/erivlis/algebrax/blob/main/src/algebrax/transforms.py) from 1-dimensional scalar characters to full **Matrix-Valued Non-Abelian Group Fourier Transforms** over the `FiniteGroup[G]` carrier and irreducible matrix representations introduced in [`EP-0210`](EP-0210-group-representations-character-tables-schurs-lemma.md). Specifically, EP-0230 introduces:
 
 1. **Non-Abelian Group Fourier Transform (`group_fourier_transform`)**:
    Evaluates a sparse group signal $f \in \mathbb{C}[G]$ (`dict[G, complex]`) at a complete family of unitary irreducible matrix representations $\widehat{G} = \{\rho_\lambda: G \to \operatorname{GL}_{d_\lambda}(\mathbb{C})\}$:
@@ -47,7 +47,7 @@ In [`src/algebrax/transforms.py`](https://github.com/erivlis/algebrax/blob/main/
 1. **Empirical Falsification of Scalar Characters on $S_3$ ([`EXP-0010`](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md) Experiment 1)**:
    Irreducible characters $\chi_\lambda(g) = \operatorname{Tr}(\rho_\lambda(g))$ are class functions ($\chi_\lambda(hgh^{-1}) = \chi_\lambda(g)$). Consequently, two distinct signals $f_1 \ne f_2 \in \mathbb{C}[S_3]$ supported on different transpositions $(12)$ vs. $(23)$ produce **100% identical scalar Gelfand spectra** `{'triv': 2.5, 'sign': -1.5, 'std': 2.5}`, losing $d_\lambda^2 - 1 = 3$ degrees of freedom on the 2D standard representation and making signal inversion impossible.
 2. **Unlocking Phase 8 Representation Theory for Signal Processing & Machine Learning**:
-   [`EP-0210`](EP-0210-group-representations-character-tables-schurs-lemma.md) and [`EP-0213`](EP-0213-induced-representations-and-frobenius-reciprocity.md) provide `GroupRepresentation[G, V]`. Pairing `GroupRepresentation` with `algebrax.transforms` immediately unlocks **Diaconis's spectral analysis of permutations/rankings** and **Group-Equivariant Neural Convolutions (`G-CNN`s)** (Kondor & Trivedi 2018).
+   [`EP-0210`](EP-0210-group-representations-character-tables-schurs-lemma.md) and [`EP-0213`](EP-0213-induced-representations-and-frobenius-reciprocity.md) provide `FiniteGroup[G]` (`algebrax.group`) and `GroupRepresentation[K, G]` (`algebrax.rep`). Pairing `FiniteGroup` and `GroupRepresentation` with `algebrax.transforms` immediately unlocks **Diaconis's spectral analysis of permutations/rankings** and **Group-Equivariant Neural Convolutions (`G-CNN`s)** (Kondor & Trivedi 2018).
 
 ---
 
@@ -74,19 +74,20 @@ Validated in [**EXP-0010**](https://github.com/erivlis/algebrax/blob/main/refere
 ```python
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Hashable, Mapping, Sequence
 from typing import TypeVar
 
-from algebrax.representation import GroupRepresentation
+from algebrax.group.finite import FiniteGroup
+from algebrax.rep import GroupRepresentation
 from algebrax.typing import SparseMatrix, SparseVector
 
-G = TypeVar("G")
+G = TypeVar("G", bound=Hashable)
 IrrepId = TypeVar("IrrepId")
 
 
 def group_fourier_transform(
     signal: SparseVector[G, complex],
-    irreps: Mapping[IrrepId, GroupRepresentation[G, complex]],
+    irreps: Mapping[IrrepId, GroupRepresentation[complex, G]],
 ) -> dict[IrrepId, SparseMatrix[int, complex]]:
     r"""Compute the Non-Abelian Group Fourier Transform $\hat{f}(\rho_\lambda) = \sum_{g \in G} f(g)\,\rho_\lambda(g)$.
 
@@ -98,8 +99,8 @@ def group_fourier_transform(
 
 def inverse_group_fourier_transform(
     spectrum: Mapping[IrrepId, SparseMatrix[int, complex]],
-    group_elements: Sequence[G],
-    irreps: Mapping[IrrepId, GroupRepresentation[G, complex]],
+    group_or_elements: FiniteGroup[G] | Sequence[G],
+    irreps: Mapping[IrrepId, GroupRepresentation[complex, G]],
 ) -> dict[G, complex]:
     r"""Reconstruct $f(g) = \frac{1}{|G|} \sum_{\lambda \in \widehat{G}} d_\lambda \operatorname{Tr}\!\left(\hat{f}(\rho_\lambda)\,\rho_\lambda(g^{-1})\right)$."""
     ...
@@ -108,8 +109,8 @@ def inverse_group_fourier_transform(
 def group_spectral_convolve(
     f: SparseVector[G, complex],
     h: SparseVector[G, complex],
-    group_elements: Sequence[G],
-    irreps: Mapping[IrrepId, GroupRepresentation[G, complex]],
+    group_or_elements: FiniteGroup[G] | Sequence[G],
+    irreps: Mapping[IrrepId, GroupRepresentation[complex, G]],
 ) -> dict[G, complex]:
     r"""Compute non-commutative group convolution $f * h \in \mathbb{C}[G]$ via Peter–Weyl block-matrix multiplication."""
     ...
@@ -130,8 +131,8 @@ def plancherel_energy(
 def spectral_markov_walk(
     step_distribution: SparseVector[G, float],
     steps: int,
-    group_elements: Sequence[G],
-    irreps: Mapping[IrrepId, GroupRepresentation[G, complex]],
+    group_or_elements: FiniteGroup[G] | Sequence[G],
+    irreps: Mapping[IrrepId, GroupRepresentation[complex, G]],
 ) -> dict[G, float]:
     r"""Compute the $k$-step Markov distribution $P^{*k}$ on $G$ via spectral matrix powers $\hat{P}(\rho_\lambda)^k$."""
     ...
@@ -141,7 +142,7 @@ def diaconis_upper_bound(
     step_distribution: SparseVector[G, float],
     steps: int,
     group_order: int,
-    non_trivial_irreps: Mapping[IrrepId, GroupRepresentation[G, complex]],
+    non_trivial_irreps: Mapping[IrrepId, GroupRepresentation[complex, G]],
 ) -> float:
     r"""Evaluate the Diaconis–Shahshahani Upper Bound Lemma on Total Variation distance to uniformity:
 
@@ -154,8 +155,8 @@ def diaconis_upper_bound(
 
 - `verify_peter_weyl_laws(signal_a, signal_b, group, irreps)`:
   1. Verifies Burnside dimension sum $\sum_{\lambda \in \widehat{G}} d_\lambda^2 == |G|$.
-  2. Verifies exact inversion `inverse_group_fourier_transform(group_fourier_transform(f, irreps)) == f`.
-  3. Verifies non-Abelian convolution homomorphism `group_spectral_convolve(a, b) == group_algebra.mul(a, b)`.
+  2. Verifies exact inversion `inverse_group_fourier_transform(group_fourier_transform(f, irreps), group, irreps) == f`.
+  3. Verifies non-Abelian convolution homomorphism `group_spectral_convolve(a, b, group, irreps) == group_algebra.mul(a, b)`.
   4. Verifies Plancherel energy conservation $\sum_{g \in G} |f(g)|^2 == \mathrm{plancherel\_energy}(\hat{f})$.
 
 ---
@@ -196,3 +197,5 @@ Prototyped and verified in [`references/explorations/EXP-0010-generalized-harmon
 
 * **2026-11-14:**
   * Initial Draft authored for Phase 10 from `EXP-0010`.
+* **2026-11-15:**
+  * Updated imports and signatures to reference `algebrax.rep.GroupRepresentation[complex, G]` and `algebrax.group.FiniteGroup[G]`.
