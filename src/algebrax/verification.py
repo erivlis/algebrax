@@ -39,6 +39,7 @@ __all__ = [
     'verify_bialgebra_laws',
     'verify_boolean_algebra_laws',
     'verify_bounded_lattice_laws',
+    'verify_burnside_dimension_formula',
     'verify_category_laws',
     'verify_cauchy_schwarz',
     'verify_chern_character_additivity',
@@ -83,9 +84,12 @@ __all__ = [
     'verify_path_groupoid_laws',
     'verify_poisson_laws',
     'verify_quotient_ring_laws',
+    'verify_representation_homomorphism',
     'verify_residuation_laws',
     'verify_ring_homomorphism_laws',
     'verify_ring_laws',
+    'verify_schur_orthogonality',
+    'verify_schurs_lemma',
     'verify_semigroup_laws',
     'verify_semimodule_laws',
     'verify_semiring_laws',
@@ -2954,6 +2958,203 @@ def verify_padic_ultrametric_inequality(
 
 
 verify_padic_ultrametric = verify_padic_ultrametric_inequality
+
+
+def _sparse_matrices_close(a: Any, b: Any, tol: float) -> bool:
+    """Compare two sparse matrices over union of keys within numerical tolerance."""
+    for r in set(a.keys()) | set(b.keys()):
+        ra = a.get(r, {})
+        rb = b.get(r, {})
+        for c in set(ra.keys()) | set(rb.keys()):
+            if abs(complex(ra.get(c, 0)) - complex(rb.get(c, 0))) > tol:
+                return False
+    return True
+
+
+def _infer_identity_and_inverses(
+    elements: Sequence[Any],
+    mult: Callable[[Any, Any], Any],
+) -> tuple[Any | None, dict[Any, Any]]:
+    """Infer two-sided identity and element inverses from a finite group multiplication table."""
+    identity = None
+    for candidate in elements:
+        if all(mult(candidate, x) == x and mult(x, candidate) == x for x in elements):
+            identity = candidate
+            break
+    inv_map: dict[Any, Any] = {}
+    if identity is not None:
+        for g in elements:
+            for h in elements:
+                if mult(g, h) == identity and mult(h, g) == identity:
+                    inv_map[g] = h
+                    break
+    return identity, inv_map
+
+
+def verify_representation_homomorphism(
+    rep: Any,
+    elements: Sequence[Any] | Any,
+    mult: Callable[[Any, Any], Any] | None = None,
+    identity: Any | None = None,
+    inv: Callable[[Any], Any] | None = None,
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify group representation axioms for $\rho : G \to \mathrm{GL}(V)$:
+    - Multiplicativity: $\rho(g \cdot h) = \rho(g)\rho(h)$ for all $g, h \in G$
+    - Identity Preservation: $\rho(e) = \mathbf{I}_d$
+    - Class Function Invariance: $\chi(h g h^{-1}) = \chi(g)$
+    """
+    from algebrax.group.finite import FiniteGroup
+    from algebrax.matrix.core import dot, trace
+
+    if isinstance(elements, FiniteGroup):
+        elem_list = list(elements.elements)
+        resolved_mult = elements.mul if mult is None else mult
+        resolved_id = elements.one if identity is None else identity
+        resolved_inv: Callable[[Any], Any] | None = elements.inv if inv is None else inv
+    else:
+        if mult is None:
+            raise ValueError('mult callable is required when elements is not a FiniteGroup.')
+        elem_list = _require_samples(elements, min_count=1)
+        resolved_mult = mult
+        resolved_id = identity
+        resolved_inv = inv
+
+    inferred_id, inv_map = _infer_identity_and_inverses(elem_list, resolved_mult)
+    e = resolved_id if resolved_id is not None else inferred_id
+
+    mult_ok = True
+    for g in elem_list:
+        rg = rep(g)
+        for h in elem_list:
+            if not _sparse_matrices_close(dot(rg, rep(h)), rep(resolved_mult(g, h)), tol):
+                mult_ok = False
+                break
+        if not mult_ok:
+            break
+
+    id_mat = {i: {i: 1.0} for i in range(rep.dimension)}
+    id_ok = e is not None and _sparse_matrices_close(rep(e), id_mat, tol)
+
+    class_inv_ok = True
+    inv_lookup: Callable[[Any], Any] | None = (
+        resolved_inv if resolved_inv is not None else (inv_map.get if len(inv_map) == len(elem_list) else None)
+    )
+    if inv_lookup is None:
+        class_inv_ok = False
+    else:
+        for g in elem_list:
+            chi_g = complex(trace(rep(g)))
+            for h in elem_list:
+                conj = resolved_mult(resolved_mult(h, g), inv_lookup(h))
+                if abs(complex(trace(rep(conj))) - chi_g) > tol:
+                    class_inv_ok = False
+                    break
+            if not class_inv_ok:
+                break
+
+    return {
+        'multiplicativity': mult_ok,
+        'identity_preservation': id_ok,
+        'class_function_invariance': class_inv_ok,
+    }
+
+
+def verify_schur_orthogonality(table: Any, tol: float = 1e-7) -> dict[str, bool]:
+    r"""Verify first and second Schur orthogonality relations for a `CharacterTable`:
+    - Row Orthogonality: $\langle \chi_i, \chi_j \rangle = \delta_{ij}$
+    - Column Orthogonality: $\sum_i \chi_i(C_a) \overline{\chi_i(C_b)} = \frac{|G|}{|C_a|} \delta_{ab}$
+    """
+    n_irreps = len(table.irreps)
+    n_classes = len(table.classes)
+
+    row_ok = n_irreps > 0 and len(table.table) == n_irreps
+    if row_ok:
+        for i in range(n_irreps):
+            for j in range(n_irreps):
+                expected = 1.0 + 0.0j if i == j else 0.0 + 0.0j
+                ip = table.inner_product(table.table[i], table.table[j])
+                if abs(ip - expected) > tol:
+                    row_ok = False
+                    break
+            if not row_ok:
+                break
+
+    col_ok = n_classes > 0 and len(table.class_sizes) == n_classes
+    if col_ok:
+        for a in range(n_classes):
+            for b in range(n_classes):
+                col_sum = sum(complex(row[a]) * complex(row[b]).conjugate() for row in table.table)
+                expected = (table.group_order / table.class_sizes[a]) if a == b else 0.0
+                if abs(col_sum - expected) > tol:
+                    col_ok = False
+                    break
+            if not col_ok:
+                break
+
+    return {
+        'row_orthogonality': row_ok,
+        'column_orthogonality': col_ok,
+    }
+
+
+def verify_burnside_dimension_formula(
+    table: Any,
+    identity_idx: int = 0,
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify Burnside's irrep degree theorem and conjugacy-class count equality:
+    - Dimension Square Sum: $\sum_{i} (\dim V_i)^2 = |G|$
+    - Class-Irrep Count Equality: $|\mathrm{Irr}(G)| = |\mathrm{Conj}(G)|$
+    """
+    dims = [row[identity_idx] for row in table.table]
+    pos_int_dims = all(
+        abs(complex(d).imag) <= tol and complex(d).real > 0.5 and abs(complex(d).real - round(complex(d).real)) <= tol
+        for d in dims
+    )
+    dim_sq_sum = sum(round(complex(d).real) ** 2 for d in dims) if pos_int_dims else -1
+    sum_ok = pos_int_dims and dim_sq_sum == table.group_order
+    count_ok = len(table.irreps) == len(table.classes) and sum(table.class_sizes) == table.group_order
+    return {
+        'dimension_square_sum': sum_ok,
+        'class_irrep_count_equality': count_ok,
+    }
+
+
+def verify_schurs_lemma(
+    op: Any,
+    rep1: Any,
+    rep2: Any,
+    elements: Sequence[Any] | Any,
+    is_equivalent: bool = False,
+    tol: float = 1e-7,
+) -> dict[str, bool]:
+    r"""Verify Schur's Lemma for a $G$-equivariant intertwiner $T : V_1 \to V_2$:
+    - Intertwining: $T \rho_1(g) = \rho_2(g) T$ for all $g \in G$
+    - Schur Consequence: $T = \mathbf{0}$ if inequivalent; $T = \lambda \mathbf{I}$ if equal irreps.
+    """
+    from algebrax.group.finite import FiniteGroup
+    from algebrax.matrix.core import trace
+    from algebrax.rep.group import is_intertwiner
+
+    raw_elems = elements.elements if isinstance(elements, FiniteGroup) else elements
+    elem_list = _require_samples(raw_elems, min_count=1)
+    intertwines = is_intertwiner(op, rep1, rep2, elem_list, tol=tol)
+
+    if not is_equivalent:
+        schur_ok = _sparse_matrices_close(op, {}, tol)
+    elif rep1.dimension != rep2.dimension or rep1.dimension <= 0:
+        schur_ok = False
+    else:
+        lam = complex(trace(op)) / rep1.dimension
+        scalar_id = {i: {i: lam} for i in range(rep1.dimension)}
+        schur_ok = _sparse_matrices_close(op, scalar_id, tol)
+
+    return {
+        'intertwining': intertwines,
+        'schur_consequence': schur_ok,
+    }
+
 
 
 
