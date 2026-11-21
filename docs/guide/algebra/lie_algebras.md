@@ -110,3 +110,4 @@ assert alg.to_named(rhs) == {}
 
 - **Clifford Bivector Bridge**: Every [Clifford Geometric Algebra](clifford_geometric_algebra.md) $C\ell(p, q)$ induces a spin Lie algebra on its grade-2 bivectors via `lie.clifford_lie_algebra(p=3, q=0)`.
 - **Baker–Campbell–Hausdorff (BCH) Lie Group Integrators**: Geometric ODE solvers use `alg.bch(X, Y, order=4)` to compose angular velocities in $\mathfrak{so}(3)$ and twists in $\mathfrak{se}(3)$ without leaving the Lie group manifold.
+- **Lie Representations & Angular Momentum Coupling**: Continue to [Lie Algebra Representations, Weights & Clebsch–Gordan Tensors](lie_representations.md) for spin-$j$ representations, weight spaces, quadratic Casimir operators, and sparse Clebsch–Gordan 3-tensors.
