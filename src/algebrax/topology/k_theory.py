@@ -236,7 +236,8 @@ def chern_character(
     """
     face_list = [tuple(f) for f in faces]
     d = connection.fiber_dim
-    rank = complex_rank if complex_rank is not None else (d // 2 if d % 2 == 0 else d)
+    default_rank = d // 2 if d % 2 == 0 else d
+    rank = complex_rank if complex_rank is not None else default_rank
     ch1 = compute_chern_character_1(connection, face_list)
     ch2 = compute_chern_character_2(connection, face_list)
     return rank, ch1, ch2
