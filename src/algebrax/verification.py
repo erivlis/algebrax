@@ -2991,6 +2991,80 @@ def _infer_identity_and_inverses(
     return identity, inv_map
 
 
+def _resolve_rep_context(
+    elements: Sequence[Any] | Any,
+    mult: Callable[[Any, Any], Any] | None,
+    identity: Any | None,
+    inv: Callable[[Any], Any] | None,
+) -> tuple[list[Any], Callable[[Any, Any], Any], Any | None, Callable[[Any], Any] | None]:
+    """Extract element list, multiplication, identity, and inverse from a FiniteGroup or raw arguments."""
+    from algebrax.group.finite import FiniteGroup
+
+    if isinstance(elements, FiniteGroup):
+        resolved_mult = elements.mul if mult is None else mult
+        resolved_id = elements.one if identity is None else identity
+        resolved_inv = elements.inv if inv is None else inv
+        return list(elements.elements), resolved_mult, resolved_id, resolved_inv
+
+    if mult is None:
+        raise ValueError('mult callable is required when elements is not a FiniteGroup.')
+    return _require_samples(elements, min_count=1), mult, identity, inv
+
+
+def _resolve_rep_identity_and_inv(
+    elem_list: list[Any],
+    mult: Callable[[Any, Any], Any],
+    identity: Any | None,
+    inv: Callable[[Any], Any] | None,
+) -> tuple[Any | None, Callable[[Any], Any] | None]:
+    """Resolve group identity element and inverse lookup callable."""
+    inferred_id, inv_map = _infer_identity_and_inverses(elem_list, mult)
+    resolved_id = identity if identity is not None else inferred_id
+    if inv is not None:
+        return resolved_id, inv
+    if len(inv_map) == len(elem_list):
+        return resolved_id, inv_map.get
+    return resolved_id, None
+
+
+def _check_rep_multiplicativity(
+    rep: Any,
+    elem_list: list[Any],
+    mult: Callable[[Any, Any], Any],
+    tol: float,
+) -> bool:
+    """Verify rho(g * h) == rho(g) @ rho(h) across all pairs."""
+    from algebrax.matrix.core import dot
+
+    for g in elem_list:
+        rg = rep(g)
+        for h in elem_list:
+            if not _sparse_matrices_close(dot(rg, rep(h)), rep(mult(g, h)), tol):
+                return False
+    return True
+
+
+def _check_rep_class_invariance(
+    rep: Any,
+    elem_list: list[Any],
+    mult: Callable[[Any, Any], Any],
+    inv_lookup: Callable[[Any], Any] | None,
+    tol: float,
+) -> bool:
+    """Verify character class invariance chi(h * g * h^-1) == chi(g)."""
+    from algebrax.matrix.core import trace
+
+    if inv_lookup is None:
+        return False
+    for g in elem_list:
+        chi_g = complex(trace(rep(g)))
+        for h in elem_list:
+            conj = mult(mult(h, g), inv_lookup(h))
+            if abs(complex(trace(rep(conj))) - chi_g) > tol:
+                return False
+    return True
+
+
 def verify_representation_homomorphism(
     rep: Any,
     elements: Sequence[Any] | Any,
@@ -3004,54 +3078,15 @@ def verify_representation_homomorphism(
     - Identity Preservation: $\rho(e) = \mathbf{I}_d$
     - Class Function Invariance: $\chi(h g h^{-1}) = \chi(g)$
     """
-    from algebrax.group.finite import FiniteGroup
-    from algebrax.matrix.core import dot, trace
+    elem_list, resolved_mult, resolved_id, resolved_inv = _resolve_rep_context(
+        elements, mult, identity, inv
+    )
+    e, inv_lookup = _resolve_rep_identity_and_inv(elem_list, resolved_mult, resolved_id, resolved_inv)
 
-    if isinstance(elements, FiniteGroup):
-        elem_list = list(elements.elements)
-        resolved_mult = elements.mul if mult is None else mult
-        resolved_id = elements.one if identity is None else identity
-        resolved_inv: Callable[[Any], Any] | None = elements.inv if inv is None else inv
-    else:
-        if mult is None:
-            raise ValueError('mult callable is required when elements is not a FiniteGroup.')
-        elem_list = _require_samples(elements, min_count=1)
-        resolved_mult = mult
-        resolved_id = identity
-        resolved_inv = inv
-
-    inferred_id, inv_map = _infer_identity_and_inverses(elem_list, resolved_mult)
-    e = resolved_id if resolved_id is not None else inferred_id
-
-    mult_ok = True
-    for g in elem_list:
-        rg = rep(g)
-        for h in elem_list:
-            if not _sparse_matrices_close(dot(rg, rep(h)), rep(resolved_mult(g, h)), tol):
-                mult_ok = False
-                break
-        if not mult_ok:
-            break
-
+    mult_ok = _check_rep_multiplicativity(rep, elem_list, resolved_mult, tol)
     id_mat = {i: {i: 1.0} for i in range(rep.dimension)}
     id_ok = e is not None and _sparse_matrices_close(rep(e), id_mat, tol)
-
-    class_inv_ok = True
-    inv_lookup: Callable[[Any], Any] | None = (
-        resolved_inv if resolved_inv is not None else (inv_map.get if len(inv_map) == len(elem_list) else None)
-    )
-    if inv_lookup is None:
-        class_inv_ok = False
-    else:
-        for g in elem_list:
-            chi_g = complex(trace(rep(g)))
-            for h in elem_list:
-                conj = resolved_mult(resolved_mult(h, g), inv_lookup(h))
-                if abs(complex(trace(rep(conj))) - chi_g) > tol:
-                    class_inv_ok = False
-                    break
-            if not class_inv_ok:
-                break
+    class_inv_ok = _check_rep_class_invariance(rep, elem_list, resolved_mult, inv_lookup, tol)
 
     return {
         'multiplicativity': mult_ok,
@@ -3060,37 +3095,39 @@ def verify_representation_homomorphism(
     }
 
 
+def _check_schur_row_orthogonality(table: Any, n_irreps: int, tol: float) -> bool:
+    """Verify first Schur orthogonality relation: <chi_i, chi_j> == delta_ij."""
+    if n_irreps <= 0 or len(table.table) != n_irreps:
+        return False
+    for i in range(n_irreps):
+        for j in range(n_irreps):
+            expected = 1.0 + 0.0j if i == j else 0.0 + 0.0j
+            ip = table.inner_product(table.table[i], table.table[j])
+            if abs(ip - expected) > tol:
+                return False
+    return True
+
+
+def _check_schur_col_orthogonality(table: Any, n_classes: int, tol: float) -> bool:
+    """Verify second Schur orthogonality relation across conjugacy class columns."""
+    if n_classes <= 0 or len(table.class_sizes) != n_classes:
+        return False
+    for a in range(n_classes):
+        for b in range(n_classes):
+            col_sum = sum(complex(row[a]) * complex(row[b]).conjugate() for row in table.table)
+            expected = (table.group_order / table.class_sizes[a]) if a == b else 0.0
+            if abs(col_sum - expected) > tol:
+                return False
+    return True
+
+
 def verify_schur_orthogonality(table: Any, tol: float = 1e-7) -> dict[str, bool]:
     r"""Verify first and second Schur orthogonality relations for a `CharacterTable`:
     - Row Orthogonality: $\langle \chi_i, \chi_j \rangle = \delta_{ij}$
     - Column Orthogonality: $\sum_i \chi_i(C_a) \overline{\chi_i(C_b)} = \frac{|G|}{|C_a|} \delta_{ab}$
     """
-    n_irreps = len(table.irreps)
-    n_classes = len(table.classes)
-
-    row_ok = n_irreps > 0 and len(table.table) == n_irreps
-    if row_ok:
-        for i in range(n_irreps):
-            for j in range(n_irreps):
-                expected = 1.0 + 0.0j if i == j else 0.0 + 0.0j
-                ip = table.inner_product(table.table[i], table.table[j])
-                if abs(ip - expected) > tol:
-                    row_ok = False
-                    break
-            if not row_ok:
-                break
-
-    col_ok = n_classes > 0 and len(table.class_sizes) == n_classes
-    if col_ok:
-        for a in range(n_classes):
-            for b in range(n_classes):
-                col_sum = sum(complex(row[a]) * complex(row[b]).conjugate() for row in table.table)
-                expected = (table.group_order / table.class_sizes[a]) if a == b else 0.0
-                if abs(col_sum - expected) > tol:
-                    col_ok = False
-                    break
-            if not col_ok:
-                break
+    row_ok = _check_schur_row_orthogonality(table, len(table.irreps), tol)
+    col_ok = _check_schur_col_orthogonality(table, len(table.classes), tol)
 
     return {
         'row_orthogonality': row_ok,
