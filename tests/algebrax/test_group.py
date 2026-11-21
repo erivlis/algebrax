@@ -134,8 +134,9 @@ def test_finite_comm_group_promotion_and_falsification() -> None:
             inv_fn=s3.inv_fn,
             name='S_3',
         )
+    s3_table = s3.cayley_table()
     with pytest.raises(ValueError, match='commutative'):
-        FiniteCommGroup.from_cayley_table(s3.cayley_table())
+        FiniteCommGroup.from_cayley_table(s3_table)
 
     raw_c4 = FiniteGroup(
         elements=(0, 1, 2, 3),
