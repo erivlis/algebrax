@@ -50,6 +50,7 @@ nav = [
             "guide/algebra/lie_algebras.md",
             "guide/algebra/coalgebras_and_hopf.md",
             "guide/algebra/representations.md",
+            "guide/algebra/induced_representations.md",
             "guide/tensor/trie.md",
             "guide/tensor/einsum.md",
         ] },

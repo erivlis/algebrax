@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                                                    |
 | **Type**    | Informational                                             |
 | **Created** | 2026-08-01                                                |
-| **Updated** | 2026-11-15                                                |
+| **Updated** | 2026-11-21                                                |
 
 ## Abstract
 
@@ -323,7 +323,7 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0210: Group Representations, Character Tables & Schur's Lemma (Noether/Russell) [Final]
   │     ├── EP-0211: Lie Algebra Representations, Weights & Clebsch–Gordan Tensors (Noether/Shannon) [Draft]
   │     ├── EP-0212: Quiver Representations, Path Algebras & Gabriel's Theorem (Russell/Popper) [Draft]
-  │     ├── EP-0213: Induced Representations, Mackey Theory & Frobenius Reciprocity (Russell/Noether) [Draft]
+  │     ├── EP-0213: Induced Representations, Mackey Theory & Frobenius Reciprocity (Russell/Noether) [Final]
   │     ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Draft]
   │     └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Draft]
   │
@@ -412,7 +412,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0210** | Group Reps & Characters        | Noether & Russell | `algebrax.group`, `algebrax.rep`         | Final    | `FiniteGroup[G]`, canonical finite groups, cosets/quotients, reps, character tables, Schur & Maschke         |
 | **EP-0211** | Lie Reps & Clebsch-Gordan      | Noether & Shannon | `algebrax.rep`, `lie`, `tensor`          | Draft    | Highest weights, weight spaces, quadratic Casimir operator, sparse Clebsch-Gordan 3-tensors                |
 | **EP-0212** | Quiver Reps & Gabriel's ADE    | Russell & Popper  | `algebrax.rep`, `algebrax.topology`      | Draft    | Quiver representations on directed graphs, `CellularSheaf` bridge, Gabriel's ADE classification theorem     |
-| **EP-0213** | Induced Reps & Frobenius       | Russell & Noether | `algebrax.rep`, `algebrax.group`         | Draft    | Subgroup induction Ind_H^G, Frobenius reciprocity adjunction Ind ⊣ Res, Mackey double-coset decomposition  |
+| **EP-0213** | Induced Reps & Frobenius       | Russell & Noether | `algebrax.rep`, `algebrax.group`         | Final    | Subgroup induction Ind_H^G, Frobenius reciprocity adjunction Ind ⊣ Res, Mackey double-coset decomposition  |
 | **EP-0214** | Invariant Theory & Molien      | Noether & Shannon | `algebrax.rep`, `lie`, `algebra`         | Draft    | Polynomial Reynolds operator, Molien series, primary/secondary invariants, Lie cubic Casimir tensors       |
 | **EP-0215** | Quantum Groups & Yang-Baxter   | Noether & Golem   | `algebrax.rep`, `algebrax.algebra`       | Draft    | U_q(𝔤) Hopf quantum deformations, universal R-matrix, Yang-Baxter equation, Jones polynomials              |
 | **EP-0220** | Multivariate Polys & Gröbner   | Shannon & Popper  | `algebrax.algebra`                       | Draft    | `MultivariatePolynomialAlgebra`, `lex`/`grlex`/`grevlex`, Buchberger & $F_4$ sparse Macaulay RREF, `GroebnerIdeal`                         |
@@ -476,3 +476,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-15 | Eran Rivlis & Antigravity | Concluded EXP-0011; added Phase 11 (Algebraic Analysis, Differential Rings & Ore Algebras): EP-0240 through EP-0243 (Draft).                |
 | 2026-11-15 | Eran Rivlis & Antigravity | Implemented EP-0210 (Group Representations, Character Tables & Schur's Lemma): `algebrax.rep` & verification suite; updated status to Final. |
 | 2026-11-15 | Eran Rivlis & Antigravity | Promoted `algebrax.group/` cornerstone (`FiniteGroup`, cosets, quotients), refined `GroupHom` reps, and aligned EP-0210..0215 & EP-0230.    |
+| 2026-11-21 | Eran Rivlis & Antigravity | Implemented EP-0213 (Induced Representations, Mackey Theory & Frobenius Reciprocity): `algebrax.rep.induction`, verifiers & guide; status Final. |
