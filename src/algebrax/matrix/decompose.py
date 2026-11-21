@@ -73,7 +73,7 @@ def _lu_decompose_float(
     w_mat = sparse_to_grid(matrix, rows, cols, fill_value=0.0)
 
     for k in range(min_dim):
-        pivot_row = max(range(k, n_rows), key=lambda i: abs(w_mat[i][k]))
+        pivot_row = max(range(k, n_rows), key=lambda i, col=k: abs(w_mat[i][col]))
         if pivot_row != k:
             w_mat[k], w_mat[pivot_row] = w_mat[pivot_row], w_mat[k]
             p_perm[k], p_perm[pivot_row] = p_perm[pivot_row], p_perm[k]
