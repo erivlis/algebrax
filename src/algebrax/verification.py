@@ -40,10 +40,12 @@ __all__ = [
     'verify_boolean_algebra_laws',
     'verify_bounded_lattice_laws',
     'verify_burnside_dimension_formula',
+    'verify_casimir_commutativity',
     'verify_category_laws',
     'verify_cauchy_schwarz',
     'verify_chern_character_additivity',
     'verify_chern_number_integrality',
+    'verify_clebsch_gordan_coupling',
     'verify_coalgebra_laws',
     'verify_coassociativity',
     'verify_coboundary_nilpotency',
@@ -72,6 +74,7 @@ __all__ = [
     'verify_kleene_algebra_laws',
     'verify_lattice_laws',
     'verify_lie_algebra_laws',
+    'verify_lie_representation_homomorphism',
     'verify_mackey_intertwining',
     'verify_magma_laws',
     'verify_malcev_laws',
@@ -3324,3 +3327,188 @@ def verify_mackey_intertwining(
         'nonnegative_integer_intertwining': int_ok,
         'double_coset_partition_order': partition_ok,
     }
+
+
+def _sparse_mat_commutator(a: Any, b: Any) -> dict[int, dict[int, Any]]:
+    """Compute the matrix commutator [A, B] = AB - BA for sparse matrices."""
+    from algebrax.matrix.core import add, dot
+    from algebrax.rep.group import _scale_matrix
+
+    return add(dot(a, b), _scale_matrix(dot(b, a), -1.0))
+
+
+def _sparse_mat_allclose(a: Any, b: Any, tol: float) -> bool:
+    """Return True if two sparse matrices agree entrywise within tol."""
+    rows = set(a.keys()) | set(b.keys())
+    for r in rows:
+        ra = a.get(r, {})
+        rb = b.get(r, {})
+        for c in set(ra.keys()) | set(rb.keys()):
+            if abs(complex(ra.get(c, 0.0)) - complex(rb.get(c, 0.0))) > tol:
+                return False
+    return True
+
+
+def _sparse_mat_is_zero(mat: Any, tol: float) -> bool:
+    """Return True if all entries of a sparse matrix have magnitude <= tol."""
+    return all(abs(complex(v)) <= tol for row in mat.values() for v in row.values())
+
+
+def _eval_lie_rep_linear(rep: Any, coeffs: dict[int, Any]) -> dict[int, dict[int, Any]]:
+    """Evaluate a Lie representation on a sparse linear combination of basis generators."""
+    from algebrax.matrix.core import add
+    from algebrax.rep.group import _scale_matrix
+
+    acc: dict[int, dict[int, Any]] = {}
+    for idx, c in coeffs.items():
+        if abs(complex(c)) == 0.0:
+            continue
+        acc = add(acc, _scale_matrix(rep(idx), c))
+    return acc
+
+
+def verify_lie_representation_homomorphism(
+    rep: Any,
+    algebra: Any = None,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify that $\rho : \mathfrak{g} \to \mathfrak{gl}(V)$ is a valid Lie algebra representation:
+    - Bracket Preservation: $\rho([X_i, X_j]) = [\rho(X_i), \rho(X_j)]$ for all basis pairs $(i, j)$
+    - Antisymmetry: $[\rho(X_i), \rho(X_j)] + [\rho(X_j), \rho(X_i)] = 0$ and $[\rho(X_i), \rho(X_i)] = 0$
+    - Jacobi Identity: $[\rho(X_i), [\rho(X_j), \rho(X_k)]] + \text{cyclic} = \mathbf{0}$
+    """
+    from algebrax.matrix.core import add
+    from algebrax.rep.lie import _resolve_algebra
+
+    alg = _resolve_algebra(rep, algebra)
+    n = alg.dim
+    gens = [rep(i) for i in range(n)]
+
+    bracket_ok = True
+    antisym_ok = True
+    for i in range(n):
+        if not _sparse_mat_is_zero(_sparse_mat_commutator(gens[i], gens[i]), tol):
+            antisym_ok = False
+        for j in range(n):
+            comm_ij = _sparse_mat_commutator(gens[i], gens[j])
+            expected = _eval_lie_rep_linear(rep, alg.bracket({i: 1.0}, {j: 1.0}))
+            if not _sparse_mat_allclose(comm_ij, expected, tol):
+                bracket_ok = False
+            comm_ji = _sparse_mat_commutator(gens[j], gens[i])
+            if not _sparse_mat_is_zero(add(comm_ij, comm_ji), tol):
+                antisym_ok = False
+
+    jacobi_ok = True
+    for i in range(n):
+        for j in range(i + 1, n):
+            for k in range(j + 1, n):
+                t1 = _sparse_mat_commutator(gens[i], _sparse_mat_commutator(gens[j], gens[k]))
+                t2 = _sparse_mat_commutator(gens[j], _sparse_mat_commutator(gens[k], gens[i]))
+                t3 = _sparse_mat_commutator(gens[k], _sparse_mat_commutator(gens[i], gens[j]))
+                if not _sparse_mat_is_zero(add(add(t1, t2), t3), tol):
+                    jacobi_ok = False
+                    break
+            if not jacobi_ok:
+                break
+        if not jacobi_ok:
+            break
+
+    return {
+        'bracket_preservation': bracket_ok,
+        'antisymmetry': antisym_ok,
+        'jacobi_identity': jacobi_ok,
+    }
+
+
+def verify_casimir_commutativity(
+    rep: Any,
+    algebra: Any = None,
+    killing_metric_inv: Any = None,
+    expected_eigenvalue: float | complex | None = None,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify that the quadratic Casimir operator $C = \sum_{i,j} g^{ij} \rho(X_i)\rho(X_j)$
+    commutes with all generators ($[C, \rho(X_k)] = \mathbf{0}$) and optionally equals
+    $\lambda \mathbf{I}$ when `expected_eigenvalue` is provided (Schur's lemma / Freudenthal check).
+    """
+    from algebrax.rep.lie import _resolve_algebra, quadratic_casimir
+
+    alg = _resolve_algebra(rep, algebra)
+    casimir = quadratic_casimir(rep, algebra=alg, killing_metric_inv=killing_metric_inv)
+
+    commutes_ok = all(
+        _sparse_mat_is_zero(_sparse_mat_commutator(casimir, rep(k)), tol)
+        for k in range(alg.dim)
+    )
+    results: dict[str, bool] = {'casimir_commutes': commutes_ok}
+
+    if expected_eigenvalue is not None:
+        scaled_id = {i: {i: expected_eigenvalue} for i in range(rep.dimension)}
+        results['eigenvalue_matches'] = _sparse_mat_allclose(casimir, scaled_id, tol)
+
+    return results
+
+
+def _check_cg_selection_rules(
+    cg_tensor: dict[tuple[tuple[int, int], int, int], float],
+    j1_halves: int,
+    j2_halves: int,
+) -> bool:
+    """Validate angular-momentum selection rules for all stored entries of a CG tensor."""
+    j_min = abs(j1_halves - j2_halves)
+    j_max = j1_halves + j2_halves
+    for (j_h, m_h), m1_h, m2_h in cg_tensor:
+        if m_h != m1_h + m2_h:
+            return False
+        if not (j_min <= j_h <= j_max) or (j_h - j_max) % 2 != 0:
+            return False
+        if abs(m_h) > j_h or abs(m1_h) > j1_halves or abs(m2_h) > j2_halves:
+            return False
+    return True
+
+
+def verify_clebsch_gordan_coupling(
+    j1_halves: int,
+    j2_halves: int,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify the Clebsch-Gordan coupling matrix $U$ and sparse 3-tensor for spins $j_1, j_2$:
+    - Orthogonality: $U^T U = \mathbf{I}$ and $U U^T = \mathbf{I}$
+    - Selection Rules: $m = m_1 + m_2$ and $|j_1 - j_2| \le j \le j_1 + j_2$ on all stored entries
+    - Intertwiner Equivariance: $U^T (\rho_{j_1} \otimes \rho_{j_2})(X) U = \bigoplus_j \rho_j(X)$ on $\mathfrak{su}(2)$
+    """
+    from algebrax.matrix.core import dot, transpose
+    from algebrax.rep.lie import direct_sum_lie_rep, spin_representation
+    from algebrax.tensor.coupling import clebsch_gordan_matrix, clebsch_gordan_tensor
+
+    u_mat, coupled_basis = clebsch_gordan_matrix(j1_halves, j2_halves)
+    cg_tensor = clebsch_gordan_tensor(j1_halves, j2_halves)
+    dim = (j1_halves + 1) * (j2_halves + 1)
+    ident = {i: {i: 1.0} for i in range(dim)}
+
+    u_t = transpose(u_mat)
+    orth_ok = (
+        len(coupled_basis) == dim
+        and _sparse_mat_allclose(dot(u_t, u_mat), ident, tol)
+        and _sparse_mat_allclose(dot(u_mat, u_t), ident, tol)
+    )
+    sel_ok = _check_cg_selection_rules(cg_tensor, j1_halves, j2_halves)
+
+    rep1 = spin_representation(j1_halves, form='su2')
+    rep2 = spin_representation(j2_halves, form='su2')
+    tensor_rep = rep1.tensor_product(rep2)
+
+    j_values = list(range(j1_halves + j2_halves, abs(j1_halves - j2_halves) - 1, -2))
+    coupled_rep = direct_sum_lie_rep([spin_representation(j_h, form='su2') for j_h in j_values])
+
+    equiv_ok = all(
+        _sparse_mat_allclose(dot(dot(u_t, tensor_rep(k)), u_mat), coupled_rep(k), tol)
+        for k in range(tensor_rep.algebra.dim)
+    )
+
+    return {
+        'orthogonality': orth_ok,
+        'selection_rules': sel_ok,
+        'intertwiner_equivariance': equiv_ok,
+    }
+
