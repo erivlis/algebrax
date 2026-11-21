@@ -40,8 +40,7 @@ def trivial_rep(elements: Sequence[G] | FiniteGroup[G]) -> ExplicitGroupRep[floa
     elem_list = list(elements.elements) if isinstance(elements, FiniteGroup) else list(elements)
     if not elem_list:
         raise ValueError('trivial_rep requires at least one group element.')
-    unit: SparseMatrix[int, float] = {0: {0: 1.0}}
-    return ExplicitGroupRep(matrices=dict.fromkeys(elem_list, unit), dimension=1)
+    return ExplicitGroupRep(matrices={el: {0: {0: 1.0}} for el in elem_list}, dimension=1)
 
 
 def regular_rep(group_table: Mapping[tuple[G, G], G] | FiniteGroup[G]) -> ExplicitGroupRep[float, G]:
