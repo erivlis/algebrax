@@ -58,6 +58,7 @@ __all__ = [
     'verify_division_ring_laws',
     'verify_exponential_adjunction',
     'verify_field_laws',
+    'verify_frobenius_reciprocity',
     'verify_functor_laws',
     'verify_gauge_covariance',
     'verify_grothendieck_universal_property',
@@ -71,6 +72,7 @@ __all__ = [
     'verify_kleene_algebra_laws',
     'verify_lattice_laws',
     'verify_lie_algebra_laws',
+    'verify_mackey_intertwining',
     'verify_magma_laws',
     'verify_malcev_laws',
     'verify_matrix_conway_laws',
@@ -97,6 +99,7 @@ __all__ = [
     'verify_sheaf_laplacian_properties',
     'verify_star_plus_consistency',
     'verify_star_semiring_laws',
+    'verify_transitivity_of_induction',
     'verify_triangle_inequality',
 ]
 
@@ -3193,6 +3196,131 @@ def verify_schurs_lemma(
     }
 
 
+def verify_frobenius_reciprocity(
+    char_w: Any,
+    char_v: Any,
+    group: Any,
+    subgroup: Any,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify Frobenius reciprocity and induced degree scaling for $H \le G$:
+    - Frobenius Reciprocity: $\langle \chi_{\operatorname{Ind}_H^G(W)}, \chi_V \rangle_G =
+      \langle \chi_W, \chi_{\operatorname{Res}_H^G(V)} \rangle_H$
+    - Induced Degree Formula: $\chi_{\operatorname{Ind}_H^G(W)}(e) = [G : H] \, \chi_W(e)$
+    - Class Function Invariance: $\chi_W$ on $H$ and $\chi_V$ on $G$ are conjugation-invariant
+    """
+    from algebrax.rep.induction import (
+        _as_subgroup,
+        _character_element_map,
+        _is_class_function_map,
+        character_inner_product,
+        induced_character,
+    )
+
+    h_group = _as_subgroup(group, subgroup)
+    map_w = _character_element_map(char_w, h_group)
+    map_v = _character_element_map(char_v, group)
+    ind_w = induced_character(char_w, group, h_group)
+    ind_w_map = _character_element_map(ind_w, group)
+
+    lhs = character_inner_product(ind_w, map_v, group)
+    res_v_map = {h: map_v[h] for h in h_group.elements}
+    rhs = character_inner_product(map_w, res_v_map, h_group)
+
+    index = group.order // h_group.order
+    expected_deg = index * map_w[h_group.identity]
+    class_ok = _is_class_function_map(map_w, h_group, tol) and _is_class_function_map(map_v, group, tol)
+
+    return {
+        'frobenius_reciprocity': abs(lhs - rhs) <= tol,
+        'induced_degree_formula': abs(ind_w_map[group.identity] - expected_deg) <= tol,
+        'class_function_invariance': class_ok,
+    }
 
 
+def verify_transitivity_of_induction(
+    char_k: Any,
+    group_g: Any,
+    subgroup_h: Any,
+    subgroup_k: Any,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify transitivity of representation induction across a subgroup chain $K \le H \le G$:
+    - Transitivity Equality: $\chi_{\operatorname{Ind}_H^G(\operatorname{Ind}_K^H(W))} =
+      \chi_{\operatorname{Ind}_K^G(W)}$
+    - Degree Multiplicativity: $\dim \operatorname{Ind}_K^G(W) = [G : H][H : K] \dim W$
+    - Class Function Invariance: $\chi_W$ is conjugation-invariant on $K$
+    """
+    from algebrax.rep.induction import (
+        _as_subgroup,
+        _character_element_map,
+        _is_class_function_map,
+        induced_character,
+    )
 
+    h_group = _as_subgroup(group_g, subgroup_h)
+    k_group = _as_subgroup(h_group, subgroup_k)
+    map_k = _character_element_map(char_k, k_group)
+
+    ind_k_to_h = induced_character(char_k, h_group, k_group)
+    two_step = induced_character(ind_k_to_h, group_g, h_group)
+    direct = induced_character(char_k, group_g, k_group)
+
+    two_step_map = _character_element_map(two_step, group_g)
+    direct_map = _character_element_map(direct, group_g)
+
+    eq_ok = all(abs(two_step_map[g] - direct_map[g]) <= tol for g in group_g.elements)
+    expected_deg = (group_g.order // k_group.order) * map_k[k_group.identity]
+    deg_ok = two_step.degree == direct.degree and abs(direct_map[group_g.identity] - expected_deg) <= tol
+    class_ok = _is_class_function_map(map_k, k_group, tol)
+
+    return {
+        'transitivity_character_equality': eq_ok,
+        'degree_multiplicativity': deg_ok,
+        'class_function_invariance': class_ok,
+    }
+
+
+def verify_mackey_intertwining(
+    char_h: Any,
+    char_k: Any,
+    group: Any,
+    subgroup_h: Any,
+    subgroup_k: Any,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify Mackey's intertwining number formula over double cosets $K \backslash G / H$:
+    - Mackey Equality: $\langle \chi_{\operatorname{Ind}_H^G W}, \chi_{\operatorname{Ind}_K^G V} \rangle_G =
+      \sum_{s \in K \backslash G / H} \langle {}^s W, \operatorname{Res}_{K \cap s H s^{-1}}^K V \rangle$
+    - Non-Negative Integer Intertwining: The Mackey sum evaluates to a non-negative integer
+    - Double Coset Partition: $\sum_{s \in K \backslash G / H} |K s H| = |G|$
+    """
+    from algebrax.rep.induction import (
+        _as_subgroup,
+        _mackey_intertwining_complex,
+        character_inner_product,
+        induced_character,
+    )
+
+    h_group = _as_subgroup(group, subgroup_h)
+    k_group = _as_subgroup(group, subgroup_k)
+
+    ind_h = induced_character(char_h, group, h_group)
+    ind_k = induced_character(char_k, group, k_group)
+    direct_ip = character_inner_product(ind_h, ind_k, group)
+    mackey_sum = _mackey_intertwining_complex(char_h, char_k, group, h_group, k_group)
+
+    d_cosets = group.double_cosets(k_group, h_group)
+    partition_ok = sum(len(dc) for dc in d_cosets) == group.order
+    equality_ok = abs(direct_ip - mackey_sum) <= tol
+    int_ok = (
+        abs(mackey_sum.imag) <= tol
+        and mackey_sum.real >= -tol
+        and abs(mackey_sum.real - round(mackey_sum.real)) <= tol
+    )
+
+    return {
+        'mackey_intertwining_equality': equality_ok,
+        'nonnegative_integer_intertwining': int_ok,
+        'double_coset_partition_order': partition_ok,
+    }

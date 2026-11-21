@@ -6,7 +6,7 @@ and orthonormal character tables, Maschke/isotypic projection operators, Reynold
 and canonical representations for cyclic, dihedral, quaternion, symmetric, and alternating groups.
 """
 
-from algebrax.rep import canonical, character, group
+from algebrax.rep import canonical, character, group, induction
 from algebrax.rep.canonical import (
     a4_character_table,
     alternating_defining_rep,
@@ -48,6 +48,18 @@ from algebrax.rep.group import (
     reynolds_average,
     tensor_product_rep,
 )
+from algebrax.rep.induction import (
+    character_inner_product,
+    conjugate_representation,
+    frobenius_adjoint_inverse,
+    frobenius_adjoint_transpose,
+    induced_character,
+    induced_representation,
+    mackey_decomposition,
+    mackey_intertwining_number,
+    restrict_character,
+    restrict_representation,
+)
 
 __all__ = [
     'Character',
@@ -61,7 +73,9 @@ __all__ = [
     'alternating_standard_rep',
     'canonical',
     'character',
+    'character_inner_product',
     'conjugacy_classes',
+    'conjugate_representation',
     'cyclic_character_table',
     'cyclic_rep',
     'dihedral_character_table',
@@ -69,14 +83,23 @@ __all__ = [
     'dihedral_mul',
     'dihedral_rep',
     'direct_sum_rep',
+    'frobenius_adjoint_inverse',
+    'frobenius_adjoint_transpose',
     'group',
+    'induced_character',
+    'induced_representation',
+    'induction',
     'is_intertwiner',
     'isotypic_projector',
+    'mackey_decomposition',
+    'mackey_intertwining_number',
     'q8_character_table',
     'quaternion_elements',
     'quaternion_mul',
     'quaternion_rep',
     'regular_rep',
+    'restrict_character',
+    'restrict_representation',
     'reynolds_average',
     's3_character_table',
     's4_character_table',
