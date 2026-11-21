@@ -2,7 +2,7 @@
 title: "EP-0211: Lie Algebra Representations, Weights & Clebsch–Gordan Tensors"
 description: "Formalize Lie algebra representations, highest-weight modules, weight space decompositions, quadratic Casimir operators, and sparse Clebsch–Gordan 3-tensors."
 icon: lucide/orbit
-status: draft
+status: final
 ---
 
 # EP-0211: Lie Algebra Representations, Weights & Clebsch–Gordan Tensors
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                       |
 | **Sponsor**       | Core Maintainers                                                                  |
 | **Delegate**      | ⚖️ Noether (Continuous Symmetries) & ⚡ Shannon (Sparse Coupling Tensors)          |
-| **Status**        | Draft                                                                             |
+| **Status**        | Final                                                                             |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-10-28                                                                        |
-| **Updated**       | 2026-11-15                                                                        |
+| **Updated**       | 2026-11-22                                                                        |
 | **Replaces**      | —                                                                                 |
 | **Superseded-By** | —                                                                                 |
 
@@ -122,8 +122,12 @@ class ExplicitLieRep(Generic[K]):
         return self.generator_matrices[idx]
 
 
-def spin_representation(j_halves: int) -> ExplicitLieRep[complex]:
-    """Construct irreducible representation of sl_2 / su_2 of spin j = j_halves / 2."""
+def spin_representation(
+    j_halves: int,
+    *,
+    form: Literal["su2", "sl2"] = "su2",
+) -> ExplicitLieRep[complex]:
+    """Construct irreducible representation of su(2) or sl(2) of spin j = j_halves / 2."""
     ...
 
 
@@ -132,56 +136,123 @@ def adjoint_representation(algebra: LieAlgebra) -> ExplicitLieRep[float | comple
     ...
 
 
-def defining_representation(algebra: LieAlgebra) -> ExplicitLieRep[float | complex]:
+def defining_representation(
+    algebra: LieAlgebra,
+    dimension: int | None = None,
+) -> ExplicitLieRep[float | complex]:
     """Wrap algebra.matrix_basis as an ExplicitLieRep."""
+    ...
+
+
+def weight_space_decomposition(
+    rep: LieRepresentation[K],
+    cartan_indices: Sequence[int],
+    tol: float = 1e-9,
+) -> dict[tuple[float | complex, ...], list[dict[int, float]]]:
+    """Decompose V into simultaneous Cartan weight spaces V_mu."""
+    ...
+
+
+def highest_weight_vectors(
+    rep: LieRepresentation[K],
+    cartan_indices: Sequence[int],
+    raising_indices: Sequence[int],
+    tol: float = 1e-9,
+) -> list[tuple[tuple[float | complex, ...], dict[int, float | complex]]]:
+    """Find a basis of highest-weight vectors annihilated by all raising operators."""
     ...
 
 
 def quadratic_casimir(
     rep: LieRepresentation[K],
-    killing_metric_inv: SparseMatrix[int, float] | None = None,
-) -> SparseMatrix[int, K]:
+    algebra: LieAlgebra | None = None,
+    killing_metric_inv: SparseMatrix[int, float | complex] | None = None,
+    tol: float = 1e-12,
+) -> SparseMatrix[int, Any]:
     """Compute quadratic Casimir operator C = sum_{i,j} g^{ij} rho(X_i) @ rho(X_j)."""
+    ...
+
+
+def freudenthal_casimir_eigenvalue(
+    root_system: RootSystem,
+    highest_weight_dynkin: Sequence[int | float],
+) -> float:
+    """Compute Freudenthal's Killing-normalized Casimir eigenvalue <Lambda, Lambda + 2*delta>_K."""
     ...
 ```
 
-(Ergonomically re-exported in `algebrax.lie` via `adjoint_representation`, `spin_representation`, `quadratic_casimir`.)
+(Ergonomically re-exported in `algebrax.lie` via PEP 562 lazy `__getattr__` for `adjoint_representation`, `defining_representation`, `spin_representation`, and `quadratic_casimir`.)
 
 ### 2. Sparse Clebsch–Gordan Coupling 3-Tensors (`src/algebrax/tensor/coupling.py`)
 
 ```python
-"""Clebsch–Gordan coefficients and sparse coupling tensors."""
+"""Clebsch–Gordan coefficients, sparse 3-tensors, and orthogonal coupling matrices."""
 
-from algebrax.typing import SparseTensor
+from algebrax.typing import SparseMatrix
 
 
-def clebsch_gordan_tensor(j1_halves: int, j2_halves: int) -> SparseTensor[int, float]:
+def clebsch_gordan_coefficient(
+    j1_halves: int,
+    m1_halves: int,
+    j2_halves: int,
+    m2_halves: int,
+    j_halves: int,
+    m_halves: int,
+) -> float:
+    """Compute a single Condon–Shortley coefficient <j1 m1; j2 m2 | j m> via exact rational Racah sum."""
+    ...
+
+
+def clebsch_gordan_tensor(
+    j1_halves: int,
+    j2_halves: int,
+    tol: float = 1e-14,
+) -> dict[tuple[tuple[int, int], int, int], float]:
     """Compute sparse 3-tensor C_{m1, m2}^{(j, m)} coupling spins j1 and j2.
 
-    Sparse keys are tuples: ((j, m), m1, m2) where m = m1 + m2.
+    Sparse keys are integer half-spin tuples: ((j_halves, m_halves), m1_halves, m2_halves).
     """
+    ...
+
+
+def clebsch_gordan_matrix(
+    j1_halves: int,
+    j2_halves: int,
+    tol: float = 1e-14,
+) -> tuple[SparseMatrix[int, float], list[tuple[int, int]]]:
+    """Build orthogonal change-of-basis matrix U intertwining V_{j1} (x) V_{j2} with direct sum of V_j."""
     ...
 ```
 
 ### 3. Verification Suite (`src/algebrax/verification.py`)
 
 ```python
-"""Property-based verification for Lie algebra representations."""
+"""Property-based verification for Lie algebra representations and Clebsch–Gordan coupling."""
 
 def verify_lie_representation_homomorphism(
-    rep: LieRepresentation[K],
-    algebra: LieAlgebra,
+    rep: Any,
+    algebra: Any = None,
     tol: float = 1e-9,
 ) -> dict[str, bool]:
-    """Verify rho([X_i, X_j]) == rho(X_i) rho(X_j) - rho(X_j) rho(X_i)."""
+    """Verify rho([X_i, X_j]) == [rho(X_i), rho(X_j)], antisymmetry, and Jacobi identity."""
     ...
 
 def verify_casimir_commutativity(
-    rep: LieRepresentation[K],
-    algebra: LieAlgebra,
+    rep: Any,
+    algebra: Any = None,
+    killing_metric_inv: Any = None,
+    expected_eigenvalue: float | complex | None = None,
     tol: float = 1e-9,
 ) -> dict[str, bool]:
-    """Verify [C, rho(X_k)] == 0 for all generators X_k."""
+    """Verify [C, rho(X_k)] == 0 for all generators and optional Schur/Freudenthal eigenvalue match."""
+    ...
+
+def verify_clebsch_gordan_coupling(
+    j1_halves: int,
+    j2_halves: int,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    """Verify U^T U = U U^T = I, selection rules, and su(2) intertwiner equivariance."""
     ...
 ```
 
@@ -189,23 +260,28 @@ def verify_casimir_commutativity(
 
 ## Backwards Compatibility
 
-Non-breaking and strictly additive. Builds directly upon `algebrax.lie` ([`EP-0163`](EP-0163-lie-algebras-and-bch-dynamics.md), [`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md)), `algebrax.rep`, and `algebrax.tensor`.
+Non-breaking and strictly additive. Builds directly upon `algebrax.lie` ([`EP-0163`](EP-0163-lie-algebras-and-bch-dynamics.md), [`EP-0164`](EP-0164-root-systems-and-chevalley-bases.md)), `algebrax.rep`, and `algebrax.tensor` (promoted from a single module to a package while preserving all existing exports).
 
 ---
 
 ## How to Teach This / Documentation Plan
 
-- **Guide**: `guide/algebra/lie_representations.md`:
-  - Spin-1/2, Spin-1, and Spin-3/2 quantum representations.
-  - Adding angular momenta with Clebsch–Gordan tensors.
-  - Verifying the Casimir eigenvalue formula $j(j+1)$.
-- **Docstrings**: Fully typed AMDS docstrings with KaTeX equations for commutation relations and tensor selections.
+- **Guide**: `docs/guide/algebra/lie_representations.md` (registered in `zensical.toml` and cross-linked from `lie_algebras.md` and `representations.md`):
+  - Spin-$1/2$, Spin-$1$, and Spin-$3/2$ quantum representations and the $SU(2) \to SO(3)$ double cover via `exp_map`.
+  - Weight-space decompositions and highest-weight vectors for $\mathfrak{sl}(2)$ tensor products and $\mathfrak{sl}(3)$.
+  - Quadratic Casimir operators, Freudenthal's eigenvalue formula (including $\mathfrak{g}_2$), and physics $J^2 = j(j+1)\mathbf{I}$.
+  - Adding angular momenta with sparse Clebsch–Gordan tensors and orthogonal coupling matrices.
+- **Docstrings**: Fully typed AMDS docstrings with KaTeX equations for commutation relations and tensor selection rules.
 
 ---
 
 ## Reference Implementation
 
-Implementations will reside in `src/algebrax/rep/lie.py` (with re-exports from `algebrax.lie`), `src/algebrax/tensor/coupling.py`, and verifiers in `src/algebrax/verification.py`.
+- **Lie Representations, Weights, Casimir & Exp Bridge**: `src/algebrax/rep/lie.py` (re-exported from `src/algebrax/rep/__init__.py` and lazily from `src/algebrax/lie/__init__.py`).
+- **Sparse Clebsch–Gordan Coupling Tensors**: `src/algebrax/tensor/coupling.py` (re-exported from `src/algebrax/tensor/__init__.py` and `src/algebrax/rep/lie.py`).
+- **Verification Predicates**: `src/algebrax/verification.py` (`verify_lie_representation_homomorphism`, `verify_casimir_commutativity`, `verify_clebsch_gordan_coupling`).
+- **Unit, Falsification & Differential Tests**: `tests/algebrax/test_rep_lie.py` and `tests/verifications/test_differential_sympy.py::test_differential_clebsch_gordan_and_lie_expm_vs_sympy_scipy`.
+- **User Guide & Traceability**: `docs/guide/algebra/lie_representations.md` and `docs/verification.md`.
 
 ---
 
@@ -214,7 +290,7 @@ Implementations will reside in `src/algebrax/rep/lie.py` (with re-exports from `
 1. **Dense NumPy 3D Arrays for Clebsch-Gordan**:
    - *Rejected*: Dense arrays scale as $O((2j_1+1)(2j_2+1)(2(j_1+j_2)+1))$, wasting $>90\%$ of entries due to angular momentum selection rules ($m = m_1 + m_2$). Sparse dictionaries are vastly more efficient.
 2. **Hardcoding $\mathfrak{su}(2)$ only**:
-   - *Rejected*: Design must remain general for all semisimple Lie algebras ($\mathfrak{sl}_n, \mathfrak{so}_n, \mathfrak{sp}_n$) via root system weights.
+   - *Rejected*: Design must remain general for all semisimple Lie algebras ($\mathfrak{sl}_n, \mathfrak{so}_n, \mathfrak{sp}_n, \mathfrak{g}_2$) via root system weights and Killing forms.
 3. **Separate Representation Plumbing Inside `algebrax/lie/`**:
    - *Rejected*: Creating `lie/rep.py`, `lie/spin.py`, `lie/casimir.py` as an isolated island would duplicate `direct_sum`, `tensor_product`, `dual`, and intertwiner logic already maintained in `algebrax.rep`, as well as duplicate `LieAlgebra.adjoint_matrix`.
 
@@ -233,3 +309,5 @@ Implementations will reside in `src/algebrax/rep/lie.py` (with re-exports from `
   * Initial Draft authored for Phase 8.
 * **2026-11-15:**
   * Aligned specification with unified `algebrax.rep.lie` + `algebrax.lie` re-exports, `LieAlgebraHom` refinement, delegation to existing `LieAlgebra.adjoint_matrix` / `element_to_matrix`, and `src/algebrax/verification.py`.
+* **2026-11-22:**
+  * Implemented `src/algebrax/rep/lie.py`, `src/algebrax/tensor/coupling.py`, `src/algebrax/verification.py` predicates, unit/falsification tests (`tests/algebrax/test_rep_lie.py`), SymPy/SciPy differential verification (`tests/verifications/test_differential_sympy.py`), and user guide (`docs/guide/algebra/lie_representations.md`). Transitioned status to Final.
