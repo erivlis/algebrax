@@ -403,3 +403,66 @@ def test_metamorphic_group_representation_character_ring_identities() -> None:
         assert abs(complex(dr_sq.trace(g)) - cg * cg) < 1e-11
         assert abs(complex(dr_dual.trace(g)) - cg.conjugate()) < 1e-11
 
+
+# ---------------------------------------------------------------------------
+# Metamorphic Relation 12: Frobenius Reciprocity, Transitivity & Mackey Theory
+# ---------------------------------------------------------------------------
+
+
+def test_metamorphic_induced_representation_frobenius_and_mackey_invariants() -> None:
+    """Verify Frobenius adjunction, transitivity of induction, and Mackey decomposition invariants."""
+    from algebrax.group import symmetric_group
+    from algebrax.rep import (
+        Character,
+        direct_sum_rep,
+        frobenius_adjoint_inverse,
+        frobenius_adjoint_transpose,
+        induced_representation,
+        is_intertwiner,
+        mackey_decomposition,
+        restrict_representation,
+        reynolds_average,
+        symmetric_standard_rep,
+        trivial_rep,
+    )
+    from algebrax.verification import (
+        verify_frobenius_reciprocity,
+        verify_mackey_intertwining,
+        verify_transitivity_of_induction,
+    )
+
+    s4 = symmetric_group(4)
+    s3_sub = s4.subgroup([(1, 0, 2, 3), (1, 2, 0, 3)], generate=True)
+    d4_sub = s4.subgroup([(1, 2, 3, 0), (0, 3, 2, 1)], generate=True)
+    c2_sub = d4_sub.subgroup([(2, 3, 0, 1)], generate=True)
+
+    # 1. Frobenius reciprocity & explicit intertwiner round-trip bijection on S_3 <= S_4
+    w_rep = trivial_rep(s3_sub)
+    v_rep = symmetric_standard_rep(4)
+    chi_w = Character.from_group(w_rep, s3_sub)
+    chi_v = Character.from_group(v_rep, s4)
+    assert all(verify_frobenius_reciprocity(chi_w, chi_v, s4, s3_sub).values())
+
+    ind_w = induced_representation(w_rep, s4, s3_sub)
+    res_v = restrict_representation(v_rep, s3_sub)
+    hom_h = reynolds_average({0: {0: 1.0}, 1: {0: -2.0}, 2: {0: 0.5}}, w_rep, res_v, s3_sub)
+    assert hom_h != {}
+    hom_g = frobenius_adjoint_transpose(hom_h, v_rep, s4, s3_sub, dim_w=1)
+    assert is_intertwiner(hom_g, ind_w, v_rep, s4)
+    assert semiring_elements_equal(frobenius_adjoint_inverse(hom_g, dim_w=1), hom_h, tol=1e-11)
+
+    # 2. Transitivity across C_2 <= D_4 <= S_4
+    chi_c2 = Character(values={(0, 1, 2, 3): 1.0, (2, 3, 0, 1): -1.0}, degree=1)
+    assert all(verify_transitivity_of_induction(chi_c2, s4, d4_sub, c2_sub).values())
+
+    # 3. Mackey double-coset decomposition & intertwining equality for non-normal (S_3, D_4) in S_4
+    chi_d4 = Character.from_group(trivial_rep(d4_sub), d4_sub)
+    assert all(verify_mackey_intertwining(chi_w, chi_d4, s4, s3_sub, d4_sub).values())
+
+    lhs_rep = restrict_representation(ind_w, d4_sub)
+    summands = mackey_decomposition(w_rep, s4, s3_sub, d4_sub)
+    rhs_rep = direct_sum_rep([r for _, r in summands], d4_sub)
+    assert lhs_rep.dimension == rhs_rep.dimension
+    for k in d4_sub.elements:
+        assert abs(complex(lhs_rep.trace(k)) - complex(rhs_rep.trace(k))) < 1e-11
+
