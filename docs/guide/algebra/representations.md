@@ -133,3 +133,5 @@ assert all(verify_schurs_lemma(intertwiner, rho_q8, rho_q8, q8, is_equivalent=Tr
 - **`verify_schur_orthogonality(table)`**: Checks both row orthogonality $\langle \chi_i, \chi_j \rangle = \delta_{ij}$ and column orthogonality $\sum_i \chi_i(C_a)\overline{\chi_i(C_b)} = \frac{|G|}{|C_a|}\delta_{ab}$.
 - **`verify_burnside_dimension_formula(table)`**: Checks $\sum_i (\dim V_i)^2 = |G|$ and $|\mathrm{Irr}(G)| = |\mathrm{Conj}(G)|$.
 - **`verify_schurs_lemma(op, rep1, rep2, elements, is_equivalent=...)`**: Verifies equivariance $T\rho_1(g) = \rho_2(g)T$ and confirms $T = \mathbf{0}$ (inequivalent irreps) or $T = \lambda \mathbf{I}$ (equivalent irreps).
+
+For subgroup restriction, sparse block-permutation induction, Frobenius reciprocity adjunctions, and Mackey double-coset decomposition, continue to [Induced Representations, Frobenius Reciprocity & Mackey Theory](induced_representations.md).
