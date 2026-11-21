@@ -898,3 +898,68 @@ def test_differential_symmetric_matrix_jordan_product_vs_sympy_matrix() -> None:
             val_ax = prod_ax.get(i, {}).get(j, 0.0)
             val_sp = float(sp_jordan[i, j])
             assert math.isclose(val_ax, val_sp, rel_tol=1e-12, abs_tol=1e-12)
+
+
+# =============================================================================
+# 10. Lie Algebra Representations, Exp Map & Clebsch-Gordan vs. SymPy / SciPy
+# =============================================================================
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_clebsch_gordan_and_lie_expm_vs_sympy_scipy() -> None:
+    """Verify sparse Clebsch-Gordan tensors vs. sympy.physics.quantum.cg.CG and exp_map vs. scipy.linalg.expm."""
+    from scipy.linalg import expm as scipy_expm
+    from sympy.physics.quantum.cg import CG
+
+    from algebrax.rep.lie import (
+        clebsch_gordan_coefficient,
+        clebsch_gordan_tensor,
+        spin_representation,
+    )
+
+    # 1. Exhaustive differential comparison of CG coefficients against SymPy CG oracle
+    for j1_h, j2_h in [(1, 1), (2, 1), (2, 2), (3, 2)]:
+        cg_tensor = clebsch_gordan_tensor(j1_h, j2_h)
+        sympy_nonzero: set[tuple[tuple[int, int], int, int]] = set()
+        for j_h in range(abs(j1_h - j2_h), j1_h + j2_h + 1, 2):
+            for m_h in range(-j_h, j_h + 1, 2):
+                for m1_h in range(-j1_h, j1_h + 1, 2):
+                    m2_h = m_h - m1_h
+                    if abs(m2_h) > j2_h:
+                        continue
+                    sp_val = float(
+                        CG(
+                            sp.Rational(j1_h, 2),
+                            sp.Rational(m1_h, 2),
+                            sp.Rational(j2_h, 2),
+                            sp.Rational(m2_h, 2),
+                            sp.Rational(j_h, 2),
+                            sp.Rational(m_h, 2),
+                        )
+                        .doit()
+                        .evalf()
+                    )
+                    ax_val = clebsch_gordan_coefficient(j1_h, m1_h, j2_h, m2_h, j_h, m_h)
+                    assert math.isclose(ax_val, sp_val, rel_tol=1e-12, abs_tol=1e-12)
+                    if abs(sp_val) > 1e-14:
+                        sympy_nonzero.add(((j_h, m_h), m1_h, m2_h))
+                        assert math.isclose(
+                            cg_tensor[((j_h, m_h), m1_h, m2_h)],
+                            sp_val,
+                            rel_tol=1e-12,
+                            abs_tol=1e-12,
+                        )
+        assert set(cg_tensor.keys()) == sympy_nonzero
+
+    # 2. Differential comparison of ExplicitLieRep.exp_map against scipy.linalg.expm
+    rng = np.random.default_rng(21101)
+    for j_h in (1, 2, 3):
+        rep_j = spin_representation(j_h, form='su2')
+        dim = rep_j.dimension
+        coeffs = {k: float(v) for k, v in enumerate(rng.normal(0.0, 1.5, size=3))}
+        rho_x_np = ax.converters.to_numpy(rep_j.evaluate(coeffs), shape=(dim, dim))
+        exp_ax_np = ax.converters.to_numpy(rep_j.exp_map(coeffs), shape=(dim, dim))
+        exp_sp_np = scipy_expm(rho_x_np)
+        np.testing.assert_allclose(exp_ax_np, exp_sp_np, rtol=1e-11, atol=1e-11)
+
