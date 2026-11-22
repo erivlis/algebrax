@@ -6,7 +6,7 @@ and orthonormal character tables, Maschke/isotypic projection operators, Reynold
 and canonical representations for cyclic, dihedral, quaternion, symmetric, and alternating groups.
 """
 
-from algebrax.rep import canonical, character, group, induction, lie
+from algebrax.rep import canonical, character, group, induction, invariant, lie
 from algebrax.rep.canonical import (
     a4_character_table,
     alternating_defining_rep,
@@ -60,6 +60,14 @@ from algebrax.rep.induction import (
     restrict_character,
     restrict_representation,
 )
+from algebrax.rep.invariant import (
+    MolienSeries,
+    compute_molien_series,
+    evaluate_sparse_polynomial,
+    invariant_basis_at_degree,
+    reynolds_monomial_projection,
+    reynolds_polynomial_operator,
+)
 from algebrax.rep.lie import (
     ExplicitLieRep,
     LieRepresentation,
@@ -67,6 +75,8 @@ from algebrax.rep.lie import (
     clebsch_gordan_coefficient,
     clebsch_gordan_matrix,
     clebsch_gordan_tensor,
+    cubic_casimir_operator,
+    cubic_casimir_tensor,
     defining_representation,
     direct_sum_lie_rep,
     freudenthal_casimir_eigenvalue,
@@ -86,6 +96,7 @@ __all__ = [
     'ExplicitLieRep',
     'GroupRepresentation',
     'LieRepresentation',
+    'MolienSeries',
     'RepOperator',
     'a4_character_table',
     'adjoint_representation',
@@ -98,8 +109,11 @@ __all__ = [
     'clebsch_gordan_coefficient',
     'clebsch_gordan_matrix',
     'clebsch_gordan_tensor',
+    'compute_molien_series',
     'conjugacy_classes',
     'conjugate_representation',
+    'cubic_casimir_operator',
+    'cubic_casimir_tensor',
     'cyclic_character_table',
     'cyclic_rep',
     'defining_representation',
@@ -109,6 +123,7 @@ __all__ = [
     'dihedral_rep',
     'direct_sum_lie_rep',
     'direct_sum_rep',
+    'evaluate_sparse_polynomial',
     'freudenthal_casimir_eigenvalue',
     'frobenius_adjoint_inverse',
     'frobenius_adjoint_transpose',
@@ -117,6 +132,8 @@ __all__ = [
     'induced_character',
     'induced_representation',
     'induction',
+    'invariant',
+    'invariant_basis_at_degree',
     'is_intertwiner',
     'is_lie_intertwiner',
     'isotypic_projector',
@@ -132,6 +149,8 @@ __all__ = [
     'restrict_character',
     'restrict_representation',
     'reynolds_average',
+    'reynolds_monomial_projection',
+    'reynolds_polynomial_operator',
     's3_character_table',
     's4_character_table',
     'spin_representation',

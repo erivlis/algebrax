@@ -56,6 +56,7 @@ __all__ = [
     'verify_connection_inversion',
     'verify_contraction_constant',
     'verify_counitality',
+    'verify_cubic_casimir_invariance',
     'verify_distributive_lattice_laws',
     'verify_division_ring_laws',
     'verify_exponential_adjunction',
@@ -81,6 +82,7 @@ __all__ = [
     'verify_matrix_conway_laws',
     'verify_meet_semilattice_laws',
     'verify_module_laws',
+    'verify_molien_expansion',
     'verify_monoid_laws',
     'verify_non_assoc_algebra_laws',
     'verify_non_assoc_ring_laws',
@@ -88,9 +90,11 @@ __all__ = [
     'verify_parallelogram_law',
     'verify_path_groupoid_laws',
     'verify_poisson_laws',
+    'verify_polynomial_invariance',
     'verify_quotient_ring_laws',
     'verify_representation_homomorphism',
     'verify_residuation_laws',
+    'verify_reynolds_idempotency',
     'verify_ring_homomorphism_laws',
     'verify_ring_laws',
     'verify_schur_orthogonality',
@@ -3511,4 +3515,183 @@ def verify_clebsch_gordan_coupling(
         'selection_rules': sel_ok,
         'intertwiner_equivariance': equiv_ok,
     }
+
+
+# =============================================================================
+# Invariant Theory, Molien Series & Higher-Order Casimir Polynomials
+# =============================================================================
+
+
+def _is_finite_scalar(val: Any) -> bool:
+    """Return True if a real or complex scalar is finite."""
+    c = complex(val)
+    return math.isfinite(c.real) and math.isfinite(c.imag)
+
+
+def verify_reynolds_idempotency(
+    reynolds_fn: Callable[[Callable[[Sequence[Any]], Any]], Callable[[Sequence[Any]], Any]],
+    test_poly: Callable[[Sequence[Any]], Any],
+    test_point: Sequence[float | complex],
+    tol: float = 1e-11,
+) -> dict[str, bool]:
+    r"""Verify idempotency of a polynomial Reynolds projection operator:
+    $$\mathcal{R}(\mathcal{R}(f))(\mathbf{x}) = \mathcal{R}(f)(\mathbf{x})$$
+    """
+    once = reynolds_fn(test_poly)
+    twice = reynolds_fn(once)
+    v1 = once(test_point)
+    v2 = twice(test_point)
+    finite_ok = _is_finite_scalar(v1) and _is_finite_scalar(v2)
+    idem_ok = finite_ok and abs(complex(v2) - complex(v1)) <= tol
+    return {
+        'reynolds_idempotency': idem_ok,
+        'finite_values': finite_ok,
+    }
+
+
+def verify_polynomial_invariance(
+    poly: Callable[[Sequence[Any]], Any] | dict[tuple[int, ...], float | complex],
+    rep: Any,
+    elements_or_group: Any,
+    dimension: int | None = None,
+    num_probes: int = 50,
+    seed: int = 42,
+    tol: float = 1e-11,
+) -> dict[str, bool]:
+    r"""Verify group invariance of a polynomial $f(\rho(g)\mathbf{x}) = f(\mathbf{x})$ across
+    deterministic Gaussian probe vectors and every element $g \in G$.
+
+    Accepts either a callable $f(\mathbf{x})$ or an unboxed sparse polynomial
+    `dict[tuple[int, ...], float | complex]`.
+    """
+    import random
+
+    from algebrax.group.finite import FiniteGroup
+    from algebrax.rep.invariant import _apply_rep_to_vector, evaluate_sparse_polynomial
+
+    if num_probes <= 0:
+        raise ValueError(f'num_probes must be positive, got {num_probes}.')
+
+    dim = rep.dimension if dimension is None else dimension
+    if dim <= 0:
+        raise ValueError(f'dimension must be positive, got {dim}.')
+
+    elements = (
+        list(elements_or_group.elements)
+        if isinstance(elements_or_group, FiniteGroup)
+        else list(elements_or_group)
+    )
+    if not elements:
+        raise ValueError('elements_or_group must be non-empty.')
+
+    poly_fn: Callable[[Sequence[Any]], Any]
+    if isinstance(poly, dict):
+        poly_dict = poly
+        poly_fn = lambda x: evaluate_sparse_polynomial(poly_dict, x)  # noqa: E731
+    else:
+        poly_fn = poly
+
+    mats = [rep(g) for g in elements]
+    rng = random.Random(seed)
+    invariant_ok = True
+    probes_checked = 0
+
+    for _ in range(num_probes):
+        x = [rng.gauss(0.0, 1.0) for _ in range(dim)]
+        base_val = complex(poly_fn(x))
+        if not _is_finite_scalar(base_val):
+            invariant_ok = False
+            break
+        for mat in mats:
+            gx = _apply_rep_to_vector(mat, x)
+            moved_val = complex(poly_fn(gx))
+            if not _is_finite_scalar(moved_val) or abs(moved_val - base_val) > tol:
+                invariant_ok = False
+                break
+        if not invariant_ok:
+            break
+        probes_checked += 1
+
+    return {
+        'polynomial_invariance': invariant_ok,
+        'probe_coverage': probes_checked == num_probes,
+    }
+
+
+def verify_molien_expansion(
+    series: Any,
+    actual_dimensions: Sequence[int],
+) -> dict[str, bool]:
+    r"""Verify that a `MolienSeries` Hilbert-Poincare expansion matches empirical homogeneous
+    invariant subspace dimensions $\dim K[V]_d^G$ for $d = 0, \dots, D$.
+    """
+    dims = list(actual_dimensions)
+    if not dims:
+        raise ValueError('actual_dimensions must be non-empty.')
+    expected = series.series(len(dims) - 1)
+    return {
+        'expansion_matches': list(expected) == dims,
+        'nonnegative_dimensions': all(d >= 0 for d in dims) and all(e >= 0 for e in expected),
+        'degree_zero_unit': dims[0] == 1 and expected[0] == 1,
+    }
+
+
+def _check_cubic_total_symmetry(
+    d_tensor: dict[tuple[int, int, int], float | complex],
+    tol: float,
+) -> bool:
+    """Return True if d_{ijk} is invariant under all 6 permutations of (i, j, k)."""
+    for (i, j, k), val in d_tensor.items():
+        c_val = complex(val)
+        for perm in itertools.permutations((i, j, k)):
+            if abs(complex(d_tensor.get(perm, 0.0)) - c_val) > tol:
+                return False
+    return True
+
+
+def _check_cubic_ad_invariance(
+    algebra: Any,
+    d_tensor: dict[tuple[int, int, int], float | complex],
+    tol: float,
+) -> bool:
+    """Return True if sum_l (f_{a i}^l d_{l j k} + f_{a j}^l d_{i l k} + f_{a k}^l d_{i j l}) == 0."""
+    n = algebra.dim
+    brackets = [[algebra.bracket({a: 1.0}, {i: 1.0}) for i in range(n)] for a in range(n)]
+    for a in range(n):
+        br_a = brackets[a]
+        for i in range(n):
+            br_ai = br_a[i]
+            for j in range(n):
+                br_aj = br_a[j]
+                for k in range(n):
+                    total = 0.0 + 0.0j
+                    for idx_l, f_val in br_ai.items():
+                        total += complex(f_val) * complex(d_tensor.get((idx_l, j, k), 0.0))
+                    for idx_l, f_val in br_aj.items():
+                        total += complex(f_val) * complex(d_tensor.get((i, idx_l, k), 0.0))
+                    for idx_l, f_val in br_a[k].items():
+                        total += complex(f_val) * complex(d_tensor.get((i, j, idx_l), 0.0))
+                    if abs(total) > tol:
+                        return False
+    return True
+
+
+def verify_cubic_casimir_invariance(
+    algebra: Any,
+    d_tensor: dict[tuple[int, int, int], float | complex] | None = None,
+    rep: Any = None,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify total symmetry and Lie-algebra ad-invariance of a cubic symmetric invariant tensor $d_{ijk}$:
+    - Total Symmetry: $d_{\sigma(i)\sigma(j)\sigma(k)} = d_{ijk}$ for all $\sigma \in S_3$
+    - Adjoint Invariance: $\sum_l (f_{ai}^l d_{ljk} + f_{aj}^l d_{ilk} + f_{ak}^l d_{ijl}) = 0$
+    """
+    from algebrax.rep.lie import cubic_casimir_tensor
+
+    tensor = cubic_casimir_tensor(algebra, rep=rep, tol=tol) if d_tensor is None else d_tensor
+    return {
+        'total_symmetry': _check_cubic_total_symmetry(tensor, tol),
+        'ad_invariance': _check_cubic_ad_invariance(algebra, tensor, tol),
+    }
+
 
