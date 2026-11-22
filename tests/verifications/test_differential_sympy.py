@@ -963,3 +963,106 @@ def test_differential_clebsch_gordan_and_lie_expm_vs_sympy_scipy() -> None:
         exp_sp_np = scipy_expm(rho_x_np)
         np.testing.assert_allclose(exp_ax_np, exp_sp_np, rtol=1e-11, atol=1e-11)
 
+
+# =============================================================================
+# 11. Invariant Theory (Molien Series) & Cubic Casimir Invariants vs. SymPy
+# =============================================================================
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_molien_series_and_cubic_casimir_vs_sympy() -> None:
+    """Verify compute_molien_series and cubic_casimir_tensor/operator against exact SymPy oracles."""
+    from algebrax.group import dihedral_group, quaternion_group, symmetric_group
+    from algebrax.lie.classical import sl_n
+    from algebrax.rep import (
+        compute_molien_series,
+        cubic_casimir_operator,
+        cubic_casimir_tensor,
+        defining_representation,
+        dihedral_rep,
+        quaternion_rep,
+        symmetric_defining_rep,
+    )
+
+    t = sp.Symbol('t')
+    max_deg = 12
+
+    def _to_sympy_mat(sparse_mat: dict[int, dict[int, Any]], n: int) -> sp.Matrix:
+        rows: list[list[Any]] = []
+        for i in range(n):
+            row_dict = sparse_mat.get(i, {})
+            row: list[Any] = []
+            for j in range(n):
+                val = complex(row_dict.get(j, 0.0))
+                re = sp.nsimplify(val.real, tolerance=1e-10, rational=False)
+                im = sp.nsimplify(val.imag, tolerance=1e-10, rational=False)
+                row.append(re + sp.I * im)
+            rows.append(row)
+        return sp.Matrix(rows)
+
+    # 1. Molien series vs exact SymPy Taylor expansion of (1/|G|) sum_g 1 / det(I - t * rho(g))
+    cases: list[tuple[Any, Any]] = [
+        (dihedral_group(2), dihedral_rep(2)),
+        (dihedral_group(4), dihedral_rep(4)),
+        (symmetric_group(3), symmetric_defining_rep(3)),
+        (quaternion_group(), quaternion_rep()),
+    ]
+    for grp, rep in cases:
+        molien = compute_molien_series(rep, grp)
+        dim = rep.dimension
+        eye_n = sp.eye(dim)
+        sym_sum = sp.Integer(0)
+        for g in grp.elements:
+            m_sp = _to_sympy_mat(rep(g), dim)
+            sym_sum += sp.Integer(1) / (eye_n - t * m_sp).det()
+        sym_molien = sp.simplify(sym_sum / sp.Integer(grp.order))
+        sym_poly = sp.series(sym_molien, t, 0, max_deg + 1).removeO().as_poly(t)
+        expected_dims = [int(sym_poly.nth(d)) for d in range(max_deg + 1)]
+        assert molien.series(max_deg) == expected_dims
+
+    # 2. Cubic symmetric invariant tensor d_{ijk} and operator C_3 on sl(3) vs exact SymPy Matrix trace
+    alg = sl_n(3)
+    fund = defining_representation(alg)
+    dual = fund.dual()
+    d_ax = cubic_casimir_tensor(alg)
+
+    sp_gens = [_to_sympy_mat(fund(i), 3) for i in range(alg.dim)]
+    sp_d: dict[tuple[int, int, int], sp.Expr] = {}
+    for i in range(alg.dim):
+        for j in range(alg.dim):
+            for k in range(alg.dim):
+                val_sp = (sp_gens[i] * (sp_gens[j] * sp_gens[k] + sp_gens[k] * sp_gens[j])).trace()
+                if val_sp != 0:
+                    sp_d[(i, j, k)] = val_sp
+                    assert math.isclose(
+                        float(complex(d_ax[(i, j, k)]).real),
+                        float(val_sp),
+                        rel_tol=1e-11,
+                        abs_tol=1e-11,
+                    )
+    assert set(d_ax.keys()) == set(sp_d.keys())
+
+    # Exact SymPy C_3 on fundamental 3 and dual 3-bar via inverse Killing metric
+    killing_sp = _to_sympy_mat(alg.killing_matrix(), alg.dim)
+    killing_inv_sp = killing_sp.inv()
+    # Raise indices d^{ijk} = sum_{a,b,c} g^{ia} g^{jb} g^{kc} d_{abc}
+    c3_fund_sp = sp.zeros(3, 3)
+    for (a, b, c), d_abc in sp_d.items():
+        # Contract g^{ia} T_i = sum_i g^{ia} T_i
+        ta = sum((killing_inv_sp[i, a] * sp_gens[i] for i in range(alg.dim)), sp.zeros(3, 3))
+        tb = sum((killing_inv_sp[j, b] * sp_gens[j] for j in range(alg.dim)), sp.zeros(3, 3))
+        tc = sum((killing_inv_sp[k, c] * sp_gens[k] for k in range(alg.dim)), sp.zeros(3, 3))
+        c3_fund_sp += d_abc * (ta * tb * tc)
+
+    c3_fund_ax = cubic_casimir_operator(fund, d_tensor=d_ax)
+    c3_dual_ax = cubic_casimir_operator(dual, d_tensor=d_ax)
+    for r in range(3):
+        for c in range(3):
+            expected_val = float(c3_fund_sp[r, c])
+            got_fund = float(complex(c3_fund_ax.get(r, {}).get(c, 0.0)).real)
+            got_dual = float(complex(c3_dual_ax.get(r, {}).get(c, 0.0)).real)
+            assert math.isclose(got_fund, expected_val, rel_tol=1e-10, abs_tol=1e-10)
+            assert math.isclose(got_dual, -expected_val, rel_tol=1e-10, abs_tol=1e-10)
+
+
