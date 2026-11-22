@@ -189,7 +189,7 @@ quiver representations, and quantum groups.
 | [EP-0211](proposals/EP-0211-lie-algebra-representations-clebsch-gordan.md)          | Lie Algebra Representations & Clebsch–Gordan Tensors  | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
 | [EP-0212](proposals/EP-0212-quiver-representations-and-gabriels-ade-theorem.md)     | Quiver Representations & Gabriel's ADE Theorem        | 🧩 Russell & 🔬 Popper  | :material-pencil: Draft |
 | [EP-0213](proposals/EP-0213-induced-representations-and-frobenius-reciprocity.md)   | Induced Representations & Frobenius Reciprocity       | 🧩 Russell & ⚖️ Noether | :material-check-all: Final |
-| [EP-0214](proposals/EP-0214-invariant-theory-molien-series-casimir-polynomials.md)  | Invariant Theory, Molien Series & Casimir Polynomials | ⚖️ Noether & ⚡ Shannon | :material-pencil: Draft |
+| [EP-0214](proposals/EP-0214-invariant-theory-molien-series-casimir-polynomials.md)  | Invariant Theory, Molien Series & Casimir Polynomials | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
 | [EP-0215](proposals/EP-0215-quantum-groups-yang-baxter-braided-categories.md)       | Quantum Groups, Yang–Baxter Equation & R-Matrices     | ⚖️ Noether & 🛡️ Golem   | :material-pencil: Draft |
 
 ---

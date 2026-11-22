@@ -52,6 +52,7 @@ nav = [
             "guide/algebra/representations.md",
             "guide/algebra/induced_representations.md",
             "guide/algebra/lie_representations.md",
+            "guide/algebra/invariant_theory.md",
             "guide/tensor/trie.md",
             "guide/tensor/einsum.md",
         ] },
