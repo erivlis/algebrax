@@ -21,7 +21,7 @@ from algebrax.algebra._homomorphisms import LieAlgebraHom
 from algebrax.lie.classical import sl_n, su_n
 from algebrax.lie.core import LieAlgebra
 from algebrax.lie.roots import RootSystem
-from algebrax.matrix.core import add, dot, inverse, transpose
+from algebrax.matrix.core import add, dot, inverse, trace, transpose
 from algebrax.rep.group import _prune_matrix, _scale_matrix
 from algebrax.tensor.coupling import (
     clebsch_gordan_coefficient,
@@ -678,6 +678,189 @@ def freudenthal_casimir_eigenvalue(
     return total
 
 
+def _raise_cubic_tensor_indices(
+    d_lower: Mapping[tuple[int, int, int], float | complex],
+    g_inv: Mapping[int, Mapping[int, Any]],
+    tol: float,
+) -> dict[tuple[int, int, int], float | complex]:
+    """Raise all three indices of d_{abc} using inverse Killing metric g^{ia} g^{jb} g^{kc}."""
+    # Factor three-stage sparse contraction: d_{abc} -> t1^{i}_{bc} -> t2^{ij}_{c} -> d^{ijk}
+    t1: dict[tuple[int, int, int], complex] = {}
+    for (a, b, c), val in d_lower.items():
+        for i, row_i in g_inv.items():
+            g_ia = row_i.get(a)
+            if g_ia is not None:
+                key = (i, b, c)
+                t1[key] = t1.get(key, 0.0 + 0.0j) + complex(g_ia) * complex(val)
+
+    t2: dict[tuple[int, int, int], complex] = {}
+    for (i, b, c), val in t1.items():
+        if abs(val) <= tol:
+            continue
+        for j, row_j in g_inv.items():
+            g_jb = row_j.get(b)
+            if g_jb is not None:
+                key = (i, j, c)
+                t2[key] = t2.get(key, 0.0 + 0.0j) + complex(g_jb) * val
+
+    d_upper: dict[tuple[int, int, int], float | complex] = {}
+    for (i, j, c), val in t2.items():
+        if abs(val) <= tol:
+            continue
+        for k, row_k in g_inv.items():
+            g_kc = row_k.get(c)
+            if g_kc is not None:
+                key = (i, j, k)
+                prev = complex(d_upper.get(key, 0.0 + 0.0j))
+                d_upper[key] = prev + complex(g_kc) * val
+
+    cleaned: dict[tuple[int, int, int], float | complex] = {}
+    for key, val in d_upper.items():
+        c_val = complex(val)
+        if abs(c_val) > tol:
+            cleaned[key] = float(c_val.real) if abs(c_val.imag) <= tol else c_val
+    return cleaned
+
+
+def cubic_casimir_tensor(
+    algebra: LieAlgebra,
+    rep: LieRepresentation[Any] | None = None,
+    tol: float = 1e-12,
+) -> dict[tuple[int, int, int], float | complex]:
+    r"""Compute the totally symmetric cubic invariant tensor:
+
+    $$d_{ijk} = \operatorname{Tr}\!\bigl(\rho(X_i)\,(\rho(X_j)\rho(X_k) + \rho(X_k)\rho(X_j))\bigr)$$
+
+    Defaults to `defining_representation(algebra)` when `algebra.matrix_basis` is present (and
+    falls back to `adjoint_representation(algebra)` otherwise). Note that $d_{ijk}$ vanishes
+    identically on self-dual representations (including the adjoint representation of any
+    semisimple Lie algebra, as well as the defining representations of $\mathfrak{su}_2$,
+    $\mathfrak{so}_n$, and $\mathfrak{sp}_n$), while being non-zero on the fundamental
+    representation of $\mathfrak{sl}_n$ and $\mathfrak{su}_n$ for $n \ge 3$.
+
+    Args:
+        algebra: Underlying `LieAlgebra`.
+        rep: Optional `LieRepresentation` on which to take the symmetrized cubic trace.
+        tol: Sparsity pruning tolerance.
+
+    Returns:
+        Sparse dictionary mapping `(i, j, k) -> d_{ijk}` for all non-zero entries.
+    """
+    if rep is None:
+        if algebra.matrix_basis is not None:
+            active_rep: LieRepresentation[Any] = defining_representation(algebra)
+        else:
+            active_rep = adjoint_representation(algebra)
+    else:
+        active_rep = rep
+
+    n = algebra.dim
+    gens = [active_rep(i) for i in range(n)]
+    # Precompute pairwise products rho(X_j) rho(X_k) once for all j <= k
+    prods: dict[tuple[int, int], SparseMatrix[int, Any]] = {}
+    for j in range(n):
+        if not gens[j]:
+            continue
+        for k in range(j, n):
+            if not gens[k]:
+                continue
+            jk = _prune_matrix(dot(gens[j], gens[k]), tol=tol)
+            kj = jk if j == k else _prune_matrix(dot(gens[k], gens[j]), tol=tol)
+            anticomm = _prune_matrix(add(jk, kj), tol=tol)
+            if anticomm:
+                prods[(j, k)] = anticomm
+
+    d_tensor: dict[tuple[int, int, int], float | complex] = {}
+    for i in range(n):
+        gi = gens[i]
+        if not gi:
+            continue
+        for j in range(i, n):
+            for k in range(j, n):
+                anticomm = prods.get((j, k))
+                if not anticomm:
+                    continue
+                raw = complex(trace(dot(gi, anticomm)))
+                if abs(raw) <= tol:
+                    continue
+                val: float | complex = float(raw.real) if abs(raw.imag) <= tol else raw
+                for perm in {(i, j, k), (i, k, j), (j, i, k), (j, k, i), (k, i, j), (k, j, i)}:
+                    d_tensor[perm] = val
+    return d_tensor
+
+
+def cubic_casimir_operator(
+    rep: LieRepresentation[K],
+    algebra: LieAlgebra | None = None,
+    d_tensor: Mapping[tuple[int, int, int], float | complex] | None = None,
+    killing_metric_inv: SparseMatrix[int, float | complex] | None = None,
+    tol: float = 1e-12,
+) -> SparseMatrix[int, Any]:
+    r"""Compute the central cubic Casimir operator $C_3 = \sum_{i,j,k} d^{ijk}\rho(X_i)\rho(X_j)\rho(X_k)$.
+
+    Raises indices of the totally symmetric invariant tensor $d_{abc}$ via the inverse Killing
+    metric $g^{ia} g^{jb} g^{kc}$. Commutes with all generators ($[C_3, \rho(X_m)] = \mathbf{0}$)
+    and separates complex-conjugate irreps ($\mathbf{3}$ vs $\bar{\mathbf{3}}$ in $\mathfrak{sl}_3$
+    and $\mathfrak{su}_3$) with opposite scalar eigenvalues $\pm\lambda_3 \mathbf{I}$.
+
+    Args:
+        rep: Lie algebra representation $\rho$.
+        algebra: Underlying `LieAlgebra` (inferred from `rep.algebra` if omitted).
+        d_tensor: Optional precomputed lower-index invariant 3-tensor $d_{abc}$.
+        killing_metric_inv: Optional inverse invariant bilinear form $g^{ij}$.
+        tol: Sparsity pruning tolerance.
+
+    Returns:
+        Sparse matrix representing the central cubic Casimir operator $C_3$.
+    """
+    alg = _resolve_algebra(rep, algebra)
+    if killing_metric_inv is None:
+        if not alg.is_semisimple(tol=tol):
+            raise ValueError(
+                'Lie algebra Killing form is singular (not semisimple); '
+                'provide an explicit killing_metric_inv to compute a cubic Casimir operator.'
+            )
+        g_inv: Mapping[int, Mapping[int, Any]] = inverse(alg.killing_matrix(), tol=tol)
+    else:
+        g_inv = killing_metric_inv
+
+    d_lower = cubic_casimir_tensor(alg, tol=tol) if d_tensor is None else d_tensor
+    if not d_lower:
+        return {}
+
+    d_upper = _raise_cubic_tensor_indices(d_lower, g_inv, tol=tol)
+    if not d_upper:
+        return {}
+
+    # Group non-zero triples by (i, j) so dot(rho_i, rho_j) is computed once per active pair
+    by_ij: dict[tuple[int, int], list[tuple[int, float | complex]]] = {}
+    for (i, j, k), coeff in d_upper.items():
+        by_ij.setdefault((i, j), []).append((k, coeff))
+
+    acc: dict[int, dict[int, Any]] = {}
+    for (i, j), k_terms in by_ij.items():
+        rho_i = rep(i)
+        rho_j = rep(j)
+        if not rho_i or not rho_j:
+            continue
+        ij_prod = _prune_matrix(dot(rho_i, rho_j), tol=tol)
+        if not ij_prod:
+            continue
+        k_sum: dict[int, dict[int, Any]] = {}
+        for k, coeff in k_terms:
+            rho_k = rep(k)
+            if not rho_k:
+                continue
+            scaled_k = _scale_matrix(rho_k, coeff, tol=tol)
+            if scaled_k:
+                k_sum = dict(add(k_sum, scaled_k))  # type: ignore[arg-type]
+        if k_sum:
+            term = _prune_matrix(dot(ij_prod, k_sum), tol=tol)
+            if term:
+                acc = dict(add(acc, term))  # type: ignore[arg-type]
+    return _prune_matrix(acc, tol=tol)
+
+
 __all__ = [
     'ExplicitLieRep',
     'LieRepresentation',
@@ -685,6 +868,8 @@ __all__ = [
     'clebsch_gordan_coefficient',
     'clebsch_gordan_matrix',
     'clebsch_gordan_tensor',
+    'cubic_casimir_operator',
+    'cubic_casimir_tensor',
     'defining_representation',
     'direct_sum_lie_rep',
     'freudenthal_casimir_eigenvalue',

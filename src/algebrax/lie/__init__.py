@@ -51,6 +51,8 @@ from algebrax.lie.roots import (
 if TYPE_CHECKING:
     from algebrax.rep.lie import (
         adjoint_representation,
+        cubic_casimir_operator,
+        cubic_casimir_tensor,
         defining_representation,
         quadratic_casimir,
         spin_representation,
@@ -58,6 +60,8 @@ if TYPE_CHECKING:
 
 _REP_LIE_EXPORTS = frozenset({
     'adjoint_representation',
+    'cubic_casimir_operator',
+    'cubic_casimir_tensor',
     'defining_representation',
     'quadratic_casimir',
     'spin_representation',
@@ -83,6 +87,8 @@ __all__ = [
     'chevalley_lie_algebra',
     'clifford_lie_algebra',
     'coroot_in_dual',
+    'cubic_casimir_operator',
+    'cubic_casimir_tensor',
     'defining_representation',
     'e6',
     'e7',
