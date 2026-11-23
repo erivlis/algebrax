@@ -1167,3 +1167,121 @@ def test_differential_quantum_groups_yang_baxter_and_jones_vs_sympy() -> None:
             got_v = jones_polynomial_eval(braid_word, strands, q_val)
             exp_v = complex(sym_expr.subs(q, complex(q_val)).evalf())
             assert abs(got_v - exp_v) < 1e-10
+
+
+# =============================================================================
+# 13. Quiver Representations, Tits Form & Gabriel's ADE Theorem vs. SymPy
+# =============================================================================
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_quiver_tits_form_and_gabriel_ade_vs_sympy() -> None:
+    """Verify Tits quadratic form, Gabriel ADE/tame/wild classification, and PathAlgebra against SymPy."""
+    from algebrax.algebra import path_algebra
+    from algebrax.rep import (
+        Quiver,
+        QuiverRepresentation,
+        classify_representation_type,
+        cycle_quiver,
+        dynkin_quiver,
+        gabriel_positive_roots,
+        kronecker_quiver,
+        tits_quadratic_form,
+    )
+
+    def _tree_arms(arms: tuple[int, int, int]) -> Quiver[int, str]:
+        verts = [0]
+        edges: list[tuple[str, int, int]] = []
+        nxt = 1
+        e_idx = 0
+        for arm_len in arms:
+            prev = 0
+            for _ in range(arm_len):
+                verts.append(nxt)
+                edges.append((f'e{e_idx}', prev, nxt))
+                prev = nxt
+                nxt += 1
+                e_idx += 1
+        return Quiver.from_edges(verts, edges)
+
+    # 1. Exact SymPy positive-definite / semidefinite / indefinite oracle vs Gabriel classification
+    ade_quivers = [
+        (dynkin_quiver('A', 2), 3),
+        (dynkin_quiver('A', 4), 10),
+        (dynkin_quiver('D', 4), 12),
+        (dynkin_quiver('D', 5), 20),
+        (dynkin_quiver('E6'), 36),
+        (dynkin_quiver('E7'), 63),
+        (dynkin_quiver('E8'), 120),
+    ]
+    for q_ade, expected_root_count in ade_quivers:
+        c_sp = sp.Matrix(q_ade.symmetric_cartan_matrix())
+        assert c_sp.is_positive_definite is True
+        assert classify_representation_type(q_ade) == 'finite'
+        roots = gabriel_positive_roots(q_ade)
+        assert len(roots) == expected_root_count
+        for r in roots:
+            d_vec = sp.Matrix([r[v] for v in q_ade.vertices])
+            q_sym = sp.Rational(1, 2) * (d_vec.T * c_sp * d_vec)[0, 0]
+            assert q_sym == sp.Integer(1)
+            assert tits_quadratic_form(q_ade, r) == 1
+
+    # 2. Tame Euclidean quivers: exact SymPy positive semidefinite & singular (det == 0)
+    tame_quivers = [
+        cycle_quiver(1),
+        kronecker_quiver(2),
+        cycle_quiver(4),
+        _tree_arms((2, 2, 2)),  # ~E6
+        _tree_arms((1, 3, 3)),  # ~E7
+        _tree_arms((1, 2, 5)),  # ~E8
+    ]
+    for q_tame in tame_quivers:
+        c_sp = sp.Matrix(q_tame.symmetric_cartan_matrix())
+        assert c_sp.is_positive_definite is False
+        assert c_sp.is_positive_semidefinite is True
+        assert c_sp.det() == 0
+        assert classify_representation_type(q_tame) == 'tame'
+        null_basis = c_sp.nullspace()
+        assert len(null_basis) == 1
+        delta_sp = null_basis[0]
+        # Clear denominators to obtain exact integer radical vector
+        lcm_den = sp.ilcm(1, *(sp.Rational(x).q for x in delta_sp))
+        delta_int = [int(x * lcm_den) for x in delta_sp]
+        assert tits_quadratic_form(q_tame, delta_int) == 0
+
+    # 3. Wild quivers: exact SymPy indefinite (not positive semidefinite)
+    wild_quivers = [
+        kronecker_quiver(3),
+        _tree_arms((1, 2, 6)),
+        Quiver.from_edges((0, 1, 2, 3, 4, 5), [(f'e{i}', i, 0) for i in range(1, 6)]),
+    ]
+    for q_wild in wild_quivers:
+        c_sp = sp.Matrix(q_wild.symmetric_cartan_matrix())
+        assert c_sp.is_positive_semidefinite is False
+        assert classify_representation_type(q_wild) == 'wild'
+
+    # 4. PathAlgebra right-module representation action vs exact SymPy block matrices
+    q_a3 = dynkin_quiver('A', 3)
+    m0_sp = sp.Matrix([[1, 2], [0, -1]])
+    m1_sp = sp.Matrix([[3, 4]])
+    rep = QuiverRepresentation(
+        quiver=q_a3,
+        dimensions={0: 2, 1: 2, 2: 1},
+        edge_maps={
+            'e0': {0: {0: 1.0, 1: 2.0}, 1: {1: -1.0}},
+            'e1': {0: {0: 3.0, 1: 4.0}},
+        },
+    )
+    kq = path_algebra(q_a3)
+    p01 = kq.mul(kq.arrow('e0'), kq.arrow('e1'))
+    phi_p01 = kq.evaluate_in_rep(p01, rep)
+    expected_block = m1_sp * m0_sp  # 1x2 matrix at rows [4], cols [0, 1]
+    for col in range(2):
+        assert math.isclose(
+            float(phi_p01.get(4, {}).get(col, 0.0)),
+            float(expected_block[0, col]),
+            rel_tol=1e-12,
+            abs_tol=1e-12,
+        )
+
