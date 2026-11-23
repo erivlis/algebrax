@@ -8,12 +8,12 @@ and directed quivers:
 - `induction`: Subgroup restriction/induction ($\operatorname{Ind}_H^G \dashv \operatorname{Res}_H^G$),
   Frobenius reciprocity adjunctions, and Mackey double-coset decomposition.
 - `lie`: Lie algebra representations, weight-space decompositions, quadratic/cubic Casimir
-  operators, and sparse $\mathfrak{su}(2)$ Clebsch–Gordan coupling tensors.
-- `invariant`: Polynomial Reynolds operators, exact Molien Hilbert–Poincaré series, and
+  operators, and sparse $\mathfrak{su}(2)$ Clebsch-Gordan coupling tensors.
+- `invariant`: Polynomial Reynolds operators, exact Molien Hilbert-Poincaré series, and
   degree-$d$ invariant subspace bases.
 - `quantum`: $q$-deformed Hopf algebra $U_q(\mathfrak{sl}_2)$ in PBW basis, universal $R$-matrices,
   braiding operators, and Jones knot/link invariants.
-- `quiver`: Quiver representations, Euler–Tits quadratic forms, Gabriel's ADE/tame/wild
+- `quiver`: Quiver representations, Euler-Tits quadratic forms, Gabriel's ADE/tame/wild
   classification, BGP reflections, and bidirectional `CellularSheaf` equivalence.
 """
 
