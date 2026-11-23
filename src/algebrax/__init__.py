@@ -36,8 +36,9 @@ Submodules & Domain Taxonomy
    - `probability`: Information theory & Markov chains (`entropy`, `kl_divergence`, `bayes_update`).
    - `automata`: Finite state machines (`simulate_dfa`, `simulate_nfa`).
    - `lattice`: Set-theoretic & fuzzy logic key/value operations (`join`, `meet`, `combine`).
+   - `algebra`: Pure algebraic hierarchy mixins & domain algebras (`Ring`, `Field`, `HopfAlgebra`, `PathAlgebra`).
    - `group`: Finite groups, coset/quotient laws & permutation symmetries (`FiniteGroup`, `symmetric_group`).
-   - `rep`: Representation theory, character tables & Schur orthogonality (`ExplicitGroupRep`, `CharacterTable`).
+   - `rep`: Representation theory — finite groups, induction/Mackey, Lie weights & Clebsch–Gordan, invariant theory & Molien series, quantum groups $U_q(\mathfrak{sl}_2)$/Jones polynomials, and quivers/Gabriel ADE (`ExplicitGroupRep`, `ExplicitLieRep`, `QuantumSL2`, `Quiver`).
 
 4. Tools & Ecosystem Bridges
    - `converters`: Sparse-dense array conversion & PyData bridges (`to_numpy`, `from_numpy`, `to_scipy`).
