@@ -6,7 +6,7 @@ and orthonormal character tables, Maschke/isotypic projection operators, Reynold
 and canonical representations for cyclic, dihedral, quaternion, symmetric, and alternating groups.
 """
 
-from algebrax.rep import canonical, character, group, induction, invariant, lie
+from algebrax.rep import canonical, character, group, induction, invariant, lie, quantum
 from algebrax.rep.canonical import (
     a4_character_table,
     alternating_defining_rep,
@@ -88,6 +88,17 @@ from algebrax.rep.lie import (
     trivial_lie_rep,
     weight_space_decomposition,
 )
+from algebrax.rep.quantum import (
+    PBWKey,
+    QuantumElement,
+    QuantumSL2,
+    TensorElement,
+    braid_to_matrix,
+    braiding_operator,
+    jones_polynomial_eval,
+    quantum_trace,
+    universal_r_matrix_sl2_fundamental,
+)
 
 __all__ = [
     'Character',
@@ -97,12 +108,18 @@ __all__ = [
     'GroupRepresentation',
     'LieRepresentation',
     'MolienSeries',
+    'PBWKey',
+    'QuantumElement',
+    'QuantumSL2',
     'RepOperator',
+    'TensorElement',
     'a4_character_table',
     'adjoint_representation',
     'alternating_defining_rep',
     'alternating_elements',
     'alternating_standard_rep',
+    'braid_to_matrix',
+    'braiding_operator',
     'canonical',
     'character',
     'character_inner_product',
@@ -137,11 +154,14 @@ __all__ = [
     'is_intertwiner',
     'is_lie_intertwiner',
     'isotypic_projector',
+    'jones_polynomial_eval',
     'lie',
     'mackey_decomposition',
     'mackey_intertwining_number',
     'q8_character_table',
     'quadratic_casimir',
+    'quantum',
+    'quantum_trace',
     'quaternion_elements',
     'quaternion_mul',
     'quaternion_rep',
@@ -164,5 +184,6 @@ __all__ = [
     'tensor_product_rep',
     'trivial_lie_rep',
     'trivial_rep',
+    'universal_r_matrix_sl2_fundamental',
     'weight_space_decomposition',
 ]

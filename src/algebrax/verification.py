@@ -35,6 +35,7 @@ __all__ = [
     'verify_algebra_laws',
     'verify_alternative_laws',
     'verify_antipode_axiom',
+    'verify_artin_braid_relations',
     'verify_band_laws',
     'verify_bialgebra_laws',
     'verify_boolean_algebra_laws',
@@ -91,6 +92,7 @@ __all__ = [
     'verify_path_groupoid_laws',
     'verify_poisson_laws',
     'verify_polynomial_invariance',
+    'verify_quantum_sl2_relations',
     'verify_quotient_ring_laws',
     'verify_representation_homomorphism',
     'verify_residuation_laws',
@@ -108,6 +110,7 @@ __all__ = [
     'verify_star_semiring_laws',
     'verify_transitivity_of_induction',
     'verify_triangle_inequality',
+    'verify_yang_baxter_equation',
 ]
 
 
@@ -132,10 +135,15 @@ def semiring_elements_equal(a: Any, b: Any, tol: float = 1e-7) -> bool:
     """
     if a == b:
         return True
-    if isinstance(a, float) and isinstance(b, float):
-        return _float_equal(a, b, tol)
-    if isinstance(a, complex) and isinstance(b, complex):
-        return cmath.isclose(a, b, rel_tol=tol, abs_tol=tol)
+    if (
+        isinstance(a, (int, float, complex))
+        and isinstance(b, (int, float, complex))
+        and not isinstance(a, bool)
+        and not isinstance(b, bool)
+    ):
+        if isinstance(a, complex) or isinstance(b, complex):
+            return cmath.isclose(complex(a), complex(b), rel_tol=tol, abs_tol=tol)
+        return _float_equal(float(a), float(b), tol)
     if isinstance(a, tuple) and isinstance(b, tuple):
         if len(a) != len(b):
             return False
@@ -2251,6 +2259,16 @@ def _carrier_basis(val: Any) -> Any:
     return {val: 1.0}
 
 
+def _to_scalar(val: Any) -> float | complex:
+    if isinstance(val, complex):
+        return val
+    return float(val)
+
+
+def _scalar_close(a: Any, b: Any, tol: float) -> bool:
+    return cmath.isclose(complex(a), complex(b), rel_tol=tol, abs_tol=tol)
+
+
 def verify_coassociativity(
     coalgebra: Coalgebra[Any, C],
     samples: Iterable[C],
@@ -2261,24 +2279,24 @@ def verify_coassociativity(
         delta_c = coalgebra.coproduct(c)
 
         # 1. Left parenthesization: (Delta (x) id) Delta(c)
-        tensor_left: dict[tuple[Any, Any, Any], float] = {}
+        tensor_left: dict[tuple[Any, Any, Any], float | complex] = {}
         for (u, v), alpha in delta_c.items():
-            af = float(alpha)
+            af = _to_scalar(alpha)
             u_basis = _carrier_basis(u)
             delta_u = coalgebra.coproduct(u_basis)
             for (x, y), beta in delta_u.items():
                 key = (x, y, v)
-                tensor_left[key] = tensor_left.get(key, 0.0) + af * float(beta)
+                tensor_left[key] = tensor_left.get(key, 0.0) + af * _to_scalar(beta)
 
         # 2. Right parenthesization: (id (x) Delta) Delta(c)
-        tensor_right: dict[tuple[Any, Any, Any], float] = {}
+        tensor_right: dict[tuple[Any, Any, Any], float | complex] = {}
         for (u, v), alpha in delta_c.items():
-            af = float(alpha)
+            af = _to_scalar(alpha)
             v_basis = _carrier_basis(v)
             delta_v = coalgebra.coproduct(v_basis)
             for (y, z), gamma in delta_v.items():
                 key = (u, y, z)
-                tensor_right[key] = tensor_right.get(key, 0.0) + af * float(gamma)
+                tensor_right[key] = tensor_right.get(key, 0.0) + af * _to_scalar(gamma)
 
         tl_clean = {k: val for k, val in tensor_left.items() if abs(val) > tol}
         tr_clean = {k: val for k, val in tensor_right.items() if abs(val) > tol}
@@ -2316,7 +2334,7 @@ def verify_counitality(
             u_basis = _carrier_basis(u)
             v_basis = _carrier_basis(v)
             eps_u = coalgebra.counit(u_basis)
-            scaled_v = coalgebra.smul(float(alpha) * float(eps_u), v_basis)
+            scaled_v = coalgebra.smul(_to_scalar(alpha) * _to_scalar(eps_u), v_basis)
             left_eval = coalgebra.add(left_eval, scaled_v)
 
         c_clean = _clean_sparse(c, tol)
@@ -2329,7 +2347,7 @@ def verify_counitality(
             u_basis = _carrier_basis(u)
             v_basis = _carrier_basis(v)
             eps_v = coalgebra.counit(v_basis)
-            scaled_u = coalgebra.smul(float(alpha) * float(eps_v), u_basis)
+            scaled_u = coalgebra.smul(_to_scalar(alpha) * _to_scalar(eps_v), u_basis)
             right_eval = coalgebra.add(right_eval, scaled_u)
 
         if not semiring_elements_equal(_clean_sparse(right_eval, tol), c_clean, tol):
@@ -2359,7 +2377,7 @@ def verify_antipode_axiom(
             v_basis = _carrier_basis(v)
             s_u = hopf.antipode(u_basis)
             prod = hopf.mul(s_u, v_basis)
-            scaled = hopf.smul(float(alpha), prod)
+            scaled = hopf.smul(_to_scalar(alpha), prod)
             left_val = hopf.add(left_val, scaled)
 
         exp_clean = _clean_sparse(expected, tol)
@@ -2373,7 +2391,7 @@ def verify_antipode_axiom(
             v_basis = _carrier_basis(v)
             s_v = hopf.antipode(v_basis)
             prod = hopf.mul(u_basis, s_v)
-            scaled = hopf.smul(float(alpha), prod)
+            scaled = hopf.smul(_to_scalar(alpha), prod)
             right_val = hopf.add(right_val, scaled)
 
         if not semiring_elements_equal(_clean_sparse(right_val, tol), exp_clean, tol):
@@ -2447,19 +2465,19 @@ def verify_bialgebra_laws(
     counit_hom = True
     one = bialgebra.one
     eps_one = bialgebra.counit(one)
-    if not math.isclose(float(eps_one), 1.0, rel_tol=tol, abs_tol=tol):
+    if not _scalar_close(eps_one, 1.0, tol):
         counit_hom = False
 
     for a, b in itertools.combinations(c_elements, 2):
         eps_ab = bialgebra.counit(bialgebra.mul(a, b))
-        eps_a_eps_b = float(bialgebra.counit(a)) * float(bialgebra.counit(b))
-        if not math.isclose(float(eps_ab), eps_a_eps_b, rel_tol=tol, abs_tol=tol):
+        eps_a_eps_b = _to_scalar(bialgebra.counit(a)) * _to_scalar(bialgebra.counit(b))
+        if not _scalar_close(eps_ab, eps_a_eps_b, tol):
             counit_hom = False
             break
 
     # Coproduct unit preservation: Delta(1) has sum of coeffs 1
     delta_one = bialgebra.coproduct(one)
-    coprod_unit = len(delta_one) >= 1 and math.isclose(sum(delta_one.values()), 1.0, rel_tol=tol, abs_tol=tol)
+    coprod_unit = len(delta_one) >= 1 and _scalar_close(sum(delta_one.values()), 1.0, tol)
 
     res['counit_homomorphism'] = counit_hom
     res['coproduct_unit_preservation'] = coprod_unit
@@ -3695,3 +3713,189 @@ def verify_cubic_casimir_invariance(
     }
 
 
+# =============================================================================
+# Quantum Groups, Yang-Baxter Equation & Braided Categories
+# =============================================================================
+
+
+def _sparse_complex_equal(
+    lhs: dict[int, dict[int, Any]],
+    rhs: dict[int, dict[int, Any]],
+    tol: float,
+) -> bool:
+    """Return True if two sparse complex matrices agree entrywise within tolerance tol."""
+    rows = set(lhs.keys()) | set(rhs.keys())
+    for r in rows:
+        row_l = lhs.get(r, {})
+        row_r = rhs.get(r, {})
+        for c in set(row_l.keys()) | set(row_r.keys()):
+            val_l = complex(row_l.get(c, 0.0))
+            val_r = complex(row_r.get(c, 0.0))
+            if abs(val_l - val_r) > tol:
+                return False
+    return True
+
+
+def _sparse_complex_scale(
+    mat: dict[int, dict[int, Any]],
+    scalar: complex,
+    tol: float,
+) -> dict[int, dict[int, complex]]:
+    """Scale a sparse complex matrix by scalar and prune entries below tol."""
+    out: dict[int, dict[int, complex]] = {}
+    for r, row in mat.items():
+        scaled = {c: scalar * complex(v) for c, v in row.items() if abs(scalar * complex(v)) > tol}
+        if scaled:
+            out[r] = scaled
+    return out
+
+
+def _sparse_complex_sub(
+    lhs: dict[int, dict[int, Any]],
+    rhs: dict[int, dict[int, Any]],
+    tol: float,
+) -> dict[int, dict[int, complex]]:
+    """Compute lhs - rhs for two sparse complex matrices."""
+    out: dict[int, dict[int, complex]] = {}
+    for r in set(lhs.keys()) | set(rhs.keys()):
+        row_l = lhs.get(r, {})
+        row_r = rhs.get(r, {})
+        diff: dict[int, complex] = {}
+        for c in set(row_l.keys()) | set(row_r.keys()):
+            val = complex(row_l.get(c, 0.0)) - complex(row_r.get(c, 0.0))
+            if abs(val) > tol:
+                diff[c] = val
+        if diff:
+            out[r] = diff
+    return out
+
+
+def verify_quantum_sl2_relations(
+    q: complex,
+    rep: dict[str, dict[int, dict[int, Any]]],
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify the Drinfeld-Jimbo defining relations of $U_q(\mathfrak{sl}_2)$ on a representation:
+
+    - `k_inverse`: $K K^{-1} = I = K^{-1} K$
+    - `k_e_commutation`: $K E K^{-1} = q^2 E$
+    - `k_f_commutation`: $K F K^{-1} = q^{-2} F$
+    - `e_f_commutator`: $[E, F] = (K - K^{-1}) / (q - q^{-1})$ (or the smooth classical
+      L'Hopital Cartan relation $[H, E] = 2E$, $[H, F] = -2F$ for $H = [E, F]$ at $q \to \pm 1$).
+    """
+    from algebrax.matrix.core import dot
+
+    qc = complex(q)
+    if abs(qc) <= 1e-15:
+        raise ValueError('q must be non-zero.')
+
+    e_mat = rep['E']
+    f_mat = rep['F']
+    k_mat = rep['K']
+    k_inv_mat = rep['K_inv']
+
+    max_idx = -1
+    for mat in (e_mat, f_mat, k_mat, k_inv_mat):
+        for r, row in mat.items():
+            max_idx = max(max_idx, r)
+            for c in row:
+                max_idx = max(max_idx, c)
+    dim = max_idx + 1
+    eye = {i: {i: 1.0 + 0.0j} for i in range(dim)}
+
+    k_inv_ok = _sparse_complex_equal(dot(k_mat, k_inv_mat), eye, tol) and _sparse_complex_equal(
+        dot(k_inv_mat, k_mat), eye, tol
+    )
+    ke_kinv = dot(dot(k_mat, e_mat), k_inv_mat)
+    kf_kinv = dot(dot(k_mat, f_mat), k_inv_mat)
+    k_e_ok = _sparse_complex_equal(ke_kinv, _sparse_complex_scale(e_mat, qc**2, tol * 1e-3), tol)
+    k_f_ok = _sparse_complex_equal(kf_kinv, _sparse_complex_scale(f_mat, qc ** (-2), tol * 1e-3), tol)
+
+    comm_ef = _sparse_complex_sub(dot(e_mat, f_mat), dot(f_mat, e_mat), tol * 1e-3)
+    q_diff = qc - 1.0 / qc
+    if abs(q_diff) > 1e-10:
+        rhs_ef = _sparse_complex_scale(_sparse_complex_sub(k_mat, k_inv_mat, tol * 1e-3), 1.0 / q_diff, tol * 1e-3)
+        ef_ok = _sparse_complex_equal(comm_ef, rhs_ef, tol)
+    else:
+        # Smooth q -> +/-1 classical L'Hopital check on H = [E, F]
+        diag_ok = all(r == c for r, row in comm_ef.items() for c in row)
+        sign = 1.0 if abs(qc - 1.0) <= 1e-10 or (dim % 2 == 0) else -1.0
+        he_comm = _sparse_complex_sub(dot(comm_ef, e_mat), dot(e_mat, comm_ef), tol * 1e-3)
+        hf_comm = _sparse_complex_sub(dot(comm_ef, f_mat), dot(f_mat, comm_ef), tol * 1e-3)
+        ef_ok = (
+            diag_ok
+            and _sparse_complex_equal(he_comm, _sparse_complex_scale(e_mat, 2.0 * sign, tol * 1e-3), tol)
+            and _sparse_complex_equal(hf_comm, _sparse_complex_scale(f_mat, -2.0 * sign, tol * 1e-3), tol)
+        )
+
+    return {
+        'k_inverse': k_inv_ok,
+        'k_e_commutation': k_e_ok,
+        'k_f_commutation': k_f_ok,
+        'e_f_commutator': ef_ok,
+    }
+
+
+def verify_yang_baxter_equation(
+    r_matrix: dict[int, dict[int, Any]],
+    dim: int = 2,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify the Quantum Yang-Baxter Equation $R_{12} R_{13} R_{23} = R_{23} R_{13} R_{12}$
+    and the equivalent braided relation $B_1 B_2 B_1 = B_2 B_1 B_2$ for $B = P \circ R$
+    using pure sparse coordinate embeddings in $V^{\otimes 3}$.
+    """
+    from algebrax.matrix.core import dot
+    from algebrax.rep.quantum import _embed_r13_operator, _embed_two_site_operator, braiding_operator
+
+    if dim < 1:
+        raise ValueError(f'dim must be >= 1, got {dim}.')
+
+    r_norm = {r: {c: complex(v) for c, v in row.items() if abs(v) > tol * 1e-3} for r, row in r_matrix.items()}
+    r_norm = {r: row for r, row in r_norm.items() if row}
+    non_zero = bool(r_norm)
+
+    r12 = _embed_two_site_operator(r_norm, 0, 3, dim=dim, tol=tol * 1e-3)
+    r13 = _embed_r13_operator(r_norm, dim=dim, tol=tol * 1e-3)
+    r23 = _embed_two_site_operator(r_norm, 1, 3, dim=dim, tol=tol * 1e-3)
+
+    lhs = dot(dot(r12, r13), r23)
+    rhs = dot(dot(r23, r13), r12)
+    qybe_ok = _sparse_complex_equal(lhs, rhs, tol)
+
+    b_mat = braiding_operator(r_norm, dim=dim)
+    b1 = _embed_two_site_operator(b_mat, 0, 3, dim=dim, tol=tol * 1e-3)
+    b2 = _embed_two_site_operator(b_mat, 1, 3, dim=dim, tol=tol * 1e-3)
+    braid_lhs = dot(dot(b1, b2), b1)
+    braid_rhs = dot(dot(b2, b1), b2)
+    braid_ok = _sparse_complex_equal(braid_lhs, braid_rhs, tol)
+
+    return {
+        'non_zero': non_zero,
+        'yang_baxter': qybe_ok,
+        'braid_form': braid_ok,
+    }
+
+
+def verify_artin_braid_relations(
+    b1: dict[int, dict[int, Any]],
+    b2: dict[int, dict[int, Any]],
+    b3: dict[int, dict[int, Any]] | None = None,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify the Artin braid group relations on sparse strand operators:
+
+    - `braid_relation`: $B_1 B_2 B_1 = B_2 B_1 B_2$
+    - If `b3` is provided (for $n \ge 4$ strands):
+      - `far_commutativity`: $B_1 B_3 = B_3 B_1$
+      - `braid_relation_23`: $B_2 B_3 B_2 = B_3 B_2 B_3$
+    """
+    from algebrax.matrix.core import dot
+
+    res: dict[str, bool] = {
+        'braid_relation': _sparse_complex_equal(dot(dot(b1, b2), b1), dot(dot(b2, b1), b2), tol),
+    }
+    if b3 is not None:
+        res['far_commutativity'] = _sparse_complex_equal(dot(b1, b3), dot(b3, b1), tol)
+        res['braid_relation_23'] = _sparse_complex_equal(dot(dot(b2, b3), b2), dot(dot(b3, b2), b3), tol)
+    return res
