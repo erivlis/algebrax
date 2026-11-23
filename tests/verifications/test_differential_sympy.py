@@ -1066,3 +1066,104 @@ def test_differential_molien_series_and_cubic_casimir_vs_sympy() -> None:
             assert math.isclose(got_dual, -expected_val, rel_tol=1e-10, abs_tol=1e-10)
 
 
+# =============================================================================
+# 12. Quantum Groups U_q(sl_2), Yang-Baxter Equation & Jones Polynomial vs. SymPy
+# =============================================================================
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_quantum_groups_yang_baxter_and_jones_vs_sympy() -> None:
+    """Verify QuantumSL2 spin-j reps, universal R-matrix QYBE, and Jones polynomial against SymPy."""
+    import cmath
+
+    from algebrax.rep import (
+        QuantumSL2,
+        jones_polynomial_eval,
+        universal_r_matrix_sl2_fundamental,
+    )
+
+    q = sp.Symbol('q')
+    t = q ** (-2)
+
+    def _q_int(n: int) -> sp.Expr:
+        return sp.simplify((q**n - q ** (-n)) / (q - 1 / q))
+
+    # 1. Symbolic SymPy verification of the 4x4 fundamental R-matrix QYBE
+    r_sp = sp.Matrix(
+        [
+            [q, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, q - 1 / q, 1, 0],
+            [0, 0, 0, q],
+        ]
+    )
+    eye2 = sp.eye(2)
+    r12_sp = sp.kronecker_product(r_sp, eye2)
+    r23_sp = sp.kronecker_product(eye2, r_sp)
+    r13_sp = sp.zeros(8, 8)
+    for r_op in range(4):
+        i, k = divmod(r_op, 2)
+        for c_op in range(4):
+            val = r_sp[r_op, c_op]
+            if val != 0:
+                ip, kp = divmod(c_op, 2)
+                for j in range(2):
+                    r13_sp[(i * 2 + j) * 2 + k, (ip * 2 + j) * 2 + kp] = val
+
+    qybe_diff = sp.simplify(r12_sp * r13_sp * r23_sp - r23_sp * r13_sp * r12_sp)
+    assert qybe_diff == sp.zeros(8, 8)
+
+    # Compare numerical evaluation against AlgebraX sparse R-matrix and spin-j modules
+    q_probes = [1.35 + 0.0j, cmath.exp(0.37j), 1.12 * cmath.exp(-0.55j)]
+    for q_val in q_probes:
+        r_ax = universal_r_matrix_sl2_fundamental(q_val)
+        r_eval = r_sp.subs(q, complex(q_val))
+        for r_idx in range(4):
+            for c_idx in range(4):
+                got = complex(r_ax.get(r_idx, {}).get(c_idx, 0.0))
+                exp = complex(r_eval[r_idx, c_idx].evalf())
+                assert abs(got - exp) < 1e-12
+
+    # 2. Symbolic SymPy U_q(sl_2) spin-j matrices (j = 1/2, 1, 3/2) & exact Drinfeld-Jimbo identities
+    for j_halves in (1, 2, 3):
+        dim = j_halves + 1
+        e_sp = sp.zeros(dim, dim)
+        f_sp = sp.zeros(dim, dim)
+        k_sp = sp.zeros(dim, dim)
+        for idx in range(dim):
+            k_sp[idx, idx] = q ** (j_halves - 2 * idx)
+        for p in range(1, dim):
+            entry = sp.sqrt(_q_int(p) * _q_int(dim - p))
+            e_sp[p - 1, p] = entry
+            f_sp[p, p - 1] = entry
+
+        assert sp.simplify(k_sp * e_sp * k_sp.inv() - (q**2) * e_sp) == sp.zeros(dim, dim)
+        assert sp.simplify(k_sp * f_sp * k_sp.inv() - (q ** (-2)) * f_sp) == sp.zeros(dim, dim)
+        assert sp.simplify(e_sp * f_sp - f_sp * e_sp - (k_sp - k_sp.inv()) / (q - 1 / q)) == sp.zeros(dim, dim)
+
+        for q_val in q_probes:
+            rep_ax = QuantumSL2(q_val).spin_representation(j_halves)
+            for name, mat_sp in (('E', e_sp), ('F', f_sp), ('K', k_sp)):
+                mat_eval = mat_sp.subs(q, complex(q_val))
+                for r_idx in range(dim):
+                    for c_idx in range(dim):
+                        got = complex(rep_ax[name].get(r_idx, {}).get(c_idx, 0.0))
+                        exp = complex(mat_eval[r_idx, c_idx].evalf())
+                        assert abs(got - exp) < 1e-11
+
+    # 3. Exact SymPy Laurent polynomial Jones invariants at t = q^{-2} vs jones_polynomial_eval
+    knot_oracles: list[tuple[list[int], int, sp.Expr]] = [
+        ([], 1, sp.Integer(1)),
+        ([1], 2, sp.Integer(1)),
+        ([], 2, -(q + 1 / q)),
+        ([1, 1], 2, -(1 / q + q ** (-5))),
+        ([1, 1, 1], 2, t + t**3 - t**4),
+        ([-1, -1, -1], 2, t ** (-1) + t ** (-3) - t ** (-4)),
+        ([1, -2, 1, -2], 3, t ** (-2) - t ** (-1) + 1 - t + t**2),
+    ]
+    for q_val in q_probes:
+        for braid_word, strands, sym_expr in knot_oracles:
+            got_v = jones_polynomial_eval(braid_word, strands, q_val)
+            exp_v = complex(sym_expr.subs(q, complex(q_val)).evalf())
+            assert abs(got_v - exp_v) < 1e-10
