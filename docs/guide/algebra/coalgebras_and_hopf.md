@@ -102,4 +102,6 @@ from algebrax.verification import (
     verify_hopf_algebra_laws,
 )
 ```
-Each verifier evaluates arbitrary sample subsets and returns a dictionary of boolean law satisfaction results, verifying strict adherence to coassociativity, counitality, and the Hopf antipode identity.
+Each verifier evaluates arbitrary sample subsets and returns a dictionary of boolean law satisfaction results, verifying strict adherence to coassociativity, counitality, and the Hopf antipode identity (over both real and complex scalar fields).
+
+See also [Quantum Groups, Yang–Baxter & Braids](quantum_groups_and_braids.md) for `QuantumSL2`, AlgebraX's flagship non-cocommutative Hopf algebra with non-involutive antipode ($S^2 \neq \mathrm{id}$), universal $R$-matrices, and Jones knot invariants.
