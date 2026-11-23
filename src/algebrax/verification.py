@@ -93,6 +93,8 @@ __all__ = [
     'verify_poisson_laws',
     'verify_polynomial_invariance',
     'verify_quantum_sl2_relations',
+    'verify_quiver_direct_sum',
+    'verify_quiver_morphism_commutation',
     'verify_quotient_ring_laws',
     'verify_representation_homomorphism',
     'verify_residuation_laws',
@@ -108,6 +110,7 @@ __all__ = [
     'verify_sheaf_laplacian_properties',
     'verify_star_plus_consistency',
     'verify_star_semiring_laws',
+    'verify_tits_positive_definiteness',
     'verify_transitivity_of_induction',
     'verify_triangle_inequality',
     'verify_yang_baxter_equation',
@@ -3899,3 +3902,185 @@ def verify_artin_braid_relations(
         res['far_commutativity'] = _sparse_complex_equal(dot(b1, b3), dot(b3, b1), tol)
         res['braid_relation_23'] = _sparse_complex_equal(dot(dot(b2, b3), b2), dot(dot(b3, b2), b3), tol)
     return res
+
+
+# =============================================================================
+# Quiver Representations, Tits Form & Gabriel's ADE Theorem
+# =============================================================================
+
+
+def verify_quiver_morphism_commutation(
+    rep1: Any,
+    rep2: Any,
+    morphism_maps: dict[Any, dict[int, dict[int, Any]]],
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify that vertex linear maps $f = \{f_v : V_v^{(1)} \to V_v^{(2)}\}$ form a valid
+    morphism of quiver representations:
+
+    - `same_quiver`: `rep1.quiver == rep2.quiver`
+    - `vertex_coverage`: every vertex $v \in V_Q$ has a map in `morphism_maps`
+    - `dimension_compatibility`: every entry of $f_v$ lies in $[0, d_v^{(2)}) \times [0, d_v^{(1)})$
+    - `edge_commutation`: $f_{t(\alpha)} \circ M_\alpha = N_\alpha \circ f_{s(\alpha)}$ for all $\alpha \in E_Q$.
+    """
+    from algebrax.rep.quiver import _compose_morphism_check
+
+    same_quiver = bool(rep1.quiver == rep2.quiver)
+    if not same_quiver:
+        return {
+            'same_quiver': False,
+            'vertex_coverage': False,
+            'dimension_compatibility': False,
+            'edge_commutation': False,
+        }
+
+    verts = rep1.quiver.vertices
+    coverage = all(v in morphism_maps for v in verts)
+    if not coverage:
+        return {
+            'same_quiver': True,
+            'vertex_coverage': False,
+            'dimension_compatibility': False,
+            'edge_commutation': False,
+        }
+
+    dims_ok = True
+    for v in verts:
+        d_in = rep1.dimensions[v]
+        d_out = rep2.dimensions[v]
+        for r, row in morphism_maps[v].items():
+            if r < 0 or r >= d_out:
+                dims_ok = False
+                break
+            for c, val in row.items():
+                if abs(complex(val)) > tol * 1e-3 and (c < 0 or c >= d_in):
+                    dims_ok = False
+                    break
+            if not dims_ok:
+                break
+        if not dims_ok:
+            break
+
+    comm_ok = dims_ok and _compose_morphism_check(rep1, rep2, morphism_maps, tol)
+    return {
+        'same_quiver': True,
+        'vertex_coverage': True,
+        'dimension_compatibility': dims_ok,
+        'edge_commutation': comm_ok,
+    }
+
+
+def verify_quiver_direct_sum(
+    rep1: Any,
+    rep2: Any,
+    direct_sum_rep: Any,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Verify that `direct_sum_rep` is a split biproduct $M \oplus N$ of `rep1` and `rep2`
+    via canonical inclusion morphisms $\iota_1, \iota_2$ and projection morphisms $\pi_1, \pi_2$.
+    """
+    if rep1.quiver != rep2.quiver or rep1.quiver != direct_sum_rep.quiver:
+        return {
+            'dimension_additivity': False,
+            'inclusion_1_morphism': False,
+            'inclusion_2_morphism': False,
+            'projection_1_morphism': False,
+            'projection_2_morphism': False,
+        }
+
+    quiver = rep1.quiver
+    dim_add = all(
+        direct_sum_rep.dimensions[v] == rep1.dimensions[v] + rep2.dimensions[v]
+        for v in quiver.vertices
+    )
+    if not dim_add:
+        return {
+            'dimension_additivity': False,
+            'inclusion_1_morphism': False,
+            'inclusion_2_morphism': False,
+            'projection_1_morphism': False,
+            'projection_2_morphism': False,
+        }
+
+    iota1: dict[Any, dict[int, dict[int, float]]] = {}
+    iota2: dict[Any, dict[int, dict[int, float]]] = {}
+    pi1: dict[Any, dict[int, dict[int, float]]] = {}
+    pi2: dict[Any, dict[int, dict[int, float]]] = {}
+
+    for v in quiver.vertices:
+        d1 = rep1.dimensions[v]
+        d2 = rep2.dimensions[v]
+        iota1[v] = {i: {i: 1.0} for i in range(d1)}
+        iota2[v] = {d1 + i: {i: 1.0} for i in range(d2)}
+        pi1[v] = {i: {i: 1.0} for i in range(d1)}
+        pi2[v] = {i: {d1 + i: 1.0} for i in range(d2)}
+
+    inc1_ok = all(verify_quiver_morphism_commutation(rep1, direct_sum_rep, iota1, tol).values())
+    inc2_ok = all(verify_quiver_morphism_commutation(rep2, direct_sum_rep, iota2, tol).values())
+    proj1_ok = all(verify_quiver_morphism_commutation(direct_sum_rep, rep1, pi1, tol).values())
+    proj2_ok = all(verify_quiver_morphism_commutation(direct_sum_rep, rep2, pi2, tol).values())
+
+    return {
+        'dimension_additivity': True,
+        'inclusion_1_morphism': inc1_ok,
+        'inclusion_2_morphism': inc2_ok,
+        'projection_1_morphism': proj1_ok,
+        'projection_2_morphism': proj2_ok,
+    }
+
+
+def verify_tits_positive_definiteness(
+    quiver: Any,
+    samples: Sequence[dict[Any, int] | Sequence[int]] | None = None,
+) -> dict[str, bool]:
+    r"""Verify Gabriel's ADE positive-definiteness criterion on the Euler-Tits quadratic form $q_Q$:
+
+    - `positive_definite`: Exact rational congruence $U^T C_Q U = D$ confirms $C_Q \succ 0$
+    - `samples_positive`: $q_Q(\mathbf{d}) > 0$ on all non-zero probe vectors (including any
+      exact rational non-positive witness vector when $C_Q$ is not positive definite)
+    - `ade_classification`: `classify_representation_type(quiver) == 'finite'`
+    - `roots_unit_tits`: Every positive root $\alpha \in \Phi^+$ satisfies $q_Q(\alpha) = 1$
+    """
+    from algebrax.rep.quiver import (
+        _analyze_symmetric_form,
+        classify_representation_type,
+        gabriel_positive_roots,
+        tits_quadratic_form,
+    )
+
+    cartan = quiver.symmetric_cartan_matrix()
+    definiteness, witness = _analyze_symmetric_form(cartan)
+    pd_ok = definiteness == 'positive_definite'
+    is_ade = classify_representation_type(quiver) == 'finite'
+
+    probe_vecs: list[dict[Any, int] | Sequence[int]] = []
+    n = quiver.num_vertices
+    if samples is not None:
+        probe_vecs.extend(samples)
+    else:
+        for i in range(n):
+            probe_vecs.append([1 if k == i else 0 for k in range(n)])
+        if n > 0:
+            probe_vecs.append([1] * n)
+    if witness is not None:
+        probe_vecs.append(witness)
+
+    samples_pos = True
+    for vec in probe_vecs:
+        is_zero = all(v == 0 for v in (vec.values() if isinstance(vec, dict) else vec))
+        if not is_zero and tits_quadratic_form(quiver, vec) <= 0:
+            samples_pos = False
+            break
+
+    roots_ok = False
+    if is_ade:
+        pos_roots = gabriel_positive_roots(quiver)
+        roots_ok = all(tits_quadratic_form(quiver, r) == 1 for r in pos_roots)
+
+    return {
+        'positive_definite': pd_ok,
+        'samples_positive': samples_pos,
+        'ade_classification': is_ade,
+        'roots_unit_tits': roots_ok,
+    }
+

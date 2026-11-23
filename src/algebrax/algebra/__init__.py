@@ -158,6 +158,10 @@ from algebrax.algebra._normed import (
 from algebrax.algebra._padic import (
     PAdicField,
 )
+from algebrax.algebra._path_algebra import (
+    PathAlgebra,
+    path_algebra,
+)
 from algebrax.algebra._polynomial import (
     PolynomialAlgebra,
 )
@@ -283,6 +287,7 @@ __all__ = [
     'OpMonoid',
     'OpSemigroup',
     'PAdicField',
+    'PathAlgebra',
     'PoissonAlgebra',
     'PolynomialAlgebra',
     'PolynomialTruncationIdeal',
@@ -311,6 +316,7 @@ __all__ = [
     'fold_mul',
     'fold_op',
     'nsum',
+    'path_algebra',
     'power',
     'zpow',
     'zsmul',
