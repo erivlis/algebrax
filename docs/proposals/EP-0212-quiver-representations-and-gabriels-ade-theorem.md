@@ -2,7 +2,7 @@
 title: "EP-0212: Quiver Representations, Path Algebras & Gabriel's ADE Theorem"
 description: "Formalize quiver representations on directed graphs, path algebras, indecomposable representations, the Tits quadratic form, and Gabriel's ADE classification theorem."
 icon: lucide/git-fork
-status: draft
+status: final
 ---
 
 # EP-0212: Quiver Representations, Path Algebras & Gabriel's ADE Theorem
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                       |
 | **Sponsor**       | Core Maintainers                                                                  |
 | **Delegate**      | 🧩 Russell (Taxonomy & Sheaf Equivalence) & 🔬 Popper (Tits Form Falsifiability)  |
-| **Status**        | Draft                                                                             |
+| **Status**        | Final                                                                             |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-10-28                                                                        |
-| **Updated**       | 2026-11-15                                                                        |
+| **Updated**       | 2026-11-23                                                                        |
 | **Replaces**      | —                                                                                 |
 | **Superseded-By** | —                                                                                 |
 
@@ -174,7 +174,16 @@ Non-breaking and strictly additive. Quiver representations reside in `algebrax.r
 
 ## Reference Implementation
 
-Implementations will reside in `src/algebrax/rep/quiver.py`, `src/algebrax/algebra/_path_algebra.py` (exported in `algebrax.algebra`), and `src/algebrax/verification.py`.
+Implemented across:
+
+- **`src/algebrax/rep/quiver.py`** (re-exported in `src/algebrax/rep/__init__.py`):
+  `Quiver`, `QuiverRepresentation`, `direct_sum_quiver_rep`, `simple_representation`, `interval_representation`, `euler_form`, `tits_quadratic_form`, `bgp_reflect_dimension`, `classify_dynkin_type`, `classify_representation_type`, `gabriel_positive_roots`, `dynkin_quiver`, `kronecker_quiver`, `cycle_quiver`, `to_cellular_sheaf`, and `from_cellular_sheaf`.
+- **`src/algebrax/algebra/_path_algebra.py`** (re-exported in `src/algebrax/algebra/__init__.py`):
+  `PathAlgebra` (subclassing `QuotientMonoidAlgebra` with unboxed `(start_vertex, (e_1, ..., e_k))` keys, primitive orthogonal idempotents summing to $\mathbf{1}_{KQ}$, optional `max_path_length` truncation, and `evaluate_in_rep`) and `path_algebra`.
+- **`src/algebrax/verification.py`**:
+  `verify_quiver_morphism_commutation`, `verify_quiver_direct_sum`, and `verify_tits_positive_definiteness`.
+- **Verification & Documentation**:
+  `tests/algebrax/test_rep_quiver.py`, `tests/verifications/test_differential_sympy.py` (`test_differential_quiver_tits_form_and_gabriel_ade_vs_sympy`), `docs/verification.md`, and `docs/guide/algebra/quivers_and_gabriel.md`.
 
 ---
 
@@ -183,14 +192,14 @@ Implementations will reside in `src/algebrax/rep/quiver.py`, `src/algebrax/algeb
 1. **Duplicating Sheaf Logic with a Separate `QuiverSheaf` Class**:
    - *Rejected*: A quiver representation on a directed graph is mathematically identical to a 1-dimensional cellular sheaf. Duplicating coboundary operators or restriction logic violates the zero-bloat principle.
 2. **Dense Adjacency Tensors for Paths**:
-   - *Rejected*: Paths can have arbitrary length; using dense matrices for path multiplication causes explosive memory usage. Paths are represented as tuple sequences of edge identifiers.
+   - *Rejected*: Paths can have arbitrary length; using dense matrices for path multiplication causes explosive memory usage. Paths are represented as unboxed `(start_vertex, (e_1, ..., e_k))` tuples of edge identifiers.
 
 ---
 
 ## Open Questions
 
-- [ ] Auslander–Reiten theory and reflection functors (Bernstein–Gelfand–Ponomarev) for explicit construction of all indecomposables from simple roots.
-- [ ] Support for tame quivers with continuous 1-parameter families of representations.
+- [x] Dimension-level Bernstein–Gelfand–Ponomarev (BGP) / Weyl reflection operator (`bgp_reflect_dimension`) preserving $q_Q(\mathbf{d})$. Full functorial Auslander–Reiten quiver translation ($\tau, \tau^-$) on matrix representations remains a potential future extension.
+- [x] Classification and exact nullspace radical detection for all tame extended Euclidean diagrams ($\widetilde{A}_n, \widetilde{D}_n, \widetilde{E}_6, \widetilde{E}_7, \widetilde{E}_8$). Explicit Kronecker pencil canonical form (Weierstrass–Kronecker normal form) remains a potential future extension.
 
 ---
 
@@ -200,3 +209,5 @@ Implementations will reside in `src/algebrax/rep/quiver.py`, `src/algebrax/algeb
   * Initial Draft authored for Phase 8.
 * **2026-11-15:**
   * Consolidated module layout into `src/algebrax/rep/quiver.py`, `src/algebrax/algebra/_path_algebra.py`, and `src/algebrax/verification.py`; aligned cellular sheaf interoperability with `algebrax.topology.sheaf.CellularSheaf`.
+* **2026-11-23:**
+  * Implemented `algebrax.rep.quiver`, `algebrax.algebra.PathAlgebra` / `path_algebra`, quiver verifiers in `algebrax.verification`, SymPy differential oracle, unit/falsification tests, and user guide `docs/guide/algebra/quivers_and_gabriel.md`; transitioned status to **Final** (completing Phase 8).

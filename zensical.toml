@@ -54,6 +54,7 @@ nav = [
             "guide/algebra/lie_representations.md",
             "guide/algebra/invariant_theory.md",
             "guide/algebra/quantum_groups_and_braids.md",
+            "guide/algebra/quivers_and_gabriel.md",
             "guide/tensor/trie.md",
             "guide/tensor/einsum.md",
         ] },

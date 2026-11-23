@@ -136,6 +136,7 @@ When every vertex stalk has identical fiber dimension $d$ and every edge restric
 * [Discrete Exterior Calculus (DEC) & Hodge Decomposition](dec.md)
 * [Simplicial Cohomology & Cup Product Ring](cohomology.md)
 * [Category Theory & Enriched Matrix Mechanics](../discrete/category.md)
+* [Quiver Representations, Path Algebras & Gabriel's ADE Theorem](../algebra/quivers_and_gabriel.md)
 * [Modules, Vector Spaces & Algebras](../algebra/modules_and_vector_spaces.md)
 
 

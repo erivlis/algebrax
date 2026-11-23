@@ -126,7 +126,7 @@ flowchart TD
     subgraph P8["Phase 8 — Representation Theory & Quantum Groups (EXP-0006)"]
         EP0210_N["EP-0210 Group Reps & Characters ✅\n⚖️ Noether & 🧩 Russell"]
         EP0211_N["EP-0211 Lie Reps & Clebsch-Gordan ✅\n⚖️ Noether & ⚡ Shannon"]
-        EP0212_N["EP-0212 Quiver Reps & Gabriel ADE 💡\n🧩 Russell & 🔬 Popper"]
+        EP0212_N["EP-0212 Quiver Reps & Gabriel ADE ✅\n🧩 Russell & 🔬 Popper"]
         EP0213_N["EP-0213 Induced Reps & Frobenius ✅\n🧩 Russell & ⚖️ Noether"]
         EP0214_N["EP-0214 Invariant Theory & Molien ✅\n⚖️ Noether & ⚡ Shannon"]
         EP0215_N["EP-0215 Quantum Groups & Yang-Baxter ✅\n⚖️ Noether & 🛡️ Golem"]
@@ -319,10 +319,10 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0208: Categorical Type Theory, Coeffects & Homotopy Groupoids (Russell/Golem) [Final]
   │     └── EP-0209: Langlands Root Duality, Hecke & p-Adic Valuations (Noether/Popper) [Final]
   │
-  ├── Phase 8: Representation Theory, Invariant Theory & Quantum Groups (EXP-0006)  ⏳ IN PROGRESS
+  ├── Phase 8: Representation Theory, Invariant Theory & Quantum Groups (EXP-0006)  ✅ COMPLETE
   │     ├── EP-0210: Group Representations, Character Tables & Schur's Lemma (Noether/Russell) [Final]
   │     ├── EP-0211: Lie Algebra Representations, Weights & Clebsch–Gordan Tensors (Noether/Shannon) [Final]
-  │     ├── EP-0212: Quiver Representations, Path Algebras & Gabriel's Theorem (Russell/Popper) [Draft]
+  │     ├── EP-0212: Quiver Representations, Path Algebras & Gabriel's Theorem (Russell/Popper) [Final]
   │     ├── EP-0213: Induced Representations, Mackey Theory & Frobenius Reciprocity (Russell/Noether) [Final]
   │     ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Final]
   │     └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Final]
@@ -411,7 +411,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0209** | Langlands Duality & p-Adics    | Noether & Popper  | `algebrax.lie`, `algebrax.analysis`      | Final    | Root coroot duality, Cartan transpose A ↦ Aᵀ, Iwahori-Hecke algebras, Ramanujan expander bound, p-adic tropical valuation                  |
 | **EP-0210** | Group Reps & Characters        | Noether & Russell | `algebrax.group`, `algebrax.rep`         | Final    | `FiniteGroup[G]`, canonical finite groups, cosets/quotients, reps, character tables, Schur & Maschke         |
 | **EP-0211** | Lie Reps & Clebsch-Gordan      | Noether & Shannon | `algebrax.rep`, `lie`, `tensor`          | Final    | Highest weights, weight spaces, quadratic Casimir operator, sparse Clebsch-Gordan 3-tensors                |
-| **EP-0212** | Quiver Reps & Gabriel's ADE    | Russell & Popper  | `algebrax.rep`, `algebrax.topology`      | Draft    | Quiver representations on directed graphs, `CellularSheaf` bridge, Gabriel's ADE classification theorem     |
+| **EP-0212** | Quiver Reps & Gabriel's ADE    | Russell & Popper  | `algebrax.rep`, `algebrax.algebra`       | Final    | `Quiver`, `QuiverRepresentation`, `PathAlgebra`, exact Tits form, Gabriel ADE/tame/wild classifier, `CellularSheaf` bridge |
 | **EP-0213** | Induced Reps & Frobenius       | Russell & Noether | `algebrax.rep`, `algebrax.group`         | Final    | Subgroup induction Ind_H^G, Frobenius reciprocity adjunction Ind ⊣ Res, Mackey double-coset decomposition  |
 | **EP-0214** | Invariant Theory & Molien      | Noether & Shannon | `algebrax.rep`, `lie`, `algebra`         | Final    | Polynomial Reynolds operator, Molien series, primary/secondary invariants, Lie cubic Casimir tensors       |
 | **EP-0215** | Quantum Groups & Yang-Baxter   | Noether & Golem   | `algebrax.rep`, `algebrax.algebra`       | Final    | U_q(𝔤) Hopf quantum deformations, universal R-matrix, Yang-Baxter equation, Jones polynomials              |
@@ -480,3 +480,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-22 | Eran Rivlis & Antigravity | Implemented EP-0211 (Lie Algebra Representations, Weights & Clebsch–Gordan Tensors): `algebrax.rep.lie`, `algebrax.tensor.coupling`, verifiers & guide; status Final. |
 | 2026-11-22 | Eran Rivlis & Antigravity | Implemented EP-0214 (Invariant Theory, Molien Series & Casimir Polynomials): `algebrax.rep.invariant`, cubic Casimir in `algebrax.rep.lie`, SymPy oracles, verifiers & guide; status Final. |
 | 2026-11-23 | Eran Rivlis & Antigravity | Implemented EP-0215 (Quantum Groups, Yang–Baxter Equation & Braided Categories): `algebrax.rep.quantum` (`QuantumSL2` PBW Hopf algebra, $R$-matrix, braiding, Jones invariants), verifiers, SymPy oracles & guide; status Final. |
+| 2026-11-23 | Eran Rivlis & Antigravity | Implemented EP-0212 (Quiver Representations, Path Algebras & Gabriel's ADE Theorem): `algebrax.rep.quiver`, `algebrax.algebra.PathAlgebra`, `CellularSheaf` bridge, verifiers, SymPy oracles & guide; status Final (**Phase 8 Complete — 6/6 Final**). |
