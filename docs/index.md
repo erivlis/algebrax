@@ -121,9 +121,9 @@ print(solve(a, b, field=ModularField(11)))
 
 | Pillar | Submodules | Highlights |
 |:-------|:-----------|:-----------|
-| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 26 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`PAdicField`, `GrothendieckRing`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
-| **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, `AlgebraicTrie` |
-| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), $\operatorname{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
+| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 26 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`PAdicField`, `GrothendieckRing`, `HopfAlgebra`, `PathAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
+| **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, Clebsch–Gordan 3-tensors, `AlgebraicTrie` |
+| **Geometry, Symmetry, Representations & Topology** | `clifford`, `lie`, `rep`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), group/induced/Lie/invariant/quantum ($U_q(\mathfrak{sl}_2)$, Jones)/quiver (Gabriel ADE) representations, $\operatorname{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
 | **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | 9 categorical mixins, Cartesian Closed Categories, semiring coeffects, Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature/Ramanujan expanders & RKHS, entropy, NumPy/SciPy bridges, axiom verifiers |
 
 ---
