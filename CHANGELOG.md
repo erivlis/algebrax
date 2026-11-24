@@ -1,3 +1,32 @@
+## v0.16.0 (2026-11-24)
+
+### Feat
+
+- **quiver**: add Path Algebra implementation and related functions; update exports and verification methods
+- **quantum**: add quantum group implementation and related functions; update exports and verification methods
+- **casimir**: implement cubic Casimir operator and tensor; update documentation and exports
+- **invariant**: add documentation for invariant theory, Molien series, and Casimir polynomials; implement polynomial Reynolds projection and verification functions
+- **lie**: finalize Lie algebra representations and Clebsch-Gordan tensors; update documentation and verification suite
+- **verification**: add verification functions for Lie representation homomorphism and Clebsch-Gordan coupling
+- **lie**: add Lie algebra representation protocols and implement key functions for explicit representations
+- **tensor**: add tensor algebra operations and Clebsch-Gordan coupling tensors
+- **induction**: add induction and restriction functions for group representations
+- add verification functions for group representation theory, including Schur's lemma and Burnside's dimension formula
+- add group representation theory modules, including character tables and representations for finite groups
+- add modules for finite groups, including constructors for cyclic, dihedral, quaternion, and symmetric groups
+- add LawAddAssociative and LawAddCommutative protocols to enhance algebraic structures
+
+### Fix
+
+- **k_theory**: improve default rank calculation in fiber dimension handling
+- **canonical**: streamline unit matrix creation in ExplicitGroupRep
+- **decompose**: correct pivot row selection in matrix decomposition
+
+### Refactor
+
+- **verification**: enhance documentation and add verification engine for algebraic laws, including semirings and action algebras
+- **verification**: modularize representation verification functions for clarity and reusability
+
 ## v0.15.0 (2026-11-14)
 
 ### Feat
