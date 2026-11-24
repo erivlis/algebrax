@@ -136,5 +136,5 @@ Explore the documentation sections:
 * ⚖️ [**Library Comparison**](comparison.md): Feature matrix and trade-off analysis comparing AlgebraX vs SciPy, NumPy, Pandas, NetworkX, and SymPy.
 * 🛡️ [**Mathematical Verification & Stamp of Trust**](verification.md): Traceability matrix across differential NumPy/SciPy oracles, Hypothesis axioms, Schwartz–Zippel PIT, and `Z3` formal proofs.
 * 📖 [**7-Tier User Guide**](guide/index.md): Deductive tour from single-operation Magmas and Monoids to Semirings, Rings, Exact Field Solvers, Clifford & Lie Algebras, Coalgebras & Hopf Algebras, Categories, and Topological Sheaves.
-* 🍳 [**38 Use Cases, Recipes & GUI Lab**](recipes.md): Executable real-world scripts, synced Jupyter notebooks, and the interactive 12-module DearPyGui laboratory.
+* 🍳 [**48 Use Cases, Recipes & GUI Lab**](recipes.md): Executable real-world scripts, synced Jupyter notebooks, and the interactive 12-module DearPyGui laboratory.
 * 📜 [**Enhancement Proposals**](eps.md): Architectural design records and project roadmap.

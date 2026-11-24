@@ -371,6 +371,30 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 
 ---
 
+### Symmetry-Reduced Structural Vibrations & Equivariant ML Descriptors
+* **Files**: [`symmetry_vibrations_and_invariant_ml.py`](https://github.com/erivlis/algebrax/blob/main/recipes/symmetry_vibrations_and_invariant_ml.py) | [`symmetry_vibrations_and_invariant_ml.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/symmetry_vibrations_and_invariant_ml.ipynb)
+* **Run**: `uv run recipes/symmetry_vibrations_and_invariant_ml.py`
+* **Components**: `rep.reynolds_average`, `rep.isotypic_projector`, `rep.s3_character_table`, `rep.induced_representation`, `rep.mackey_intertwining_number`, `rep.compute_molien_series`, `rep.invariant_basis_at_degree`
+* **Summary**: Repairs noisy asymmetric stiffness estimates into exact $S_3$-equivariant operators, decouples triangular truss normal modes into breathing ($A_1$) and shear ($E$) subspaces via Schur-Maschke projectors, lifts local single-vertex modes via Frobenius induction, and extracts exact $D_8$-invariant polynomial ML features ($x^2 + y^2$, $x^4 + y^4$, $x^2 y^2$) from the Molien series.
+
+---
+
+### Quantum Spin Coupling, Anyon Braiding & Knotted Polymer Fingerprinting
+* **Files**: [`quantum_spin_braiding_and_polymer_knots.py`](https://github.com/erivlis/algebrax/blob/main/recipes/quantum_spin_braiding_and_polymer_knots.py) | [`quantum_spin_braiding_and_polymer_knots.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/quantum_spin_braiding_and_polymer_knots.ipynb)
+* **Run**: `uv run recipes/quantum_spin_braiding_and_polymer_knots.py`
+* **Components**: `rep.spin_representation`, `rep.clebsch_gordan_matrix`, `rep.quadratic_casimir`, `rep.cubic_casimir_operator`, `rep.QuantumSL2`, `rep.universal_r_matrix_sl2_fundamental`, `rep.jones_polynomial_eval`
+* **Summary**: Diagonalizes the two-electron Heisenberg spin-exchange Hamiltonian into singlet ($J=0$) and triplet ($J=1$) multiplets via Clebsch-Gordan intertwiners, separates conjugate $\mathfrak{sl}_3$ quark ($\mathbf{3}$) vs. antiquark ($\bar{\mathbf{3}}$) sectors with opposite $\pm \frac{5}{243}$ cubic Casimir eigenvalues, and fingerprints circular DNA/polymer knot chirality ($3_1$ vs. $\overline{3_1}$) and figure-eight amphicheirality ($4_1$) using $U_q(\mathfrak{sl}_2)$ Jones evaluations.
+
+---
+
+### Heterogeneous Multi-Sensor Calibration & Quiver-Sheaf Diagnostics
+* **Files**: [`quiver_sensor_calibration_and_sheaf_tda.py`](https://github.com/erivlis/algebrax/blob/main/recipes/quiver_sensor_calibration_and_sheaf_tda.py) | [`quiver_sensor_calibration_and_sheaf_tda.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/quiver_sensor_calibration_and_sheaf_tda.ipynb)
+* **Run**: `uv run recipes/quiver_sensor_calibration_and_sheaf_tda.py`
+* **Components**: `rep.Quiver`, `rep.QuiverRepresentation`, `algebra.path_algebra`, `rep.classify_representation_type`, `rep.tits_quadratic_form`, `rep.gabriel_positive_roots`, `rep.bgp_reflect_dimension`, `rep.to_cellular_sheaf`, `topology.CellularSheaf`
+* **Summary**: Models a heterogeneous drone calibration pipeline (3D LiDAR, 2D stereo cameras, 1D altimeter) as a quiver representation, composes multi-hop coordinate transforms in the path algebra $\mathbb{R}Q$, diagnoses finite/tame/wild sensor-network calibration solvability via Gabriel's ADE theorem and BGP reflections, and audits real-time camera drift via cellular sheaf Dirichlet energy.
+
+---
+
 ## Graphical Laboratory
 
 ### DearPyGui Interactive Lab
