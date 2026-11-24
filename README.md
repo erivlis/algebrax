@@ -104,9 +104,11 @@ single pure-Python polymorphic framework.
   (`PAdicField(p)` bridging directly to `TropicalSemiring`).
 * 🌌 **Geometry, Symmetry, Representation Theory & Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`),
   classical & exceptional Lie algebras, Langlands dual root systems & `IwahoriHeckeAlgebra` (`lie`), finite fields
-  $\mathrm{GF}(p^m)$ (`galois`), finite group representations, character tables & Schur projectors (`rep`), and unified
-  algebraic topology (`topology`: homology, cohomology cup products, persistent barcodes, DEC, cellular sheaves, discrete
-  bundles, topological K-theory & Chern classes, and path groupoids $\Pi_1(K)$).
+  $\mathrm{GF}(p^m)$ (`galois`), full representation theory (`rep`: finite-group characters & Schur projectors,
+  Frobenius induction & Mackey theory, Lie weights, Clebsch–Gordan 3-tensors & cubic Casimirs, Molien invariant series,
+  $U_q(\mathfrak{sl}_2)$ quantum groups, Yang–Baxter $R$-matrices & Jones knot invariants, quiver representations,
+  `PathAlgebra` & Gabriel's ADE theorem), and unified algebraic topology (`topology`: homology, cohomology cup products,
+  persistent barcodes, DEC, cellular sheaves, discrete bundles, K-theory & Chern classes, and path groupoids $\Pi_1(K)$).
 * 🧪 **Axiomatic Law Verification & Interactive Lab**: Automated algebraic axiom checkers (`verification`) backed by
   property-based testing, Ramanujan expander verification (`is_ramanujan_graph`), and Z3 proofs, plus a 12-module
   [DearPyGui](https://github.com/hoffstadt/DearPyGui) desktop laboratory (`recipes/lab.py`).
@@ -188,20 +190,23 @@ print(solve(a, b, field=ModularField(11)))
 
 | Pillar | Submodules | Highlights |
 |:-------|:-----------|:-----------|
-| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 26 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`PAdicField`, `GrothendieckRing`, `HopfAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
-| **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, `AlgebraicTrie` |
-| **Geometry, Symmetry & Topology** | `clifford`, `lie`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), $\mathrm{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
+| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 26 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`PAdicField`, `GrothendieckRing`, `HopfAlgebra`, `PathAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
+| **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, Clebsch–Gordan 3-tensors, `AlgebraicTrie` |
+| **Geometry, Symmetry, Representations & Topology** | `clifford`, `lie`, `rep`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), group/induced/Lie/invariant/quantum ($U_q(\mathfrak{sl}_2)$, Jones)/quiver (Gabriel ADE) representations, $\mathrm{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
 | **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | 9 categorical mixins, `CartesianClosedCategory`, `CoeffectContext`, Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature/Ramanujan expanders & RKHS, entropy, NumPy/SciPy bridges, axiom verifiers |
 
 ---
 
 ## Recipe Highlights & Jupyter Notebooks
 
-The [`recipes/`](recipes) directory includes **45** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
+The [`recipes/`](recipes) directory includes **48** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
 sample across domains — see the full catalog in [**Recipes & Applications**](docs/recipes.md):
 
 | Domain | Recipe & Notebook | Algebraic Components |
 |:-------|:------------------|:---------------------|
+| **Vibrations & Equivariant ML** | **Symmetry Modes & Molien Basis** — [`🐍`](recipes/symmetry_vibrations_and_invariant_ml.py) [`📓`](recipes/symmetry_vibrations_and_invariant_ml.ipynb) | `isotypic_projector`, `reynolds_average`, `induced_representation`, `compute_molien_series`, `invariant_basis_at_degree` |
+| **Quantum Spins & Polymer Knots** | **Spin Coupling & Jones Knots** — [`🐍`](recipes/quantum_spin_braiding_and_polymer_knots.py) [`📓`](recipes/quantum_spin_braiding_and_polymer_knots.ipynb) | `clebsch_gordan_matrix`, `quadratic_casimir`, `cubic_casimir_operator`, `QuantumSL2`, `jones_polynomial_eval` |
+| **Multi-Sensor Robotics** | **Quiver Calibration & Sheaf Drift** — [`🐍`](recipes/quiver_sensor_calibration_and_sheaf_tda.py) [`📓`](recipes/quiver_sensor_calibration_and_sheaf_tda.ipynb) | `QuiverRepresentation`, `path_algebra`, `classify_representation_type`, `gabriel_positive_roots`, `to_cellular_sheaf` |
 | **Graphs & Optimization** | **Traffic Resilience** — [`🐍`](recipes/traffic_network_resilience.py) [`📓`](recipes/traffic_network_resilience.ipynb) | `TropicalSemiring`, `matrix.power`, `analysis.forman_ricci_curvature`, `markov_steady_state` |
 | **Spectral & Graph ML** | **Spectral Graph Clustering** — [`🐍`](recipes/spectral_graph_clustering.py) [`📓`](recipes/spectral_graph_clustering.ipynb) | `matrix.laplacian_matrix`, `analysis.fiedler_vector`, `analysis.laplacian_spectrum` |
 | **TDA + Kernel ML** | **TDA $\to$ RKHS Shape Classifier** — [`🐍`](recipes/tda_rkhs_shape_classifier.py) [`📓`](recipes/tda_rkhs_shape_classifier.ipynb) | `FilteredSimplicialComplex`, `persistent_homology`, `betti_curve`, `ReproducingKernelHilbertSpace` |
@@ -222,7 +227,7 @@ sample across domains — see the full catalog in [**Recipes & Applications**](d
 Run any recipe directly using `uv`:
 
 ```bash
-uv run recipes/coalgebras_and_hopf_symmetries.py
+uv run recipes/quantum_spin_braiding_and_polymer_knots.py
 ```
 
 ---
@@ -245,7 +250,7 @@ Full documentation is published at **[erivlis.github.io/algebrax](https://erivli
 
 * 🚀 [**Start & Concepts**](docs/index.md): Installation, quickstart, [Periodic Table of Mixins](docs/concepts.md), [Library Comparison](docs/comparison.md), and [Axiomatic Verification](docs/verification.md).
 * 📖 [**7-Tier User Guide**](docs/guide/index.md): Deductive tour from Magmas & Monoids to Semirings, Rings, Exact Fields, Clifford & Lie Algebras, Hopf Algebras, Categories, and Topological Sheaves.
-* 🍳 [**All 45 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
+* 🍳 [**All 48 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
 * 📜 [**Enhancement Proposals**](docs/eps.md): Architectural design records and roadmap (`EP-0099`+).
 
 ---
