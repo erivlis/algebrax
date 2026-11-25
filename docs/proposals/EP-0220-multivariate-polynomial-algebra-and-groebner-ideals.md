@@ -2,7 +2,7 @@
 title: "EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals"
 description: "Formalize unboxed multivariate polynomial algebras k[x_1, ..., x_n], monomial orderings, and exact Gröbner basis ideals via Buchberger and F4-style sparse Macaulay matrix reduction."
 icon: lucide/variable
-status: draft
+status: final
 ---
 
 # EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                                |
 | **Sponsor**       | Core Maintainers                                                                           |
 | **Delegate**      | ⚡ Shannon (Unboxed Sparse Carriers), 🔬 Popper (Exactness Mandate) & ⚖️ Noether (Ideals)   |
-| **Status**        | Draft                                                                                      |
+| **Status**        | Final                                                                                      |
 | **Type**          | Standards Track                                                                            |
 | **Created**       | 2026-11-14                                                                                 |
-| **Updated**       | 2026-11-14                                                                                 |
+| **Updated**       | 2026-11-25                                                                                 |
 | **Replaces**      | —                                                                                          |
 | **Superseded-By** | —                                                                                          |
 
@@ -328,11 +328,19 @@ Validated in the executable prototype [`references/explorations/EXP-0009-algebra
 
 ## Open Questions
 
-- [ ] Whether `method="auto"` should select `"f4"` for rational fields (`StandardField(Fraction)`) and `"buchberger"` (with Gebauer–Möller criteria) for small prime fields (`ModularField(p)`), or always run Gebauer–Möller-filtered $F_4$.
+- [x] Whether `method="auto"` should select `"f4"` for rational fields (`StandardField(Fraction)`) and `"buchberger"` (with Gebauer–Möller criteria) for small prime fields (`ModularField(p)`), or always run Gebauer–Möller-filtered $F_4$.
+  - *Resolved (2026-11-25)*: `method="auto"` uniformly runs Gebauer–Möller-filtered $F_4$ (`_groebner_f4`) across all exact fields (`StandardField(Fraction)`, `ModularField(p)`, `GaloisField`), avoiding field-specific branching while outperforming classical Buchberger on elimination (`lex`) and higher-degree systems (`4.12 ms` vs. `4.27 ms` on `lex Cyclic-4` over $\mathbb{Q}$; `2.49 ms` vs. `2.98 ms` over $\mathbb{F}_{101}$). Explicit `method="buchberger"` and `method="f4"` remain selectable.
 
 ---
 
 ## Change Log
 
+* **2026-11-25:**
+  * Implemented full specification and transitioned status to **Final**:
+    - Added `HasBasis` and `HasDerivation` atomic mixins (`src/algebrax/algebra/_mixins.py`).
+    - Added `MultivariatePolynomialAlgebra`, monomial arithmetic, and `lex`/`grlex`/`grevlex` orderings (`src/algebrax/algebra/_polynomial.py`), including characteristic-aware `square_free_part` (with Frobenius $p$-th root extraction over $\mathbb{F}_p$ and $\mathrm{GF}(p^m)$) and `PoissonAlgebra`-compliant `poisson_bracket`/`bracket`.
+    - Promoted `GaloisField` (`src/algebrax/algebra/_field.py`, exported from `algebrax.algebra`, `algebrax.galois`, and `algebrax.semiring`, replacing `GaloisFieldSemiring`) with full exact `Field` operations (`is_zero`, `neg`, `sub`, `inv`, `div`) via Extended Euclidean Algorithm.
+    - Added hybrid Gebauer–Möller Buchberger & $F_4$ sparse Macaulay RREF engine (`src/algebrax/algebra/_groebner.py`) with strict IEEE-754 exact-field guardrail, plus `FinitelyGeneratedIdeal` and `GroebnerIdeal` (`src/algebrax/algebra/_ideals.py`).
+    - Added `verify_groebner_basis_laws` oracle (`src/algebrax/verification/_algebra.py`), unit/falsification tests (`tests/algebrax/test_multivariate_groebner.py`), differential `sympy.groebner` oracles (`tests/verifications/test_differential_sympy.py`), and expanded user guide (`docs/guide/algebra/polynomials_and_quotients.md`).
 * **2026-11-14:**
   * Initial Draft authored for Phase 9 from `EXP-0009`.

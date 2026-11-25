@@ -203,7 +203,7 @@ affine algebraic varieties, coordinate rings, Stickelberger companion matrix sol
 
 | EP                                                                                      | Title                                                               | Council Sponsor                          |         Status          |
 |:----------------------------------------------------------------------------------------|:--------------------------------------------------------------------|:-----------------------------------------|:-----------------------:|
-| [EP-0220](proposals/EP-0220-multivariate-polynomial-algebra-and-groebner-ideals.md)     | Multivariate Polynomial Algebra & Exact Gröbner Ideals              | ⚡ Shannon, 🔬 Popper & ⚖️ Noether       | :material-pencil: Draft |
+| [EP-0220](proposals/EP-0220-multivariate-polynomial-algebra-and-groebner-ideals.md)     | Multivariate Polynomial Algebra & Exact Gröbner Ideals              | ⚡ Shannon, 🔬 Popper & ⚖️ Noether       | :material-check-all: Final |
 | [EP-0221](proposals/EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md)    | Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers | ⚖️ Noether, 🧩 Russell & ⚡ Shannon      | :material-pencil: Draft |
 | [EP-0222](proposals/EP-0222-tropical-varieties-and-polyhedral-duals.md)                 | Tropical Varieties, Newton Polytopes & Balanced Polyhedral Complexes | 🧭 Explorer, ⚖️ Noether & ⚡ Shannon     | :material-pencil: Draft |
 

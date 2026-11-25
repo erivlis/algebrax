@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                                                    |
 | **Type**    | Informational                                             |
 | **Created** | 2026-08-01                                                |
-| **Updated** | 2026-11-23                                                |
+| **Updated** | 2026-11-25                                                |
 
 ## Abstract
 
@@ -133,7 +133,7 @@ flowchart TD
     end
 
     subgraph P9["Phase 9 — Algebraic & Tropical Varieties (EXP-0009)"]
-        EP0220_N["EP-0220 Multivariate Polys & Gröbner 💡\n⚡ Shannon, 🔬 Popper & ⚖️ Noether"]
+        EP0220_N["EP-0220 Multivariate Polys & Gröbner ✅\n⚡ Shannon, 🔬 Popper & ⚖️ Noether"]
         EP0221_N["EP-0221 Affine Varieties & Stickelberger 💡\n⚖️ Noether, 🧩 Russell & ⚡ Shannon"]
         EP0222_N["EP-0222 Tropical Varieties & Polyhedra 💡\n🧭 Explorer, ⚖️ Noether & ⚡ Shannon"]
     end
@@ -327,8 +327,8 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Final]
   │     └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Final]
   │
-  ├── Phase 9: Commutative Algebra, Algebraic Varieties & Tropical Geometry (EXP-0009)  ⏳ PLANNED
-  │     ├── EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals (Shannon/Popper/Noether) [Draft]
+  ├── Phase 9: Commutative Algebra, Algebraic Varieties & Tropical Geometry (EXP-0009)  ⏳ IN PROGRESS
+  │     ├── EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals (Shannon/Popper/Noether) [Final]
   │     ├── EP-0221: Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers (Noether/Russell/Shannon) [Draft]
   │     └── EP-0222: Tropical Varieties, Newton Polytopes & Balanced Polyhedral Complexes (Explorer/Noether/Shannon) [Draft]
   │
@@ -415,7 +415,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0213** | Induced Reps & Frobenius       | Russell & Noether | `algebrax.rep`, `algebrax.group`         | Final    | Subgroup induction Ind_H^G, Frobenius reciprocity adjunction Ind ⊣ Res, Mackey double-coset decomposition  |
 | **EP-0214** | Invariant Theory & Molien      | Noether & Shannon | `algebrax.rep`, `lie`, `algebra`         | Final    | Polynomial Reynolds operator, Molien series, primary/secondary invariants, Lie cubic Casimir tensors       |
 | **EP-0215** | Quantum Groups & Yang-Baxter   | Noether & Golem   | `algebrax.rep`, `algebrax.algebra`       | Final    | U_q(𝔤) Hopf quantum deformations, universal R-matrix, Yang-Baxter equation, Jones polynomials              |
-| **EP-0220** | Multivariate Polys & Gröbner   | Shannon & Popper  | `algebrax.algebra`                       | Draft    | `MultivariatePolynomialAlgebra`, `lex`/`grlex`/`grevlex`, Buchberger & $F_4$ sparse Macaulay RREF, `GroebnerIdeal`                         |
+| **EP-0220** | Multivariate Polys & Gröbner   | Shannon & Popper  | `algebrax.algebra`                       | Final    | `MultivariatePolynomialAlgebra`, `lex`/`grlex`/`grevlex`, Buchberger & $F_4$ sparse Macaulay RREF, `GroebnerIdeal`                         |
 | **EP-0221** | Affine Varieties & Companion   | Noether & Russell | `algebrax.variety`                       | Draft    | `AffineVariety`, coordinate ring $k[V]$, Stickelberger companion matrix solvers, $\mathbb{F}_p$/$\mathbb{F}_2$ varieties, `PolynomialMap`  |
 | **EP-0222** | Tropical Varieties & Polyhedra | Explorer & Noether| `algebrax.variety`                       | Draft    | `TropicalHypersurface`, Newton polytope subdivisions, Noether zero-tension vertex balancing                                                |
 | **EP-0230** | Non-Abelian Group FT & P–W     | Noether & Popper  | `algebrax.transforms`, `group`, `rep`    | Draft    | `group_fourier_transform`, `inverse_group_fourier_transform`, Plancherel energy, Diaconis random walks                                     |
@@ -481,3 +481,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-22 | Eran Rivlis & Antigravity | Implemented EP-0214 (Invariant Theory, Molien Series & Casimir Polynomials): `algebrax.rep.invariant`, cubic Casimir in `algebrax.rep.lie`, SymPy oracles, verifiers & guide; status Final. |
 | 2026-11-23 | Eran Rivlis & Antigravity | Implemented EP-0215 (Quantum Groups, Yang–Baxter Equation & Braided Categories): `algebrax.rep.quantum` (`QuantumSL2` PBW Hopf algebra, $R$-matrix, braiding, Jones invariants), verifiers, SymPy oracles & guide; status Final. |
 | 2026-11-23 | Eran Rivlis & Antigravity | Implemented EP-0212 (Quiver Representations, Path Algebras & Gabriel's ADE Theorem): `algebrax.rep.quiver`, `algebrax.algebra.PathAlgebra`, `CellularSheaf` bridge, verifiers, SymPy oracles & guide; status Final (**Phase 8 Complete — 6/6 Final**). |
+| 2026-11-25 | Eran Rivlis & Antigravity | Implemented EP-0220 (Multivariate Polynomial Algebra & Exact Gröbner Ideals): `HasBasis`/`HasDerivation`, `MultivariatePolynomialAlgebra`, hybrid Gebauer–Möller Buchberger & $F_4$ sparse Macaulay engine, `GroebnerIdeal`, exact `Field` operations on `GaloisFieldSemiring`, `verify_groebner_basis_laws`, SymPy oracles & guide; status Final (**Phase 9 Launched — 1/3 Final**). |
