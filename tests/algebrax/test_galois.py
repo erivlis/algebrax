@@ -2,7 +2,8 @@
 Tests for Galois Finite Fields GF(p^m).
 """
 
-from algebrax.galois import GaloisFieldSemiring, gf_matrix_mul
+from algebrax.algebra import Field, GaloisField
+from algebrax.galois import gf_matrix_mul
 
 
 def test_galois_field_gf28_multiplication():
@@ -10,7 +11,8 @@ def test_galois_field_gf28_multiplication():
     Test GF(2^8) AES field multiplication modulo P(x) = x^8 + x^4 + x^3 + x + 1.
     Multiply x^4 * x^4 = x^8 mod P(x) = x^4 + x^3 + x + 1.
     """
-    gf = GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
+    gf = GaloisField(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
+    assert isinstance(gf, Field)
 
     # x^4 = {4: 1}
     a = {4: 1}
@@ -19,6 +21,11 @@ def test_galois_field_gf28_multiplication():
     res = gf.mul(a, b)
     # Expected: x^4 + x^3 + x + 1 => {0: 1, 1: 1, 3: 1, 4: 1}
     assert res == {0: 1, 1: 1, 3: 1, 4: 1}
+
+    # Exact multiplicative inverse in GF(2^8): a * a^{-1} == 1
+    inv_res = gf.inv(res)
+    assert gf.mul(res, inv_res) == gf.one
+    assert gf.div(res, res) == gf.one
 
 
 def test_galois_field_matrix_multiplication():

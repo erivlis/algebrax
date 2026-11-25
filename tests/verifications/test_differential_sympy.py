@@ -24,12 +24,12 @@ from sympy.combinatorics.permutations import Permutation as SymPyPermutation
 from sympy.liealgebras.root_system import RootSystem as SymPyRootSystem
 
 import algebrax as ax
+from algebrax.algebra import GaloisField
 from algebrax.matrix.academic import PerformanceWarning
 from algebrax.semiring import (
     BinomialConvolutionSemiring,
     CliffordAlgebra,
     DualNumberAlgebra,
-    GaloisFieldSemiring,
     GeneralizedCliffordAlgebra,
     MultivariateBinomialConvolutionSemiring,
     PolynomialAlgebra,
@@ -309,12 +309,12 @@ def _sympy_poly_to_dict(poly: sp.Poly, p: int) -> dict[int, int]:
 @pytest.mark.verification
 @pytest.mark.differential
 def test_differential_galois_field_arithmetic_and_fermat_little_theorem_vs_sympy() -> None:
-    """Verify GaloisFieldSemiring GF(2^8) and GF(3^3) against SymPy Poly mod irreducible polynomial."""
+    """Verify GaloisField GF(2^8) and GF(3^3) against SymPy Poly mod irreducible polynomial."""
     x = sp.Symbol('x')
 
     # 1. AES Field GF(2^8) modulo P(x) = x^8 + x^4 + x^3 + x + 1
     aes_poly_tuple = (1, 1, 0, 1, 1, 0, 0, 0, 1)
-    gf_aes = GaloisFieldSemiring(p=2, irreduc_poly=aes_poly_tuple)
+    gf_aes = GaloisField(p=2, irreduc_poly=aes_poly_tuple)
     mod_poly_aes = _dict_to_sympy_poly({i: c for i, c in enumerate(aes_poly_tuple) if c}, x, p=2)
 
     a = {0: 1, 1: 1, 4: 1, 6: 1}  # 1 + x + x^4 + x^6
@@ -341,7 +341,7 @@ def test_differential_galois_field_arithmetic_and_fermat_little_theorem_vs_sympy
 
     # 2. Odd-characteristic extension field GF(3^3) modulo P(x) = x^3 + 2x + 1 (irreducible over F_3)
     gf_27_tuple = (1, 2, 0, 1)
-    gf_27 = GaloisFieldSemiring(p=3, irreduc_poly=gf_27_tuple)
+    gf_27 = GaloisField(p=3, irreduc_poly=gf_27_tuple)
     mod_poly_27 = _dict_to_sympy_poly({i: c for i, c in enumerate(gf_27_tuple) if c}, x, p=3)
 
     u = {0: 2, 1: 1, 2: 2}
@@ -1284,4 +1284,168 @@ def test_differential_quiver_tits_form_and_gabriel_ade_vs_sympy() -> None:
             rel_tol=1e-12,
             abs_tol=1e-12,
         )
+
+
+# =============================================================================
+# 12. Multivariate Polynomial Algebras & Exact Gröbner Bases vs. SymPy
+# =============================================================================
+
+
+def _mpoly_to_sympy(poly: dict[tuple[int, ...], Any], syms: tuple[sp.Symbol, ...]) -> sp.Expr:
+    """Convert an AlgebraX SparseMPoly over Fraction or int into a SymPy expression."""
+    expr: sp.Expr = sp.Integer(0)
+    for mon, coeff in poly.items():
+        sp_c = (
+            sp.Rational(coeff.numerator, coeff.denominator)
+            if isinstance(coeff, Fraction)
+            else sp.Integer(int(coeff))
+        )
+        term: sp.Expr = sp_c
+        for sym, exp in zip(syms, mon, strict=True):
+            if exp:
+                term *= sym**exp
+        expr += term
+    return sp.expand(expr)
+
+
+def _sympy_poly_to_mpoly_q(poly_sp: sp.Poly) -> dict[tuple[int, ...], Fraction]:
+    """Convert a monic SymPy Poly over QQ to an AlgebraX SparseMPoly[Fraction]."""
+    out: dict[tuple[int, ...], Fraction] = {}
+    for mon, coeff in poly_sp.terms():
+        rat = sp.Rational(coeff)
+        if rat != 0:
+            out[tuple(int(e) for e in mon)] = Fraction(int(rat.p), int(rat.q))
+    return out
+
+
+def _sympy_poly_to_mpoly_fp(poly_sp: sp.Poly, p: int) -> dict[tuple[int, ...], int]:
+    """Convert a monic SymPy Poly over GF(p) to an AlgebraX SparseMPoly[int]."""
+    out: dict[tuple[int, ...], int] = {}
+    for mon, coeff in poly_sp.terms():
+        val = int(coeff) % p
+        if val != 0:
+            out[tuple(int(e) for e in mon)] = val
+    return out
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+@pytest.mark.parametrize('order', ['grevlex', 'grlex', 'lex'])
+@pytest.mark.parametrize('method', ['f4', 'buchberger'])
+def test_differential_groebner_basis_over_rationals_vs_sympy(order: Any, method: Any) -> None:
+    """Verify exact 1-to-1 reduced monic Groebner basis agreement vs sympy.groebner over QQ."""
+    q_field = ax.algebra.StandardField(Fraction)
+
+    # 3-variable systems: TwistedCubic & Cyclic-3
+    r3 = ax.algebra.MultivariatePolynomialAlgebra(q_field, n_vars=3, order=order)
+    x, y, z = r3.gen(0), r3.gen(1), r3.gen(2)
+    s3 = sp.symbols('x y z')
+
+    systems_3 = [
+        [r3.sub(r3.mul(x, x), y), r3.sub(r3.mul(x, y), z)],
+        [
+            r3.add(r3.add(x, y), z),
+            r3.add(r3.add(r3.mul(x, y), r3.mul(y, z)), r3.mul(z, x)),
+            r3.sub(r3.mul(r3.mul(x, y), z), r3.one),
+        ],
+    ]
+    for gens in systems_3:
+        gb_ax = ax.algebra.groebner_basis(r3, gens, method=method)
+        gb_sp = sp.groebner([_mpoly_to_sympy(g, s3) for g in gens], *s3, order=order, domain=sp.QQ)
+        expected = [_sympy_poly_to_mpoly_q(p) for p in gb_sp.polys]
+        assert gb_ax == expected
+
+    # 4-variable systems: Cyclic-4 & 2R-Robot-IK
+    r4 = ax.algebra.MultivariatePolynomialAlgebra(q_field, n_vars=4, order=order)
+    x4, y4, z4, w4 = (r4.gen(i) for i in range(4))
+    s4 = sp.symbols('x y z w')
+
+    cyclic4 = [
+        r4.add(r4.add(x4, y4), r4.add(z4, w4)),
+        r4.add(r4.add(r4.mul(x4, y4), r4.mul(y4, z4)), r4.add(r4.mul(z4, w4), r4.mul(w4, x4))),
+        r4.add(
+            r4.add(r4.mul(r4.mul(x4, y4), z4), r4.mul(r4.mul(y4, z4), w4)),
+            r4.add(r4.mul(r4.mul(z4, w4), x4), r4.mul(r4.mul(w4, x4), y4)),
+        ),
+        r4.sub(r4.mul(r4.mul(x4, y4), r4.mul(z4, w4)), r4.one),
+    ]
+    robot_ik = [
+        r4.sub(r4.add(r4.smul(Fraction(3), x4), r4.smul(Fraction(2), z4)), r4.const(Fraction(3))),
+        r4.sub(r4.add(r4.smul(Fraction(3), y4), r4.smul(Fraction(2), w4)), r4.const(Fraction(2))),
+        r4.sub(r4.add(r4.mul(x4, x4), r4.mul(y4, y4)), r4.one),
+        r4.sub(r4.add(r4.mul(z4, z4), r4.mul(w4, w4)), r4.one),
+    ]
+    for gens in (cyclic4, robot_ik):
+        gb_ax = ax.algebra.groebner_basis(r4, gens, method=method)
+        gb_sp = sp.groebner([_mpoly_to_sympy(g, s4) for g in gens], *s4, order=order, domain=sp.QQ)
+        expected = [_sympy_poly_to_mpoly_q(p) for p in gb_sp.polys]
+        assert gb_ax == expected
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+@pytest.mark.parametrize('p', [7, 101])
+@pytest.mark.parametrize('order', ['grevlex', 'lex'])
+def test_differential_groebner_basis_over_finite_field_vs_sympy(p: int, order: Any) -> None:
+    """Verify exact 1-to-1 reduced monic Groebner basis agreement vs sympy.groebner over GF(p)."""
+    fp = ax.algebra.ModularField(p)
+    r3 = ax.algebra.MultivariatePolynomialAlgebra(fp, n_vars=3, order=order)
+    x, y, z = r3.gen(0), r3.gen(1), r3.gen(2)
+    s3 = sp.symbols('x y z')
+
+    cyclic3 = [
+        r3.add(r3.add(x, y), z),
+        r3.add(r3.add(r3.mul(x, y), r3.mul(y, z)), r3.mul(z, x)),
+        r3.sub(r3.mul(r3.mul(x, y), z), r3.one),
+    ]
+    ideal = ax.algebra.GroebnerIdeal(r3, cyclic3)
+    gb_sp = sp.groebner([_mpoly_to_sympy(g, s3) for g in cyclic3], *s3, order=order, domain=sp.GF(p))
+    expected = [_sympy_poly_to_mpoly_fp(poly, p) for poly in gb_sp.polys]
+    assert list(ideal.basis) == expected
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_multivariate_diff_gcd_sqf_and_poisson_vs_sympy() -> None:
+    """Verify formal diff, univariate_gcd, square_free_part, and poisson_bracket against SymPy."""
+    q_field = ax.algebra.StandardField(Fraction)
+    ring = ax.algebra.MultivariatePolynomialAlgebra(q_field, n_vars=2)
+    q_sym, p_sym = sp.symbols('q p')
+    syms = (q_sym, p_sym)
+
+    f = {
+        (3, 1): Fraction(2, 3),
+        (1, 2): Fraction(-5, 4),
+        (0, 3): Fraction(7, 2),
+        (0, 0): Fraction(-1),
+    }
+    g = {
+        (2, 2): Fraction(3, 5),
+        (1, 0): Fraction(-2),
+        (0, 1): Fraction(4, 3),
+    }
+    f_sp = _mpoly_to_sympy(f, syms)
+    g_sp = _mpoly_to_sympy(g, syms)
+
+    # Partial derivatives
+    assert _mpoly_to_sympy(ring.diff(f, 0), syms) == sp.expand(sp.diff(f_sp, q_sym))
+    assert _mpoly_to_sympy(ring.diff(f, 1), syms) == sp.expand(sp.diff(f_sp, p_sym))
+
+    # Symplectic Poisson bracket {f, g} = df/dq * dg/dp - df/dp * dg/dq
+    pb_sp = sp.expand(sp.diff(f_sp, q_sym) * sp.diff(g_sp, p_sym) - sp.diff(f_sp, p_sym) * sp.diff(g_sp, q_sym))
+    assert _mpoly_to_sympy(ring.poisson_bracket(f, g), syms) == pb_sp
+
+    # Univariate GCD & square-free part
+    x = ring.gen(0)
+    u1 = ring.mul(ring.mul(ring.sub(x, ring.one), ring.sub(x, ring.one)), ring.add(x, ring.const(Fraction(2))))
+    u2 = ring.mul(ring.sub(x, ring.one), ring.sub(x, ring.const(Fraction(3))))
+    u1_sp = _mpoly_to_sympy(u1, syms)
+    u2_sp = _mpoly_to_sympy(u2, syms)
+
+    gcd_ax = _mpoly_to_sympy(ring.univariate_gcd(u1, u2, var_index=0), syms)
+    assert gcd_ax == sp.expand(sp.Poly(sp.gcd(u1_sp, u2_sp), q_sym, domain=sp.QQ).monic().as_expr())
+
+    sqf_ax = _mpoly_to_sympy(ring.square_free_part(u1, var_index=0), syms)
+    assert sqf_ax == sp.expand(sp.Poly(sp.sqf_part(u1_sp), q_sym, domain=sp.QQ).monic().as_expr())
+
 
