@@ -239,3 +239,20 @@ creative telescoping, multivariate Taylor Jet solvers, and bounded-order Picard�
 | [EP-0242](proposals/EP-0242-hermite-gosper-reduction-creative-telescoping-and-taylor-jets.md)     | Exact Symbolic Integration, Hermite & Gosper Reduction, Creative Telescoping & Multivariate Taylor Jets  | ⚡ Shannon, 🔬 Popper & 🛡️ Golem     | :material-pencil: Draft |
 | [EP-0243](proposals/EP-0243-picard-vessiot-differential-galois-and-kovacic.md)                    | Picard–Vessiot Differential Galois Theory, Symmetric Powers & Kovacic Factorization                      | ⚖️ Noether, 🔬 Popper & 🛡️ Golem     | :material-pencil: Draft |
 
+---
+
+## Phase 12 — Second Grand Council Refinement & Hardening Track
+
+Proposals stemming from the **Second Grand Council Codebase Audit** across all 111 modules (36.6k LOC),
+hardening algebraic soundness, sparse linear algebra kernels, universal semiring propagation, falsifiable verification,
+and codebase ergonomics/hygiene.
+
+| EP                                                                                                | Title                                                                                   | Council Sponsor                        |         Status          |
+|:--------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------|:---------------------------------------|:-----------------------:|
+| [EP-0250](proposals/EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md)          | Protocol Integrity, Law Witnesses & Algebraic Soundness                                 | ⚖️ Noether & 🧩 Russell                | :material-pencil: Draft |
+| [EP-0251](proposals/EP-0251-sparse-linear-algebra-kernel-decompositions-and-hot-paths.md)         | Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance          | ⚡ Shannon & 🛡️ Golem                  | :material-pencil: Draft |
+| [EP-0252](proposals/EP-0252-universal-semiring-propagation-and-domain-unification.md)             | Universal Semiring Propagation, Parameterized Tries & Domain Unification                | 🧭 Explorer & ⚖️ Noether               | :material-pencil: Draft |
+| [EP-0253](proposals/EP-0253-verification-engine-hardening-and-grounded-proofs.md)                 | Verification Engine Hardening, Falsifiability & Grounded Formal Proofs                  | 🔬 Popper & 🧪 Bacon                   | :material-pencil: Draft |
+| [EP-0254](proposals/EP-0254-ergonomics-state-safety-ecosystem-bridges-and-hygiene.md)             | Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene                          | 💡 Feynman, 🌿 Steward & 🛡️ Golem      | :material-pencil: Draft |
+
+
