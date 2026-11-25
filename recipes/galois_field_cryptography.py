@@ -27,7 +27,7 @@ def gf_multiply(
     irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1),
 ) -> dict[int, int]:
     """Multiply polynomials in Galois Field GF(p^m) modulo irreducible polynomial."""
-    gf = ax.galois.GaloisFieldSemiring(p=p, irreduc_poly=irreduc_poly)
+    gf = ax.algebra.GaloisField(p=p, irreduc_poly=irreduc_poly)
     return gf.mul(a, b)
 
 
