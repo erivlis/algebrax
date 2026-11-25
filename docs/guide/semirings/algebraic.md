@@ -7,9 +7,10 @@ description: Monoid algebras, polynomial rings, provenance, knots, quotient ring
 
 > [!TIP]
 > **Pure Algebraic Hierarchy Guides**
-> When the base coefficient structure is a `Ring` or `Field`, these monoid and quotient constructions satisfy the full `CommRing`, `Algebra`, and `Field` protocols (`from algebrax.algebra import PolynomialAlgebra, DualNumberAlgebra, QuotientMonoidAlgebraSemiring` and `from algebrax.clifford import CliffordAlgebra`). See the dedicated deductive guides:
+> When the base coefficient structure is a `Ring` or `Field`, these monoid and quotient constructions satisfy the full `CommRing`, `Algebra`, and `Field` protocols (`from algebrax.algebra import GaloisField, MultivariatePolynomialAlgebra, PolynomialAlgebra, DualNumberAlgebra, QuotientMonoidAlgebraSemiring` and `from algebrax.clifford import CliffordAlgebra`). See the dedicated deductive guides:
 >
-> - [**Polynomials, Dual Numbers & Quotient Algebras**](../algebra/polynomials_and_quotients.md) (Tier 3)
+> - [**Polynomials, Dual Numbers & Gröbner Quotients**](../algebra/polynomials_and_quotients.md) (Tier 3)
+> - [**Affine Varieties, Coordinate Rings & Stickelberger Solvers**](../algebra/varieties_and_geometry.md) (Tier 3)
 > - [**Clifford Geometric Algebra & Rotors**](../algebra/clifford_geometric_algebra.md) (Tier 4)
 > - [**Rings, Commutative Rings & Fields (`GF(p^m)`)**](../algebra/rings_and_fields.md) (Tier 3)
 
@@ -18,7 +19,7 @@ multivector Clifford algebras, and finite Galois fields.
 
 ---
 
-# The Monoid Algebra Semiring
+## The Monoid Algebra Semiring
 
 The **Monoid Algebra Semiring** $R[M]$ (or Group Algebra $R[G]$) provides the foundational algebraic structure for
 formal linear combinations $\sum_{m \in M} a_m m$ over an arbitrary monoid $M$ and coefficient semiring $R$.
@@ -27,7 +28,7 @@ It serves as the parent abstraction for several specialized algebraic structures
 the [Polynomial Semiring](#the-polynomial-semiring) ($R[x]$) and the [Knot Semiring](#the-knot-semiring)
 ($R[\text{Knots}]$).
 
-## Mathematical Definition
+### Mathematical Definition
 
 - **Set ($S$):** Formal linear combinations of monoid elements $\sum_{m \in M} a_m m$, represented as sparse mappings
   `{monoid_element: coefficient}`.
@@ -42,7 +43,7 @@ the [Polynomial Semiring](#the-polynomial-semiring) ($R[x]$) and the [Knot Semir
 - **Additive Identity ($0$):** The empty mapping `{}`.
 - **Multiplicative Identity ($1$):** `{zero_key: R.one}` (where `zero_key` is the monoid identity element $e \in M$).
 
-## Implementation in `algebrax`
+### Implementation in `algebrax`
 
 The `MonoidAlgebraSemiring` class is generic over both key type `K` and coefficient type `T`:
 
@@ -70,20 +71,20 @@ res = string_algebra.mul(a, b)
 print(res)
 ```
 
-## Derived Subclasses
+### Derived Subclasses
 
-`MonoidAlgebraSemiring` forms the theoretical foundation for specialized semirings in `algebrax`:
+`MonoidAlgebraSemiring` (and its ring/algebra subclass `MonoidAlgebra`) forms the theoretical foundation for specialized structures in `algebrax`:
 
-1. **[PolynomialAlgebra] ($R[x]$):**
+1. **[`PolynomialAlgebra`](#the-polynomial-semiring) ($R[x]$):**
    Monoid algebra over non-negative integer exponents $M = (\mathbb{N}_0, +)$ with `key_op = lambda x, y: x + y` and
-   `zero_key = 0`.
-2. **[KnotSemiring] ($R[\text{Knots}]$):**
+   `zero_key = 0`. For multivariate polynomials $k[x_1, \dots, x_n]$ and Gröbner ideals, see [`MultivariatePolynomialAlgebra`](../algebra/polynomials_and_quotients.md).
+2. **[`KnotSemiring`](#the-knot-semiring) ($R[\text{Knots}]$):**
    Monoid algebra over topological knots $M = (\text{Knots}, \#)$ with connected sum `key_op = _combine_knots` and
    `zero_key = 'U'`.
-3. **[ProvenanceSemiring] ($\mathbb{N}[X]$):**
+3. **[`ProvenanceSemiring`](#provenance-semiring-history-tracking) ($\mathbb{N}[X]$):**
    Monoid algebra over multivariate tuple monomials $M = (\text{Monomials}, \cdot)$ with sorted variable concatenation `key_op = _combine_monomials` and `zero_key = ()`.
 
-## Use Cases
+### Use Cases
 
 - **Group Algebras:** Constructing finite group rings $R[G]$ for representation theory and Fourier analysis.
 - **Discrete Signal Processing:** Defining generalized convolution operators over arbitrary monoid domains.
@@ -91,10 +92,10 @@ print(res)
 
 ---
 
-# The Quotient Monoid Algebra Semiring
+## The Quotient Monoid Algebra Semiring
 
 The **`QuotientMonoidAlgebraSemiring`** is a specialized extension of
-the [Monoid Algebra Semiring] that applies a canonical quotient reduction rule
+the [Monoid Algebra Semiring](#the-monoid-algebra-semiring) that applies a canonical quotient reduction rule
 `quotient_fn(key, coeff)` during multiplication.
 
 It allows `algebrax` to compute formal multiplications in **quotient rings** $R[M] / I$ such as Clifford blade
@@ -102,7 +103,7 @@ canonicalization, Galois field polynomial modulo reductions, and term rewriting 
 
 ---
 
-## Mathematical Definition
+### Mathematical Definition
 
 - **Set ($S$):** Formal linear combinations $\sum a_m m$ represented as sparse mappings `{key: coeff}`.
 - **Coefficient Semiring ($R_C$):** An underlying semiring for element coefficients (defaults to `StandardSemiring`).
@@ -112,7 +113,7 @@ canonicalization, Galois field polynomial modulo reductions, and term rewriting 
 
 ---
 
-## Python Example: Polynomial Modulo Reduction ($x^2 = -1$)
+### Python Example: Polynomial Modulo Reduction ($x^2 = -1$)
 
 ```python
 import algebrax as ax
@@ -149,15 +150,15 @@ print('Result of (1+x)^2 mod (x^2+1):', result)
 
 ---
 
-# The Polynomial Semiring
+## The Polynomial Semiring
 
 The **Polynomial Semiring** $R[x]$ provides a generic algebraic structure for working with univariate polynomials over a
-coefficient semiring $R$. It is a specialized subclass of the [Monoid Algebra Semiring]
+coefficient semiring $R$. It is a specialized subclass of `MonoidAlgebra` (extending the [Monoid Algebra Semiring](#the-monoid-algebra-semiring))
 where keys are non-negative integer exponents in $(\mathbb{N}_0, +)$.
 
 It finds wide applications in discrete signal processing (as FIR filters), coding theory, and formal algebra.
 
-## Mathematical Definition
+### Mathematical Definition
 
 - **Set ($S$):** Univariate polynomials, represented as sparse mappings `{exponent: coefficient}`.
     - Example: The polynomial $1 + 2x + 4x^2$ is represented as `{0: 1, 1: 2, 2: 4}`.
@@ -168,11 +169,11 @@ It finds wide applications in discrete signal processing (as FIR filters), codin
 - **Additive Identity ($0$):** The zero polynomial `{}`.
 - **Multiplicative Identity ($1$):** `{0: R_C.one}` (constant polynomial 1).
 
-## Implementation in `algebrax`
+### Implementation in `algebrax`
 
-`PolynomialAlgebra` inherits from `MonoidAlgebraSemiring[int, T]`.
+`PolynomialAlgebra` inherits from `MonoidAlgebra[int, T]` (which extends `MonoidAlgebraSemiring[int, T]` with additive inverses and scalar scaling).
 
-### Example: Polynomials over Integers
+#### Example: Polynomials over Integers
 
 ```python
 import algebrax as ax
@@ -202,7 +203,7 @@ multiplied = poly_semiring.mul(p1, p2)
 print(f'p1 * p2 = {multiplied}')
 ```
 
-## Use Cases
+### Use Cases
 
 - **Signal Processing:** Polynomial multiplication is equivalent to discrete signal convolution, used in Finite Impulse
   Response (FIR) filters.
@@ -211,9 +212,9 @@ print(f'p1 * p2 = {multiplied}')
 
 ---
 
-# Provenance Semiring (History Tracking)
+## Provenance Semiring (History Tracking)
 
-The **Provenance Semiring** ($\mathbb{N}[X]$) is a specialized subclass of the [Monoid Algebra Semiring] that tracks *which* facts contributed to a result and *how many times*.
+The **Provenance Semiring** ($\mathbb{N}[X]$) is a specialized subclass of the [Monoid Algebra Semiring](#the-monoid-algebra-semiring) that tracks *which* facts contributed to a result and *how many times*.
 Values are multivariate polynomials represented as mappings from sorted variable tuples (monomials) to occurrence counts in $\mathbb{N}$.
 
 <!-- name: test_provenance_semiring -->
@@ -238,14 +239,14 @@ print(paths_len_2[0][2])
 
 ---
 
-# The Knot Semiring
+## The Knot Semiring
 
-The **Knot Semiring** is a specialized subclass of the [Monoid Algebra Semiring] for working
+The **Knot Semiring** is a specialized subclass of the [Monoid Algebra Semiring](#the-monoid-algebra-semiring) for working
 with formal linear combinations of knots (often called a Skein Module) under the connected sum operation ($\#$). It
 allows us to use the algebraic machinery of `algebrax` to reason about knots and their compositions over various
 coefficient rings (like integers, real numbers, or even polynomials).
 
-## Mathematical Definition
+### Mathematical Definition
 
 The Knot Semiring is defined over the set of formal sums of knots. It is parameterized by a **coefficient semiring**,
 which governs the arithmetic of the coefficients.
@@ -263,7 +264,7 @@ which governs the arithmetic of the coefficients.
 - **Multiplicative Identity ($1$):** The unknot, represented as `{'U': R_C.one}`, where `R_C.one` is the multiplicative
   identity of the coefficient semiring.
 
-### Knot Representation
+#### Knot Representation
 
 To handle composite knots, we use a specific string notation:
 
@@ -275,11 +276,11 @@ To handle composite knots, we use a specific string notation:
     - *Example:* The connected sum of the trefoil (`3_1`) and the figure-eight (`4_1`) is represented by the string
       `'3_1#4_1'`.
 
-## Implementation in `algebrax`
+### Implementation in `algebrax`
 
 The `KnotSemiring` is a generic class that defaults to using integer coefficients.
 
-### Example 1: Default (Integer Coefficients)
+#### Example 1: Default (Integer Coefficients)
 
 This is the most basic case, forming a Skein module over $\mathbb{Z}$.
 
@@ -311,7 +312,7 @@ multiplied = knot_semiring.mul(a, {'3_1': 1})
 print(f'Multiplication over Integers: {multiplied}')
 ```
 
-### Example 2: Custom Coefficient Semiring (Real Numbers)
+#### Example 2: Custom Coefficient Semiring (Real Numbers)
 
 By passing a different semiring to the constructor, we can work with other coefficient types.
 
@@ -341,7 +342,7 @@ multiplied = knot_semiring_float.mul(a, b)
 print(f'Multiplication over Floats: {multiplied}')
 ```
 
-## Use Cases
+### Use Cases
 
 The generic nature of the `KnotSemiring` allows it to model various algebraic structures in topology:
 
@@ -351,7 +352,7 @@ The generic nature of the `KnotSemiring` allows it to model various algebraic st
 
 ---
 
-# Clifford Geometric Algebra Cl (p, q, r)
+## Clifford Geometric Algebra Cl (p, q, r)
 
 The **`CliffordAlgebra`** in `algebrax.clifford` implements Clifford Geometric Algebra $Cl (p, q, r)$ over
 `QuotientMonoidAlgebraSemiring`. Multivectors unify scalars, vectors, bivectors, and pseudoscalars into a single sparse
@@ -359,7 +360,7 @@ dictionary representation `{blade_tuple: coeff}`.
 
 ---
 
-## Geometric Product & Blade Reduction
+### Geometric Product & Blade Reduction
 
 - **Geometric Product**: $A B = A \cdot B + A \wedge B$
 - **Blade Sign Flips**: $\mathbf{e}_i \mathbf{e}_j = -\mathbf{e}_j \mathbf{e}_i$ for $i \ne j$.
@@ -367,7 +368,7 @@ dictionary representation `{blade_tuple: coeff}`.
 
 ---
 
-## Python Example: 3D Spatial Vector Rotor Rotation
+### Python Example: 3D Spatial Vector Rotor Rotation
 
 ```python
 import math
@@ -392,7 +393,7 @@ print(f"Rotated Vector v': e1={v_rot.get((1,), 0.0):.2f}, e2={v_rot.get((2,), 0.
 
 ---
 
-## Generalized Clifford Algebras (GCAs / Clock-and-Shift)
+### Generalized Clifford Algebras (GCAs / Clock-and-Shift)
 
 The **`GeneralizedCliffordAlgebra`** implements order-$n$ cyclic root-of-unity Clifford algebras $C_n^{ (m)}$:
 
@@ -422,7 +423,7 @@ print('e1 * e2 == omega * e2 * e1:', cmath.isclose(e1_e2[(1, 1)] / e2_e1[(1, 1)]
 
 ---
 
-## $q$-Deformed Quantum Clifford Algebras
+### $q$-Deformed Quantum Clifford Algebras
 
 The **`QuantumCliffordAlgebra`** implements continuous $q$-deformed braided Clifford algebras $Cl_q (m)$:
 
@@ -447,13 +448,13 @@ print('e2 * e1 =', e2_e1)
 
 ---
 
-# Galois Finite Field GF(p^m)
+## Galois Finite Field GF(p^m)
 
 The **`GaloisField`** (canonical in `algebrax.algebra`, re-exported in `algebrax.galois` and `algebrax.semiring`) provides exact finite field arithmetic and matrix linear algebra over $\text{GF}(p^m)$ by representing field elements as sparse polynomial vectors `{exponent: coeff}` modulo an irreducible polynomial $P(x)$.
 
 ---
 
-## Field Arithmetic
+### Field Arithmetic
 
 - **Addition & Negation**: Polynomial addition/subtraction modulo prime characteristic $p$.
 - **Multiplication**: Polynomial multiplication in $\mathbb{F}_p[x]$ reduced by long division modulo $P(x)$ (e.g. $x^8 + x^4 + x^3 + x + 1$ for AES $\text{GF}(2^8)$).
@@ -461,7 +462,7 @@ The **`GaloisField`** (canonical in `algebrax.algebra`, re-exported in `algebrax
 
 ---
 
-## Python Example: AES GF(2^8) MixColumns Matrix Multiplication
+### Python Example: AES GF(2^8) MixColumns Matrix Multiplication
 
 ```python
 import algebrax as ax

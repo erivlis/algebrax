@@ -25,8 +25,8 @@ The **`algebrax.matrix.academic`** module provides classical matrix invariants f
 
 
 
-> [!NOTE]
-> For graph spectral analysis and node ranking (`eigen_centrality`, `pagerank`, `fiedler_vector`), see [Discrete Calculus & Spectral Graph Theory](../analysis/discrete_calculus.md).
+!!! note
+    For graph spectral analysis and node ranking (`eigen_centrality`, `pagerank`, `fiedler_vector`), see [Discrete Calculus & Spectral Graph Theory](../analysis/discrete_calculus.md).
 
 ---
 

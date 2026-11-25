@@ -1,3 +1,8 @@
+---
+title: Quiver Representations, Path Algebras & Gabriel's ADE Theorem
+description: Quiver representations, path algebras KQ, Tits quadratic form, Gabriel's ADE classification, BGP reflections, and cellular sheaf bridges.
+---
+
 # Quiver Representations, Path Algebras & Gabriel's ADE Theorem
 
 A **quiver** $Q = (V_Q, E_Q, s, t)$ is simply a directed multigraph: a set of vertices connected by directed arrows (parallel arrows and self-loops are both allowed). A **representation** of $Q$ assigns a vector space $V_i \cong K^{d_i}$ to every vertex $i \in V_Q$ and a linear map $M_\alpha : V_{s(\alpha)} \to V_{t(\alpha)}$ to every arrow $\alpha \in E_Q$.

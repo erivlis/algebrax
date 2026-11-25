@@ -42,6 +42,7 @@ nav = [
         { "3. Additive Inverses (Rings & Fields)" = [
             "guide/algebra/rings_and_fields.md",
             "guide/algebra/polynomials_and_quotients.md",
+            "guide/algebra/varieties_and_geometry.md",
             "guide/algebra/exact_matrix_solvers.md",
         ] },
         { "4. Two-Sorted Systems (Modules, Algebras & Tensors)" = [

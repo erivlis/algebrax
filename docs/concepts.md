@@ -21,7 +21,7 @@ concepts helps clarify why certain operations are grouped together and how they 
 
 ## The Periodic Table of Algebraic Mixins (`algebrax.algebra`)
 
-Every algebraic and categorical protocol in `algebrax.algebra` and `algebrax.category` is assembled from **37 purely orthogonal atomic operational mixins** (28 algebraic `Has*` + 9 categorical `Has*`). Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
+Every algebraic, categorical, and geometric protocol in `algebrax.algebra`, `algebrax.category`, and `algebrax.variety` is assembled from **41 purely orthogonal atomic operational mixins** (28 algebraic `Has*` + 9 categorical `Has*` + 4 geometric `Has*`). Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
 
 $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Coalgebraic Cluster } (\Delta, \epsilon, S) \longrightarrow \text{Closure / Bounds / Quotients / Derivation } ({}^*, \vee, \wedge, \bot, \top, \neg, \in, \bmod I, \partial_i)$$
 
@@ -64,6 +64,10 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 |                       | `HasExponentials[Obj, Mor]`  | `exponential`, `eval_mor`, `curry`, `uncurry` | — | $B^A, \mathrm{eval}, \mathrm{curry}, \mathrm{uncurry}$ |
 |                       | `HasMapObj[Obj, Obj_co]`     | `map_obj(x) -> Obj_co`   | —                    | $F_{\mathrm{Obj}}: \mathrm{Obj}(\mathcal{C}) \to \mathrm{Obj}(\mathcal{D})$ |
 |                       | `HasMapMor[Mor, Mor_co]`     | `map_mor(f) -> Mor_co`   | —                    | $F_{\mathrm{Mor}}: \mathrm{Hom}(\mathcal{C}) \to \mathrm{Hom}(\mathcal{D})$ |
+| **Geometric (`variety`)** | `HasPointLocus[P]`       | `ambient_dimension`, `contains_point(p)` | —    | $\langle \mathbb{A}^n, X, \in \rangle$          |
+|                       | `HasDimension`               | `dimension() -> int`     | —                    | $\dim X \in \mathbb{Z}_{\ge -1}$                |
+|                       | `HasCoordinateRing[V]`       | `ideal`, `coordinate_ring` | —                  | $\langle V(I), I, k[V] \rangle$                 |
+|                       | `HasTangentLocus[V]`         | `jacobian_at(p)`, `is_smooth_at(p)` | —         | $\langle X, J(p), \operatorname{is\_smooth\_at} \rangle$ |
 
 > [!NOTE]
 > **Subclassing vs. Structural Duck-Typing (The Golem Safety Contract)**
@@ -237,6 +241,15 @@ The `algebrax.algebra` module implements unboxed sparse multivariate polynomial 
 
 * **Sparse Multivariate Polynomials (`MultivariatePolynomialAlgebra[V]`)**: Represents elements as unboxed exponent-tuple mappings `dict[tuple[int, ...], V]` under admissible monomial orderings (`grevlex`, `grlex`, `lex`). Satisfies `CommRing`, `Algebra`, `HasDerivation` (formal algebraic partial derivatives $\partial/\partial x_i$, exact univariate GCD, and characteristic-aware `square_free_part` with Frobenius $p$-th root extraction), and `PoissonAlgebra` (canonical symplectic Poisson bracket $\{f, g\}$).
 * **Exact Gröbner Bases (`groebner_basis`, `GroebnerIdeal`)**: Computes canonical reduced monic Gröbner bases via Gebauer–Möller-filtered **Buchberger** and **Faugère $F_4$** (sparse Macaulay matrix RREF), strictly rejecting IEEE-754 floating-point fields (`TypeError`) to prevent catastrophic S-polynomial cancellation. Implements `FinitelyGeneratedIdeal` (`HasBasis`, `HasContains`, `HasReduce`), composing directly with `QuotientRing(ring, ideal)` to form exact coordinate rings $k[x_1, \dots, x_n]/I$.
+
+### Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers (`algebrax.variety`)
+
+The `algebrax.variety` module realizes Emmy Noether's **Ideal–Variety Duality** via four atomic geometric capability mixins (`HasPointLocus`, `HasDimension`, `HasCoordinateRing`, `HasTangentLocus`) and two flat protocols (`GeometricVariety`, `SmoothableVariety`):
+
+* **Affine Varieties (`AffineVariety[V]`)**: Pairs the zero locus $V(I) \subseteq k^n$ with its coordinate ring $k[V] = k[x_1, \dots, x_n]/I$. Implements exact geometric set operations (`intersect` $V(I+J)$, `union` $V(I \cap J)$, `eliminate`), Weak Nullstellensatz emptiness testing ($1 \in I$), exact Krull dimension $\dim V$, order-invariant Hilbert function $\operatorname{HF}_{k[V]}(d)$, Jacobian smoothness (`is_smooth_at`), and Seidenberg radicalization (`radical_zero_dim`).
+* **Stickelberger Companion Matrix Solvers (`companion_matrix`, `solve_exact_rational`, `solve_zero_dimensional`)**: For 0-dimensional varieties ($\dim_k k[V] < \infty$), builds exact sparse multiplication operators $M_{x_i}$ on the standard monomial basis $\mathcal{B}$, turning nonlinear polynomial root-finding into commuting linear eigenvalue problems alongside a pure-Python rational/quadratic `lex` solver.
+* **Finite-Field Varieties & Algebraic SAT (`enum_variety_points`, `boolean_variety`, `solve_f2_sat`)**: Prefix-pruned rational point enumeration over `ModularField(p)` and `GaloisField` (e.g., elliptic curves & Hasse's bound) plus $\mathbb{F}_2$ Boolean Nullstellensatz SAT solving.
+* **Morphisms, Grassmannians, Matrix-Group Hopf Algebras & Algebraic $K$-Theory**: Contravariant pullback `PolynomialMap` (`RingHom`), GIT invariant `syzygy_variety`, `plucker_grassmannian_variety`, `CoordinateHopfAlgebra` ($k[\operatorname{SL}_n]$, $k[\operatorname{SO}_n]$ with exact adjugate antipode), and $K_0 / K_1 / K_2^M$ bridges (`is_serre_swan_projective_bundle`, `schubert_chern_cohomology_ring`, `motivic_point_count_homomorphism`, `coordinate_ring_unit_inverse`, `tame_symbol_padic`, `milnor_symbol_conic_variety`).
 
 ---
 
@@ -476,10 +489,52 @@ Type**.
 | `dfa_step`, `nfa_step`         | Structural | Single transition.    |
 | `simulate_dfa`, `simulate_nfa` | Structural | Full execution trace. |
 
-### 9. Algebraic Structures
+### 9. Algebraic Structures, Ideals & Polynomials (`algebrax.algebra`, `algebrax.trie`)
 
-*Input: Tries & Higher-Order Structures*
+*Input: Unboxed Sparse Maps, Exact Fields & Polynomial Ideals*
 
-| Function/Class  | Type      | Meaning                                      |
-|:----------------|:----------|:---------------------------------------------|
-| `AlgebraicTrie` | Structure | Sparse Tensor / Prefix Tree over a Semiring. |
+| Function/Class                               | Type       | Meaning                                                                          |
+|:---------------------------------------------|:-----------|:---------------------------------------------------------------------------------|
+| `AlgebraicTrie`                              | Structure  | Sparse Tensor / Prefix Tree over a Semiring.                                     |
+| `StandardField`, `ModularField`, `GaloisField`, `PAdicField` | Structure | Exact fields ($\mathbb{Q}, \mathbb{F}_p, \mathrm{GF}(p^m), \mathbb{Q}_p$). |
+| `MultivariatePolynomialAlgebra`              | Structure  | Unboxed sparse $k[x_1, \dots, x_n]$ with `HasDerivation` and Poisson bracket.    |
+| `groebner_basis`, `GroebnerIdeal`            | Structural | Exact Buchberger / Faugère $F_4$ reduced Gröbner bases and ideal membership.     |
+| `QuotientRing`, `QuotientAlgebra`            | Structure  | Canonical unboxed quotient arithmetic $R/I$.                                     |
+| `GroupHopfAlgebra`, `DividedPowerCoalgebra`  | Structure  | Coalgebras, bialgebras, and Hopf algebras ($\Delta, \epsilon, S$).               |
+
+### 10. Affine Algebraic Varieties (`algebrax.variety`)
+
+*Input: Polynomial Ideals over Exact Fields*
+
+| Function/Class                               | Type       | Meaning                                                                          |
+|:---------------------------------------------|:-----------|:---------------------------------------------------------------------------------|
+| `AffineVariety`                              | Structure  | Zero locus $V(I)$ paired with coordinate ring $k[V] = k[X]/I$.                   |
+| `companion_matrix`, `solve_zero_dimensional` | Structural | Stickelberger multiplication operators $M_{x_i}$ and simultaneous root solvers.  |
+| `solve_exact_rational`                       | Structural | Pure-Python exact $\mathbb{Q}$-rational point extraction via Seidenberg radical. |
+| `enum_variety_points`, `solve_f2_sat`        | Structural | Finite-field point enumeration ($\mathbb{F}_p, \mathrm{GF}(p^m)$) and $\mathbb{F}_2$ SAT. |
+| `PolynomialMap`, `syzygy_variety`            | Structural | Contravariant pullbacks $\phi^*: k[W] \to k[V]$ and GIT invariant implicitization. |
+| `plucker_grassmannian_variety`, `CoordinateHopfAlgebra` | Generator | Plücker cones over $\operatorname{Gr}(k, n)$ and matrix-group Hopf algebras $k[G]$. |
+| `tame_symbol_padic`, `schubert_chern_cohomology_ring` | Metric / Structure | Higher algebraic $K$-theory ($K_0, K_1, K_2^M$) bridges.                |
+
+### 11. Lie Algebras & Representation Theory (`algebrax.lie`, `algebrax.rep`)
+
+*Input: Structure Constants, Root Systems, Groups & Quivers*
+
+| Function/Class                               | Type       | Meaning                                                                          |
+|:---------------------------------------------|:-----------|:---------------------------------------------------------------------------------|
+| `LieAlgebra`, `RootSystem`, `IwahoriHeckeAlgebra` | Structure | Sparse Lie brackets, Cartan–Killing root systems, Langlands duals, Hecke algebras. |
+| `LieAlgebra.bch`, `killing_form`, `is_semisimple` | Structural / Predicate | Baker–Campbell–Hausdorff series, Killing form, and Cartan criterion. |
+| `CharacterTable`, `isotypic_projector`, `reynolds_average` | Structural | Finite-group Schur orthogonality and irreducible subspace projectors. |
+| `clebsch_gordan_matrix`, `quadratic_casimir`, `QuantumSL2` | Structural | Lie spin coupling, Casimir invariants, $U_q(\mathfrak{sl}_2)$, and Jones polynomials. |
+| `compute_molien_series`, `Quiver`, `classify_representation_type` | Structural / Predicate | Invariant theory Molien series and Gabriel ADE quiver classification. |
+
+### 12. Simplicial Topology, Sheaves & Categories (`algebrax.topology`, `algebrax.category`)
+
+*Input: Simplicial Complexes, Cellular Sheaves & Morphisms*
+
+| Function/Class                               | Type       | Meaning                                                                          |
+|:---------------------------------------------|:-----------|:---------------------------------------------------------------------------------|
+| `SimplicialComplex`, `hodge_laplacian`, `helmholtz_hodge_decomposition` | Structure / Structural | Boundary operators $\partial_k$, Betti numbers, and discrete Hodge decomposition. |
+| `FilteredSimplicialComplex`, `persistent_homology`, `cup_product` | Structural | Persistence barcodes, bottleneck distance, and Alexander–Whitney cohomology ring. |
+| `CellularSheaf`, `DiscreteOrthogonalConnection`, `TopologicalKTheoryRing` | Structure | Twisted sheaf Laplacians, Wilson holonomy, and quantized Chern numbers. |
+| `MatrixCategory`, `LawvereMetricCategory`, `FiniteSetCCC`, `CoeffectContext` | Structure | Categorical duality, Lawvere tropical metrics, CCC currying, and semiring coeffects. |

@@ -51,8 +51,8 @@ assert F7.mul(3, F7.inv(3)) == 1  # 3 * 5 = 15 === 1 (mod 7)
 
 ### Concrete Implementations
 
-1. **`StandardField[V]` / `IntegerField()`**:
-   Wraps Python numeric types (`Fraction`, `float`, `complex` for `StandardField`; exact integer ring $\mathbb{Z}$ via `StandardSemiring(int)` / `IntegerField()`).
+1. **`StandardField[V]`**:
+   Wraps Python numeric types (`Fraction` for exact rationals $\mathbb{Q}$, `float` for $\mathbb{R}$, `complex` for $\mathbb{C}$). For exact integer ring arithmetic over $\mathbb{Z}$ (without division), use `StandardSemiring(int)` or `GrothendieckRing`.
 2. **`ModularField` ($\mathbb{F}_p$) & `ModularSemiring` ($\mathbb{Z}/n\mathbb{Z}$)**:
    Exact modular arithmetic over integers modulo $n$ (or prime $p$), computing multiplicative inverses via the Extended Euclidean Algorithm.
 3. **`GaloisField` ($\operatorname{GF}(p^m)$)**:
@@ -100,10 +100,9 @@ from algebrax.semiring import ModularSemiring
 z4 = ModularSemiring(4)
 assert z4.mul(2, 2) == 0
 
-# Attempting to invert zero divisor 2 modulo 4 raises ValueError (not invertible!)
-bad_f4 = ModularField(4)
-with pytest.raises(ValueError, match="not invertible"):
-    bad_f4.inv(2)
+# ModularField proactively rejects composite moduli at construction time
+with pytest.raises(ValueError, match="prime"):
+    ModularField(4)
 ```
 
 ### The Zero-Division Contract (Golem Safety Rule)
@@ -144,7 +143,8 @@ assert all(verify_padic_ultrametric_inequality(q5, [q5.zero, q5.one, x, y]).valu
 ## 5. Frontier Horizons & Cross-Domain Bridges
 
 - **[Topological K-Theory, Grothendieck Groups & Characteristic Classes](../topology/k_theory.md)**: Universally complete any commutative monoid or semiring into an abelian group (`GrothendieckGroup`) or commutative ring (`GrothendieckRing`) via formal differences $[a] - [b]$.
-- **[Polynomials, Dual Numbers & Quotient Algebras](polynomials_and_quotients.md)**: Build polynomial rings $R[x]$ and quotient rings $R[M]/\mathcal{I}$ over any ring or field.
+- **[Polynomials, Dual Numbers & Gröbner Quotients](polynomials_and_quotients.md)**: Build univariate and multivariate polynomial rings $k[x_1, \dots, x_n]$, exact Gröbner ideals, and quotient rings $R[M]/\mathcal{I}$ over any ring or field.
+- **[Affine Varieties, Coordinate Rings & Stickelberger Solvers](varieties_and_geometry.md)**: Solve polynomial systems over $\mathbb{Q}$, enumerate elliptic curves over $\mathbb{F}_p$ and $\operatorname{GF}(p^m)$, and compute $p$-adic $K_2$ tame symbols.
 - **[Exact Sparse Matrix Solvers](exact_matrix_solvers.md)**: Use `Field[V]` to compute drift-free LU decompositions, determinants, RREF, and nullspaces.
 - **[Simplicial Homology & Persistent Barcodes](../topology/persistence.md)**: Compute topological invariants over $\mathbb{F}_2 = \text{ModularField}(2)$ and $\mathbb{Q}$.
 

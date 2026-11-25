@@ -5,7 +5,7 @@ description: Tropical, Arctic, Viterbi, Reliability, Bottleneck, and MinTimes se
 
 # Optimization Semirings (`algebrax.semiring.optimization`)
 
-Optimization semirings replace standard addition with extremum selection ($\\min$ or $\\max$), transforming
+Optimization semirings replace standard addition with extremum selection ($\min$ or $\max$), transforming
 linear algebraic matrix multiplication into dynamic programming, shortest-path, and bottleneck algorithms.
 
 ---

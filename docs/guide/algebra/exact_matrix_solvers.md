@@ -84,3 +84,4 @@ with pytest.raises(ValueError):
 
 - **Persistent Homology Over $\mathbb{F}_2$**: Boundary matrix reduction in [Persistent Homology](../topology/persistence.md) is Gaussian elimination over $\mathbb{F}_2 = \text{ModularField}(2)$.
 - **Certified Solver Verification**: Every solution $x = \text{solve}(A, b, \text{field}=F)$ can be verified in $O(\text{nnz}(A))$ time by checking $A x - b = \mathbf{0}$.
+- **Affine Varieties & Stickelberger Linearization**: Exact field linear algebra powers Jacobian smoothness rank tests and Stickelberger companion matrix solvers in [Affine Varieties, Coordinate Rings & Stickelberger Solvers](varieties_and_geometry.md).

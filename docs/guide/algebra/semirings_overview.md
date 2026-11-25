@@ -5,7 +5,7 @@ description: How Semiring[V], StarSemiring[V], and KleeneAlgebra[V] structure co
 
 # Semirings Overview (`algebrax.algebra.Semiring`)
 
-## 1. The Practical Problem: One Algorithm, 34 Domains
+## 1. The Practical Problem: One Algorithm, 33 Domains
 
 Consider classic matrix multiplication $C_{ij} = \sum_k A_{ik} \cdot B_{kj}$. In standard linear algebra, $\sum$ is addition ($+$) and $\cdot$ is multiplication ($\times$). What if you replace $(+, \times)$ with:
 - $(\min, +)$ $\longrightarrow$ **Shortest Paths** (Bellman–Ford / Floyd–Warshall)
@@ -95,11 +95,13 @@ class ActionAlgebra(
 > **Subtyping Harmony: Every Ring is a Semiring**
 > Because `Semiring` requires only `zero, one, add, mul`, the classical mathematical inclusion $\text{Semiring} \subset \text{Ring} \subset \text{CommRing} \subset \text{Field}$ holds strictly under structural subtyping:
 > ```python
-> from algebrax.algebra import IntegerRing, ModularField, Ring, Semiring, StandardField
+> from algebrax.algebra import ModularField, PolynomialAlgebra, Ring, Semiring, StandardField
+> from algebrax.semiring import StandardSemiring
 >
-> assert isinstance(IntegerRing(), Semiring)  # Rings are Semirings!
+> assert isinstance(PolynomialAlgebra(StandardSemiring(int)), Ring)
+> assert isinstance(PolynomialAlgebra(StandardSemiring(int)), Semiring)  # Rings are Semirings!
 > assert isinstance(StandardField(float), Semiring)  # Fields are Semirings!
-> assert isinstance(ModularField(7), Semiring)  # Modular rings are Semirings!
+> assert isinstance(ModularField(7), Semiring)  # Finite fields are Semirings!
 > ```
 
 Because `Semiring` includes `HasZero`, `HasAdd`, `HasOne`, and `HasMul`, every `Semiring` instance automatically satisfies `AddCommMonoid[V]`, `AddMonoid[V]`, `Monoid[V]`, and `Semigroup[V]` via structural subtyping (`isinstance`).
@@ -183,4 +185,4 @@ assert apsp[0][2] == 5.0  # min(10.0, 2.0 + 3.0) = 5.0
 ```
 
 > [!TIP]
-> Explore the complete **[Semiring Taxonomy & Interactive Catalog](../semirings/index.md)** to browse all 34 built-in semirings across Arithmetic, Optimization, Statistical Moments, Logic, and Formal Structures.
+> Explore the complete **[Semiring Taxonomy & Interactive Catalog](../semirings/index.md)** to browse all 33 built-in semirings across Arithmetic, Optimization, Statistical Moments, Logic, and Formal Structures.

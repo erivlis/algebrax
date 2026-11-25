@@ -194,4 +194,4 @@ assert cubic_casimir_tensor(su_n(2)) == {}
 - **`verify_molien_expansion(series, actual_dimensions)`**: Cross-checks exact `MolienSeries` Taylor coefficients against empirical homogeneous invariant basis dimensions.
 - **`verify_cubic_casimir_invariance(algebra, d_tensor=None, rep=None)`**: Checks $S_3$ total symmetry $d_{\sigma(i)\sigma(j)\sigma(k)} = d_{ijk}$ and Lie-algebra $\mathrm{ad}$-invariance $\sum_l (f_{ai}^l d_{ljk} + f_{aj}^l d_{ilk} + f_{ak}^l d_{ijl}) = 0$.
 
-See also [Group Representations & Character Tables](representations.md), [Induced Representations, Frobenius Reciprocity & Mackey Theory](induced_representations.md), and [Lie Algebra Representations, Weights & Clebsch–Gordan Tensors](lie_representations.md).
+See also [Group Representations & Character Tables](representations.md), [Induced Representations, Frobenius Reciprocity & Mackey Theory](induced_representations.md), [Lie Algebra Representations, Weights & Clebsch–Gordan Tensors](lie_representations.md), and [Affine Varieties, Coordinate Rings & Stickelberger Solvers](varieties_and_geometry.md) (`syzygy_variety` for GIT invariant relations).

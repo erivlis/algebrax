@@ -1,6 +1,6 @@
 ---
 title: Algebraic Law Verification Engine
-description: Property-based testing and automated verification of semiring axioms across 34 built-in semirings.
+description: Property-based testing and automated verification of semiring axioms across 33 built-in semirings.
 ---
 
 # Algebraic Law Verification Engine

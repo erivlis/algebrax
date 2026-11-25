@@ -184,7 +184,7 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 ### Simplicial Homology & Topological Betti Barcodes
 * **Files**: [`topological_homology_betti.py`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_homology_betti.py) | [`topological_homology_betti.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_homology_betti.ipynb)
 * **Run**: `uv run recipes/topological_homology_betti.py`
-* **Components**: `homology.SimplicialComplex`, `homology.betti_numbers`, `analysis.SparseChainComplex`
+* **Components**: `topology.SimplicialComplex`, `topology.betti_numbers`, `analysis.SparseChainComplex`
 * **Summary**: Constructs $k$-simplices $(v_0, \dots, v_k)$, evaluates sparse boundary matrices $D_k$, verifies homological nilpotency $D_{k-1} \circ D_k = \mathbf{0}$, and computes Betti number invariants $\beta_k = \dim(\ker D_k) - \text{rank}(D_{k+1})$.
 
 ---
@@ -302,7 +302,7 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 ### Topological Neural Networks & Hodge Flow Denoising
 * **Files**: [`topological_neural_network.py`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_neural_network.py) | [`topological_neural_network.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/topological_neural_network.ipynb)
 * **Run**: `uv run recipes/topological_neural_network.py`
-* **Components**: `homology.SimplicialComplex`, `homology.helmholtz_hodge_decomposition`, `matrix.core.dot`, `matrix.core.mat_vec`, `matrix.core.transpose`
+* **Components**: `topology.SimplicialComplex`, `topology.helmholtz_hodge_decomposition`, `matrix.core.dot`, `matrix.core.mat_vec`, `matrix.core.transpose`
 * **Summary**: Generalizes graph neural networks to cellular domains through a Simplicial Convolutional Network (SCNN). Computes lower ($L_1^{\text{down}} = B_1^T B_1$) and upper ($L_1^{\text{up}} = B_2 B_2^T$) Hodge 1-Laplacians across a triangulated annulus with non-trivial homology ($\beta_1 = 1$), trains filter weights via gradient descent to denoise missing/corrupted physical edge flows, and audits harmonic loop preservation vs. divergence suppression using Helmholtz-Hodge decomposition.
 
 ---
@@ -392,6 +392,22 @@ Jupyter Notebooks (`.ipynb`), and an interactive graphical laboratory demonstrat
 * **Run**: `uv run recipes/quiver_sensor_calibration_and_sheaf_tda.py`
 * **Components**: `rep.Quiver`, `rep.QuiverRepresentation`, `algebra.path_algebra`, `rep.classify_representation_type`, `rep.tits_quadratic_form`, `rep.gabriel_positive_roots`, `rep.bgp_reflect_dimension`, `rep.to_cellular_sheaf`, `topology.CellularSheaf`
 * **Summary**: Models a heterogeneous drone calibration pipeline (3D LiDAR, 2D stereo cameras, 1D altimeter) as a quiver representation, composes multi-hop coordinate transforms in the path algebra $\mathbb{R}Q$, diagnoses finite/tame/wild sensor-network calibration solvability via Gabriel's ADE theorem and BGP reflections, and audits real-time camera drift via cellular sheaf Dirichlet energy.
+
+---
+
+### Robot Kinematics via Affine Algebraic Varieties
+* **Files**: [`robot_kinematics_algebraic_variety.py`](https://github.com/erivlis/algebrax/blob/main/recipes/robot_kinematics_algebraic_variety.py) | [`robot_kinematics_algebraic_variety.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/robot_kinematics_algebraic_variety.ipynb)
+* **Run**: `uv run recipes/robot_kinematics_algebraic_variety.py`
+* **Components**: `variety.AffineVariety`, `variety.companion_matrix`, `variety.solve_zero_dimensional`, `variety.solve_exact_rational`, `verification.verify_stickelberger_laws`
+* **Summary**: Encodes 2R planar manipulator inverse kinematics as an exact affine variety over $\mathbb{Q}$, extracts all elbow-up and elbow-down joint poses simultaneously via Stickelberger commuting companion matrices, detects outstretched boundary singularities via `is_smooth_at` and Seidenberg radicalization (`radical_zero_dim`), and identifies unreachable targets via complex root filtering.
+
+---
+
+### Quantum Segre Entanglement and Algebraic Statistics
+* **Files**: [`quantum_segre_entanglement_and_algebraic_stats.py`](https://github.com/erivlis/algebrax/blob/main/recipes/quantum_segre_entanglement_and_algebraic_stats.py) | [`quantum_segre_entanglement_and_algebraic_stats.ipynb`](https://github.com/erivlis/algebrax/blob/main/recipes/quantum_segre_entanglement_and_algebraic_stats.ipynb)
+* **Run**: `uv run recipes/quantum_segre_entanglement_and_algebraic_stats.py`
+* **Components**: `variety.AffineVariety`, `variety.PolynomialMap`, `variety.syzygy_variety`, `tensor.einsum`, `probability.mutual_information`, `verification.verify_polynomial_map_laws`
+* **Summary**: Uses the quadratic Segre determinantal variety $V(z_{00}z_{11} - z_{01}z_{10})$ as an exact algebraic detector separating 2-qubit product states from entangled Bell states, recovers the Segre ideal automatically via `syzygy_variety` implicitization and contravariant `PolynomialMap` pullback, and intersects Segre with the probability simplex to certify zero-mutual-information statistical independence models.
 
 ---
 

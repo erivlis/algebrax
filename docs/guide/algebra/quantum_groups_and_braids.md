@@ -26,7 +26,7 @@ In classical representation theory, swapping two tensor factors $v \otimes w \ma
 
 ```python
 import cmath
-from algebrax.algebra._hopf import HopfAlgebra
+from algebrax.algebra import HopfAlgebra
 from algebrax.rep import QuantumSL2
 from algebrax.verification import semiring_elements_equal, verify_hopf_algebra_laws
 

@@ -111,6 +111,7 @@ from algebrax.verification import (
 )
 
 # 1. Modular Ring Z / 6Z via IntegerModuloIdeal
+# StandardField(int) supplies ring-level (+, -, *) arithmetic on Python int (note: Z is a ring, not a field)
 z_ring = StandardField(int)
 ideal_6 = IntegerModuloIdeal(6)
 z_mod_6 = QuotientRing(z_ring, ideal_6)
@@ -143,7 +144,7 @@ assert taylor_3.mul(p1, p2) == {0: Fraction(1), 1: Fraction(3), 2: Fraction(3)}
 ### Quotient Monoid Algebra Example: Constructing $\mathbb{C} \cong \mathbb{R}[x] / (x^2 + 1)$
 
 ```python
-from algebrax.semiring import StandardSemiring
+from algebrax.semiring import QuotientMonoidAlgebraSemiring, StandardSemiring
 
 # Reduce x^k modulo (x^2 = -1)
 def mod_x2_plus_1(exp: int, coeff: float) -> list[tuple[int, float]]:
@@ -252,5 +253,5 @@ assert all(verify_comm_ring_laws(DualNumberAlgebra(), dual_samples).values())
 - **Higher-Order Divided Power Jets**: Extending $\mathbb{R}[\varepsilon]/(\varepsilon^2)$ to $\mathbb{R}[\varepsilon]/(\varepsilon^{K+1})$ yields `BinomialConvolutionSemiring` and `StatisticalMomentSemiring` for exact single-pass variance, skewness, and kurtosis; see [Statistical Semirings](../semirings/statistical.md).
 - **Lie Algebra Quotients ($\mathfrak{se}(3) / \mathbb{R}^3 \cong \mathfrak{so}(3)$)**: Using `SubspaceLieIdeal` and `QuotientAlgebra`, rigid-body twists in $\mathfrak{se}(n)$ project cleanly onto pure rotational angular velocities in $\mathfrak{so}(n)$ by quotienting out the abelian translational ideal $\mathbb{R}^n$.
 - **Clifford & Galois Quotients**: `QuotientMonoidAlgebraSemiring` serves as the engine underneath [Clifford Geometric Algebras](clifford_geometric_algebra.md) and [Galois Finite Fields $\operatorname{GF}(p^m)$](rings_and_fields.md).
-- **Affine & Tropical Varieties**: `GroebnerIdeal` and `QuotientRing` lay the exact algebraic foundation for affine algebraic varieties, Stickelberger companion matrix solvers (`EP-0221`), and tropical polyhedral varieties (`EP-0222`).
+- **Affine & Tropical Varieties**: `GroebnerIdeal` and `QuotientRing` lay the exact algebraic foundation for [Affine Varieties, Coordinate Rings & Stickelberger Solvers](varieties_and_geometry.md) (`EP-0221`), and tropical polyhedral varieties (`EP-0222`).
 

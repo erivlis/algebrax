@@ -22,9 +22,10 @@ This document provides a comparative analysis of `algebrax` against low-level li
 | **Zero Required Dependencies**                |  🟢 Pure Python  |           🔴 C / Assembly           |     🔴 C Toolchain      |           🔴 C / Fortran            |                🔴 C                 |  🟡 Pure Python   |  🟡 Pure Python   |
 | **Arbitrary Hashable Keys (`str`, `tuple`)**  |  🟢 First-Class  |       🔴 Contiguous Integers        | 🔴 Contiguous Integers  |      🔴 Integer $0 \dots N-1$       |      🔴 Integer $0 \dots N-1$       |  🟢 First-Class   | 🔴 Symbolic Vars  |
 | **Polymorphic Semirings $(\oplus, \otimes)$** |  🟢 33 Built-in  | 🔴 Field $(\mathbb{R}, \mathbb{C})$ |     🟢 C Semirings      | 🔴 Field $(\mathbb{R}, \mathbb{C})$ | 🔴 Field $(\mathbb{R}, \mathbb{C})$ |      🔴 N/A       | 🔴 Symbolic Rings |
-| **Deductive Mixins, Rings, Gröbner Ideals & CCC** | 🟢 37 Atomic Mixins |           🔴 N/A                |         🔴 N/A          |               🔴 N/A                |               🔴 N/A                |      🔴 N/A       | 🟡 Rings / Ideals |
+| **Deductive Mixins, Rings, Gröbner Ideals & CCC** | 🟢 41 Atomic Mixins |           🔴 N/A                |         🔴 N/A          |               🔴 N/A                |               🔴 N/A                |      🔴 N/A       | 🟡 Rings / Ideals |
 | **Sparse Structure Representation**           | 🟢 Dict-of-Dicts |            🔴 Dense Grid            |      🟢 CSR / CSC       |            🟢 CSR / CSC             |            🔴 Dense Grid            | 🟢 Adjacency Dict | 🔴 Symbolic Expr  |
 | **Matrix Decompositions & Exact Field Solvers** | 🟢 Pure Python / $\mathbb{Q}, \mathbb{F}_p, \mathrm{GF}(p^m), \mathbb{Q}_p$ | 🟢 LAPACK (`dgemm`) | 🟡 Basic Matrix Ops | 🟢 SuperLU / ARPACK | 🟢 LAPACK | 🔴 N/A | 🟢 Symbolic |
+| **Multivariate Polynomials, Gröbner Bases & Varieties** | 🟢 Buchberger / $F_4$ & `algebrax.variety` | 🔴 N/A | 🔴 N/A | 🔴 N/A | 🔴 N/A | 🔴 N/A | 🟢 `sympy.groebner` |
 | **Spectral Graph Theory, Laplacians & Expanders** | 🟢 Laplacians & Ramanujan |          🔴 N/A                |         🔴 N/A          |        🟡 SciPy ARPACK eigs         |               🔴 N/A                | 🟡 Dense Eigvals  |      🔴 N/A       |
 | **Simplicial Homology, Sheaves & K-Theory**   |   🟢 Built-in    |               🔴 N/A                |         🔴 N/A          |               🔴 N/A                |               🔴 N/A                | 🟡 Graph Cliques  |      🔴 N/A       |
 | **Clifford, Lie, Langlands & Galois Fields**  |   🟢 Built-in    |               🔴 N/A                |         🔴 N/A          |               🔴 N/A                |               🔴 N/A                |      🔴 N/A       |  🟡 Basic Galois  |
@@ -135,15 +136,22 @@ This document provides a comparative analysis of `algebrax` against low-level li
 
 ### 2.6. `algebrax` vs. `sympy`
 
-* **Domain**: `sympy` is a computer algebra system (CAS) for exact symbolic mathematics (calculus, symbolic equations).
+* **Domain**: `sympy` is a full general-purpose computer algebra system (CAS) for symbolic calculus, integration,
+  transcendental expression simplification, and ODE solving.
 * **Key Differences**:
-    * **Symbolic Keys vs. Expressions**: `sympy` manipulates symbolic expression trees (`x**2 + sin(y)`). `algebrax`
-      uses native Python objects (`dict`, `tuple`, `str`) as vector/matrix indices and offers polynomial semirings
-      (`ProvenanceSemiring`, `MonoidAlgebraSemiring`) for fast rule tracking.
-    * **Performance**: `algebrax` sparse dict operations execute much faster than `sympy` expression tree traversals for
-      large structural computations.
-* **When to use `sympy`**: Symbolic differentiation, exact equation solving, and continuous calculus.
-* **When to use `algebrax`**: Sparse discrete algebra, semiring matrix operations, and topological data analysis.
+    * **Sparse Unboxed Representations vs. Expression Trees**: `sympy` manipulates general symbolic AST expression trees
+      (`x**2 + sin(y)`). `algebrax` uses native Python mappings (`dict`, `tuple`, `str`) for matrices, tensors, and
+      unboxed sparse polynomials (`PolynomialAlgebra`, `MultivariatePolynomialAlgebra`) with zero object-wrapper overhead.
+    * **Commutative Algebra & Varieties**: `algebrax` includes native pure-Python Buchberger and Faugère $F_4$ Gröbner
+      bases (`groebner_basis`, `GroebnerIdeal`), formal algebraic derivations (`HasDerivation`), and affine algebraic
+      varieties (`algebrax.variety.AffineVariety`, Stickelberger companion matrix solvers, `solve_exact_rational`,
+      `solve_f2_sat`) over exact fields ($\mathbb{Q}, \mathbb{F}_p, \mathrm{GF}(p^m)$), cross-verified against `sympy.groebner`.
+    * **Performance**: `algebrax` sparse dict operations avoid expression-tree overhead on structural, semiring, and
+      sparse polynomial computations.
+* **When to use `sympy`**: General symbolic calculus (integration, limits, transcendental simplification, ODEs, symbolic
+  LaTeX manipulation).
+* **When to use `algebrax`**: Polymorphic semiring matrix/tensor algebra, exact sparse multivariate ideals and affine
+  varieties, Lie/Clifford/representation theory, and topological data analysis.
 
 ---
 

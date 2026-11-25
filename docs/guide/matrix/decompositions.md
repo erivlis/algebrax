@@ -1,6 +1,6 @@
 ---
 title: Sparse Matrix Decompositions
-description: Tutorial on sparse LU, QR, SVD, and Cholesky matrix factorizations in algebrax.decompose.
+description: Tutorial on sparse LU, QR, SVD, and Cholesky matrix factorizations in algebrax.matrix.decompose.
 ---
 
 # Sparse Matrix Decompositions
@@ -13,7 +13,7 @@ The **`algebrax.matrix.decompose`** module provides factorizations and matrix de
 
 | Decomposition         | Function        | Invariant                                    | Description                                                              |
 |:----------------------|:----------------|:---------------------------------------------|:-------------------------------------------------------------------------|
-| **LU (Pivoted)**      | `lu(A)`         | $P \cdot A = L \cdot U$                      | Unit lower-triangular $L$, upper-triangular $U$, permutation matrix $P$. |
+| **LU (Pivoted)**      | `lu_decompose(A)` | $P \cdot A = L \cdot U$                    | Unit lower-triangular $L$, upper-triangular $U$, permutation matrix $P$. |
 | **QR (Gram-Schmidt)** | `qr(A)`         | $A = Q \cdot R$                              | Orthonormal column matrix $Q$ ($Q^T Q = I$), upper-triangular $R$.       |
 | **SVD (Truncated)**   | `svd(A, k=...)` | $A \approx U \cdot \text{diag}(S) \cdot V^T$ | Singular vectors $U, V^T$ and singular values vector $S$.                |
 | **Cholesky**          | `cholesky(A)`   | $A = L \cdot L^T$                            | Lower-triangular $L$ for symmetric positive-definite matrices.           |
