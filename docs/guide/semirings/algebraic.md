@@ -447,16 +447,17 @@ print('e2 * e1 =', e2_e1)
 
 ---
 
-# Galois Finite Field Semiring GF(p^m)
+# Galois Finite Field GF(p^m)
 
-The **`GaloisFieldSemiring`** in `algebrax.galois` enables matrix linear algebra over finite fields $\text{GF}(p^m)$ by representing field elements as sparse polynomial vectors `{exponent: coeff}` modulo an irreducible polynomial $P(x)$.
+The **`GaloisField`** (canonical in `algebrax.algebra`, re-exported in `algebrax.galois` and `algebrax.semiring`) provides exact finite field arithmetic and matrix linear algebra over $\text{GF}(p^m)$ by representing field elements as sparse polynomial vectors `{exponent: coeff}` modulo an irreducible polynomial $P(x)$.
 
 ---
 
 ## Field Arithmetic
 
-- **Addition**: Polynomial addition modulo prime characteristic $p$.
+- **Addition & Negation**: Polynomial addition/subtraction modulo prime characteristic $p$.
 - **Multiplication**: Polynomial multiplication in $\mathbb{F}_p[x]$ reduced by long division modulo $P(x)$ (e.g. $x^8 + x^4 + x^3 + x + 1$ for AES $\text{GF}(2^8)$).
+- **Inverse & Division**: Exact Extended Euclidean inversion modulo $P(x)$ over $\mathbb{F}_p$.
 
 ---
 
@@ -465,8 +466,8 @@ The **`GaloisFieldSemiring`** in `algebrax.galois` enables matrix linear algebra
 ```python
 import algebrax as ax
 
-# Instantiate AES GF(2^8) ax.semiring.Semiring
-gf = ax.galois.GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
+# Instantiate AES GF(2^8) exact Field
+gf = ax.algebra.GaloisField(p=2, irreduc_poly=(1, 1, 0, 1, 1, 0, 0, 0, 1))
 
 # Element multiplication: x^4 * x^4 = x^8 mod P(x) = x^4 + x^3 + x + 1
 res_poly = gf.mul({4: 1}, {4: 1})
@@ -493,4 +494,4 @@ print('Transformed AES State:', out_state)
 
 * [Algebraic Knot Theory](../../recipes.md) — Connected sums and Jones polynomials via `KnotSemiring`.
 * [Relativistic Dirac Spinors](../../recipes.md) — Spacetime physics via `CliffordAlgebra(p=1, q=3)`.
-* [Galois Finite Field Cryptography](../../recipes.md) — AES MixColumns via `GaloisFieldSemiring`.
+* [Galois Finite Field Cryptography](../../recipes.md) — AES MixColumns via `GaloisField`.

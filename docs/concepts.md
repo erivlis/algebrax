@@ -21,9 +21,9 @@ concepts helps clarify why certain operations are grouped together and how they 
 
 ## The Periodic Table of Algebraic Mixins (`algebrax.algebra`)
 
-Every algebraic and categorical protocol in `algebrax.algebra` and `algebrax.category` is assembled from **35 purely orthogonal atomic operational mixins** (26 algebraic `Has*` + 9 categorical `Has*`). Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
+Every algebraic and categorical protocol in `algebrax.algebra` and `algebrax.category` is assembled from **37 purely orthogonal atomic operational mixins** (28 algebraic `Has*` + 9 categorical `Has*`). Each mixin inherits directly from `typing.Protocol` and defines a single operational cluster, guaranteeing a diamond-free inheritance graph and a **1-to-1 left-to-right correspondence** between Python class bases and formal mathematical signatures:
 
-$$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Coalgebraic Cluster } (\Delta, \epsilon, S) \longrightarrow \text{Closure / Bounds / Quotients } ({}^*, \vee, \wedge, \bot, \top, \neg, \in, \bmod I)$$
+$$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\mathbf{0}, \operatorname{is\_zero}, +, -) \longrightarrow \text{Multiplicative Cluster } (\mathbf{1}, \cdot, {}^{-1}) \longrightarrow \text{Coalgebraic Cluster } (\Delta, \epsilon, S) \longrightarrow \text{Closure / Bounds / Quotients / Derivation } ({}^*, \vee, \wedge, \bot, \top, \neg, \in, \bmod I, \partial_i)$$
 
 | Cluster               | Atomic Mixin                 | Required Member(s)       | Default Helper(s)    | Mathematical Symbol                             |
 |:----------------------|:-----------------------------|:-------------------------|:---------------------|:------------------------------------------------|
@@ -50,9 +50,11 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 | **Domain-Agnostic**   | `HasIdentity[V]`             | `identity -> V`          | —                    | $e \in V$                                       |
 |                       | `HasOp[V]`                   | `op(a, b) -> V`          | —                    | $\circ: V \times V \to V$                       |
 | **Non-Associative**   | `HasBracket[V]`              | `bracket(a, b) -> V`     | —                    | $[\cdot, \cdot]: V \times V \to V$              |
-| **Ideals & Quotients**| `HasContains[V]`             | `contains(x) -> bool`    | —                    | $\in: V \to \{\top, \bot\}$                     |
+| **Ideals, Basis & Derivation**| `HasContains[V]`     | `contains(x) -> bool`    | —                    | $\in: V \to \{\top, \bot\}$                     |
 |                       | `HasReduce[V]`               | `reduce(x) -> V`         | —                    | $x \mapsto [x] \in R / I$                       |
 |                       | `HasGenerator[V]`            | `generator -> V`         | —                    | $a \in R \text{ where } I = (a)$                |
+|                       | `HasBasis[V]`                | `basis -> Sequence[V]`   | —                    | $\{g_1, \dots, g_m\} \subset R$                 |
+|                       | `HasDerivation[V]`           | `diff(a, var_index=0) -> V` | —                 | $\partial_i: V \to V$ (Leibniz rule)            |
 | **Categorical (`category`)** | `HasQuiver[Obj, Mor]` | `source(f)`, `target(f)` | —                    | $\mathrm{dom}, \mathrm{cod}: \mathrm{Hom} \to \mathrm{Obj}$ |
 |                       | `HasCatId[Obj, Mor]`         | `id(x) -> Mor`           | —                    | $\mathrm{id}_x \in \mathrm{Hom}(x, x)$          |
 |                       | `HasCompose[Mor]`            | `compose(f, g) -> Mor`   | —                    | $\circ: \mathrm{Hom} \times \mathrm{Hom} \to \mathrm{Hom}$ |
@@ -69,19 +71,20 @@ $$\text{External Action } (\cdot_s) \longrightarrow \text{Additive Cluster } (\m
 
 ### Equational Law Witness Mixins (Pillar 2)
 
-Alongside operational mixins (`Has*`), `algebrax.algebra` defines lightweight **Law Witness Mixins** that advertise equational axioms satisfied by a structure:
+Alongside operational mixins (`Has*`), `algebrax.algebra` defines **10 lightweight Law Witness Mixins** that advertise equational axioms satisfied by a structure:
 
 | Law Witness | Property / Witness Method | Axiom / Equational Law | Canonical Examples |
 |:------------|:--------------------------|:-----------------------|:-------------------|
 | `LawAssociative` | `is_associative -> True` | $(a \cdot b) \cdot c = a \cdot (b \cdot c)$ | Monoids, Groups, Semirings, Associative Algebras |
 | `LawCommutative` | `is_commutative -> True` | $a \cdot b = b \cdot a$ | Abelian groups, Commutative rings, Fields |
+| `LawAddAssociative` | `is_add_associative -> True` | $(a + b) + c = a + (b + c)$ | Additive semigroups, Monoids, Rings |
+| `LawAddCommutative` | `is_add_commutative -> True` | $a + b = b + a$ | Additive commutative monoids, Abelian groups |
+| `LawAnticommutative` | `is_anticommutative -> True` | $[a, b] = -[b, a]$ | Lie brackets, Poisson brackets, Malcev algebras |
 | `LawIdempotent` | `is_idempotent -> True` | $a \oplus a = a$ | Tropical semiring $(\min, +)$, Boolean $(\lor, \land)$, Lattices |
-| `LawDistributive` | `is_distributive -> True` | $a \cdot (b + c) = (a \cdot b) + (a \cdot c)$ | Semirings, Rings, Fields |
-| `LawUnital` | `is_unital -> True` | $a \cdot \mathbf{1} = \mathbf{1} \cdot a = a$ | Unital rings, Monoids |
-| `LawLieAdmissible` | `is_lie_admissible -> True` | Jacobi identity $[[x, y], z] + [[y, z], x] + [[z, x], y] = 0$ | Lie algebras $\mathfrak{g}$, Poisson brackets |
-| `LawJordanAdmissible`| `is_jordan_admissible -> True`| $(x \circ y) \circ x^2 = x \circ (y \circ x^2)$ | Jordan algebras, Quantum observables |
-| `LawAlternative` | `is_alternative -> True` | $x(xy) = x^2 y$ and $(yx)x = y x^2$ | Octonions $\mathbb{O}$, Cayley-Dickson algebras |
-| `LawFlexible` | `is_flexible -> True` | $(xy)x = x(yx)$ | Non-associative division algebras |
+| `LawLie` | `is_lie -> True` | Jacobi identity $[[x, y], z] + [[y, z], x] + [[z, x], y] = \mathbf{0}$ | Lie algebras $\mathfrak{g}$, Poisson brackets |
+| `LawJordan` | `is_jordan -> True` | $(a \circ b) \circ a^2 = a \circ (b \circ a^2)$ | Jordan algebras, Symmetric quantum observables |
+| `LawAlternative` | `is_alternative -> True` | $(a \cdot a) \cdot b = a \cdot (a \cdot b)$ and $(b \cdot a) \cdot a = b \cdot (a \cdot a)$ | Octonions $\mathbb{O}$, Cayley–Dickson algebras |
+| `LawMalcev` | `is_malcev -> True` | $J(x, y, x \cdot z) = J(x, y, z) \cdot x$ | Imaginary octonions $\operatorname{Im}(\mathbb{O})$ |
 
 ---
 
@@ -165,7 +168,7 @@ Semirings are organized into categorical sub-modules under `algebrax.semiring`:
 * **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations (Kleene algebras).
 * **`statistical`**: `LogSemiring`, `ExpectationSemiring`, `VarianceSemiring`, `SkewnessSemiring`, `KurtosisSemiring`, `StatisticalMomentSemiring`, `BivariateVarianceSemiring`, `MultivariateMomentSemiring`. Probabilistic inference, higher-order statistical moments, multivariate covariance matrices.
 * **`structures`**: `StringSemiring`, `KCollapsedSemiring`. Formal path languages, bounded counting.
-* **`algebraic`**: `DualNumberAlgebra` (Star semiring), `BinomialConvolutionSemiring`, `MultivariateBinomialConvolutionSemiring`, `MonoidAlgebraSemiring`, `PolynomialAlgebra`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordAlgebra` ($Cl(p,q,r)$ geometric algebras and Spacetime Dirac spinors), `GeneralizedCliffordAlgebra`, `QuantumCliffordAlgebra`, `GaloisFieldSemiring`. Free & quotient monoid algebras, divided power polynomial rings, skein modules, Clifford multivectors, finite fields.
+* **`algebraic`**: `DualNumberAlgebra` (Star semiring), `BinomialConvolutionSemiring`, `MultivariateBinomialConvolutionSemiring`, `MonoidAlgebraSemiring`, `PolynomialAlgebra`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordAlgebra` ($Cl(p,q,r)$ geometric algebras and Spacetime Dirac spinors), `GeneralizedCliffordAlgebra`, `QuantumCliffordAlgebra`, `GaloisField`. Free & quotient monoid algebras, divided power polynomial rings, skein modules, Clifford multivectors, finite fields.
 
 ### 6. Ring $(R, +, \cdot)$
 
@@ -188,7 +191,7 @@ A Ring where **multiplication has inverses** (for non-zero elements).
 
 * $(F \setminus \{0\}, \cdot)$ is an Abelian Group (Division is defined).
 
-**Example**: Real Numbers $\mathbb{R}$, Complex Numbers $\mathbb{C}$.
+**Examples in Library** (`algebrax.algebra`): `StandardField(Fraction)` ($\mathbb{Q}$), `StandardField(float)` ($\mathbb{R}$), `StandardField(complex)` ($\mathbb{C}$), `ModularField(p)` ($\mathbb{F}_p$), `GaloisField(p, irreduc_poly)` ($\mathrm{GF}(p^m)$), and `PAdicField(p)` ($\mathbb{Q}_p$).
 
 ### 8. Algebra (over a Field)
 
@@ -197,7 +200,7 @@ A Vector Space equipped with a bilinear product.
 * Elements can be added and scaled (Vector Space).
 * Elements can be multiplied (Ring-like).
 
-**Example**: The set of $N \times N$ matrices forms an Algebra.
+**Example**: The set of $N \times N$ matrices, `PolynomialAlgebra`, `MultivariatePolynomialAlgebra`, and `CliffordAlgebra`.
 
 ### 9. Homomorphisms, Ideals & Canonical Quotients (`algebrax.algebra`)
 
@@ -206,7 +209,7 @@ An **Ideal** $I \triangleleft R$ is an additive subgroup of a ring $R$ that *abs
 $$\ker \phi = \{x \in R \mid \phi(x) = \mathbf{0}_S\}, \qquad R / \ker \phi \cong \operatorname{im} \phi \quad (\text{First Isomorphism Theorem})$$
 
 * **Homomorphism Protocols**: `Homomorphism[Dom, Cod]`, `RingHom[Dom, Cod]`, `GroupHom[Dom, Cod]`, `LinearMap[R, Dom, Cod]`, `LieAlgebraHom[Dom, Cod]`, and `CallableHomomorphism`.
-* **Ideal Protocols & Implementations**: `Ideal[V]`, `LeftIdeal[V]`, `RightIdeal[V]`, `PrincipalIdeal[V]`, `LieIdeal[V]`, `IntegerModuloIdeal(n)`, `PolynomialTruncationIdeal(n)`, `NilpotentIdeal(k)`, `KernelIdeal(hom, cod_ring, reducer)`, and `SubspaceLieIdeal(keys)`.
+* **Ideal Protocols & Implementations**: `Ideal[V]`, `LeftIdeal[V]`, `RightIdeal[V]`, `PrincipalIdeal[V]`, `FinitelyGeneratedIdeal[V]`, `LieIdeal[V]`, `IntegerModuloIdeal(n)`, `PolynomialTruncationIdeal(n)`, `NilpotentIdeal(k)`, `KernelIdeal(hom, cod_ring, reducer)`, `GroebnerIdeal(ring, generators)`, and `SubspaceLieIdeal(keys)`.
 * **Canonical Unboxed Quotients**: `QuotientSemiring(semiring, ideal)`, `QuotientRing(ring, ideal)`, and `QuotientAlgebra(algebra, ideal)` evaluate operations on unboxed coset representatives via `ideal.reduce(x)` with zero heap-wrapper overhead, while `MonoidAlgebraSemiring` $\to$ `MonoidAlgebra` and `QuotientMonoidAlgebraSemiring` $\to$ `QuotientMonoidAlgebra` provide free and in-loop basis-rewriting monoid semirings and algebras.
 
 ### 10. Clifford Algebra (Geometric & Quantum Generalizations)
@@ -216,6 +219,24 @@ An associative algebra equipped with a quadratic form or root-of-unity commutati
 * **Standard Clifford / Geometric Algebra $Cl(p, q, r)$**: $\mathbf{e}_i \mathbf{e}_j = -\mathbf{e}_j \mathbf{e}_i$ ($i \ne j$), $\mathbf{e}_i^2 \in \{+1, -1, 0\}$, with geometric product $ab = a \cdot b + a \wedge b$. Generalizes complex numbers, quaternions, and Dirac spinors.
 * **Generalized Clifford Algebra (GCA) $C_n^{(m)}$**: Clock-and-shift commutation $\mathbf{e}_j \mathbf{e}_k = \omega \mathbf{e}_k \mathbf{e}_j$ ($j < k$) where $\omega = \exp(2\pi i / n)$ is a primitive $n$-th root of unity and $\mathbf{e}_j^n = \alpha_j \mathbf{1}$.
 * **$q$-Deformed Quantum Clifford Algebra $Cl_q(m)$**: Braided quantum deformation $\mathbf{e}_j \mathbf{e}_k = -q \mathbf{e}_k \mathbf{e}_j$ ($j < k$).
+
+### 11. Non-Associative & Bracket Algebras (`algebrax.algebra`, `algebrax.lie`)
+
+Dropping multiplication associativity yields rich symmetry and physical algebras characterized by **Law Witness Mixins** (`LawLie`, `LawJordan`, `LawAlternative`, `LawMalcev`, `LawAnticommutative`):
+
+* **Lie Algebra ($\mathfrak{g}, [\cdot, \cdot]$)**: Anticommutative bracket $[x, y] = -[y, x]$ satisfying the **Jacobi identity** $[[x, y], z] + [[y, z], x] + [[z, x], y] = \mathbf{0}$ (`LieAlgebra`). Infinitesimal generator of continuous Lie groups.
+* **Poisson Algebra ($A, \cdot, \{\cdot, \cdot\}$)**: Commutative associative algebra equipped with a Lie bracket obeying the **Leibniz derivation law** $\{f, gh\} = \{f, g\}h + g\{f, h\}$ (`PoissonAlgebra`, realized by `MultivariatePolynomialAlgebra` on canonical phase-space coordinates).
+* **Jordan Algebra ($J, \circ$)**: Commutative product satisfying the **Jordan identity** $(x \circ y) \circ x^2 = x \circ (y \circ x^2)$ (`JordanAlgebra`, `SymmetricMatrixJordanAlgebra` with $A \circ B = \frac{1}{2}(AB + BA)$).
+* **Alternative & Malcev Algebras**: Artin alternativity $(xx)y = x(xy)$ and $(yx)x = y(xx)$ realized by the 8-dimensional **Octonions** (`OctonionAlgebra`), whose pure-imaginary commutator subspace satisfies the **Malcev identity** (`ImaginaryOctonionMalcevAlgebra`).
+
+---
+
+## Commutative Algebra, Multivariate Polynomials & Exact Gröbner Ideals
+
+The `algebrax.algebra` module implements unboxed sparse multivariate polynomial rings $k[x_1, \dots, x_n]$ and canonical ideal decision procedures over any **exact `Field[V]`** (`StandardField(Fraction)`, `ModularField(p)`, `GaloisField`):
+
+* **Sparse Multivariate Polynomials (`MultivariatePolynomialAlgebra[V]`)**: Represents elements as unboxed exponent-tuple mappings `dict[tuple[int, ...], V]` under admissible monomial orderings (`grevlex`, `grlex`, `lex`). Satisfies `CommRing`, `Algebra`, `HasDerivation` (formal algebraic partial derivatives $\partial/\partial x_i$, exact univariate GCD, and characteristic-aware `square_free_part` with Frobenius $p$-th root extraction), and `PoissonAlgebra` (canonical symplectic Poisson bracket $\{f, g\}$).
+* **Exact Gröbner Bases (`groebner_basis`, `GroebnerIdeal`)**: Computes canonical reduced monic Gröbner bases via Gebauer–Möller-filtered **Buchberger** and **Faugère $F_4$** (sparse Macaulay matrix RREF), strictly rejecting IEEE-754 floating-point fields (`TypeError`) to prevent catastrophic S-polynomial cancellation. Implements `FinitelyGeneratedIdeal` (`HasBasis`, `HasContains`, `HasReduce`), composing directly with `QuotientRing(ring, ideal)` to form exact coordinate rings $k[x_1, \dots, x_n]/I$.
 
 ---
 
@@ -254,13 +275,10 @@ Multivectors unify scalars, vectors, bivectors, and pseudoscalars into a single 
 
 ## Galois Finite Field Arithmetic ($\text{GF} (p^m)$)
 
-The `algebrax.galois` module provides finite field arithmetic over `QuotientMonoidAlgebraSemiring`. Elements are
-represented as sparse polynomial vectors `{exponent: coeff}` modulo an irreducible polynomial $P (x)$.
+`GaloisField` (canonical in `algebrax.algebra`, re-exported in `algebrax.galois` and `algebrax.semiring`) implements the exact finite extension field $\mathrm{GF}(p^m) \cong \mathbb{F}_p[x] / \langle P(x) \rangle$ over `QuotientMonoidAlgebraSemiring`. Elements are represented as sparse polynomial vectors `{exponent: coeff}` modulo an irreducible polynomial $P(x)$.
 
-* **Polynomial Modulo Reduction**: Polynomial multiplication in $\mathbb{F}_p[x]$ reduced modulo $P (x)$
-  (e.g. $x^8 + x^4 + x^3 + x + 1$ for AES $\text{GF} (2^8)$).
-* **Matrix Arithmetic**: `gf_matrix_mul()` computes sparse matrix multiplication for cryptographic MixColumns
-  transformations and Reed-Solomon generator matrices.
+* **Exact Field Arithmetic**: Addition, negation/subtraction, multiplication modulo $P(x)$ (e.g. $x^8 + x^4 + x^3 + x + 1$ for AES $\mathrm{GF}(2^8)$), and exact multiplicative inversion (`inv`/`div`) via the polynomial Extended Euclidean Algorithm.
+* **Matrix Arithmetic & Polynomials**: `algebrax.galois.gf_matrix_mul()` computes sparse matrix multiplication for cryptographic MixColumns transformations and Reed–Solomon generator matrices, while `MultivariatePolynomialAlgebra(GaloisField(...))` supports exact polynomials and Gröbner ideals over $\mathrm{GF}(p^m)$.
 
 ---
 
@@ -295,6 +313,29 @@ The `algebrax.algebra` and `algebrax.topology` modules formalize the universal c
 * **Universal Grothendieck Group & Ring (`GrothendieckGroup[M]`, `GrothendieckRing[M]`)**: Left adjoint functor converting any additive commutative monoid $(M, +, 0)$ into an abelian group $K_0(M)$ of formal differences $[a] - [b]$ under stabilized equivalence $a + d + k = b + c + k$, lifting any monoid homomorphism $f: M \to G$ uniquely via `lift_homomorphism`.
 * **Vector Bundle Semiring & Virtual Bundle Ring (`TopologicalKTheoryRing`)**: Equips discrete orthogonal gauge connections (`DiscreteOrthogonalConnection`) with Whitney direct sums $E_1 \oplus E_2$ (`bundle_direct_sum`, block-diagonal transport) and Kronecker tensor products $E_1 \otimes E_2$ (`bundle_tensor_product`), completing them into the commutative ring $K^0(K)$ of virtual bundles $[E] - [F]$.
 * **Discrete Chern Character & Quantized Topological Charge (`chern_character`, `first_chern_number`)**: Maps 2-face curvature holonomy angles into simplicial cohomology classes $(\mathrm{ch}_0, \mathrm{ch}_1, \mathrm{ch}_2)$ satisfying Whitney sum additivity $\mathrm{ch}(E_1 \oplus E_2) = \mathrm{ch}(E_1) + \mathrm{ch}(E_2)$ and exact integer quantization $\int_\Sigma c_1(E) \in \mathbb{Z}$ over closed oriented 2-surfaces.
+
+---
+
+## Lie Algebras, Root Systems & Continuous Symmetries (`algebrax.lie`)
+
+Whereas finite groups capture discrete symmetries, **continuous Lie groups** $G$ (rotations $\mathrm{SO}(3)$, unitary gauge symmetries $\mathrm{SU}(N)$, rigid-body motions $\mathrm{SE}(3)$) are governed infinitesimally by their tangent space at the identity — a **Lie Algebra** $\mathfrak{g} = T_e G$ equipped with the commutator bracket $[X, Y]$:
+
+* **Sparse Structure Constants & Invariants (`LieAlgebra`)**: Represents elements as unboxed sparse basis maps `dict[K, V]` with structure constants $[e_i, e_j] = \sum_k f_{ij}^k e_k$. Computes the **adjoint representation** $\operatorname{ad}_X(Y) = [X, Y]$ (`adjoint_matrix()`), the **Killing form** $B(X, Y) = \operatorname{Tr}(\operatorname{ad}_X \circ \operatorname{ad}_Y)$ (`killing_form()`), and **Cartan's semisimplicity criterion** (`is_semisimple()`).
+* **Classical & Exceptional Families**: Built-in factories for classical algebras (`so_n`, `su_n`, `sl_n`, `sp_n`, `u_n`, `se_n`), Clifford bivector spin algebras (`clifford_lie_algebra`, witnessing $\mathfrak{spin}(3) \cong \mathfrak{so}(3)$), and **Cartan–Killing root systems** (`RootSystem.from_dynkin` + `chevalley_lie_algebra`) covering all classical ($A_n, B_n, C_n, D_n$) and exceptional ($G_2, F_4, E_6, E_7, E_8$) Dynkin diagrams.
+* **The Lie Algebra $\leftrightarrow$ Lie Group Bridge (BCH & Exponential Map)**: `algebrax` connects infinitesimal generators $X, Y \in \mathfrak{g}$ to local group composition $\exp(X)\exp(Y) = \exp(Z) \in G$ via the **Baker–Campbell–Hausdorff series** (`LieAlgebra.bch(x, y, order=...)`), matrix exponentials on Lie representations (`ExplicitLieRep.exp_map()`), and spinor rotors $R = \exp(-\frac{\theta}{2}\mathbf{B})$ in `algebrax.clifford`.
+
+---
+
+## Representation Theory, Invariants, Quantum Groups & Quivers (`algebrax.rep`)
+
+Representation theory linearizes abstract symmetries — turning groups, Lie algebras, and directed quivers into concrete sparse linear operators and decompositions:
+
+* **Finite Group Characters & Schur Projectors (`algebrax.rep.group`)**: `GroupRepresentation`, `ExplicitGroupRep`, `CharacterTable` (built-in for $C_n, D_{2n}, S_3, S_4, A_4, Q_8$), Schur orthogonality (`character_inner_product`), `is_intertwiner`, `reynolds_average`, and orthogonal `isotypic_projector` decompositions into irreducible subspaces.
+* **Induction & Mackey Theory (`algebrax.rep.induction`)**: `induced_representation` ($\operatorname{Ind}_H^G$), `restrict_representation` ($\operatorname{Res}_H^G$), Frobenius reciprocity adjointness, and `mackey_decomposition` / `mackey_intertwining_number`.
+* **Lie Representations & Tensor Coupling (`algebrax.rep.lie`)**: `LieRepresentation`, `ExplicitLieRep` (with `exp_map()`), `spin_representation`, `weight_space_decomposition`, `highest_weight_vectors`, `quadratic_casimir` & `cubic_casimir_operator`, and exact Condon–Shortley **Clebsch–Gordan** coupling (`clebsch_gordan_coefficient`, `clebsch_gordan_matrix`, `clebsch_gordan_tensor`).
+* **Invariant Theory (`algebrax.rep.invariant`)**: Exact `compute_molien_series` ($M_G(t) = \frac{1}{|G|} \sum_{g \in G} \det(I - t\rho(g))^{-1}$), `reynolds_polynomial_operator`, and `invariant_basis_at_degree` for constructing symmetry-equivariant polynomial bases.
+* **Quantum Groups & Knot Invariants (`algebrax.rep.quantum`)**: $q$-deformed enveloping algebra `QuantumSL2` ($U_q(\mathfrak{sl}_2)$), `universal_r_matrix_sl2_fundamental` satisfying the Quantum Yang–Baxter Equation, `braiding_operator` / `braid_to_matrix`, `quantum_trace`, and `jones_polynomial_eval`.
+* **Quiver Representations & Gabriel's ADE Theorem (`algebrax.rep.quiver`)**: `Quiver`, `QuiverRepresentation`, `PathAlgebra` ($KQ$), `tits_quadratic_form`, `classify_representation_type` (finite ADE, tame Euclidean, wild), `gabriel_positive_roots`, BGP reflection functors (`bgp_reflect_dimension`), and bidirectional sheaf bridge (`to_cellular_sheaf`, `from_cellular_sheaf`).
 
 ---
 

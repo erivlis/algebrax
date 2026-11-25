@@ -89,7 +89,7 @@ flowchart LR
         Clifford["<b>CliffordAlgebra</b><br/>Quotient factory: Cl(p, q, r)"]:::quote
         GCA["<b>GeneralizedCliffordAlgebra</b><br/>Quotient factory: C_n^(m)"]:::quote
         QuantumClifford["<b>QuantumCliffordAlgebra</b><br/>Quotient factory: Cl_q(m)"]:::quote
-        GaloisField["<b>GaloisFieldSemiring</b><br/>Quotient factory: GF(p^m)"]:::quote
+        GaloisField["<b>GaloisField</b><br/>Quotient factory: GF(p^m)"]:::quote
     end
 
 %% Recipes Extensibility Subgraph
@@ -178,7 +178,7 @@ flowchart LR
     click Clifford "algebraic.md" "CliffordAlgebra Tutorial"
     click GCA "algebraic.md#generalized-clifford-algebras-gcas-clock-and-shift" "GeneralizedCliffordAlgebra Tutorial"
     click QuantumClifford "algebraic.md#q-deformed-quantum-clifford-algebras" "QuantumCliffordAlgebra Tutorial"
-    click GaloisField "algebraic.md" "GaloisFieldSemiring Tutorial"
+    click GaloisField "algebraic.md" "GaloisField Tutorial"
     click Interval "../../recipes.md" "IntervalSemiring in Recipes"
     click Grammar "../../recipes.md" "GrammarSemiring in Recipes"
     click DualClass "../../recipes.md" "DualNumber in Recipes"
@@ -324,7 +324,7 @@ flowchart LR
 |                                   | [`CliffordAlgebra`](algebraic.md)                                                                | $Cl(p, q, r)$                                      |                         Blade $+$                          |        Geometric Prod.         |          $\emptyset, \{(): 1.0\}$           | 3D/4D Rotors, Spacetime Physics, Dirac Spinors                                  |
 |                                   | [`GeneralizedCliffordAlgebra`](algebraic.md#generalized-clifford-algebras-gcas-clock-and-shift)   | $C_n^{(m)}$                                        |                         Blade $+$                          |        Clock-and-Shift         |       $\emptyset, \{(0,\dots): 1.0\}$       | Discrete Weyl Quantization, Root-of-Unity Algebras                              |
 |                                   | [`QuantumCliffordAlgebra`](algebraic.md#q-deformed-quantum-clifford-algebras)                     | $Cl_q(m)$                                          |                         Blade $+$                          |       $q$-Braided Prod.        |       $\emptyset, \{(0,\dots): 1.0\}$       | Quantum Groups, Braided Tensor Geometry                                         |
-|                                   | [`GaloisFieldSemiring`](algebraic.md)                                                              | $GF(p^m)$                                          |                      Poly $+ \bmod p$                      |    Poly $\cdot \bmod P(x)$     |            $\emptyset, \{0: 1\}$            | Finite Field Cryptography, AES S-Box                                            |
+|                                   | [`GaloisField`](algebraic.md)                                                              | $GF(p^m)$                                          |                      Poly $+ \bmod p$                      |    Poly $\cdot \bmod P(x)$     |            $\emptyset, \{0: 1\}$            | Finite Field Cryptography, AES S-Box                                            |
 | **Recipe Extensions** *(Applied)* | [`MatrixSemiring`](../../recipes.md) | $\mathbb{R}^{d \times d}$ (Matrices) | Elementwise $\min$ | Matrix Mul ($A B$) | $\infty \cdot \mathbf{J}, \mathbf{I}_d$ | Vector Bundles, Parallel Transport, Gauge Kinematics |
 |                                   | [`IntervalSemiring`](../../recipes.md)                                                                                       | $[\underline{x}, \overline{x}] \subset \mathbb{R}$ | $[\underline{a}+\underline{b}, \overline{a}+\overline{b}]$ |       Interval $\times$        |              $[0, 0], [1, 1]$               | Bounded Uncertainty Analysis, Robust Control                                    |
 |                                   | `GrammarSemiring`                                                                                        | $\mathcal{P}(\text{NonTerminals})$                 |                           $\cup$                           |       $A \Rightarrow BC$       |      $\emptyset, \{\text{\x27S\x27}\}$      | CYK Grammar Parsing, NLP Derivations                                            |

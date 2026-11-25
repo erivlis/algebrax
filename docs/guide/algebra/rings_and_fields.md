@@ -55,18 +55,20 @@ assert F7.mul(3, F7.inv(3)) == 1  # 3 * 5 = 15 === 1 (mod 7)
    Wraps Python numeric types (`Fraction`, `float`, `complex` for `StandardField`; exact integer ring $\mathbb{Z}$ via `StandardSemiring(int)` / `IntegerField()`).
 2. **`ModularField` ($\mathbb{F}_p$) & `ModularSemiring` ($\mathbb{Z}/n\mathbb{Z}$)**:
    Exact modular arithmetic over integers modulo $n$ (or prime $p$), computing multiplicative inverses via the Extended Euclidean Algorithm.
-3. **`GaloisFieldSemiring` ($\operatorname{GF}(p^m)$)**:
-   Finite extension fields constructed as quotient polynomial rings $\mathbb{F}_p[x] / \langle P(x) \rangle$ over an irreducible polynomial $P(x)$:
+3. **`GaloisField` ($\operatorname{GF}(p^m)$)**:
+   Finite extension fields constructed as quotient polynomial rings $\mathbb{F}_p[x] / \langle P(x) \rangle$ over an irreducible polynomial $P(x)$, with exact multiplicative inverses via the polynomial Extended Euclidean Algorithm:
 
 ```python
-from algebrax.galois import GaloisFieldSemiring
+from algebrax.algebra import Field, GaloisField
 
 # Finite field GF(2^3) modulo x^3 + x + 1 (irreduc_poly=(1, 1, 0, 1))
-gf8 = GaloisFieldSemiring(p=2, irreduc_poly=(1, 1, 0, 1))
+gf8 = GaloisField(p=2, irreduc_poly=(1, 1, 0, 1))
+assert isinstance(gf8, Field)
 x = {1: 1}      # x
 x2 = {2: 1}     # x^2
 # x * x^2 = x^3 === x + 1 (mod x^3 + x + 1, characteristic 2)
 assert gf8.mul(x, x2) == {0: 1, 1: 1}
+assert gf8.mul(x, gf8.inv(x)) == gf8.one
 ```
 
 ---
