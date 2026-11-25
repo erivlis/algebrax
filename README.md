@@ -89,20 +89,23 @@ single pure-Python polymorphic framework.
 
 * ⚡ **Zero Heavy Dependencies**: Pure-Python core requiring no C++ compilation (`mappingtools` is the sole core runtime
   dependency), with optional bridges to NumPy, SciPy, and PIL.
-* 🧱 **Deductive Algebraic Hierarchy (`algebrax.algebra`, `algebrax.category`)**: Lean 4 / Mathlib-aligned
-  `@runtime_checkable` protocols composed from **37 orthogonal atomic mixins** (28 algebraic `Has*` + 9 categorical
-  `Has*`) — spanning `Magma`, `Monoid`, `Group`, `Lattice` & `BooleanAlgebra`, `Semiring` / `StarSemiring` /
-  `KleeneAlgebra`, `Ring` / `Field` / `GaloisField` / `PAdicField`, `Ideal` / `GroebnerIdeal` / `QuotientRing`,
-  `MultivariatePolynomialAlgebra`, `Module` / `Algebra` / `NormedSpace` / `InnerProductSpace`, dual `Coalgebra` /
-  `Bialgebra` / `HopfAlgebra`, and `Category` / `Groupoid` / `CartesianClosedCategory`.
+* 🧱 **Deductive Algebraic Hierarchy (`algebrax.algebra`, `algebrax.category`, `algebrax.variety`)**: Lean 4 / Mathlib-aligned
+  `@runtime_checkable` protocols composed from **41 orthogonal atomic mixins** (28 algebraic `Has*` + 9 categorical
+  `Has*` + 4 geometric `Has*`) — spanning `Magma`, `Monoid`, `Group`, `Lattice` & `BooleanAlgebra`, `Semiring` /
+  `StarSemiring` / `KleeneAlgebra`, `Ring` / `Field` / `GaloisField` / `PAdicField`, `Ideal` / `GroebnerIdeal` /
+  `QuotientRing`, `MultivariatePolynomialAlgebra`, `GeometricVariety` / `SmoothableVariety`, `Module` / `Algebra` /
+  `NormedSpace` / `InnerProductSpace`, dual `Coalgebra` / `Bialgebra` / `HopfAlgebra`, and `Category` / `Groupoid` /
+  `CartesianClosedCategory`.
 * 🔄 **Polymorphic Semiring Computing (`algebrax.semiring`)**: 33 built-in semirings and algebras. Swap $(\oplus, \otimes)$
   in `matrix.dot`, `tensor.einsum`, or `AlgebraicTrie` to switch seamlessly between linear algebra, tropical shortest paths,
   Viterbi probabilities, statistical moments, or symbolic rule provenance.
-* 🎯 **Exact Drift-Free Linear Solvers, Gröbner Ideals & $p$-Adic Fields (`algebrax.matrix`, `algebrax.algebra`)**: Gaussian
-  elimination, LU, QR, SVD, Cholesky, determinants, matrix inversion, multivariate polynomials $k[x_1, \dots, x_n]$, and
-  exact Gröbner bases (Buchberger & Faugère $F_4$) parameterized over exact `Field[V]` implementations — including
-  rationals (`StandardField(Fraction)`), prime fields (`ModularField(p)`), finite extension fields (`GaloisField`), and
-  non-archimedean $p$-adic numbers (`PAdicField(p)` bridging directly to `TropicalSemiring`).
+* 🎯 **Exact Drift-Free Linear Solvers, Gröbner Ideals, Varieties & $p$-Adic Fields (`algebrax.matrix`, `algebrax.algebra`, `algebrax.variety`)**: Gaussian
+  elimination, LU, QR, SVD, Cholesky, determinants, matrix inversion, multivariate polynomials $k[x_1, \dots, x_n]$,
+  exact Gröbner bases (Buchberger & Faugère $F_4$), and affine algebraic varieties (`AffineVariety`, `PolynomialMap`,
+  Stickelberger companion matrix solvers, finite-field elliptic curves, `CoordinateHopfAlgebra`, and algebraic
+  $K$-theory bridges) parameterized over exact `Field[V]` implementations — including rationals (`StandardField(Fraction)`),
+  prime fields (`ModularField(p)`), finite extension fields (`GaloisField`), and non-archimedean $p$-adic numbers
+  (`PAdicField(p)` bridging directly to `TropicalSemiring`).
 * 🌌 **Geometry, Symmetry, Representation Theory & Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`),
   classical & exceptional Lie algebras, Langlands dual root systems & `IwahoriHeckeAlgebra` (`lie`), finite fields
   $\mathrm{GF}(p^m)$ (`algebra.GaloisField`, `galois`), full representation theory (`rep`: finite-group characters & Schur
@@ -194,18 +197,20 @@ print(solve(a, b, field=ModularField(11)))
 |:-------|:-----------|:-----------|
 | **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 28 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`GaloisField`/`PAdicField`, `MultivariatePolynomialAlgebra`, `GroebnerIdeal` ($F_4$ & Buchberger), `GrothendieckRing`, `HopfAlgebra`, `PathAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
 | **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, Clebsch–Gordan 3-tensors, `AlgebraicTrie` |
-| **Geometry, Symmetry, Representations & Topology** | `clifford`, `lie`, `rep`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), group/induced/Lie/invariant/quantum ($U_q(\mathfrak{sl}_2)$, Jones)/quiver (Gabriel ADE) representations, $\mathrm{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
+| **Geometry, Symmetry, Representations & Topology** | `variety`, `clifford`, `lie`, `rep`, `galois`, `topology` | Affine algebraic varieties (`AffineVariety`, `PolynomialMap`, Stickelberger solvers, `CoordinateHopfAlgebra`), Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), group/induced/Lie/invariant/quantum ($U_q(\mathfrak{sl}_2)$, Jones)/quiver (Gabriel ADE) representations, $\mathrm{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
 | **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | 9 categorical mixins, `CartesianClosedCategory`, `CoeffectContext`, Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature/Ramanujan expanders & RKHS, entropy, NumPy/SciPy bridges, axiom verifiers |
 
 ---
 
 ## Recipe Highlights & Jupyter Notebooks
 
-The [`recipes/`](recipes) directory includes **48** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
+The [`recipes/`](recipes) directory includes **50** runnable CLI scripts and synced `.ipynb` notebooks. Here is a curated
 sample across domains — see the full catalog in [**Recipes & Applications**](docs/recipes.md):
 
 | Domain | Recipe & Notebook | Algebraic Components |
 |:-------|:------------------|:---------------------|
+| **Kinematics & Algebraic Geometry** | **2R Robot IK & Singularities** — [`🐍`](recipes/robot_kinematics_algebraic_variety.py) [`📓`](recipes/robot_kinematics_algebraic_variety.ipynb) | `AffineVariety`, `companion_matrix`, `solve_zero_dimensional`, `radical_zero_dim`, `is_smooth_at` |
+| **Quantum & Algebraic Stats** | **Segre Entanglement & Markov Models** — [`🐍`](recipes/quantum_segre_entanglement_and_algebraic_stats.py) [`📓`](recipes/quantum_segre_entanglement_and_algebraic_stats.ipynb) | `AffineVariety`, `PolynomialMap`, `syzygy_variety`, `tensor.einsum`, `probability.mutual_information` |
 | **Vibrations & Equivariant ML** | **Symmetry Modes & Molien Basis** — [`🐍`](recipes/symmetry_vibrations_and_invariant_ml.py) [`📓`](recipes/symmetry_vibrations_and_invariant_ml.ipynb) | `isotypic_projector`, `reynolds_average`, `induced_representation`, `compute_molien_series`, `invariant_basis_at_degree` |
 | **Quantum Spins & Polymer Knots** | **Spin Coupling & Jones Knots** — [`🐍`](recipes/quantum_spin_braiding_and_polymer_knots.py) [`📓`](recipes/quantum_spin_braiding_and_polymer_knots.ipynb) | `clebsch_gordan_matrix`, `quadratic_casimir`, `cubic_casimir_operator`, `QuantumSL2`, `jones_polynomial_eval` |
 | **Multi-Sensor Robotics** | **Quiver Calibration & Sheaf Drift** — [`🐍`](recipes/quiver_sensor_calibration_and_sheaf_tda.py) [`📓`](recipes/quiver_sensor_calibration_and_sheaf_tda.ipynb) | `QuiverRepresentation`, `path_algebra`, `classify_representation_type`, `gabriel_positive_roots`, `to_cellular_sheaf` |
@@ -251,8 +256,8 @@ uv run recipes/lab.py
 Full documentation is published at **[erivlis.github.io/algebrax](https://erivlis.github.io/algebrax)** and structured in `docs/`:
 
 * 🚀 [**Start & Concepts**](docs/index.md): Installation, quickstart, [Periodic Table of Mixins](docs/concepts.md), [Library Comparison](docs/comparison.md), and [Axiomatic Verification](docs/verification.md).
-* 📖 [**7-Tier User Guide**](docs/guide/index.md): Deductive tour from Magmas & Monoids to Semirings, Rings, Exact Fields, Clifford & Lie Algebras, Hopf Algebras, Categories, and Topological Sheaves.
-* 🍳 [**All 48 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
+* 📖 [**7-Tier User Guide**](docs/guide/index.md): Deductive tour from Magmas & Monoids to Semirings, Rings, Exact Fields, Affine Varieties, Clifford & Lie Algebras, Hopf Algebras, Categories, and Topological Sheaves.
+* 🍳 [**All 50 Recipes & GUI Lab**](docs/recipes.md): Complete index of runnable scripts, Jupyter notebooks, and the DearPyGui laboratory.
 * 📜 [**Enhancement Proposals**](docs/eps.md): Architectural design records and roadmap (`EP-0099`+).
 
 ---
