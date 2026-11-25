@@ -90,28 +90,30 @@ single pure-Python polymorphic framework.
 * ⚡ **Zero Heavy Dependencies**: Pure-Python core requiring no C++ compilation (`mappingtools` is the sole core runtime
   dependency), with optional bridges to NumPy, SciPy, and PIL.
 * 🧱 **Deductive Algebraic Hierarchy (`algebrax.algebra`, `algebrax.category`)**: Lean 4 / Mathlib-aligned
-  `@runtime_checkable` protocols composed from **35 orthogonal atomic mixins** (26 algebraic `Has*` + 9 categorical
+  `@runtime_checkable` protocols composed from **37 orthogonal atomic mixins** (28 algebraic `Has*` + 9 categorical
   `Has*`) — spanning `Magma`, `Monoid`, `Group`, `Lattice` & `BooleanAlgebra`, `Semiring` / `StarSemiring` /
-  `KleeneAlgebra`, `Ring` / `Field` / `PAdicField`, `Ideal` / `QuotientRing`, `Module` / `Algebra` / `NormedSpace` /
-  `InnerProductSpace`, dual `Coalgebra` / `Bialgebra` / `HopfAlgebra`, and `Category` / `Groupoid` /
-  `CartesianClosedCategory`.
+  `KleeneAlgebra`, `Ring` / `Field` / `GaloisField` / `PAdicField`, `Ideal` / `GroebnerIdeal` / `QuotientRing`,
+  `MultivariatePolynomialAlgebra`, `Module` / `Algebra` / `NormedSpace` / `InnerProductSpace`, dual `Coalgebra` /
+  `Bialgebra` / `HopfAlgebra`, and `Category` / `Groupoid` / `CartesianClosedCategory`.
 * 🔄 **Polymorphic Semiring Computing (`algebrax.semiring`)**: 33 built-in semirings and algebras. Swap $(\oplus, \otimes)$
   in `matrix.dot`, `tensor.einsum`, or `AlgebraicTrie` to switch seamlessly between linear algebra, tropical shortest paths,
   Viterbi probabilities, statistical moments, or symbolic rule provenance.
-* 🎯 **Exact Drift-Free Linear Solvers & $p$-Adic Fields (`algebrax.matrix`, `algebrax.algebra`)**: Gaussian elimination,
-  LU, QR, SVD, Cholesky, determinants, and matrix inversion parameterized over any `Field[V]` — including exact rationals
-  (`StandardField(Fraction)`), finite prime fields (`ModularField(p)`), and non-archimedean $p$-adic numbers
-  (`PAdicField(p)` bridging directly to `TropicalSemiring`).
+* 🎯 **Exact Drift-Free Linear Solvers, Gröbner Ideals & $p$-Adic Fields (`algebrax.matrix`, `algebrax.algebra`)**: Gaussian
+  elimination, LU, QR, SVD, Cholesky, determinants, matrix inversion, multivariate polynomials $k[x_1, \dots, x_n]$, and
+  exact Gröbner bases (Buchberger & Faugère $F_4$) parameterized over exact `Field[V]` implementations — including
+  rationals (`StandardField(Fraction)`), prime fields (`ModularField(p)`), finite extension fields (`GaloisField`), and
+  non-archimedean $p$-adic numbers (`PAdicField(p)` bridging directly to `TropicalSemiring`).
 * 🌌 **Geometry, Symmetry, Representation Theory & Topology**: Multivector Clifford algebras $Cl(p,q,r)$ (`clifford`),
   classical & exceptional Lie algebras, Langlands dual root systems & `IwahoriHeckeAlgebra` (`lie`), finite fields
-  $\mathrm{GF}(p^m)$ (`galois`), full representation theory (`rep`: finite-group characters & Schur projectors,
-  Frobenius induction & Mackey theory, Lie weights, Clebsch–Gordan 3-tensors & cubic Casimirs, Molien invariant series,
-  $U_q(\mathfrak{sl}_2)$ quantum groups, Yang–Baxter $R$-matrices & Jones knot invariants, quiver representations,
-  `PathAlgebra` & Gabriel's ADE theorem), and unified algebraic topology (`topology`: homology, cohomology cup products,
-  persistent barcodes, DEC, cellular sheaves, discrete bundles, K-theory & Chern classes, and path groupoids $\Pi_1(K)$).
+  $\mathrm{GF}(p^m)$ (`algebra.GaloisField`, `galois`), full representation theory (`rep`: finite-group characters & Schur
+  projectors, Frobenius induction & Mackey theory, Lie weights, Clebsch–Gordan 3-tensors & cubic Casimirs, Molien
+  invariant series, $U_q(\mathfrak{sl}_2)$ quantum groups, Yang–Baxter $R$-matrices & Jones knot invariants, quiver
+  representations, `PathAlgebra` & Gabriel's ADE theorem), and unified algebraic topology (`topology`: homology,
+  cohomology cup products, persistent barcodes, DEC, cellular sheaves, discrete bundles, K-theory & Chern classes, and
+  path groupoids $\Pi_1(K)$).
 * 🧪 **Axiomatic Law Verification & Interactive Lab**: Automated algebraic axiom checkers (`verification`) backed by
-  property-based testing, Ramanujan expander verification (`is_ramanujan_graph`), and Z3 proofs, plus a 12-module
-  [DearPyGui](https://github.com/hoffstadt/DearPyGui) desktop laboratory (`recipes/lab.py`).
+  property-based testing, differential SymPy/SciPy/NumPy oracles, Ramanujan expander verification (`is_ramanujan_graph`),
+  and Z3 proofs, plus a 12-module [DearPyGui](https://github.com/hoffstadt/DearPyGui) desktop laboratory (`recipes/lab.py`).
 
 ---
 
@@ -190,7 +192,7 @@ print(solve(a, b, field=ModularField(11)))
 
 | Pillar | Submodules | Highlights |
 |:-------|:-----------|:-----------|
-| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 26 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`PAdicField`, `GrothendieckRing`, `HopfAlgebra`, `PathAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
+| **Algebraic Foundations** | `algebra`, `semiring`, `group`, `lattice` | 28 algebraic mixins, `Semiring`/`StarSemiring`/`KleeneAlgebra`, `Ring`/`Field`/`GaloisField`/`PAdicField`, `MultivariatePolynomialAlgebra`, `GroebnerIdeal` ($F_4$ & Buchberger), `GrothendieckRing`, `HopfAlgebra`, `PathAlgebra`, `ActionAlgebra`, `Ideal` & `QuotientRing` |
 | **Linear & Tensor Computing** | `matrix`, `tensor`, `trie` | Sparse `dot`/`power`/`closure`, LU/QR/SVD/Cholesky, exact `Field` solvers, `einsum`, Clebsch–Gordan 3-tensors, `AlgebraicTrie` |
 | **Geometry, Symmetry, Representations & Topology** | `clifford`, `lie`, `rep`, `galois`, `topology` | Clifford $Cl(p,q,r)$ rotors, Lie algebras ($\mathfrak{so}(3)$, $\mathfrak{e}_8$, BCH, Langlands duals, `IwahoriHeckeAlgebra`), group/induced/Lie/invariant/quantum ($U_q(\mathfrak{sl}_2)$, Jones)/quiver (Gabriel ADE) representations, $\mathrm{GF}(p^m)$, homology, cohomology, persistence, DEC, sheaves, K-theory & path groupoids $\Pi_1(K)$ |
 | **Dynamics, Categories & Tools** | `category`, `automata`, `transforms`, `analysis`, `probability`, `metrics`, `converters`, `display`, `verification` | 9 categorical mixins, `CartesianClosedCategory`, `CoeffectContext`, Kleisli composition, DFA/NFA, DFT/Walsh–Hadamard/Z-transform, Fiedler/curvature/Ramanujan expanders & RKHS, entropy, NumPy/SciPy bridges, axiom verifiers |
@@ -221,7 +223,7 @@ sample across domains — see the full catalog in [**Recipes & Applications**](d
 | **Automatic Differentiation** | **Forward-Mode Autodiff** — [`🐍`](recipes/forward_mode_autodiff.py) [`📓`](recipes/forward_mode_autodiff.ipynb) | `StandardSemiring(DualNumber)`, quotient ring $\mathbb{R}[\epsilon]/(\epsilon^2)$, `matrix.dot` |
 | **Group Theory & Combinatorics** | **Rubik's Cube Solver** — [`🐍`](recipes/rubiks_cube_group_solver.py) [`📓`](recipes/rubiks_cube_group_solver.ipynb) | `group.compose`, `group.invert`, `group.signature`, commutator surgery |
 | **Information & NLP** | **CYK Provenance Parser** — [`🐍`](recipes/nlp_provenance_parser.py) [`📓`](recipes/nlp_provenance_parser.ipynb) | `matrix.dot`, `semiring.ProvenanceSemiring`, `probability.entropy` |
-| **Cryptography & Finite Fields** | **Galois Finite Fields** — [`🐍`](recipes/galois_field_cryptography.py) [`📓`](recipes/galois_field_cryptography.ipynb) | `galois.GaloisFieldSemiring`, `galois.gf_matrix_mul`, `QuotientMonoidAlgebraSemiring` |
+| **Cryptography & Finite Fields** | **Galois Finite Fields** — [`🐍`](recipes/galois_field_cryptography.py) [`📓`](recipes/galois_field_cryptography.ipynb) | `algebra.GaloisField`, `galois.gf_matrix_mul`, `QuotientMonoidAlgebraSemiring` |
 | **Distributed Systems** | **Vector Clocks & CRDTs** — [`🐍`](recipes/distributed_vector_clocks.py) [`📓`](recipes/distributed_vector_clocks.ipynb) | `lattice.combine`, `ArcticSemiring`, `BooleanSemiring`, causal DAG contractions |
 
 Run any recipe directly using `uv`:
