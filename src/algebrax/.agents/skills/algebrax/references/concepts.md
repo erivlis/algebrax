@@ -76,7 +76,7 @@ Semirings are organized into categorical sub-modules under `algebrax.semiring`:
 * **`logic`**: `BooleanSemiring` $(\{T, F\}, \lor, \land)$, `LukasiewiczSemiring`, `DigitalSemiring`. Reachability, fuzzy logic, and post-quantum digital operations.
 * **`statistical`**: `LogSemiring`, `ExpectationSemiring`, `VarianceSemiring`, `DualNumberSemiring`. Probabilistic inference, moments, automatic differentiation.
 * **`structures`**: `StringSemiring`, `KCollapsedSemiring`. Formal path languages, bounded counting.
-* **`algebraic`**: `MonoidAlgebraSemiring`, `PolynomialSemiring`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordSemiring`, `GaloisFieldSemiring`. Free & quotient monoid algebras, skein modules, Clifford multivectors, finite fields.
+* **`algebraic`**: `MonoidAlgebraSemiring`, `PolynomialAlgebra`, `KnotSemiring`, `ProvenanceSemiring`, `QuotientMonoidAlgebraSemiring`, `CliffordAlgebra`, `GaloisField`. Free & quotient monoid algebras, skein modules, Clifford multivectors, finite fields.
 
 ### 5. Ring $(R, +, \cdot)$
 
