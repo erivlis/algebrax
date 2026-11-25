@@ -1449,3 +1449,75 @@ def test_differential_multivariate_diff_gcd_sqf_and_poisson_vs_sympy() -> None:
     assert sqf_ax == sp.expand(sp.Poly(sp.sqf_part(u1_sp), q_sym, domain=sp.QQ).monic().as_expr())
 
 
+# =============================================================================
+# 16. Affine Algebraic Varieties, Stickelberger Solvers & Morphisms vs. SymPy
+# =============================================================================
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_variety_stickelberger_and_rational_solver_vs_sympy() -> None:
+    """Verify Stickelberger & exact rational variety solvers against sympy.solve."""
+    q_field = ax.algebra.StandardField(Fraction)
+    r2 = ax.algebra.MultivariatePolynomialAlgebra(q_field, n_vars=2, order='grevlex')
+    x, y = r2.gen(0), r2.gen(1)
+    xs, ys = sp.symbols('x y')
+
+    # 4-point intersection: x^2 + y^2 - 5 = 0, x*y - 2 = 0
+    g1 = r2.sub(r2.add(r2.mul(x, x), r2.mul(y, y)), r2.const(Fraction(5)))
+    g2 = r2.sub(r2.mul(x, y), r2.const(Fraction(2)))
+    var = ax.variety.AffineVariety(r2, [g1, g2])
+
+    sp_sols = sorted(
+        (float(sol[xs]), float(sol[ys]))
+        for sol in sp.solve([xs**2 + ys**2 - 5, xs * ys - 2], [xs, ys], dict=True)
+    )
+    ax_sols = ax.variety.solve_zero_dimensional(var)
+    ax_rat = ax.variety.solve_exact_rational(var)
+
+    assert len(ax_sols) == len(sp_sols)
+    for (ax_x, ax_y), (sp_x, sp_y) in zip(ax_sols, sp_sols, strict=True):
+        assert math.isclose(float(ax_x.real), sp_x, abs_tol=1e-7)
+        assert math.isclose(float(ax_y.real), sp_y, abs_tol=1e-7)
+    assert [(float(p[0]), float(p[1])) for p in ax_rat] == sp_sols
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_variety_jacobian_elimination_and_syzygy_vs_sympy() -> None:
+    """Verify Jacobian evaluation, elimination ideals, and GIT syzygy variety against SymPy."""
+    q_field = ax.algebra.StandardField(Fraction)
+    r3 = ax.algebra.MultivariatePolynomialAlgebra(q_field, n_vars=3, order='grevlex')
+    x, y, z = r3.gen(0), r3.gen(1), r3.gen(2)
+    xs, ys, zs = sp.symbols('x y z')
+
+    # Twisted cubic V(x^2 - y, x^3 - z)
+    tc_gens = [r3.sub(r3.mul(x, x), y), r3.sub(r3.mul(r3.mul(x, x), x), z)]
+    tc = ax.variety.AffineVariety(r3, tc_gens)
+
+    # 1. Jacobian at (2, 4, 8) matches sympy.Matrix.jacobian on the reduced basis
+    pt_q = (Fraction(2), Fraction(4), Fraction(8))
+    jac_ax = tc.jacobian_at(pt_q)
+    basis_sp = sp.Matrix([_mpoly_to_sympy(g, (xs, ys, zs)) for g in tc.ideal.basis])
+    jac_sp = basis_sp.jacobian([xs, ys, zs]).subs({xs: 2, ys: 4, zs: 8})
+    for r_idx in range(jac_sp.rows):
+        for c_idx in range(jac_sp.cols):
+            got = jac_ax.get(r_idx, {}).get(c_idx, Fraction(0))
+            assert sp.Rational(got.numerator, got.denominator) == jac_sp[r_idx, c_idx]
+
+    # 2. Elimination of x matches SymPy lex Groebner elimination
+    proj = tc.eliminate(1)
+    sp_lex = sp.groebner([xs**2 - ys, xs**3 - zs], xs, ys, zs, order='lex', domain=sp.QQ)
+    sp_elim = [p for p in sp_lex.polys if p.degree(xs) == 0]
+    assert len(proj.ideal.basis) == len(sp_elim) == 1
+    assert _mpoly_to_sympy(proj.ideal.basis[0], (ys, zs)) == sp.expand(sp_elim[0].as_expr())
+
+    # 3. Syzygy variety for Z_2 invariants (x^2, y^2, x*y) vs SymPy implicitization
+    r2 = ax.algebra.MultivariatePolynomialAlgebra(q_field, n_vars=2, order='grevlex')
+    x2, y2 = r2.gen(0), r2.gen(1)
+    syz = ax.variety.syzygy_variety(r2, [r2.mul(x2, x2), r2.mul(y2, y2), r2.mul(x2, y2)])
+    u1, u2, u3 = sp.symbols('u1 u2 u3')
+    sp_syz_gb = sp.groebner([u1 - xs**2, u2 - ys**2, u3 - xs * ys], xs, ys, u1, u2, u3, order='lex', domain=sp.QQ)
+    sp_syz = [p for p in sp_syz_gb.polys if p.degree(xs) == 0 and p.degree(ys) == 0]
+    assert len(syz.ideal.basis) == len(sp_syz) == 1
+    assert _mpoly_to_sympy(syz.ideal.basis[0], (u1, u2, u3)) == sp.expand(sp_syz[0].as_expr())

@@ -20,6 +20,13 @@ from algebrax.lie import LieAlgebra, RootSystem, StructureConstants
 from algebrax.semiring import Semiring, TropicalSemiring
 from algebrax.topology import SimplicialComplex, SparseChainComplex
 from algebrax.trie import AlgebraicTrie
+from algebrax.variety import (
+    AffineVariety,
+    CoordinateHopfAlgebra,
+    GeometricVariety,
+    PolynomialMap,
+    SmoothableVariety,
+)
 
 
 def test_all_catalog_semirings_have_signatures():
@@ -100,6 +107,11 @@ def test_non_semiring_algebraic_structures():
         (LieAlgebra, r'\langle \mathfrak{g}, [\cdot, \cdot], B \rangle'),
         (StructureConstants, r'[T_a, T_b] = \sum_c f_{ab}^c T_c'),
         (RootSystem, r'\Phi \subset \mathbb{Z}^r'),
+        (GeometricVariety, r'\operatorname{contains\_point}'),
+        (SmoothableVariety, r'\operatorname{is\_smooth\_at}'),
+        (AffineVariety, r'V(I)'),
+        (PolynomialMap, r'\phi^*: k[W] \to k[V]'),
+        (CoordinateHopfAlgebra, r'\Delta, \epsilon, S'),
     ]
 
     for target, expected_frag in targets:
