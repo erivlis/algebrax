@@ -46,8 +46,9 @@ from algebrax.algebra import (
 from algebrax.algebra._grothendieck import GrothendieckGroup
 from algebrax.algebra._homomorphisms import RingHom
 from algebrax.algebra._hopf import Bialgebra, Coalgebra, HopfAlgebra
-from algebrax.algebra._ideals import Ideal
+from algebrax.algebra._ideals import GroebnerIdeal, Ideal
 from algebrax.algebra._normed import InnerProductSpace, NormedSpace
+from algebrax.algebra._polynomial import MultivariatePolynomialAlgebra, SparseMPoly, monomial_divides
 from algebrax.algebra._quotient import QuotientRing
 from algebrax.verification._common import _float_equal, _require_samples, semiring_elements_equal
 
@@ -990,6 +991,83 @@ def verify_quotient_ring_laws(
         **ring_res,
         'coset_invariance': coset_invariance,
         'projection_homomorphism': all(hom_res.values()),
+    }
+
+
+def _check_groebner_basis_structure(
+    ring: MultivariatePolynomialAlgebra[V],
+    basis: Sequence[SparseMPoly[V]],
+    tol: float,
+) -> tuple[bool, bool, bool]:
+    """Verify monicity, reducedness, and Buchberger's S-polynomial criterion for a basis."""
+    basis_monic = True
+    lms: list[tuple[int, ...]] = []
+    for g in basis:
+        if not g:
+            return False, False, False
+        if not semiring_elements_equal(ring.lc(g), ring.field.one, tol):
+            basis_monic = False
+        lms.append(ring.lm(g))
+
+    basis_reduced = True
+    for i, g_i in enumerate(basis):
+        for j, lm_j in enumerate(lms):
+            if i == j:
+                continue
+            if any(monomial_divides(lm_j, mon) for mon in g_i):
+                basis_reduced = False
+                break
+        if not basis_reduced:
+            break
+
+    buchberger = True
+    for i in range(len(basis)):
+        for j in range(i + 1, len(basis)):
+            if len(ring.reduce_poly(ring.s_poly(basis[i], basis[j]), basis)) != 0:
+                buchberger = False
+                break
+        if not buchberger:
+            break
+
+    return basis_monic, basis_reduced, buchberger
+
+
+def verify_groebner_basis_laws(
+    ring: MultivariatePolynomialAlgebra[V],
+    ideal: GroebnerIdeal[V],
+    samples: Iterable[SparseMPoly[V]] | None = None,
+    tol: float = 1e-9,
+) -> dict[str, bool]:
+    r"""Test exact reduced Gröbner basis laws and `QuotientRing(ring, ideal)` coordinate ring axioms:
+    - Generator Reduction: every original generator reduces to `{}` modulo `ideal.basis`.
+    - Buchberger's Criterion: $\forall g_i, g_j \in G,\; \mathrm{reduce}(S(g_i, g_j)) == \{\}$.
+    - Monicity: every $g \in G$ has leading coefficient $\operatorname{LC}(g) = \mathbf{1}_k$.
+    - Reducedness: no term of any $g_i \in G$ is divisible by $\operatorname{LM}(g_j)$ for $j \ne i$.
+    - Quotient CommRing Laws: $k[x_1, \dots, x_n] / I$ satisfies all `CommRing` and quotient projection laws.
+    """
+    basis = ideal.basis
+    generators_reduced = all(len(ideal.reduce(g)) == 0 for g in ideal.generators)
+    basis_monic, basis_reduced, buchberger = _check_groebner_basis_structure(ring, basis, tol)
+
+    if samples is None:
+        r_samples: list[SparseMPoly[V]] = [ring.zero, ring.one]
+        r_samples.extend(ring.gen(i) for i in range(min(ring.n_vars, 3)))
+        if ring.n_vars >= 2:
+            r_samples.append(ring.add(ring.gen(0), ring.gen(1)))
+    else:
+        r_samples = _require_samples(samples)
+
+    i_samples: list[SparseMPoly[V]] = list(basis[:3]) if basis else [ring.zero]
+    quotient: QuotientRing[SparseMPoly[V]] = QuotientRing(ring, ideal)
+    q_res = verify_quotient_ring_laws(quotient, r_samples, i_samples, tol=tol)
+    comm_res = verify_comm_ring_laws(quotient, [quotient.project(r) for r in r_samples], tol=tol)
+
+    return {
+        'generators_reduced': generators_reduced,
+        'buchberger_criterion': buchberger,
+        'basis_monic': basis_monic,
+        'basis_reduced': basis_reduced,
+        'quotient_ring_laws': all(q_res.values()) and all(comm_res.values()),
     }
 
 

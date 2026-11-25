@@ -414,7 +414,7 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
         DigitalSemiring,
         DualNumberAlgebra,
         ExpectationSemiring,
-        GaloisFieldSemiring,
+        GaloisField,
         GeneralizedCliffordAlgebra,
         KCollapsedSemiring,
         KnotSemiring,
@@ -498,7 +498,7 @@ def get_semiring_samples(semiring_name: str) -> tuple[Semiring, list[Any]]:
             [{}, {0: 1}, {1: 2}],
         ),
         'Clifford': (CliffordAlgebra(3, 0, 0), [{}, {(): 1.0}, {(1,): 2.0}, {(1, 2): 3.0}]),
-        'GaloisField': (GaloisFieldSemiring(2), [{}, {0: 1}, {0: 1, 1: 1}]),
+        'GaloisField': (GaloisField(2), [{}, {0: 1}, {0: 1, 1: 1}]),
         'GeneralizedClifford': (
             GeneralizedCliffordAlgebra(n_order=3, num_generators=2),
             [{}, {(0, 0): 1.0 + 0j}, {(1, 0): 1.0 + 0j}, {(0, 1): 2.0 + 0j}, {(1, 1): 1.0 + 0.5j}],

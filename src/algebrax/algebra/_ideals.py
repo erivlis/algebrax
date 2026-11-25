@@ -12,11 +12,13 @@ from __future__ import annotations
 
 import cmath
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
 
+from algebrax.algebra._groebner import GroebnerMethod, groebner_basis
 from algebrax.algebra._homomorphisms import Homomorphism
-from algebrax.algebra._mixins import HasContains, HasGenerator, HasReduce, HasZero
+from algebrax.algebra._mixins import HasBasis, HasContains, HasGenerator, HasReduce, HasZero
+from algebrax.algebra._polynomial import MultivariatePolynomialAlgebra, SparseMPoly
 
 V = TypeVar('V')
 Dom = TypeVar('Dom')
@@ -84,6 +86,17 @@ class PrincipalIdeal(HasContains[V], HasReduce[V], HasGenerator[V], Protocol):
 
     Algebraic Signature:
         $\langle V, \operatorname{contains}, \operatorname{reduce}, \operatorname{generator} \rangle$
+    """
+
+    ...
+
+
+@runtime_checkable
+class FinitelyGeneratedIdeal(HasContains[V], HasReduce[V], HasBasis[V], Protocol[V]):
+    r"""A finitely generated ideal $I = \langle g_1, \dots, g_t \rangle \triangleleft R$.
+
+    Algebraic Signature:
+        $\langle V, \operatorname{contains}, \operatorname{reduce}, \operatorname{basis} \rangle$
     """
 
     ...
@@ -244,7 +257,66 @@ class SubspaceLieIdeal(LieIdeal[dict[K, T]], Generic[K, T]):
         return self.contains(element)
 
 
+class GroebnerIdeal(FinitelyGeneratedIdeal[SparseMPoly[V]], Ideal[SparseMPoly[V]], Generic[V]):
+    r"""A finitely generated polynomial ideal $I = \langle g_1, \dots, g_m \rangle \triangleleft k[x_1, \dots, x_n]$.
+
+    Algebraic Signature:
+        $\langle k[x_1, \dots, x_n], \operatorname{contains}, \operatorname{reduce}, \operatorname{basis} \rangle$
+
+    Backed by its unique reduced monic Gröbner basis $G$ under `ring.order` over an exact `Field[V]`.
+    Satisfies `FinitelyGeneratedIdeal[SparseMPoly[V]]` and `Ideal[SparseMPoly[V]]` for direct
+    use with `QuotientRing(ring, ideal)` to form affine coordinate rings $k[V] = k[x_1, \dots, x_n] / I$.
+
+    Example:
+        >>> from fractions import Fraction
+        >>> from algebrax.algebra import GroebnerIdeal, MultivariatePolynomialAlgebra, QuotientRing, StandardField
+        >>> Q = StandardField(Fraction)
+        >>> R = MultivariatePolynomialAlgebra(Q, n_vars=2, order='grevlex')
+        >>> x, y = R.gen(0), R.gen(1)
+        >>> I = GroebnerIdeal(R, [R.sub(R.mul(x, x), y), R.sub(y, R.one)])
+        >>> I.contains(R.sub(R.mul(x, x), R.one))
+        True
+        >>> coord_ring = QuotientRing(R, I)
+        >>> coord_ring.mul(x, x) == R.one
+        True
+    """
+
+    def __init__(
+        self,
+        ring: MultivariatePolynomialAlgebra[V],
+        generators: Sequence[SparseMPoly[V]],
+        *,
+        method: GroebnerMethod = 'auto',
+    ) -> None:
+        self.ring: MultivariatePolynomialAlgebra[V] = ring
+        self.generators: tuple[SparseMPoly[V], ...] = tuple(ring.clean(g) for g in generators)
+        self._basis: tuple[SparseMPoly[V], ...] = tuple(groebner_basis(ring, self.generators, method=method))
+
+    @property
+    def basis(self) -> tuple[SparseMPoly[V], ...]:
+        """The unique canonical reduced monic Gröbner basis under `self.ring.order`."""
+        return self._basis
+
+    def contains(self, element: SparseMPoly[V]) -> bool:
+        r"""Test ideal membership: $f \in I \iff \overline{f}^G = 0$."""
+        return len(self.reduce(element)) == 0
+
+    def reduce(self, element: SparseMPoly[V]) -> SparseMPoly[V]:
+        """Return canonical normal-form remainder modulo the reduced Gröbner basis $G$."""
+        return self.ring.reduce_poly(element, self._basis)
+
+    def is_unit(self) -> bool:
+        """Return True iff $I = (1)$ (empty variety over the algebraic closure)."""
+        return len(self._basis) == 1 and self.ring.lm(self._basis[0]) == self.ring.zero_key
+
+    def __contains__(self, element: SparseMPoly[V]) -> bool:
+        return self.contains(element)
+
+
 __all__ = [
+    'FinitelyGeneratedIdeal',
+    'GroebnerIdeal',
+    'GroebnerMethod',
     'Ideal',
     'IntegerModuloIdeal',
     'KernelIdeal',
@@ -255,4 +327,5 @@ __all__ = [
     'PrincipalIdeal',
     'RightIdeal',
     'SubspaceLieIdeal',
+    'groebner_basis',
 ]

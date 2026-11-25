@@ -83,6 +83,7 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
             A dictionary mapping human-readable semiring names to their class types.
         """
         from algebrax.algebra._dual import DualNumberAlgebra
+        from algebrax.algebra._field import GaloisField
         from algebrax.algebra._polynomial import PolynomialAlgebra
         from algebrax.clifford import (
             CliffordAlgebra,
@@ -91,7 +92,6 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
         )
         from algebrax.semiring.algebraic import (
             BinomialConvolutionSemiring,
-            GaloisFieldSemiring,
             KnotSemiring,
             MonoidAlgebraSemiring,
             MultivariateBinomialConvolutionSemiring,
@@ -151,7 +151,7 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
             'Provenance': ProvenanceSemiring,
             'QuotientMonoidAlgebra': QuotientMonoidAlgebraSemiring,
             'Clifford': CliffordAlgebra,
-            'GaloisField': GaloisFieldSemiring,
+            'GaloisField': GaloisField,
             'GeneralizedClifford': GeneralizedCliffordAlgebra,
             'QuantumClifford': QuantumCliffordAlgebra,
         }

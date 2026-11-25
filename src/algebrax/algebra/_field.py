@@ -7,6 +7,7 @@ Algebraic Signatures (EP-0150 AMDS):
 """
 
 import math
+from collections.abc import Iterable
 from fractions import Fraction
 from typing import Literal, Protocol, TypeVar, runtime_checkable
 
@@ -21,6 +22,7 @@ from algebrax.algebra._mixins import (
     LawAssociative,
     LawCommutative,
 )
+from algebrax.algebra._monoid_algebra import QuotientMonoidAlgebraSemiring
 
 V = TypeVar('V')
 
@@ -187,9 +189,184 @@ class ModularField(Field[int]):
         return (a * pow(b_mod, -1, self._p)) % self._p
 
 
+def _gf_poly_mod(
+    exp: int, coeff: int, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)
+) -> list[tuple[int, int]]:
+    """
+    Reduce polynomial term coeff * x^exp modulo irreducible polynomial irreduc_poly in GF(p).
+    Default irreduc_poly: x^8 + x^4 + x^3 + x + 1 (AES GF(2^8) field).
+    """
+    m = len(irreduc_poly) - 1
+    c = coeff % p
+    if c == 0:
+        return []
+
+    if exp < m:
+        return [(exp, c)]
+
+    poly = [0] * (exp + 1)
+    poly[exp] = c
+
+    for deg in range(exp, m - 1, -1):
+        if poly[deg] != 0:
+            factor = poly[deg]
+            for i in range(len(irreduc_poly)):
+                target_deg = deg - m + i
+                poly[target_deg] = (poly[target_deg] - factor * irreduc_poly[i]) % p
+
+    result: list[tuple[int, int]] = []
+    for deg in range(m):
+        if poly[deg] != 0:
+            result.append((deg, poly[deg]))
+
+    return result
+
+
+def _gf_poly_trim(poly: list[int], p: int) -> list[int]:
+    """Normalize polynomial coefficient list modulo p by stripping trailing zeros."""
+    res = [c % p for c in poly]
+    while res and res[-1] == 0:
+        res.pop()
+    return res
+
+
+def _gf_poly_divmod(a: list[int], b: list[int], p: int) -> tuple[list[int], list[int]]:
+    """Euclidean division of polynomials over F_p returning (quotient, remainder)."""
+    rem = _gf_poly_trim(a, p)
+    div = _gf_poly_trim(b, p)
+    if not div:
+        raise ZeroDivisionError('Cannot divide by zero polynomial in GF(p^m).')
+    deg_b = len(div) - 1
+    inv_lc = pow(div[-1], -1, p)
+    if len(rem) - 1 < deg_b:
+        return [], rem
+    quot = [0] * (len(rem) - deg_b)
+    while len(rem) - 1 >= deg_b:
+        shift = len(rem) - 1 - deg_b
+        factor = (rem[-1] * inv_lc) % p
+        quot[shift] = factor
+        for i, coeff in enumerate(div):
+            rem[shift + i] = (rem[shift + i] - factor * coeff) % p
+        rem = _gf_poly_trim(rem, p)
+    return _gf_poly_trim(quot, p), rem
+
+
+def _gf_poly_sub_mul(a: list[int], q: list[int], b: list[int], p: int) -> list[int]:
+    """Compute a - q * b in F_p[x]."""
+    prod_len = len(q) + len(b) - 1 if q and b else 0
+    out_len = max(len(a), prod_len)
+    res = [a[i] if i < len(a) else 0 for i in range(out_len)]
+    for i, cq in enumerate(q):
+        if cq:
+            for j, cb in enumerate(b):
+                if cb:
+                    res[i + j] = (res[i + j] - cq * cb) % p
+    return _gf_poly_trim(res, p)
+
+
+def _gf_poly_inv(a: dict[int, int], p: int, irreduc_poly: tuple[int, ...]) -> dict[int, int]:
+    """Compute multiplicative inverse of non-zero element a in GF(p^m) via Extended Euclidean Algorithm."""
+    max_deg = max((d for d, c in a.items() if c % p != 0), default=-1)
+    if max_deg < 0:
+        raise ZeroDivisionError('Cannot invert zero element in Galois field.')
+    r0 = [0] * (max_deg + 1)
+    for d, c in a.items():
+        if c % p != 0:
+            r0[d] = c % p
+    r0 = _gf_poly_trim(r0, p)
+    r1 = _gf_poly_trim(list(irreduc_poly), p)
+    s0: list[int] = [1]
+    s1: list[int] = []
+    while r1:
+        q, r2 = _gf_poly_divmod(r0, r1, p)
+        s2 = _gf_poly_sub_mul(s0, q, s1, p)
+        r0, r1 = r1, r2
+        s0, s1 = s1, s2
+    if len(r0) != 1:
+        raise ZeroDivisionError('Element is not invertible modulo the configured polynomial.')
+    inv_g = pow(r0[0], -1, p)
+    scaled = [(c * inv_g) % p for c in s0]
+    _, rem = _gf_poly_divmod(scaled, list(irreduc_poly), p)
+    return {deg: coeff for deg, coeff in enumerate(rem) if coeff != 0}
+
+
+class GaloisField(QuotientMonoidAlgebraSemiring[int, int], Field[dict[int, int]]):
+    r"""Finite Galois extension field $\mathrm{GF}(p^m) \cong \mathbb{F}_p[x] / \langle P(x) \rangle$.
+
+    Algebraic Signature:
+        $\langle \mathrm{GF}(p^m), \emptyset, \operatorname{is\_zero}, +, -, \{0: 1\}, \cdot, ^{-1} \rangle$
+
+    Carrier:
+        `dict[int, int]` (Sparse polynomial remainder vectors modulo irreducible polynomial $P(x)$ over $\mathbb{F}_p$).
+
+    Operations:
+        - Addition ($+$): Elementwise polynomial addition in $\mathbb{F}_p$.
+        - Negation ($-$) / Subtraction: Modular coefficient negation in $\mathbb{F}_p$.
+        - Multiplication ($\cdot$): Polynomial multiplication reduced modulo irreducible polynomial $P(x)$.
+        - Inverse ($^{-1}$) / Division: Extended Euclidean inverse modulo $P(x)$ over $\mathbb{F}_p$.
+        - Zero Element ($\mathbb{0}$): `{}` (empty polynomial).
+        - One Element ($\mathbb{1}$): `{0: 1}` ($x^0 = 1$).
+
+    Properties:
+        Exact finite `Field` (and `Semiring`), commutative, associative, distributive.
+
+    Applications:
+        Error-correcting codes (Reed-Solomon), cryptography (AES $\mathrm{GF}(2^8)$),
+        and multivariate polynomials / Gröbner bases over $\mathrm{GF}(p^m)$.
+    """
+
+    def __init__(self, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)):
+        self.p = p
+        self.irreduc_poly = irreduc_poly
+
+        def key_op(k1: int, k2: int) -> int:
+            return k1 + k2
+
+        def quotient_fn(key: int, coeff: int) -> Iterable[tuple[int, int]]:
+            return _gf_poly_mod(key, coeff, p=self.p, irreduc_poly=self.irreduc_poly)
+
+        from algebrax.semiring.arithmetic import ModularSemiring
+
+        super().__init__(
+            coeff_semiring=ModularSemiring(self.p),
+            key_op=key_op,
+            zero_key=0,
+            quotient_fn=quotient_fn,
+        )
+
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
+
+    @property
+    def is_commutative(self) -> Literal[True]:
+        return True
+
+    def is_zero(self, a: dict[int, int]) -> bool:
+        """Return True iff all coefficients vanish modulo p."""
+        return all((c % self.p) == 0 for c in a.values())
+
+    def neg(self, a: dict[int, int]) -> dict[int, int]:
+        """Return additive inverse -a modulo p."""
+        return {d: (-c) % self.p for d, c in a.items() if (c % self.p) != 0}
+
+    def sub(self, a: dict[int, int], b: dict[int, int]) -> dict[int, int]:
+        """Return difference a - b in GF(p^m)."""
+        return self.add(a, self.neg(b))
+
+    def inv(self, a: dict[int, int]) -> dict[int, int]:
+        """Return multiplicative inverse a^{-1} in GF(p^m)."""
+        return _gf_poly_inv(a, self.p, self.irreduc_poly)
+
+    def div(self, a: dict[int, int], b: dict[int, int]) -> dict[int, int]:
+        """Return quotient a / b = a * b^{-1} in GF(p^m)."""
+        return self.mul(a, self.inv(b))
+
+
 __all__ = [
     'ComplexField',
     'Field',
+    'GaloisField',
     'IntegerField',
     'ModularField',
     'RationalField',

@@ -6,15 +6,17 @@ from __future__ import annotations
 
 import operator
 from collections.abc import Callable, Iterable
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
-from algebrax.algebra._ideals import Ideal
 from algebrax.algebra._module import Algebra, Semimodule
 from algebrax.algebra._ring import CommRing
 from algebrax.algebra._semiring import Semiring
 from algebrax.typing import K, SparseVector
 
-T = TypeVar('T', bound=float | int | complex)
+if TYPE_CHECKING:
+    from algebrax.algebra._ideals import Ideal
+
+T = TypeVar('T')
 
 
 class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVector[K, T]]):

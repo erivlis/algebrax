@@ -8,6 +8,7 @@ import operator
 from collections.abc import Callable, Iterable
 from typing import Any, TypeVar
 
+from algebrax.algebra._field import GaloisField, _gf_poly_mod
 from algebrax.algebra._monoid_algebra import MonoidAlgebraSemiring, QuotientMonoidAlgebraSemiring
 from algebrax.algebra._semiring import Semiring
 from algebrax.semiring.arithmetic import StandardSemiring
@@ -90,83 +91,6 @@ class ProvenanceSemiring(MonoidAlgebraSemiring[tuple[str, ...], int]):
             coeff_semiring=coeff_semiring,
             key_op=self._combine_monomials,
             zero_key=(),
-        )
-
-
-def _gf_poly_mod(
-    exp: int, coeff: int, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)
-) -> list[tuple[int, int]]:
-    """
-    Reduce polynomial term coeff * x^exp modulo irreducible polynomial irreduc_poly in GF(p).
-    Default irreduc_poly: x^8 + x^4 + x^3 + x + 1 (AES GF(2^8) field).
-    """
-    m = len(irreduc_poly) - 1  # Degree of irreducible polynomial
-    c = coeff % p
-    if c == 0:
-        return []
-
-    # If exponent < m, no reduction needed
-    if exp < m:
-        return [(exp, c)]
-
-    # Long division polynomial reduction in GF(p)
-    poly = [0] * (exp + 1)
-    poly[exp] = c
-
-    for deg in range(exp, m - 1, -1):
-        if poly[deg] != 0:
-            factor = poly[deg]
-            for i in range(len(irreduc_poly)):
-                target_deg = deg - m + i
-                poly[target_deg] = (poly[target_deg] - factor * irreduc_poly[i]) % p
-
-    result: list[tuple[int, int]] = []
-    for deg in range(m):
-        if poly[deg] != 0:
-            result.append((deg, poly[deg]))
-
-    return result
-
-
-class GaloisFieldSemiring(QuotientMonoidAlgebraSemiring[int, int]):
-    r"""The Galois Finite Field $\mathrm{GF}(p^m)$ Semiring.
-
-    Algebraic Signature:
-        $\langle \mathrm{GF}(p^m), +, \cdot, \emptyset, \{0: 1\} \rangle$
-
-    Carrier:
-        `dict[int, int]` (Sparse polynomial remainder vectors modulo irreducible polynomial $P(x)$ over $\mathbb{Z}_p$).
-
-    Operations:
-        - Addition ($+$): Elementwise polynomial addition in $\mathbb{Z}_p$.
-        - Multiplication ($\cdot$): Polynomial multiplication reduced modulo irreducible polynomial $P(x)$.
-        - Zero Element ($\mathbb{0}$): `{}` (empty polynomial).
-        - One Element ($\mathbb{1}$): `{0: 1}` ($x^0 = 1$).
-
-    Properties:
-        Commutative finite division ring (field), associative, distributive.
-
-    Applications:
-        Error-correcting codes (Reed-Solomon), cryptography (AES Galois Field), cryptographic hashing.
-    """
-
-    def __init__(self, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)):
-        self.p = p
-        self.irreduc_poly = irreduc_poly
-
-        def key_op(k1: int, k2: int) -> int:
-            return k1 + k2
-
-        def quotient_fn(key: int, coeff: int) -> Iterable[tuple[int, int]]:
-            return _gf_poly_mod(key, coeff, p=self.p, irreduc_poly=self.irreduc_poly)
-
-        from algebrax.semiring.arithmetic import ModularSemiring
-
-        super().__init__(
-            coeff_semiring=ModularSemiring(self.p),
-            key_op=key_op,
-            zero_key=0,
-            quotient_fn=quotient_fn,
         )
 
 

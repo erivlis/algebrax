@@ -3,6 +3,7 @@ Semiring namespace — all classes available from algebrax.semiring.
 """
 
 from algebrax.algebra._dual import DualNumberAlgebra
+from algebrax.algebra._field import GaloisField
 from algebrax.algebra._polynomial import PolynomialAlgebra
 from algebrax.algebra._semiring import (
     ClosedSemiring,
@@ -18,7 +19,6 @@ from algebrax.clifford import (
 )
 from algebrax.semiring.algebraic import (
     BinomialConvolutionSemiring,
-    GaloisFieldSemiring,
     KnotSemiring,
     MonoidAlgebraSemiring,
     MultivariateBinomialConvolutionSemiring,
@@ -59,7 +59,7 @@ __all__ = [
     'DigitalSemiring',
     'DualNumberAlgebra',
     'ExpectationSemiring',
-    'GaloisFieldSemiring',
+    'GaloisField',
     'GeneralizedCliffordAlgebra',
     'KCollapsedSemiring',
     'KleeneAlgebra',

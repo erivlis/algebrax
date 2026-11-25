@@ -27,7 +27,7 @@ Submodules & Domain Taxonomy
    - `topology`: Unified algebraic topology (`homology`, `cohomology`, `persistence`, `dec`, `sheaf`).
    - `clifford`: Clifford Geometric Algebra Cl(p,q,r) multivectors & 3D rotors (`rotor_rotation`).
    - `lie`: Continuous symmetry Lie algebras, structure constants, Killing forms & BCH dynamics (`so3`, `sl2`, `se3`).
-   - `galois`: Finite field matrix arithmetic GF(p^m) (`GaloisFieldSemiring`, `gf_matrix_mul`).
+   - `galois`: Finite field matrix arithmetic GF(p^m) (`GaloisField`, `gf_matrix_mul`).
    - `category`: Category theory & monadic Kleisli composition (`kleisli_compose`).
 
 3. Signal Processing, Dynamics & Logic

@@ -25,6 +25,8 @@ Algebraic Signatures:
     HasCoproduct:  $\langle C, \Delta \rangle$
     HasCounit:     $\langle R, C, \epsilon \rangle$
     HasAntipode:   $\langle H, S \rangle$
+    HasBasis:      $\langle V, \operatorname{basis} \rangle$
+    HasDerivation: $\langle V, \partial_i \rangle$
 
 Law Witnesses (EP-0005, EP-0197):
     LawCommutative, LawAnticommutative, LawAssociative,
@@ -296,6 +298,30 @@ class HasGenerator(Protocol[V]):
 
     @property
     def generator(self) -> V: ...
+
+
+@runtime_checkable
+class HasBasis(Protocol[V]):
+    r"""Finite generating basis `basis` ($\langle g_1, \dots, g_t \rangle$) generalizing `HasGenerator`.
+
+    Algebraic Signature:
+        $\langle V, \operatorname{basis} \rangle$
+    """
+
+    @property
+    def basis(self) -> tuple[V, ...]: ...
+
+
+@runtime_checkable
+class HasDerivation(Protocol[V]):
+    r"""Formal algebraic derivation $\partial_i: V \to V$ satisfying the Leibniz rule
+    $\partial_i(ab) = \partial_i(a)b + a\partial_i(b)$.
+
+    Algebraic Signature:
+        $\langle V, \partial_i \rangle$
+    """
+
+    def diff(self, a: V, var_index: int = 0) -> V: ...
 
 
 @runtime_checkable
