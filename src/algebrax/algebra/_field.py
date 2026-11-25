@@ -131,7 +131,6 @@ class StandardField(Field[V]):
         return a / b  # type: ignore[operator]
 
 
-IntegerField = Field[int]
 RationalField = Field[Fraction]
 RealField = Field[float]
 ComplexField = Field[complex]
@@ -367,7 +366,6 @@ __all__ = [
     'ComplexField',
     'Field',
     'GaloisField',
-    'IntegerField',
     'ModularField',
     'RationalField',
     'RealField',
