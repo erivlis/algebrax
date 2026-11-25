@@ -136,6 +136,23 @@ RealField = Field[float]
 ComplexField = Field[complex]
 
 
+def _is_prime(n: int) -> bool:
+    """Return True iff n is a prime integer >= 2 (rejecting bools)."""
+    if isinstance(n, bool) or not isinstance(n, int) or n < 2:
+        return False
+    if n in (2, 3):
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    limit = math.isqrt(n)
+    d = 5
+    while d <= limit:
+        if n % d == 0 or n % (d + 2) == 0:
+            return False
+        d += 6
+    return True
+
+
 class ModularField(Field[int]):
     r"""Finite Galois field $\mathbb{F}_p = \mathbb{Z}/p\mathbb{Z}$ for prime $p$.
 
@@ -144,8 +161,8 @@ class ModularField(Field[int]):
     """
 
     def __init__(self, p: int) -> None:
-        if p < 2:
-            raise ValueError(f'Field characteristic must be a prime >= 2, got {p}.')
+        if not _is_prime(p):
+            raise ValueError(f'Field characteristic must be a prime >= 2, got {p!r}.')
         self._p = p
 
     @property
@@ -221,6 +238,38 @@ def _gf_poly_mod(
     return result
 
 
+def _gf_reduce_dict(
+    a: dict[int, int],
+    p: int,
+    irreduc_poly: tuple[int, ...],
+) -> dict[int, int]:
+    """Reduce a sparse GF(p^m) polynomial dict canonically modulo p and irreduc_poly."""
+    if not a:
+        return {}
+    m = len(irreduc_poly) - 1
+    res: dict[int, int] = {}
+    for deg, coeff in a.items():
+        if deg < 0:
+            raise ValueError(f'Negative degree {deg} is invalid in GF(p^m).')
+        c = coeff % p
+        if c == 0:
+            continue
+        if deg < m:
+            nv = (res.get(deg, 0) + c) % p
+            if nv == 0:
+                res.pop(deg, None)
+            else:
+                res[deg] = nv
+        else:
+            for r_deg, r_coeff in _gf_poly_mod(deg, c, p=p, irreduc_poly=irreduc_poly):
+                nv = (res.get(r_deg, 0) + r_coeff) % p
+                if nv == 0:
+                    res.pop(r_deg, None)
+                else:
+                    res[r_deg] = nv
+    return res
+
+
 def _gf_poly_trim(poly: list[int], p: int) -> list[int]:
     """Normalize polynomial coefficient list modulo p by stripping trailing zeros."""
     res = [c % p for c in poly]
@@ -265,13 +314,13 @@ def _gf_poly_sub_mul(a: list[int], q: list[int], b: list[int], p: int) -> list[i
 
 def _gf_poly_inv(a: dict[int, int], p: int, irreduc_poly: tuple[int, ...]) -> dict[int, int]:
     """Compute multiplicative inverse of non-zero element a in GF(p^m) via Extended Euclidean Algorithm."""
-    max_deg = max((d for d, c in a.items() if c % p != 0), default=-1)
+    reduced = _gf_reduce_dict(a, p, irreduc_poly)
+    max_deg = max(reduced.keys(), default=-1)
     if max_deg < 0:
         raise ZeroDivisionError('Cannot invert zero element in Galois field.')
     r0 = [0] * (max_deg + 1)
-    for d, c in a.items():
-        if c % p != 0:
-            r0[d] = c % p
+    for d, c in reduced.items():
+        r0[d] = c
     r0 = _gf_poly_trim(r0, p)
     r1 = _gf_poly_trim(list(irreduc_poly), p)
     s0: list[int] = [1]
@@ -299,8 +348,8 @@ class GaloisField(QuotientMonoidAlgebraSemiring[int, int], Field[dict[int, int]]
         `dict[int, int]` (Sparse polynomial remainder vectors modulo irreducible polynomial $P(x)$ over $\mathbb{F}_p$).
 
     Operations:
-        - Addition ($+$): Elementwise polynomial addition in $\mathbb{F}_p$.
-        - Negation ($-$) / Subtraction: Modular coefficient negation in $\mathbb{F}_p$.
+        - Addition ($+$): Elementwise polynomial addition in $\mathbb{F}_p$ reduced modulo $P(x)$.
+        - Negation ($-$) / Subtraction: Modular coefficient negation in $\mathbb{F}_p$ reduced modulo $P(x)$.
         - Multiplication ($\cdot$): Polynomial multiplication reduced modulo irreducible polynomial $P(x)$.
         - Inverse ($^{-1}$) / Division: Extended Euclidean inverse modulo $P(x)$ over $\mathbb{F}_p$.
         - Zero Element ($\mathbb{0}$): `{}` (empty polynomial).
@@ -315,6 +364,12 @@ class GaloisField(QuotientMonoidAlgebraSemiring[int, int], Field[dict[int, int]]
     """
 
     def __init__(self, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)):
+        if not _is_prime(p):
+            raise ValueError(f'Field characteristic must be a prime >= 2, got {p!r}.')
+        if len(irreduc_poly) < 2 or (irreduc_poly[-1] % p) == 0:
+            raise ValueError(
+                'irreduc_poly must have degree >= 1 with a non-zero leading coefficient modulo p.'
+            )
         self.p = p
         self.irreduc_poly = irreduc_poly
 
@@ -342,15 +397,27 @@ class GaloisField(QuotientMonoidAlgebraSemiring[int, int], Field[dict[int, int]]
         return True
 
     def is_zero(self, a: dict[int, int]) -> bool:
-        """Return True iff all coefficients vanish modulo p."""
-        return all((c % self.p) == 0 for c in a.values())
+        """Return True iff `a` reduces to zero modulo p and `irreduc_poly`."""
+        return not _gf_reduce_dict(a, self.p, self.irreduc_poly)
+
+    def add(self, a: dict[int, int], b: dict[int, int]) -> dict[int, int]:
+        """Return canonical sum a + b in GF(p^m)."""
+        if not a:
+            return _gf_reduce_dict(b, self.p, self.irreduc_poly)
+        if not b:
+            return _gf_reduce_dict(a, self.p, self.irreduc_poly)
+        combined = dict(a)
+        for d, c in b.items():
+            combined[d] = combined.get(d, 0) + c
+        return _gf_reduce_dict(combined, self.p, self.irreduc_poly)
 
     def neg(self, a: dict[int, int]) -> dict[int, int]:
-        """Return additive inverse -a modulo p."""
-        return {d: (-c) % self.p for d, c in a.items() if (c % self.p) != 0}
+        """Return canonical additive inverse -a in GF(p^m)."""
+        red = _gf_reduce_dict(a, self.p, self.irreduc_poly)
+        return {d: (-c) % self.p for d, c in red.items()}
 
     def sub(self, a: dict[int, int], b: dict[int, int]) -> dict[int, int]:
-        """Return difference a - b in GF(p^m)."""
+        """Return canonical difference a - b in GF(p^m)."""
         return self.add(a, self.neg(b))
 
     def inv(self, a: dict[int, int]) -> dict[int, int]:

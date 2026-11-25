@@ -3,7 +3,9 @@ Algebraic Law Verification Engine.
 
 Provides property-based axiom and invariant verifiers across the full AlgebraX hierarchy:
 - Semirings, star semirings, Kleene algebras, Conway matrix closure, and action algebras
-- Magmas, monoids, groups, lattices, rings, fields, modules, ideals, quotients, Hopf & normed spaces
+- Magmas, monoids, groups, lattices, rings, fields, modules, ideals, quotients, Gröbner bases,
+  Poisson algebras, Hopf algebras, and normed spaces
+- Affine algebraic varieties, Stickelberger companion matrices, polynomial morphisms, and coordinate Hopf algebras
 - Categories, functors, sheaves, fiber bundles, Chern classes, CCCs, groupoids, Langlands & p-adics
 - Finite group, induced, Lie, invariant, quantum group, braid, and quiver representations
 """
@@ -114,6 +116,12 @@ from algebrax.verification._topology import (
     verify_sheaf_functoriality,
     verify_sheaf_laplacian_properties,
 )
+from algebrax.verification._variety import (
+    verify_affine_variety_laws,
+    verify_coordinate_hopf_laws,
+    verify_polynomial_map_laws,
+    verify_stickelberger_laws,
+)
 
 __all__ = [
     'get_semiring_samples',
@@ -125,6 +133,7 @@ __all__ = [
     'verify_add_magma_laws',
     'verify_add_monoid_laws',
     'verify_add_semigroup_laws',
+    'verify_affine_variety_laws',
     'verify_algebra_laws',
     'verify_alternative_laws',
     'verify_antipode_axiom',
@@ -150,6 +159,7 @@ __all__ = [
     'verify_comm_ring_laws',
     'verify_connection_inversion',
     'verify_contraction_constant',
+    'verify_coordinate_hopf_laws',
     'verify_counitality',
     'verify_cubic_casimir_invariance',
     'verify_distributive_lattice_laws',
@@ -189,6 +199,7 @@ __all__ = [
     'verify_path_groupoid_laws',
     'verify_poisson_laws',
     'verify_polynomial_invariance',
+    'verify_polynomial_map_laws',
     'verify_quantum_sl2_relations',
     'verify_quiver_direct_sum',
     'verify_quiver_morphism_commutation',
@@ -208,6 +219,7 @@ __all__ = [
     'verify_sheaf_laplacian_properties',
     'verify_star_plus_consistency',
     'verify_star_semiring_laws',
+    'verify_stickelberger_laws',
     'verify_tits_positive_definiteness',
     'verify_transitivity_of_induction',
     'verify_triangle_inequality',

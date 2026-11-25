@@ -28,6 +28,8 @@ Submodules & Domain Taxonomy
    - `clifford`: Clifford Geometric Algebra Cl(p,q,r) multivectors & 3D rotors (`rotor_rotation`).
    - `lie`: Continuous symmetry Lie algebras, structure constants, Killing forms & BCH dynamics (`so3`, `sl2`, `se3`).
    - `galois`: Finite field matrix arithmetic GF(p^m) (`GaloisField`, `gf_matrix_mul`).
+   - `variety`: Affine algebraic varieties, coordinate rings & Stickelberger solvers
+     (`AffineVariety`, `PolynomialMap`, `CoordinateHopfAlgebra`).
    - `category`: Category theory & monadic Kleisli composition (`kleisli_compose`).
 
 3. Signal Processing, Dynamics & Logic
@@ -71,6 +73,7 @@ from algebrax import (
     transforms,
     trie,
     typing,
+    variety,
     verification,
 )
 from algebrax.typing import (
@@ -118,5 +121,6 @@ __all__ = [
     'transforms',
     'trie',
     'typing',
+    'variety',
     'verification',
 ]
