@@ -2,7 +2,7 @@
 title: "EP-0221: Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers"
 description: "Introduce algebrax.variety for affine algebraic varieties V(I), coordinate rings k[V], polynomial morphisms, Stickelberger companion matrix solvers, and finite-field varieties."
 icon: lucide/orbit
-status: draft
+status: final
 ---
 
 # EP-0221: Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                                |
 | **Sponsor**       | Core Maintainers                                                                           |
 | **Delegate**      | ⚖️ Noether (Ideal–Variety Duality), 🧩 Russell (Functorial Pullbacks) & ⚡ Shannon (Matrices) |
-| **Status**        | Draft                                                                                      |
+| **Status**        | Final                                                                                      |
 | **Type**          | Standards Track                                                                            |
 | **Created**       | 2026-11-14                                                                                 |
-| **Updated**       | 2026-11-14                                                                                 |
+| **Updated**       | 2026-11-25                                                                                 |
 | **Replaces**      | —                                                                                          |
 | **Superseded-By** | —                                                                                          |
 
@@ -37,8 +37,8 @@ This proposal introduces the **`algebrax.variety`** module, establishing the geo
    - Weak Nullstellensatz consistency check ($V_{\bar{k}}(I) = \emptyset \iff 1 \in I$).
 3. **Stickelberger Companion Matrix Solvers (`companion_matrix`, `solve_zero_dimensional`)**:
    For 0-dimensional varieties ($\dim_{k}(k[V]) < \infty$), constructs the exact sparse multiplication operators $M_{x_i}: k[V] \to k[V]$ on the standard monomial basis $\mathcal{B} = \{x^\alpha \notin \langle \mathrm{LT}(I) \rangle\}$, turning nonlinear polynomial root-finding into commuting linear eigenvalue problems.
-4. **Finite-Field Varieties & Algebraic SAT (`enum_points`, `solve_f2_sat`)**:
-   Exact point enumeration over $\mathbb{F}_p^n$ (`ModularField(p)`) for elliptic curves and algebraic codes, plus Boolean ideal reduction in $\mathbb{F}_2[x_1, \dots, x_n]/\langle x_i^2 - x_i \rangle$.
+4. **Finite-Field Varieties & Algebraic SAT (`enum_variety_points`, `solve_f2_sat`)**:
+   Exact point enumeration over $\mathbb{F}_p^n$ (`ModularField(p)`) and $\operatorname{GF}(p^m)^n$ (`GaloisField`) for elliptic curves and algebraic codes, plus Boolean ideal reduction in $\mathbb{F}_2[x_1, \dots, x_n]/\langle x_i^2 - x_i \rangle$.
 5. **Contravariant Polynomial Morphisms (`PolynomialMap`)**:
    Realizes the functorial duality between a polynomial map $\phi: V \to W$ and its coordinate-ring pullback `RingHom` $\phi^*: k[W] \to k[V]$.
 
@@ -63,7 +63,7 @@ Validated in [**EXP-0009**](https://github.com/erivlis/algebrax/blob/main/refere
 - **⚖️ Emmy Noether (Contravariant Algebra–Geometry Duality)**:
   Honors Noether's structural revolution in algebraic geometry: geometry on an affine space $V$ is completely encoded by commutative algebra on its coordinate ring $k[V]$, and geometric morphisms $\phi: V \to W$ correspond contravariantly to ring homomorphisms $\phi^*: k[W] \to k[V]$ ($f \mapsto f \circ \phi$).
 - **⚡ Claude Shannon (Stickelberger Linearization & The Escape Hatch)**:
-  Instead of implementing brittle univariate resultant cascades, `AffineVariety.companion_matrix(i)` produces a standard AlgebraX `SparseMatrix[int, V]` ($M_{x_i}$). Users can inspect exact rational traces, determinants, and commutators ($[M_{x_i}, M_{x_j}] = \mathbf{0}$) in pure Python, or use the optional NumPy eigensolver Escape Hatch to extract floating-point root coordinates with machine precision (`0.00e+00` residual on 4-point conic intersection and exact 2R Robot poses in `EXP-0009`).
+  Instead of implementing brittle univariate resultant cascades, `companion_matrix(variety, i)` produces a standard AlgebraX `SparseMatrix[int, V]` ($M_{x_i}$). Users can inspect exact rational traces, determinants, and commutators ($[M_{x_i}, M_{x_j}] = \mathbf{0}$) in pure Python, or use the optional NumPy eigensolver Escape Hatch to extract floating-point root coordinates with machine precision (`0.00e+00` residual on 4-point conic intersection and exact 2R Robot poses in `EXP-0009`).
 - **🧩 Bertrand Russell (Finiteness Criterion & Dimension Classification)**:
   Cleanly distinguishes 0-dimensional varieties (where every variable $x_i$ has a pure power $x_i^{d_i} \in \langle \mathrm{LT}(I) \rangle$, yielding a finite basis $\mathcal{B}$ of size $\dim_k k[V]$) from positive-dimensional varieties (detected via Krull dimension / Hilbert polynomial of $\langle \mathrm{LT}(I) \rangle$).
 - **🔬 Karl Popper (Commutativity & Residual Falsification)**:
@@ -279,6 +279,14 @@ class AffineVariety(SmoothableVariety[V], Generic[V]):
         """Geometric intersection V(I) cap V(J) = V(I + J)."""
         return AffineVariety(self.ring, [*self.ideal.basis, *other.ideal.basis])
 
+    def union(self, other: AffineVariety[V]) -> AffineVariety[V]:
+        """Geometric union V(I) cup V(J) = V(I cap J) via tag-variable ideal intersection."""
+        ...
+
+    def has_same_ideal(self, other: AffineVariety[V]) -> bool:
+        """Exact reduced Gröbner basis equality test I(V) == I(W)."""
+        ...
+
     def eliminate(self, num_vars_to_eliminate: int) -> AffineVariety[V]:
         """Compute k-th elimination variety V(I cap k[x_{k+1}, ..., x_n]) using lex order."""
         ...
@@ -295,6 +303,16 @@ def companion_matrix(
 
     Raises:
         ValueError: If `variety` is not zero-dimensional.
+    """
+    ...
+
+
+def solve_exact_rational(
+    variety: AffineVariety[V],
+) -> list[tuple[Fraction, ...]]:
+    r"""Extract all exact rational roots $V(I) \cap \mathbb{Q}^n$ via triangular `lex` elimination and Rational Root Theorem.
+
+    Pure Python, zero external dependencies.
     """
     ...
 
@@ -317,9 +335,9 @@ def solve_zero_dimensional(
 
 ```python
 def enum_variety_points(
-    variety: AffineVariety[int],
-) -> list[tuple[int, ...]]:
-    r"""Enumerate all rational points $V(I)(\mathbb{F}_p) \subseteq \mathbb{F}_p^n$ over `ModularField(p)`."""
+    variety: AffineVariety[V],
+) -> list[tuple[V, ...]]:
+    r"""Enumerate all rational points $V(I)(k) \subseteq k^n$ over finite fields (`ModularField(p)` or `GaloisField`)."""
     ...
 
 
@@ -328,6 +346,14 @@ def boolean_variety(
     clauses_or_polys: Sequence[SparseMPoly[int]],
 ) -> AffineVariety[int]:
     r"""Construct a Boolean variety in $\mathbb{F}_2[x_1, \dots, x_n] / \langle x_1^2 + x_1, \dots, x_n^2 + x_n \rangle$."""
+    ...
+
+
+def solve_f2_sat(
+    n_vars: int,
+    clauses: Sequence[Sequence[int]],
+) -> list[tuple[int, ...]]:
+    r"""Solve a Boolean CNF SAT formula algebraically via `lex` Gröbner basis reduction and pruned back-substitution over $\mathbb{F}_2$."""
     ...
 ```
 
@@ -369,7 +395,12 @@ def plucker_grassmannian_variety(
     ...
 
 
-class CoordinateHopfAlgebra(Generic[V]):
+class CoordinateHopfAlgebra(
+    HopfAlgebra[V, SparseMPoly[V]],
+    LawAssociative,
+    LawCommutative,
+    Generic[V],
+):
     r"""Coordinate Hopf Algebra $k[G] = k[x_{11}, \dots, x_{nn}] / I(G)$ of an affine algebraic matrix group (`EP-0206` bridge).
 
     Equips the coordinate ring `variety.coordinate_ring` of a matrix group variety $G \subseteq \operatorname{GL}_n(k)$
@@ -381,6 +412,7 @@ class CoordinateHopfAlgebra(Generic[V]):
     """
 
     def __init__(self, n_dim: int, group_variety: AffineVariety[V]) -> None: ...
+    def coproduct(self, f: SparseMPoly[V]) -> list[tuple[SparseMPoly[V], SparseMPoly[V]]]: ...
     def counit(self, f: SparseMPoly[V]) -> V: ...
     def antipode(self, f: SparseMPoly[V]) -> SparseMPoly[V]: ...
     def comultiply_generator(self, row: int, col: int) -> list[tuple[SparseMPoly[V], SparseMPoly[V]]]: ...
@@ -437,7 +469,7 @@ def coordinate_ring_unit_inverse(
     r"""Test whether `poly` is a unit $[u] \in k[V]^\times \hookrightarrow K_1(k[V])$ and return its inverse $u^{-1} \bmod I(V)$.
 
     Uses the auxiliary tag variable $t$ in $\langle I(V),\, t \cdot u - 1 \rangle$: `poly` is invertible in
-    `variety.coordinate_ring` iff $1 \notin \langle I(V), u \rangle$, returning the reduced inverse in $k[V]$.
+    `variety.coordinate_ring` iff $1 \in \langle I(V), u \rangle$, returning the reduced inverse in $k[V]$.
     """
     ...
 
@@ -505,11 +537,14 @@ Prototyped and verified in [`references/explorations/EXP-0009-algebraic-and-trop
 
 ## Open Questions
 
-- [ ] Adding pure-Python exact rational root isolation for 1D/triangular `lex` bases when `numpy` is not installed.
+- [x] Adding pure-Python exact rational root isolation for 1D/triangular `lex` bases when `numpy` is not installed — resolved via `solve_exact_rational` (Rational Root Theorem + triangular `lex` back-substitution) and pure-Python quadratic `lex` fallback in `solve_zero_dimensional`.
 
 ---
 
 ## Change Log
 
+* **2026-11-25:**
+  * Implemented `algebrax.variety` (`HasPointLocus`, `HasDimension`, `HasCoordinateRing`, `HasTangentLocus`, `GeometricVariety`, `SmoothableVariety`, `AffineVariety`, `companion_matrix`, `solve_exact_rational`, `solve_zero_dimensional`, `enum_variety_points`, `boolean_variety`, `solve_f2_sat`, `PolynomialMap`, `syzygy_variety`, `plucker_grassmannian_variety`, `CoordinateHopfAlgebra`, and $K_0/K_1/K_2^M$ bridges), verification oracles (`verify_affine_variety_laws`, `verify_stickelberger_laws`, `verify_polynomial_map_laws`, `verify_coordinate_hopf_laws`), SymPy differential oracles, user guide, and two Tier-4 recipes; promoted to `Final`.
+  * Applied Grand Council remediation: exact Matsumura local dimension in `is_smooth_at`, `ModularField`/`GaloisField` primality validation, full `HopfAlgebra` protocol compliance and group closure validation on `CoordinateHopfAlgebra`, `lex`-ordered pruned SAT solver in `solve_f2_sat`, Popper non-vacuous verifier guards, and expanded falsification & documentation coverage.
 * **2026-11-14:**
   * Initial Draft authored for Phase 9 from `EXP-0009`.
