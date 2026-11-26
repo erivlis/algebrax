@@ -2,7 +2,7 @@
 title: "EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry"
 description: "Establishes a unified mathematical docstring standard across semirings, algebras, and topological complexes with automated introspection, rich MathJax cards, and registry testing."
 icon: lucide/file-code-2
-status: final
+status: superseded
 ---
 
 # EP-0150: Standardized Mathematical Docstrings & Algebraic Signature Registry

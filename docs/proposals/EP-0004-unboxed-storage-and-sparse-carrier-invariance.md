@@ -2,7 +2,7 @@
 title: "EP-0004: Unboxed Storage & Sparse Carrier Invariance"
 description: "Codifies the Shannon Carrier Invariant: native unboxed dictionaries, sparse matrix and vector primitives, coordinate tuple keys, and the strict ban on heap-allocated element wrappers."
 icon: lucide/box
-status: draft
+status: active
 ---
 
 # EP-0004: Unboxed Storage & Sparse Carrier Invariance
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                       |
 | **Sponsor**       | The Grand Council                                                                 |
 | **Delegate**      | ⚡ Claude Shannon (Efficiency) & 🛡️ The Golem (Safety & Immutability)              |
-| **Status**        | Draft                                                                             |
+| **Status**        | Active                                                                            |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-11-12                                                                        |
-| **Updated**       | 2026-11-12                                                                        |
+| **Updated**       | 2026-11-26                                                                        |
 | **Replaces**      | [EP-0153](EP-0153-semiring-matrix-symmetry-and-vector-primitives.md) (Carrier Spec)|
 | **Superseded-By** | —                                                                                 |
 
@@ -186,3 +186,4 @@ None. The unboxed sparse dictionary architecture has been the performance bedroc
 
 - **2026-10-16**: Vector primitives and carrier symmetries specified in EP-0153.
 - **2026-11-12**: Codified as the permanent Shannon Carrier Invariant in EP-0004.
+- **2026-11-26**: Promoted to `Active` status as living foundational canon.

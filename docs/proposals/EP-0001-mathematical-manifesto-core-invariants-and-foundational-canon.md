@@ -2,7 +2,7 @@
 title: "EP-0001: The Mathematical Manifesto, Core Invariants & Foundational Canon"
 description: "Establishes the foundational constitution of AlgebraX: the five Grand Council invariants, the four-tier architecture, and the master roadmap for the single-digit foundational canon."
 icon: lucide/scroll
-status: draft
+status: active
 ---
 
 # EP-0001: The Mathematical Manifesto, Core Invariants & Foundational Canon
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                       |
 | **Sponsor**       | The Grand Council                                                                 |
 | **Delegate**      | 🧩 Russell (Taxonomy), ⚖️ Noether (Symmetry), ⚡ Shannon (Zero Overhead)            |
-| **Status**        | Draft                                                                             |
+| **Status**        | Active                                                                            |
 | **Type**          | Process                                                                           |
 | **Created**       | 2026-11-12                                                                        |
-| **Updated**       | 2026-11-15                                                                        |
+| **Updated**       | 2026-11-26                                                                        |
 | **Replaces**      | —                                                                                 |
 | **Superseded-By** | —                                                                                 |
 
@@ -138,6 +138,7 @@ Domain-specific subjects (such as semiring catalogs, homology, differential form
 - **`EP-0220` – `EP-0229`**: Commutative Algebra, Algebraic Varieties, Companion Matrix Solvers & Tropical Geometry.
 - **`EP-0230` – `EP-0239`**: Generalized Harmonic Analysis, Peter–Weyl Group FT, Algebraic Signal Processing, Exact NTT & Spectral Wavelets.
 - **`EP-0240` – `EP-0249`**: Algebraic Analysis, Differential Rings, Weyl Algebras, Ore Skew-Polynomials, Hermite/Gosper Reduction, Taylor Jets & Differential Galois Theory.
+- **`EP-0250` – `EP-0259`**: Second Grand Council Refinement & Hardening Track (Phase 8.5).
 
 ---
 
@@ -181,9 +182,7 @@ This proposal is an overarching process and architectural document; it introduce
 
 ## Open Questions
 
-1. **Migration of Existing EP-0150 and EP-0180**:
-   Should `EP-0150` (Docstrings) and `EP-0180` (Verification) be formally superseded by `EP-0002` and `EP-0003`?
-   *Recommendation*: Yes. `EP-0002` and `EP-0003` will synthesize and elevate them into permanent foundational canon.
+None. `EP-0131`, `EP-0150`, `EP-0180`, and `EP-0194` have been formally superseded by `EP-0002`, `EP-0003`, and `EP-0005`.
 
 ---
 
@@ -191,3 +190,4 @@ This proposal is an overarching process and architectural document; it introduce
 
 - **2026-11-12**: Initial constitutional draft authored following Grand Council consensus.
 - **2026-11-15**: Registered Phase 11 Differential & Ore Algebras domain track (`EP-0240` – `EP-0249`) from `EXP-0011`.
+- **2026-11-26**: Promoted to `Active` status as living constitutional canon; registered Phase 8.5 hardening track (`EP-0250` – `EP-0259`); closed resolved supersession open question.

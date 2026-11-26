@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                   |
 | **Type**    | Process                  |
 | **Created** | 2026-02-19               |
-| **Updated** | 2026-04-12               |
+| **Updated** | 2026-11-26               |
 
 ## Abstract
 
@@ -34,10 +34,11 @@ careful consideration. EPs provide a structured way to:
 
 ## The EP Workflow
 
-1. **Draft:** The author creates a new file in `design/proposals/` using the template.
+1. **Draft:** The author creates a new file in `docs/proposals/` using the template.
 2. **Review:** The proposal is reviewed by the maintainers (The Council).
 3. **Status Change:**
     * **Accepted:** The design is approved.
+    * **Active:** Living Process, Informational, or Single-Digit Foundational Canon (`EP-0000`–`EP-0006`) specifications that are enacted and remain permanently in force as they evolve across phases.
     * **Rejected:** The design is flawed or misaligned.
     * **Deferred:** Good idea, but not now.
     * **Superseded:** Replaced by a newer EP.
@@ -103,3 +104,9 @@ Link to code or pseudo-code.
     * Initial Draft.
     * Another change made on the same day.
 ```
+
+## Change Log
+
+* **2026-02-19:** Initial EP process document.
+* **2026-04-12:** Updated frontmatter template for Zensical metadata.
+* **2026-11-26:** Documented `Active` status for living Process, Informational, and Single-Digit Foundational Canon (`EP-0000`–`EP-0006`) specifications, and corrected `design/proposals/` path to `docs/proposals/`.

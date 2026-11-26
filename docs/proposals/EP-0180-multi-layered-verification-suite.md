@@ -2,7 +2,7 @@
 title: "EP-0180: Multi-Layered Verification Test Architecture"
 description: "Establishes a dedicated, 8-layer verification test suite under tests/verifications/, generalizing tests/algebrax/test_verification.py through differential testing, property-based axiom verification, metamorphic relations, Schwartz-Zippel PIT, and certified solvers."
 icon: lucide/shield-check
-status: final
+status: superseded
 ---
 
 # EP-0180: Multi-Layered Verification Test Architecture

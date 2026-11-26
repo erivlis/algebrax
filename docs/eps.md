@@ -23,12 +23,12 @@ and documenting design decisions. See [EP-0000](proposals/EP-0000-process.md) fo
 
 | EP                                                                                            | Title                                                         | Module                  |          Status         |
 |:----------------------------------------------------------------------------------------------|:--------------------------------------------------------------|:------------------------|:-----------------------:|
-| [EP-0001](proposals/EP-0001-mathematical-manifesto-core-invariants-and-foundational-canon.md) | Mathematical Manifesto, Core Invariants & Foundational Canon  | Foundations             | :material-pencil: Draft |
-| [EP-0002](proposals/EP-0002-mathematical-docstring-standards-and-algebraic-signatures.md)    | Mathematical Docstring Standards & Algebraic Signatures       | Standards               | :material-pencil: Draft |
-| [EP-0003](proposals/EP-0003-axiomatic-verification-and-property-based-testing.md)            | Axiomatic Verification, Falsification & Multi-Layered Testing | `algebrax.verification` | :material-pencil: Draft |
-| [EP-0004](proposals/EP-0004-unboxed-storage-and-sparse-carrier-invariance.md)                | Unboxed Storage & Sparse Carrier Invariance                   | Architecture            | :material-pencil: Draft |
-| [EP-0005](proposals/EP-0005-universal-algebraic-protocol-architecture.md)                    | Universal Algebraic Protocol Architecture                     | `algebrax.algebra`      | :material-pencil: Draft |
-| [EP-0006](proposals/EP-0006-algebraic-morphisms-and-structural-mappings.md)                  | Morphisms, Homomorphisms & Structural Mappings                | `algebrax.algebra`      | :material-pencil: Draft |
+| [EP-0001](proposals/EP-0001-mathematical-manifesto-core-invariants-and-foundational-canon.md) | Mathematical Manifesto, Core Invariants & Foundational Canon  | Foundations             | :material-check-circle:{ .active } Active |
+| [EP-0002](proposals/EP-0002-mathematical-docstring-standards-and-algebraic-signatures.md)    | Mathematical Docstring Standards & Algebraic Signatures       | Standards               | :material-check-circle:{ .active } Active |
+| [EP-0003](proposals/EP-0003-axiomatic-verification-and-property-based-testing.md)            | Axiomatic Verification, Falsification & Multi-Layered Testing | `algebrax.verification` | :material-check-circle:{ .active } Active |
+| [EP-0004](proposals/EP-0004-unboxed-storage-and-sparse-carrier-invariance.md)                | Unboxed Storage & Sparse Carrier Invariance                   | Architecture            | :material-check-circle:{ .active } Active |
+| [EP-0005](proposals/EP-0005-universal-algebraic-protocol-architecture.md)                    | Universal Algebraic Protocol Architecture                     | `algebrax.algebra`      | :material-check-circle:{ .active } Active |
+| [EP-0006](proposals/EP-0006-algebraic-morphisms-and-structural-mappings.md)                  | Morphisms, Homomorphisms & Structural Mappings                | `algebrax.algebra`      | :material-check-circle:{ .active } Active |
 
 ---
 
@@ -66,7 +66,7 @@ and documenting design decisions. See [EP-0000](proposals/EP-0000-process.md) fo
 |:---------------------------------------------------------------|:---------------------------------------------------|:----------------------------|:--------------------------:|
 | [EP-0120](proposals/EP-0120-algebraic-web-explorer.md)         | Algebraic Web Explorer & Interactive Visual Studio | Web / Visual                |  :material-pencil: Draft   |
 | [EP-0130](proposals/EP-0130-api-consistency-audit.md)          | API Consistency & Public Export Audit              | `algebrax.__init__`         | :material-check-all: Final |
-| [EP-0131](proposals/EP-0131-algebraic-law-verification.md)     | Algebraic Law Verification Engine                  | `algebrax.verification`     | :material-check-all: Final |
+| [EP-0131](proposals/EP-0131-algebraic-law-verification.md)     | Algebraic Law Verification Engine                  | `algebrax.verification`     | :material-swap-horizontal: Superseded |
 | [EP-0132](proposals/EP-0132-matrix-decompositions.md)          | Matrix Decompositions — LU, QR, SVD, Cholesky      | `algebrax.matrix.decompose` | :material-check-all: Final |
 | [EP-0133](proposals/EP-0133-jupyter-cli-integration.md)        | Jupyter & CLI Integration                          | `algebrax.display`          | :material-check-all: Final |
 | [EP-0134](proposals/EP-0134-semiring-namespace-refactoring.md) | Semiring Namespace Refactoring                     | `algebrax.semiring/`        | :material-check-all: Final |
@@ -90,7 +90,7 @@ a comprehensive architectural audit by the 8 Pillars of the Council Framework.
 | [EP-0147](proposals/EP-0147-optional-loop-pragmas.md)                          | Optional Loop Pragmas & Concurrency                                  | ⚡ Shannon                                      | :material-clock-outline: Deferred |
 | [EP-0148](proposals/EP-0148-formalized-benchmarking.md)                        | Formalized Micro-Benchmarking & CodSpeed                             | 🔬 Popper                                       |    :material-check-all: Final     |
 | [EP-0149](proposals/EP-0149-binomial-convolution-moment-semiring.md)           | Universal & Multivariate Binomial Convolution Moments                | ⚖️ Noether                                      |    :material-check-all: Final     |
-| [EP-0150](proposals/EP-0150-standardized-mathematical-docstrings.md)           | Standardized Mathematical Docstrings & Algebraic Registry            | 💡 Feynman                                      |    :material-check-all: Final     |
+| [EP-0150](proposals/EP-0150-standardized-mathematical-docstrings.md)           | Standardized Mathematical Docstrings & Algebraic Registry            | 💡 Feynman                                      | :material-swap-horizontal: Superseded |
 | [EP-0151](proposals/EP-0151-algebraic-pagerank-semirings.md)                   | Algebraic PageRank & Semiring Random Walks with Restart              | ⚡ Shannon                                      |    :material-check-all: Final     |
 | [EP-0152](proposals/EP-0152-spectral-graph-theory-laplacian.md)                | Spectral Graph Theory, Algebraic Connectivity & Graph Laplacians     | ⚖️ Noether & ⚡ Shannon                         |    :material-check-all: Final     |
 | [EP-0153](proposals/EP-0153-semiring-matrix-symmetry-and-vector-primitives.md) | Semiring Matrix Symmetry, Sparse Vector Primitives & Cochain Carrier | ⚖️ Noether, ⚡ Shannon, 🧩 Russell & 💡 Feynman |    :material-check-all: Final     |
@@ -123,7 +123,7 @@ metamorphic invariants, Schwartz–Zippel PIT, and certified solvers.
 
 | EP                                                                                     | Title                                                                                                | Council Sponsor                                           |           Status           |
 |:---------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------|:----------------------------------------------------------|:--------------------------:|
-| [EP-0180](proposals/EP-0180-multi-layered-verification-suite.md)                       | Multi-Layered Verification Test Architecture                                                         | 🔬 Popper, ⚖️ Noether, ⚡ Shannon, 🛡️ Golem & 🧭 Explorer | :material-check-all: Final |
+| [EP-0180](proposals/EP-0180-multi-layered-verification-suite.md)                       | Multi-Layered Verification Test Architecture                                                         | 🔬 Popper, ⚖️ Noether, ⚡ Shannon, 🛡️ Golem & 🧭 Explorer | :material-swap-horizontal: Superseded |
 | [EP-0181](proposals/EP-0181-comparative-verification-linalg-tensors-transforms.md)     | Comparative Verification — Linear Algebra, Tensors & Signal Processing (`NumPy` & `SciPy` Oracles)   | 🔬 Popper, 🧩 Russell, ⚡ Shannon & 🛡️ Golem              | :material-check-all: Final |
 | [EP-0182](proposals/EP-0182-comparative-verification-graphs-spectral-semirings.md)     | Comparative Verification — Graph Calculus, Spectral Theory & Path Semirings (`NetworkX` & `csgraph`) | 🔬 Popper, ⚖️ Noether, ⚡ Shannon & 🧩 Russell            | :material-check-all: Final |
 | [EP-0183](proposals/EP-0183-comparative-verification-symbolic-lie-galois-group.md)     | Comparative Verification — Exact Symbolic Algebra, Lie, Galois, Clifford & Group (`SymPy` Oracle)    | ⚖️ Noether, 🔬 Popper, 🧩 Russell & 🛡️ Golem              | :material-check-all: Final |
@@ -146,7 +146,7 @@ lattices), super-semiring rings & fields, and exact polymorphic matrix solvers.
 | [EP-0191](proposals/EP-0191-rings-fields-modules-and-exact-solvers.md)             | Rings, Fields, Modules & Exact Matrix Solvers                                 | ⚖️ Noether & ⚡ Shannon | :material-check-all: Final |
 | [EP-0192](proposals/EP-0192-unifying-domain-objects-with-algebraic-hierarchy.md)   | Unifying Domain Objects with the Pure Algebraic Hierarchy                     | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 | [EP-0193](proposals/EP-0193-documentation-architecture-realignment.md)             | Documentation Architecture Realignment with Pure Algebraic Hierarchy          | 💡 Feynman & 🧩 Russell | :material-check-all: Final |
-| [EP-0194](proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)   | Atomic Algebraic Mixins & Diamond-Free Protocol Composition                   | 🧩 Russell & ⚖️ Noether | :material-check-all: Final |
+| [EP-0194](proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)   | Atomic Algebraic Mixins & Diamond-Free Protocol Composition                   | 🧩 Russell & ⚖️ Noether | :material-swap-horizontal: Superseded |
 | [EP-0195](proposals/EP-0195-canonical-core-consolidation.md)                       | Canonical Core Consolidation & Deprecation Purge                              | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |
 | [EP-0196](proposals/EP-0196-peripheral-ecosystem-realignment.md)                   | Peripheral Ecosystem Realignment (Benchmarks, Recipes, GUI Lab & User Guides) | 🎨 Feynman & ⏱️ Shannon  | :material-check-all: Final |
 | [EP-0197](proposals/EP-0197-decoupled-semiring-foundations-star-semirings-and-kleene-algebras.md) | Decoupled Semiring Foundations — Pure Rigs, Star Semirings & Kleene Algebras | ⚖️ Noether & 🧩 Russell | :material-check-all: Final |

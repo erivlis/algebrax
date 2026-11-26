@@ -2,7 +2,7 @@
 title: "EP-0003: Axiomatic Verification, Falsification & Multi-Layered Testing"
 description: "Establishes the foundational correctness architecture: the public algebraic verification engine, floating-point tolerance invariants, property-based testing, and the 8-layer verification test harness."
 icon: lucide/shield-check
-status: draft
+status: active
 ---
 
 # EP-0003: Axiomatic Verification, Falsification & Multi-Layered Testing
@@ -14,7 +14,7 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                                           |
 | **Sponsor**       | The Grand Council                                                                                     |
 | **Delegate**      | 🔬 Karl Popper (Falsifiability) & ⚖️ Emmy Noether (Symmetry)                                           |
-| **Status**        | Draft                                                                                                 |
+| **Status**        | Active                                                                                                |
 | **Type**          | Standards Track                                                                                       |
 | **Created**       | 2026-11-12                                                                                            |
 | **Updated**       | 2026-11-26                                                                                            |
@@ -184,4 +184,4 @@ None. The verification engine and test suite are actively running in CI across a
 - **2026-08-02**: Initial verification engine specified as EP-0131.
 - **2026-10-24**: Multi-layered test architecture specified as EP-0180.
 - **2026-11-12**: Unified and elevated to single-digit foundational canon as EP-0003.
-- **2026-11-26**: Updated stale `src/algebrax/verification.py` paths to modular `src/algebrax/verification/` package and linked Phase 8.5 hardening (`EP-0253`).
+- **2026-11-26**: Updated stale `src/algebrax/verification.py` paths to modular `src/algebrax/verification/` package, linked Phase 8.5 hardening (`EP-0253`), and promoted to `Active` status as living foundational canon.

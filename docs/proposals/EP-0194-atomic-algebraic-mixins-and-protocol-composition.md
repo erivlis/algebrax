@@ -2,7 +2,7 @@
 title: "EP-0194: Atomic Algebraic Mixins & Diamond-Free Protocol Composition"
 description: "Refactor the algebraic protocol hierarchy from deep diamond inheritance chains into orthogonal atomic operational mixins composed into flat named algebraic protocols."
 icon: lucide/layers
-status: final
+status: superseded
 ---
 
 # EP-0194: Atomic Algebraic Mixins & Diamond-Free Protocol Composition

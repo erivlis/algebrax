@@ -2,7 +2,7 @@
 title: "EP-0002: Mathematical Docstring Standards & Algebraic Signatures (AMDS)"
 description: "Establishes the AlgebraX Mathematical Docstring Standard (AMDS) as the single source of truth for LaTeX signatures, KaTeX rendering, IDE tooltips, and automated documentation introspection."
 icon: lucide/file-code-2
-status: draft
+status: active
 ---
 
 # EP-0002: Mathematical Docstring Standards & Algebraic Signatures (AMDS)
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                       |
 | **Sponsor**       | The Grand Council                                                                 |
 | **Delegate**      | 💡 Richard Feynman (Clarity) & 🧩 Bertrand Russell (Consistency)                  |
-| **Status**        | Draft                                                                             |
+| **Status**        | Active                                                                            |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-11-12                                                                        |
-| **Updated**       | 2026-11-12                                                                        |
+| **Updated**       | 2026-11-26                                                                        |
 | **Replaces**      | [EP-0150](EP-0150-standardized-mathematical-docstrings.md)                        |
 | **Superseded-By** | —                                                                                 |
 
@@ -242,3 +242,4 @@ None. The AMDS standard has been implemented, validated, and stress-tested acros
 
 - **2026-09-05**: Authored initial draft as EP-0150.
 - **2026-11-12**: Elevated and codified into the single-digit foundational canon as EP-0002.
+- **2026-11-26**: Promoted to `Active` status as living foundational canon.

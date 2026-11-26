@@ -2,7 +2,7 @@
 title: "EP-0131: Algebraic Law Verification Engine"
 description: "Property-based testing framework that automatically verifies semiring axioms across all 23 semiring types."
 icon: lucide/flask-conical
-status: final
+status: superseded
 ---
 
 # EP-0131: Algebraic Law Verification Engine

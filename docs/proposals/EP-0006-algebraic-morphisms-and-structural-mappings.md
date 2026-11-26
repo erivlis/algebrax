@@ -2,7 +2,7 @@
 title: "EP-0006: Morphisms, Homomorphisms & Structural Mappings"
 description: "Establishes universal structure-preserving mappings across AlgebraX: algebraic homomorphisms (groups, rings, modules, Lie), categorical arrows and functors, and natural dualities."
 icon: lucide/arrow-right-left
-status: draft
+status: active
 ---
 
 # EP-0006: Morphisms, Homomorphisms & Structural Mappings
@@ -14,10 +14,10 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                       |
 | **Sponsor**       | The Grand Council                                                                 |
 | **Delegate**      | ⚖️ Emmy Noether (Invariants & Duality) & 🧭 The Explorer (Categorical Arrows)      |
-| **Status**        | Draft                                                                             |
+| **Status**        | Active                                                                            |
 | **Type**          | Standards Track                                                                   |
 | **Created**       | 2026-11-12                                                                        |
-| **Updated**       | 2026-11-12                                                                        |
+| **Updated**       | 2026-11-26                                                                        |
 | **Replaces**      | [EP-0201](EP-0201-algebraic-homomorphisms-ideals-quotients.md) (Morphisms Spec)   |
 | **Superseded-By** | —                                                                                 |
 
@@ -189,7 +189,7 @@ assert all(res.values())
 
 - **Homomorphism Modules**: [`src/algebrax/algebra/_homomorphisms.py`](file:///C:/dev/erivlis/algebrax/src/algebrax/algebra/_homomorphisms.py).
 - **Category Modules**: [`src/algebrax/category/core.py`](file:///C:/dev/erivlis/algebrax/src/algebrax/category/core.py).
-- **Verification Engine**: [`src/algebrax/verification.py`](file:///C:/dev/erivlis/algebrax/src/algebrax/verification.py).
+- **Verification Engine**: `src/algebrax/verification/`.
 
 ---
 
@@ -210,3 +210,4 @@ None. The morphism and category protocols have been verified across algebra, top
 
 - **2026-10-27**: Morphisms introduced in EP-0201.
 - **2026-11-12**: Unified and elevated to single-digit foundational canon as EP-0006.
+- **2026-11-26**: Promoted to `Active` status as living foundational canon and updated `src/algebrax/verification/` reference.

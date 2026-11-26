@@ -2,7 +2,7 @@
 title: "EP-0005: Universal Algebraic Protocol Architecture — Capabilities, Law Witnesses & Canonical Operations"
 description: "Establishes the 3-pillar algebraic protocol architecture in AlgebraX: Layer 1 Operational Mixins (Has*), Layer 1 Law Witness Mixins (Law*), Layer 2 Flat Protocols, and Characteristic Derived Methods, resolving signature vs. equational theory blindness."
 icon: lucide/layers
-status: draft
+status: active
 ---
 
 # EP-0005: Universal Algebraic Protocol Architecture — Capabilities, Law Witnesses & Canonical Operations
@@ -14,7 +14,7 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                                                               |
 | **Sponsor**       | The Grand Council                                                                                                         |
 | **Delegate**      | 🧩 Bertrand Russell (Type Theory & Deductive Order) & ⚖️ Emmy Noether (Symmetries & Invariants)                            |
-| **Status**        | Draft                                                                                                                     |
+| **Status**        | Active                                                                                                                    |
 | **Type**          | Standards Track                                                                                                           |
 | **Created**       | 2026-11-12                                                                                                                |
 | **Updated**       | 2026-11-26                                                                                                                |
@@ -367,4 +367,4 @@ None. The prototype has been verified, benchmarked, and reviewed by the Grand Co
 
 - **2026-11-01**: Authored initial flat mixin composition proposal as EP-0194.
 - **2026-11-12**: Unified with EXP-0008 findings (Law Witnesses & Canonical Operations) and elevated to foundational canon as EP-0005.
-- **2026-11-26**: Cross-referenced Phase 8.5 protocol-integrity and law-witness enforcement (`EP-0250`).
+- **2026-11-26**: Cross-referenced Phase 8.5 protocol-integrity and law-witness enforcement (`EP-0250`) and promoted to `Active` status as living foundational canon.
