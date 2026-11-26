@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                                 |
 | **Type**          | Standards Track                                                                                       |
 | **Created**       | 2026-11-12                                                                                            |
-| **Updated**       | 2026-11-12                                                                                            |
+| **Updated**       | 2026-11-26                                                                                            |
 | **Replaces**      | [EP-0131](EP-0131-algebraic-law-verification.md), [EP-0180](EP-0180-multi-layered-verification-suite.md) |
 | **Superseded-By** | —                                                                                                     |
 
@@ -28,7 +28,7 @@ status: draft
 In foundational mathematical computing, software correctness is not an aspirational goal; it is a **mathematical imperative**. As mandated by [EP-0001](EP-0001-mathematical-manifesto-core-invariants-and-foundational-canon.md), every mathematical structure must be accompanied by an executable, property-based falsification oracle.
 
 This proposal establishes the universal **Axiomatic Verification & Testing Architecture** across AlgebraX:
-1. **The Public Verification Engine (`algebrax.verification`)**: Over 40 public law verification oracles testing mathematical axioms (groups, rings, fields, modules, Lie algebras, Jordan algebras, alternative algebras, sheaves, bundles) with rigorous floating-point equivalence predicates (`semiring_elements_equal`).
+1. **The Public Verification Engine (`algebrax.verification`)**: Over 40 public law verification oracles testing mathematical axioms (groups, rings, fields, modules, Lie algebras, Jordan algebras, alternative algebras, sheaves, bundles, varieties) with rigorous floating-point equivalence predicates (`semiring_elements_equal`) and non-vacuous Popper sample guards (hardened in Phase 8.5 [EP-0253](EP-0253-verification-engine-hardening-and-grounded-proofs.md)).
 2. **The 8-Layer Multi-Tier Verification Test Suite (`tests/verifications/`)**:
    - *Empirical & Metamorphic Tier*: Cross-library differential testing (NumPy, SciPy, NetworkX, SymPy), metamorphic symmetry relations, and Hypothesis property-based testing.
    - *Exact & Semi-Formal Tier*: Schwartz–Zippel randomized polynomial identity testing (PIT) to defeat monomial explosion, and the Method of Manufactured Solutions (MMS) for discrete calculus.
@@ -72,7 +72,7 @@ Standard software unit tests check only known "happy paths" against hardcoded ex
 
 ### 1. The Public Verification Engine (`algebrax.verification`)
 
-The public engine [`algebrax.verification`](file:///C:/dev/erivlis/algebrax/src/algebrax/verification.py) exports standardized, deterministic verifiers for every algebraic variety in AlgebraX:
+The public engine `src/algebrax/verification/` (modularized by domain into `_algebra.py`, `_analysis.py`, `_category.py`, `_rep.py`, `_topology.py`, `_variety.py` and re-exported from `algebrax.verification`) exports standardized, deterministic verifiers for every algebraic variety in AlgebraX:
 
 ```python
 def verify_semiring_laws(semiring: Semiring[T], samples: list[T], tol: float = 1e-12) -> dict[str, bool]: ...
@@ -149,17 +149,18 @@ All verification tests use dedicated markers defined in `tests/verifications/con
 1. **User Guides**:
    - `docs/guide/verification/` documents how users can test custom algebraic structures using `algebrax.verification`.
 2. **Developer Standards**:
-   - Any new Layer 2 protocol or concrete algebra must add a corresponding `verify_*_laws` oracle in `src/algebrax/verification.py` and a test file in `tests/algebrax/` or `tests/verifications/`.
+   - Any new Layer 2 protocol or concrete algebra must add a corresponding `verify_*_laws` oracle in `src/algebrax/verification/` (following Phase 8.5 [EP-0253](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts) and a test file in `tests/algebrax/` or `tests/verifications/`.
 
 ---
 
 ## Reference Implementation
 
-- **Verification Engine**: [`src/algebrax/verification.py`](file:///C:/dev/erivlis/algebrax/src/algebrax/verification.py).
+- **Verification Engine**: `src/algebrax/verification/` (modular package re-exported via `algebrax.verification`).
 - **Multi-Layered Harness**: `tests/verifications/`.
-- **Precedent Proposals**:
+- **Precedent & Hardening Proposals**:
   - [`docs/proposals/EP-0131-algebraic-law-verification.md`](EP-0131-algebraic-law-verification.md)
   - [`docs/proposals/EP-0180-multi-layered-verification-suite.md`](EP-0180-multi-layered-verification-suite.md)
+  - [`docs/proposals/EP-0253-verification-engine-hardening-and-grounded-proofs.md`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) (Phase 8.5 hardening)
 
 ---
 
@@ -183,3 +184,4 @@ None. The verification engine and test suite are actively running in CI across a
 - **2026-08-02**: Initial verification engine specified as EP-0131.
 - **2026-10-24**: Multi-layered test architecture specified as EP-0180.
 - **2026-11-12**: Unified and elevated to single-digit foundational canon as EP-0003.
+- **2026-11-26**: Updated stale `src/algebrax/verification.py` paths to modular `src/algebrax/verification/` package and linked Phase 8.5 hardening (`EP-0253`).

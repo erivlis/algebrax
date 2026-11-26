@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                                                     |
 | **Type**          | Standards Track                                                                                                           |
 | **Created**       | 2026-11-12                                                                                                                |
-| **Updated**       | 2026-11-12                                                                                                                |
+| **Updated**       | 2026-11-26                                                                                                                |
 | **Replaces**      | [EP-0194](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)                                                    |
 | **Superseded-By** | —                                                                                                                         |
 
@@ -340,7 +340,9 @@ assert JordanAlgebra.__parameters__ == (R, M)
 
 - **Research Compendium & Prototype**: `references/explorations/EXP-0008-equational-theories-and-typeclass-axioms/README.md` and `references/explorations/EXP-0008-equational-theories-and-typeclass-axioms/sources/prototype_axioms.py`.
 - **Core Modules**: `src/algebrax/algebra/_mixins.py`, `_non_assoc.py`, `_ring.py`, `_group.py`.
-- **Precedent Proposal**: [`docs/proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md`](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md).
+- **Precedent & Hardening Proposals**:
+  - [`docs/proposals/EP-0194-atomic-algebraic-mixins-and-protocol-composition.md`](EP-0194-atomic-algebraic-mixins-and-protocol-composition.md)
+  - [`docs/proposals/EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md`](EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md) (Phase 8.5 protocol-integrity & law-witness enforcement)
 
 ---
 
@@ -365,3 +367,4 @@ None. The prototype has been verified, benchmarked, and reviewed by the Grand Co
 
 - **2026-11-01**: Authored initial flat mixin composition proposal as EP-0194.
 - **2026-11-12**: Unified with EXP-0008 findings (Law Witnesses & Canonical Operations) and elevated to foundational canon as EP-0005.
+- **2026-11-26**: Cross-referenced Phase 8.5 protocol-integrity and law-witness enforcement (`EP-0250`).

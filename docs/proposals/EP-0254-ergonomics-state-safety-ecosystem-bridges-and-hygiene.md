@@ -53,7 +53,7 @@ While AlgebraX's mathematical breadth has grown to 111 modules and 36.6k LOC, pe
 
 - **💡 Richard Feynman (Clarity & Freshman Test)**: Error messages, CLI commands, Jupyter HTML tables, and exception types (`TypeError` vs `ValueError` vs `KeyError`) should fail loudly, clearly, and predictably—never silently falling back or rendering broken HTML.
 - **🛡️ The Golem (Safety & State Gravity)**: Never return aliased caller dicts or expose mutable internal state on `frozen=True` dataclasses; never rely on implicit negative-weight heuristics or negative-index wraparound.
-- **🌿 The Steward (Harmony & Maintainability)**: Splitting monolithic files along natural domain seams, consolidating duplicated helpers, and re-enabling Ruff `F401` keeps the codebase clean and refactorable before Phase 10–11 expansion.
+- **🌿 The Steward (Harmony & Maintainability)**: Splitting monolithic files along natural domain seams, consolidating duplicated helpers, and re-enabling Ruff `F401` keeps the codebase clean and refactorable as part of the Phase 8.5 Second Grand Council Refinement Track before completing Phase 9 (`EP-0222`) and launching Phases 10–11.
 
 ---
 

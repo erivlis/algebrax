@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                                  |
 | **Type**          | Standards Track                                                                                        |
 | **Created**       | 2026-11-15                                                                                             |
-| **Updated**       | 2026-11-15                                                                                             |
+| **Updated**       | 2026-11-26                                                                                             |
 | **Replaces**      | —                                                                                                      |
 | **Superseded-By** | —                                                                                                      |
 
@@ -30,7 +30,7 @@ This proposal introduces bounded-order **Differential Galois Theory (Picard–Ve
 1. **Wronskian & Abel–Liouville Determinant Operators (`wronskian_operator`, `to_liouville_normal_form`)**: Converts order-$m$ differential Ore operators into $\operatorname{SL}_m$ normal form via the Abel–Liouville trace identity $W' = -\operatorname{Tr}(C_L)W$ (`EP-0241` `differential_companion_matrix` bridge).
 2. **Symmetric & Exterior Powers (`symmetric_power`, `exterior_power`)**: Exact $\mathbb{Q}(x)$ construction of minimal differential operators annihilating $k$-fold symmetric and alternating products of solutions ($\operatorname{Sym}^k(L), \Lambda^k(L)$), detecting invariant subspaces of the differential Galois group.
 3. **Order-2 Kovacic Liouvillian Classifier & Riccati Factorization (`kovacic_classify`, `kovacic_factorize`)**: Reuses Yun's `square_free_decomposition` (`EP-0242`) to check Kovacic admissibility (Cases 1–3), synthesize exact right-factors $L = (\partial - \omega_2)(\partial - \omega_1)$ over $k(x)$, or emit falsifiable **$\operatorname{SL}_2$ non-Liouvillian obstruction certificates** (proving no elementary/Liouvillian closed form exists, e.g., Airy's $y'' - xy = 0$).
-4. **Picard–Vessiot Torsor Interface (`PicardVessiotTorsor`)**: Bridges the differential Galois group $\operatorname{Gal}_\partial(E/k(x)) \subseteq \operatorname{GL}_m(k)$ to [`CoordinateHopfAlgebra`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md) and [`AffineVariety`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md).
+4. **Picard–Vessiot Torsor Interface (`PicardVessiotTorsor`)**: Bridges the differential Galois group $\operatorname{Gal}_\partial(E/k(x)) \subseteq \operatorname{GL}_m(k)$ to [`CoordinateHopfAlgebra`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md) and [`AffineVariety`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md) (built on `HopfAlgebra` from [`EP-0206`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)).
 
 ---
 
@@ -41,24 +41,24 @@ This proposal introduces bounded-order **Differential Galois Theory (Picard–Ve
 2. **Solving Apparent-Singularity Riccati ODEs Where General CAS Fall Back**:
    In `EXP-0011` Experiment 8, on $y'' - (x^2 + 3)y = 0$ (whose Riccati log-derivative $\omega_1(x) = x + \frac{1}{x}$ has an apparent pole at $x = 0$), `sympy.dsolve` fell back to an $O(x^6)$ power series and `sympy.solvers.ode.riccati.solve_riccati` returned `[]`, whereas exact Kovacic Case 1 Newton–Laurent extraction + linear solving over $\mathbb{Q}$ recovered $\omega_1 = \frac{x^2 + 1}{x}$ and verified $(\partial + \omega_1)(\partial - \omega_1) == \partial^2 - (x^2 + 3)$ identically.
 3. **Cross-Continent Structural Unification**:
-   Order-2 Kovacic subgroup classification ($\operatorname{Borel} \subset \operatorname{SL}_2$, $D_\infty$, finite primitive groups $A_4, S_4, A_5$, and full $\operatorname{SL}_2$) unifies [`OreAlgebra`](EP-0241-ore-skew-polynomial-algebras-dfinite-closure-and-frobenius.md), [`CoordinateHopfAlgebra`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md), [`GroupRepresentation`](EP-0210-group-representations-character-tables-schurs-lemma.md), and [`InvariantTheory`](EP-0214-invariant-theory-molien-series-casimir-polynomials.md).
+   Order-2 Kovacic subgroup classification ($\operatorname{Borel} \subset \operatorname{SL}_2$, $D_\infty$, finite primitive groups $A_4, S_4, A_5$, and full $\operatorname{SL}_2$) unifies [`OreAlgebra`](EP-0241-ore-skew-polynomial-algebras-dfinite-closure-and-frobenius.md), [`CoordinateHopfAlgebra`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md) (`HopfAlgebra` from [`EP-0206`](EP-0206-coalgebras-bialgebras-and-hopf-algebras.md)), [`GroupRepresentation`](EP-0210-group-representations-character-tables-schurs-lemma.md), and [`InvariantTheory`](EP-0214-invariant-theory-molien-series-casimir-polynomials.md).
 
 ---
 
 ## Rationale
 
-Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md) (Experiment 8) and aligned with the Grand Council:
+Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md) (Experiment 8) and aligned with the Grand Council and **Phase 8.5 (`EP-0250`–`EP-0254`)**:
 
 - **⚖️ Emmy Noether (Picard–Vessiot Torsors & Subgroup Geometry)**:
-  A Picard–Vessiot extension $E/k(x)$ is the differential analogue of a Galois splitting field; its differential automorphisms form an affine algebraic group $\operatorname{Gal}_\partial(E/k(x)) \subseteq \operatorname{GL}_m(k)$ whose fundamental matrix ring $R_{PV}$ is a torsor for a `CoordinateHopfAlgebra` (`EP-0206` / `EP-0221`). Symmetric powers $\operatorname{Sym}^k(L)$ correspond to symmetric tensor representations (`EP-0210`), turning invariant lines of $A_4, S_4, A_5$ (`EP-0214`) into rational/hyperexponential solutions of $\operatorname{Sym}^k(L)$ ($k \in \{2, 4, 6, 12\}$).
-- **⚡ Claude Shannon (`square_free_decomposition` Reuse & Sparse Carriers)**:
-  Kovacic pole-order classification requires only the **multiplicities** of finite poles of $r(x) = s(x)/t(x)$, which Yun's `square_free_decomposition(t)` (`EP-0242`) supplies with zero root factorization over $\overline{\mathbb{Q}}$. Meanwhile, `symmetric_power(L, k)` represents $y^k$ in the $(k+1)$-dimensional basis $M_j = y^{k-j} (y')^j$ via sparse $\mathbb{Q}(x)$ Gaussian elimination—staying 100% pure Python and AST-free.
-- **🔬 Karl Popper (Falsifiable Obstruction Certificates)**:
+  A Picard–Vessiot extension $E/k(x)$ is the differential analogue of a Galois splitting field; its differential automorphisms form an affine algebraic group $\operatorname{Gal}_\partial(E/k(x)) \subseteq \operatorname{GL}_m(k)$ whose fundamental matrix ring $R_{PV}$ is a torsor for `CoordinateHopfAlgebra` (`algebrax.variety`, `EP-0221`, grounded in `HopfAlgebra` from `EP-0206`). Symmetric powers $\operatorname{Sym}^k(L)$ correspond to symmetric tensor representations (`EP-0210`, flat Layer-1 `GroupRepresentation` protocol under `EP-0250`), turning invariant lines of $A_4, S_4, A_5$ (`EP-0214`) into rational/hyperexponential solutions of $\operatorname{Sym}^k(L)$ ($k \in \{2, 4, 6, 12\}$).
+- **⚡ Claude Shannon (`square_free_decomposition` Reuse & Shared Exact Kernels)**:
+  Kovacic pole-order classification requires only the **multiplicities** of finite poles of $r(x) = s(x)/t(x)$, which Yun's `square_free_decomposition(t)` (`EP-0242`) supplies with zero root factorization over $\overline{\mathbb{Q}}$. Meanwhile, `symmetric_power(L, k)`, `exterior_power(L, k)`, and Kovacic Case 1 linear solves reuse Phase 8.5 [`EP-0251`](EP-0251-sparse-linear-algebra-kernel-decompositions-and-hot-paths.md)'s consolidated exact `matrix.nullspace` / `solve_exact` kernels—staying 100% pure Python and AST-free with zero duplicated elimination loops. Exact `Fraction` arithmetic aligns with `EP-0252`'s widened `typing.N`.
+- **🔬 Karl Popper (Falsifiable Obstruction Certificates & Non-Vacuous Oracles)**:
   Negative solvability claims are falsifiable algebraic theorems:
   - Every `KovacicCertificate` proving $\operatorname{Gal}_\partial = \operatorname{SL}_2$ records the exact Yun pole multiplicities, `val_inf`, and failed admissibility predicates for Cases 1–3.
-  - Every positive factorization records explicit rational functions $(\omega_1, \omega_2)$ certified by exact operator multiplication $(\partial - \omega_2)(\partial - \omega_1) == L$ and cross-checked via `sympy.checkodesol`.
-- **🛡️ The Golem (Strict Dennis-Point Boundary & Exact Field Mandate)**:
-  General arbitrary-order ($n \ge 3$) Picard–Vessiot Galois group reconstruction (Hrushovski / van der Put–Singer algorithms) and arbitrary-degree algebraic number-field splitting towers are **explicitly deferred** under the Dennis Point. All rational-function operations strictly require exact characteristic-0 `Field`s (`StandardField(Fraction)`), rejecting IEEE-754 floating-point coefficients.
+  - Every positive factorization records explicit rational functions $(\omega_1, \omega_2)$ certified by exact operator multiplication $(\partial - \omega_2)(\partial - \omega_1) == L$ and cross-checked via `sympy.checkodesol`, adhering to Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts.
+- **🛡️ The Golem (Strict Dennis-Point Boundary, Exact Field Mandate & Hygiene)**:
+  General arbitrary-order ($n \ge 3$) Picard–Vessiot Galois group reconstruction (Hrushovski / van der Put–Singer algorithms) and arbitrary-degree algebraic number-field splitting towers are **explicitly deferred** under the Dennis Point. All rational-function operations strictly require exact characteristic-0 `Field`s (`StandardField(Fraction)`), rejecting IEEE-754 floating-point coefficients. Modules obey `EP-0254` hygiene (public-only cross-package imports, zero `EP-XXXX` references in `src/`).
 
 ---
 
@@ -72,7 +72,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Generic, Literal, TypeVar
 
-from algebrax.algebra._field import Field
+from algebrax.algebra import Field
 from algebrax.differential.ore import OreOp, RationalFunc, UniPoly
 
 V = TypeVar("V")
@@ -159,10 +159,13 @@ def kovacic_factorize(
 
 ### 2. Bridges to Existing Continents
 - **Companion Matrix Bridge (`EP-0241`)**: `wronskian_operator(L)` extracts $-\operatorname{Tr}(C_L)$ directly from `differential_companion_matrix(L)` (`EP-0241`), certifying when $\operatorname{Gal}_\partial(L) \subseteq \operatorname{SL}_m$.
-- **Hopf & Variety Bridge (`EP-0206` / `EP-0221`)**: `PicardVessiotTorsor` exposes the defining determinant/invariant polynomial relations of the Galois torsor as generators for `CoordinateHopfAlgebra` (`EP-0206`) and `AffineVariety` (`EP-0221`).
+- **Hopf & Variety Bridge (`EP-0221` / `EP-0206`)**: `PicardVessiotTorsor` exposes the defining determinant/invariant polynomial relations of the Galois torsor as generators for `CoordinateHopfAlgebra` (`algebrax.variety`, `EP-0221`, built on `HopfAlgebra` from `EP-0206`) and `AffineVariety` (`EP-0221`).
 - **Representation & Invariant Bridge (`EP-0210` / `EP-0214`)**: `symmetric_power(L, k)` for $k \in \{2, 4, 6, 12\}$ supplies the differential counterpart to invariant ring degrees for $D_\infty, A_4, S_4, A_5$.
 
-### 3. Verification Oracles (`src/algebrax/verification.py`)
+### 3. Verification Oracles (`src/algebrax/verification/_differential.py`)
+
+Exported publicly via `algebrax.verification` (complying with Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts):
+
 - `verify_differential_galois_laws(order2_op, field)`:
   1. **Operator Factorization Identity**: Whenever `kovacic_factorize` returns `(L_left, L_right, cert)`, verifies `ore.mul(L_left, L_right) == monic(order2_op)` identically in $k(x)[\partial_x]$.
   2. **Symmetric Power Annihilation Law**: Verifies `symmetric_power(L, k)` reproduces exact known operators ($\operatorname{Sym}^2(\partial^2 + 1) = \partial^3 + 4\partial$, $\operatorname{Sym}^2(\partial^2 - x) = \partial^3 - 4x\partial - 2$) and matches `SymPy` differential evaluation (`0` residual).
@@ -173,7 +176,7 @@ def kovacic_factorize(
 
 ## Backwards Compatibility
 
-100% additive and backwards compatible. Adds `algebrax.differential.galois` without modifying `algebrax.galois` (finite fields $\operatorname{GF}(p^m)$) or breaking any existing algebraic hierarchy or `EP-0240`–`EP-0242` APIs.
+100% additive and backwards compatible. Adds `algebrax.differential.galois` without modifying finite-field `GaloisField` (`algebrax.algebra` / `algebrax.galois`) or breaking any existing algebraic hierarchy or `EP-0240`–`EP-0242` APIs.
 
 ---
 
@@ -195,9 +198,9 @@ Prototyped and verified in [`references/explorations/EXP-0011-differential-and-o
 1. **Full Arbitrary-Order ($n \ge 3$) Picard–Vessiot Galois Group Solver (Hrushovski / van der Put–Singer)**:
    - *Rejected*: Violates the Dennis Point. Arbitrary-order Tannakian reconstruction requires deep algebraic-number-field splitting towers and Lie-algebra ideal decomposition disproportionate to AlgebraX's pure-Python scope.
 2. **Folding Kovacic Factorization into `EP-0241` (`OreAlgebra`)**:
-   - *Rejected*: `EP-0241` already spans skew-polynomial unification (`differential`, `shift`, `difference`, `q_difference`), `gcrd`/`lclm`, Frobenius indicial roots, and companion matrices. Differential Galois Theory depends jointly on `EP-0241` (Ore operators), `EP-0242` (`square_free_decomposition`), `EP-0206` (`CoordinateHopfAlgebra`), and `EP-0210`/`EP-0214` (finite $\operatorname{SL}_2$ subgroups), warranting a dedicated, cohesive EP.
+   - *Rejected*: `EP-0241` already spans skew-polynomial unification (`differential`, `shift`, `difference`, `q_difference`), `gcrd`/`lclm`, Frobenius indicial roots, and companion matrices. Differential Galois Theory depends jointly on `EP-0241` (Ore operators), `EP-0242` (`square_free_decomposition`), `EP-0221`/`EP-0206` (`CoordinateHopfAlgebra`/`HopfAlgebra`), and `EP-0210`/`EP-0214` (finite $\operatorname{SL}_2$ subgroups), warranting a dedicated, cohesive EP.
 3. **Replacing `algebrax.galois` ($\operatorname{GF}(p^m)$)**:
-   - *Rejected*: `algebrax.galois` implements Galois finite fields $\operatorname{GF}(p^m)$ for AES/coding theory (`EP-0112`); keeping Differential Galois Theory cleanly inside `algebrax.differential.galois` avoids breaking backwards compatibility or overloading finite-field namespaces.
+   - *Rejected*: `GaloisField` ($\operatorname{GF}(p^m)$, canonically in `algebrax.algebra` with domain facade `algebrax.galois`, `EP-0112`) serves AES/coding theory and finite-field varieties; keeping Differential Galois Theory cleanly inside `algebrax.differential.galois` avoids breaking backwards compatibility or overloading finite-field namespaces.
 
 ---
 
@@ -212,3 +215,5 @@ Prototyped and verified in [`references/explorations/EXP-0011-differential-and-o
 
 * **2026-11-15:**
   * Initial Draft authored for Phase 11 from `EXP-0011` Experiment 8.
+* **2026-11-26:**
+  * Aligned with Phase 8.5 (`EP-0250`–`EP-0254`): corrected `CoordinateHopfAlgebra` attribution to `EP-0221` (`algebrax.variety`), noted canonical `GaloisField` location in `algebrax.algebra`, switched private `algebra._field` import to public `algebrax.algebra`, documented `EP-0251` exact linear-algebra kernel reuse, updated verification path to `src/algebrax/verification/_differential.py`, and noted `EP-0253`/`EP-0254` contracts.

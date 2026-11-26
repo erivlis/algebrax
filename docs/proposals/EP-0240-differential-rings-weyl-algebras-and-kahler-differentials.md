@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                                  |
 | **Type**          | Standards Track                                                                                        |
 | **Created**       | 2026-11-15                                                                                             |
-| **Updated**       | 2026-11-15                                                                                             |
+| **Updated**       | 2026-11-26                                                                                             |
 | **Replaces**      | —                                                                                                      |
 | **Superseded-By** | —                                                                                                      |
 
@@ -47,16 +47,18 @@ Through Phases 1–10, AlgebraX provides commutative polynomial ideals (`EP-0220
 
 ## Rationale
 
-Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md) (Experiments 1, 5, and 7) and aligned with the Grand Council:
+Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md) (Experiments 1, 5, and 7) and aligned with the Grand Council and **Phase 8.5 (`EP-0250`–`EP-0254`)**:
 
 - **⚖️ Emmy Noether (Quantization & Ideal–Variety Continuity)**:
-  Weyl algebras quantize the canonical Poisson bracket of `EP-0204`/`EP-0220`, while principal symbols reverse quantization by projecting left $D$-module ideals $I \subseteq A_n(k)$ back onto commutative `AffineVariety` characteristic loci $\operatorname{Char}(I) \subset k^{2n}$.
-- **⚡ Claude Shannon (Unboxed Carriers & $O(\log m)$ Multiplicity Scaling)**:
-  Operators remain sparse `dict[tuple[Monomial, Monomial], V]` mappings reusing `Monomial = tuple[int, ...]` with zero AST wrapper classes. Combinatorial Leibniz coefficients $\binom{\beta}{\kappa}\binom{u}{\kappa}\kappa!$ MUST be embedded into the base `Field[V]` in $O(\log m)$ operations via `field.nsum(field.one, mult)` rather than linear $O(m)$ addition loops (avoiding $10!$-iteration stalls on order-10 derivatives).
-- **🛡️ The Golem (Exact Field Mandate & Admissible Ordering Termination)**:
-  Because $[\partial_i, x_i] = 1$ cancellation residuals of $10^{-16}$ fabricate unit ideals $\langle 1 \rangle$, `WeylLeftIdeal` MUST reject IEEE-754 floating-point fields (`float`, `complex`) at construction and enforce strictly well-founded admissible monomial orderings (e.g., Bernstein $(1,1)$ weight) to guarantee left-reduction termination.
-- **🧩 Bertrand Russell (Clean Protocol Separation)**:
-  `WeylAlgebra[V]` implements associative `Ring[WeylPoly[V]]` and `Algebra[V, WeylPoly[V]]` **without** inheriting `CommRing` or `LawCommutative`. `HasSkewDerivation[R]` composes alongside `HasDerivation[V]` without conflicting method signatures.
+  Weyl algebras quantize the canonical Poisson bracket of `EP-0204`/`EP-0220`, while principal symbols reverse quantization by projecting left $D$-module ideals $I \subseteq A_n(k)$ back onto commutative `AffineVariety` characteristic loci $\operatorname{Char}(I) \subset k^{2n}$. Exact `Fraction` coefficients align with `EP-0252`'s widened `typing.N`.
+- **⚡ Claude Shannon (Unboxed Carriers, $O(\log m)$ Scaling & Shared Exact Linear Algebra)**:
+  Operators remain sparse `dict[tuple[Monomial, Monomial], V]` mappings reusing `Monomial = tuple[int, ...]` with zero AST wrapper classes. Combinatorial Leibniz coefficients $\binom{\beta}{\kappa}\binom{u}{\kappa}\kappa!$ MUST be embedded into the base `Field[V]` in $O(\log m)$ operations via `field.nsum(field.one, mult)` rather than linear $O(m)$ addition loops (avoiding $10!$-iteration stalls on order-10 derivatives). Regular Hessian inversion in `legendre_transform` and exact linear solves in `WeylLeftIdeal` / `AlgebraicDeRhamComplex` reuse Phase 8.5 [`EP-0251`](EP-0251-sparse-linear-algebra-kernel-decompositions-and-hot-paths.md)'s consolidated `matrix.sparse_rref` / `solve_exact` / `rank` / `nullspace` kernels instead of duplicating elimination loops.
+- **🛡️ The Golem (Exact Field Mandate, Admissible Termination & Hygiene)**:
+  Because $[\partial_i, x_i] = 1$ cancellation residuals of $10^{-16}$ fabricate unit ideals $\langle 1 \rangle$, `WeylLeftIdeal` MUST reject IEEE-754 floating-point fields (`float`, `complex`) at construction and enforce strictly well-founded admissible monomial orderings (e.g., Bernstein $(1,1)$ weight) to guarantee left-reduction termination. All new modules in `src/algebrax/differential/` obey `EP-0254` hygiene (public-only cross-package imports, zero `EP-XXXX` citations in `src/`).
+- **🧩 Bertrand Russell (Clean Protocol Separation & Law Witnesses)**:
+  Following `EP-0005` and Phase 8.5 [`EP-0250`](EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md), `WeylAlgebra[V]` implements associative `Ring[WeylPoly[V]]` and `Algebra[V, WeylPoly[V]]` **without** inheriting `CommRing` or `LawCommutative`. `HasSkewDerivation[R]`, `LawLeibniz`, and `LawRotaBaxter` follow flat Layer-1 composition with `Literal[True]` law-witness properties.
+- **🔬 Karl Popper (Non-Vacuous Verification Oracles)**:
+  All differential verification routines follow Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts (`_materialize_samples`, `NaN != NaN` equality guard).
 - **💡 Richard Feynman (The Freshman Test)**:
   *"Instead of taking numerical limits $\Delta x \to 0$, you keep $x$ and $\partial_x$ as algebraic letters that obey one rule: $\partial_x x = x\partial_x + 1$. Every derivative rule, differential operator product, and tangent form computation reduces to sorting letters alphabetically with that single swap."*
 
@@ -67,7 +69,7 @@ Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/refere
 ### 1. Atomic Differential Mixins (`src/algebrax/algebra/_mixins.py`)
 
 ```python
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Literal, Protocol, TypeVar, runtime_checkable
 
 V = TypeVar("V")
 R = TypeVar("R")
@@ -96,6 +98,9 @@ class HasIntegrate(Protocol[V]):
 @runtime_checkable
 class LawLeibniz(Protocol):
     """Axiom marker asserting that `diff` / `delta` satisfies the (skew) Leibniz product rule."""
+
+    @property
+    def is_leibniz(self) -> Literal[True]: ...
 
 
 @runtime_checkable
@@ -176,10 +181,14 @@ from __future__ import annotations
 
 from typing import Generic, Literal, TypeVar
 
-from algebrax.algebra._field import Field
-from algebrax.algebra._mixins import LawAssociative
-from algebrax.algebra._module import Algebra
-from algebrax.algebra._polynomial import Monomial, MultivariatePolynomialAlgebra, SparseMPoly
+from algebrax.algebra import (
+    Algebra,
+    Field,
+    LawAssociative,
+    Monomial,
+    MultivariatePolynomialAlgebra,
+    SparseMPoly,
+)
 
 V = TypeVar("V")
 WeylMonomial = tuple[Monomial, Monomial]  # (x_exponents, d_exponents)
@@ -301,7 +310,9 @@ class KahlerDifferentialModule(AlgebraicDeRhamComplex[V], Generic[V]):
         ...
 ```
 
-### 5. Verification Oracles (`src/algebrax/verification.py`)
+### 5. Verification Oracles (`src/algebrax/verification/_differential.py`)
+
+Exported publicly via `algebrax.verification` (complying with Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts):
 
 - `verify_weyl_algebra_laws(weyl, ops, poly_f)`:
   1. Verifies CCR axioms $[\partial_i, x_j] == \delta_{ij} \mathbf{1}$, $[x_i, x_j] == 0$, $[\partial_i, \partial_j] == 0$.
@@ -361,3 +372,5 @@ Prototyped and verified in [`references/explorations/EXP-0011-differential-and-o
   * Added `LawRotaBaxter` mixin and `DifferentialPolynomialRing` ($k\{u\}$ total derivative & Euler–Lagrange variational complex) validated in `EXP-0011` Experiment 9.
   * Added `CanonicalPoissonAlgebra`, `legendre_transform`, and Weyl–Poisson Ehrenfest verification validated in `EXP-0011` Experiment 10.
   * Expanded Kähler differentials into graded `AlgebraicDeRhamComplex` ($d_k$, $\wedge$, $\iota_X$, $\mathcal{L}_X$, Poincaré homotopy $h_k$) validated in `EXP-0011` Experiment 11.
+* **2026-11-26:**
+  * Aligned with Phase 8.5 (`EP-0250`–`EP-0254`): added `is_leibniz: Literal[True]` witness on `LawLeibniz`, replaced private `algebra._*` imports with public `algebrax.algebra`, documented `EP-0251` exact linear-algebra kernel reuse, updated verification path to `src/algebrax/verification/_differential.py`, and noted `EP-0253`/`EP-0254` contracts.

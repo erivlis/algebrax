@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                                                    |
 | **Type**    | Informational                                             |
 | **Created** | 2026-08-01                                                |
-| **Updated** | 2026-11-25                                                |
+| **Updated** | 2026-11-26                                                |
 
 ## Abstract
 
@@ -32,9 +32,10 @@ and Fiedler partitioning (`EP-0152`), the **Phase 4 Algebraic Continents & Next 
 the **Phase 6 Pure Algebraic Hierarchy** (`EXP-0004`, `EP-0190` through `EP-0198`),
 the **Phase 7 Categorical Foundations & Morphisms** (`EXP-0005`, `EP-0200` through `EP-0209`),
 the **Phase 8 Representation Theory & Quantum Symmetries** (`EXP-0006`, `EP-0210` through `EP-0215`),
+the **Phase 8.5 Second Grand Council Refinement & Hardening Track** (`EP-0250` through `EP-0254`),
 the **Phase 9 Commutative Algebra, Algebraic Varieties & Tropical Geometry** (`EXP-0009`, `EP-0220` through `EP-0222`),
 the **Phase 10 Generalized Harmonic Analysis & Spectral Signal Theory** (`EXP-0010`, `EP-0230` through `EP-0232`), and
-the **Phase 11 Algebraic Analysis, Differential Rings & Ore Algebras** (`EXP-0011`, `EP-0240` through `EP-0242`).
+the **Phase 11 Algebraic Analysis, Differential Rings & Ore Algebras** (`EXP-0011`, `EP-0240` through `EP-0243`).
 
 ---
 
@@ -132,9 +133,17 @@ flowchart TD
         EP0215_N["EP-0215 Quantum Groups & Yang-Baxter ✅\n⚖️ Noether & 🛡️ Golem"]
     end
 
+    subgraph P85["Phase 8.5 — Second Grand Council Refinement Track"]
+        EP0250_N["EP-0250 Protocol & Algebraic Soundness 💡\n⚖️ Noether & 🧩 Russell"]
+        EP0251_N["EP-0251 Sparse Linalg & Hot Paths 💡\n⚡ Shannon & 🛡️ Golem"]
+        EP0252_N["EP-0252 Universal Semirings & Unification 💡\n🧭 Explorer & ⚖️ Noether"]
+        EP0253_N["EP-0253 Verification & Grounded Proofs 💡\n🔬 Popper & 🧪 Bacon"]
+        EP0254_N["EP-0254 Ergonomics, Safety & Hygiene 💡\n💡 Feynman, 🌿 Steward & 🛡️ Golem"]
+    end
+
     subgraph P9["Phase 9 — Algebraic & Tropical Varieties (EXP-0009)"]
         EP0220_N["EP-0220 Multivariate Polys & Gröbner ✅\n⚡ Shannon, 🔬 Popper & ⚖️ Noether"]
-        EP0221_N["EP-0221 Affine Varieties & Stickelberger 💡\n⚖️ Noether, 🧩 Russell & ⚡ Shannon"]
+        EP0221_N["EP-0221 Affine Varieties & Stickelberger ✅\n⚖️ Noether, 🧩 Russell & ⚡ Shannon"]
         EP0222_N["EP-0222 Tropical Varieties & Polyhedra 💡\n🧭 Explorer, ⚖️ Noether & ⚡ Shannon"]
     end
 
@@ -148,6 +157,7 @@ flowchart TD
         EP0240_N["EP-0240 Differential Rings, Weyl & Kähler 💡\n⚖️ Noether, ⚡ Shannon & 🛡️ Golem"]
         EP0241_N["EP-0241 Ore Algebras, D-Finite & Frobenius 💡\n⚖️ Noether, ⚡ Shannon & 🔬 Popper"]
         EP0242_N["EP-0242 Hermite, Gosper, Telescoping & Jets 💡\n⚡ Shannon, 🔬 Popper & 🛡️ Golem"]
+        EP0243_N["EP-0243 Picard-Vessiot & Kovacic 💡\n⚖️ Noether, 🔬 Popper & 🛡️ Golem"]
     end
 
     EP0152_N --> EP0160_N
@@ -172,30 +182,41 @@ flowchart TD
     EP0201_N --> EP0210_N
     EP0206_N --> EP0215_N
     EP0209_N --> EP0211_N
-    P8 --> P9
+    P8 --> P85
+    P85 --> P9
     EP0201_N --> EP0220_N
     EP0207_N --> EP0221_N
     EP0214_N --> EP0221_N
     EP0165_N --> EP0222_N
     EP0220_N --> EP0221_N
     EP0220_N --> EP0222_N
+    EP0250_N --> EP0222_N
+    EP0251_N --> EP0222_N
     P9 --> P10
     EP0210_N --> EP0230_N
+    EP0250_N --> EP0230_N
     EP0221_N --> EP0231_N
     EP0112 --> EP0231_N
+    EP0250_N --> EP0231_N
     EP0160_N --> EP0232_N
     EP0161_N --> EP0232_N
+    EP0251_N --> EP0232_N
+    EP0252_N --> EP0232_N
     P10 --> P11
     EP0204_N --> EP0240_N
     EP0220_N --> EP0240_N
     EP0221_N --> EP0240_N
+    EP0251_N --> EP0240_N
     EP0231_N --> EP0241_N
     EP0240_N --> EP0241_N
     EP0241_N --> EP0242_N
     EP0149_N --> EP0242_N
+    EP0241_N --> EP0243_N
+    EP0242_N --> EP0243_N
     style CORE fill: #4a90d9, color: #fff
     style P3 fill: #2d7d46, color: #fff
     style P35 fill: #8b5cf6, color: #fff
+    style P85 fill: #8b5cf6, color: #fff
     style P4 fill: #d97706, color: #fff
     style EP0100 fill: #3b82f6, color: #fff
     style EP0101 fill: #3b82f6, color: #fff
@@ -327,6 +348,13 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Final]
   │     └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Final]
   │
+  ├── Phase 8.5: Second Grand Council Refinement & Hardening Track  ⏳ PLANNED
+  │     ├── EP-0250: Protocol Integrity, Law Witnesses & Algebraic Soundness (Noether/Russell) [Draft]
+  │     ├── EP-0251: Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance (Shannon/Golem) [Draft]
+  │     ├── EP-0252: Universal Semiring Propagation, Parameterized Tries & Domain Unification (Explorer/Noether) [Draft]
+  │     ├── EP-0253: Verification Engine Hardening, Falsifiability & Grounded Formal Proofs (Popper/Bacon) [Draft]
+  │     └── EP-0254: Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene (Feynman/Steward/Golem) [Draft]
+  │
   ├── Phase 9: Commutative Algebra, Algebraic Varieties & Tropical Geometry (EXP-0009)  ⏳ IN PROGRESS
   │     ├── EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals (Shannon/Popper/Noether) [Final]
   │     ├── EP-0221: Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers (Noether/Russell/Shannon) [Final]
@@ -425,6 +453,11 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0241** | Ore Algebras, D-Finite & Frob  | Noether & Popper  | `algebrax.differential`                  | Draft    | Mode-parameterized `OreAlgebra`, `right_divmod`, `gcrd`, `lclm`, `symmetric_product`, `indicial_polynomial`, `differential_newton_polygon`, `guess_ore_operator`, `differential_companion_matrix` |
 | **EP-0242** | Hermite, Gosper, CT & Jets     | Shannon & Popper  | `algebrax.differential`                  | Draft    | `hermite_reduce`, `rothstein_trager_resultant`, `gosper_sum`, `creative_telescope`, `TaylorJetAlgebra`, `solve_ode_jet`, `solve_hamiltonian_jet` |
 | **EP-0243** | Differential Galois & Kovacic  | Noether & Popper  | `algebrax.differential`                  | Draft    | `wronskian_operator`, `symmetric_power`, `exterior_power`, `kovacic_classify`, `kovacic_factorize`, `PicardVessiotTorsor`                  |
+| **EP-0250** | Protocol & Algebraic Soundness | Noether & Russell | `algebra`, `semiring`, `group`, `rep`, `lie`, `clifford` | Draft | *(Phase 8.5)* Law witnesses (`CommRing`, `DivisionRing`, `Semiring`), flat `GroupRepresentation`, non-comm `MonoidAlgebra`/`QuotientRing`, `GaloisField`/`ModularField` guards, unified permutation composition |
+| **EP-0251** | Sparse Linalg & Hot Paths      | Shannon & Golem   | `matrix`, `tensor`, `topology`, `sheaf`, `variety` | Draft | *(Phase 8.5)* Unified sparse RREF/`rank`/`nullspace`, QR/SVD/Cholesky/LU fixes, $O(\text{nnz})$ `mat_vec`/`inner`/Gram, `SimplicialComplex` fast rebuild & degenerate guard, `CellularSheaf` `tol` |
+| **EP-0252** | Universal Semirings & Unif.    | Explorer & Noether| `trie`, `analysis`, `matrix`, `typing`, `variety` | Draft | *(Phase 8.5)* Parameterized `AlgebraicTrie`, `SparseChainComplex.hodge_laplacian(semiring=...)`, `RectSparseMatrix`, widened `typing.N` (`Fraction`), K-theory/Milnor exact guards |
+| **EP-0253** | Verification & Grounded Proofs | Popper & Bacon    | `verification/`, `tests/verifications/`  | Draft    | *(Phase 8.5)* Non-vacuous Popper sample guards (`_materialize_samples`), `NaN != NaN` equality guard, `verify_group_laws` identity/inverse fix, grounded Z3/PIT/hypothesis suites |
+| **EP-0254** | Ergonomics, Safety & Hygiene   | Feynman & Steward | `__main__`, `display`, `converters`, core| Draft    | *(Phase 8.5)* CLI strict errors, HTML-escaped `RichDisplayable`, safe `converters` bounds, immutable returns, split god modules, clean `__all__`, Ruff `F401`, zero `EP-XXXX` in `src/` |
 
 ---
 
@@ -483,3 +516,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-23 | Eran Rivlis & Antigravity | Implemented EP-0212 (Quiver Representations, Path Algebras & Gabriel's ADE Theorem): `algebrax.rep.quiver`, `algebrax.algebra.PathAlgebra`, `CellularSheaf` bridge, verifiers, SymPy oracles & guide; status Final (**Phase 8 Complete — 6/6 Final**). |
 | 2026-11-25 | Eran Rivlis & Antigravity | Implemented EP-0220 (Multivariate Polynomial Algebra & Exact Gröbner Ideals): `HasBasis`/`HasDerivation`, `MultivariatePolynomialAlgebra`, hybrid Gebauer–Möller Buchberger & $F_4$ sparse Macaulay engine, `GroebnerIdeal`, exact `Field` operations on `GaloisField`, `verify_groebner_basis_laws`, SymPy oracles & guide; status Final (**Phase 9 Launched — 1/3 Final**). |
 | 2026-11-25 | Eran Rivlis & Antigravity | Implemented EP-0221 (Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers): `algebrax.variety` (4 geometric mixins, `AffineVariety`, Stickelberger companion solvers, finite-field varieties & $\mathbb{F}_2$ SAT, `PolynomialMap`, `syzygy_variety`, `plucker_grassmannian_variety`, `CoordinateHopfAlgebra`, $K_0/K_1/K_2^M$ bridges), verifiers, SymPy oracles, guide & 2 Tier-4 recipes; status Final (**Phase 9 — 2/3 Final**). |
+| 2026-11-26 | Eran Rivlis & Antigravity | Convened Second Grand Council Codebase Audit across all 111 modules (36.6k LOC); established **Phase 8.5 — Second Grand Council Refinement & Hardening Track** (`EP-0250` through `EP-0254`, Draft) and aligned foundational & unimplemented EPs (`EP-0003`, `EP-0005`, `EP-0222`, `EP-0230`–`EP-0232`, `EP-0240`–`EP-0243`). |

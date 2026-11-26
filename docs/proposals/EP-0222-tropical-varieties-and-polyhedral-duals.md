@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                          |
 | **Type**          | Standards Track                                                                                |
 | **Created**       | 2026-11-14                                                                                     |
-| **Updated**       | 2026-11-14                                                                                     |
+| **Updated**       | 2026-11-26                                                                                     |
 | **Replaces**      | —                                                                                              |
 | **Superseded-By** | —                                                                                              |
 
@@ -30,7 +30,7 @@ This proposal extends `algebrax.variety` into **Tropical Algebraic Geometry**—
 1. **Tropical Multivariate Polynomials (`TropicalPolynomialAlgebra`)**:
    Evaluates and composes multivariate tropical polynomials
    $$f_{\text{trop}}(w) = \bigoplus_{\alpha \in \mathcal{A}} c_\alpha \odot w^{\odot \alpha} = \min_{\alpha \in \mathcal{A}} \left(c_\alpha + \langle \alpha, w \rangle\right)$$
-   over `TropicalSemiring` (min-plus) or `MaxPlusSemiring` (max-plus).
+   over `TropicalSemiring` (min-plus) or `ArcticSemiring` (max-plus).
 2. **Tropical Hypersurfaces (`TropicalHypersurface`)**:
    Computes the tropical zero locus $\mathcal{T}(f) \subseteq \mathbb{R}^n$—the set of points $w \in \mathbb{R}^n$ where the minimum in $f_{\text{trop}}(w)$ is achieved by **at least two** distinct monomials simultaneously (the non-differentiable corner locus).
 3. **Newton Polytopes & Dual Regular Subdivisions (`newton_subdivision`)**:
@@ -43,7 +43,7 @@ This proposal extends `algebrax.variety` into **Tropical Algebraic Geometry**—
 
 ## Motivation
 
-Standard computer algebra systems (such as SymPy) treat polynomials exclusively over classical rings $(+, \times)$ and have no native concept of tropical varieties. Conversely, AlgebraX was built from day one around **Semiring Polymorphism** (`TropicalSemiring`, `MaxPlusSemiring`) and **Discrete Topology** (`SimplicialComplex`, `CellularSheaf`):
+Standard computer algebra systems (such as SymPy) treat polynomials exclusively over classical rings $(+, \times)$ and have no native concept of tropical varieties. Conversely, AlgebraX was built from day one around **Semiring Polymorphism** (`TropicalSemiring`, `ArcticSemiring`) and **Discrete Topology** (`SimplicialComplex`, `CellularSheaf`):
 
 1. **Unifying Classical & Tropical Geometry on One Carrier**:
    In AlgebraX, a multivariate polynomial `p: dict[tuple[int, ...], float]` does not store a ring inside the data structure. Passed to `MultivariatePolynomialAlgebra(field)` ([`EP-0220`](EP-0220-multivariate-polynomial-algebra-and-groebner-ideals.md)), it defines a classical smooth/algebraic curve; passed to `TropicalHypersurface(p)`, the *exact same dictionary* defines a piecewise-linear polyhedral skeleton!
@@ -56,18 +56,19 @@ Standard computer algebra systems (such as SymPy) treat polynomials exclusively 
 
 ## Rationale
 
-Validated in [**EXP-0009**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0009-algebraic-and-tropical-varieties/README.md) (Experiment 5, grounded in Richter-Gebert, Sturmfels & Theobald [RGST-2003]) and aligned with the Grand Council:
+Validated in [**EXP-0009**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0009-algebraic-and-tropical-varieties/README.md) (Experiment 5, grounded in Richter-Gebert, Sturmfels & Theobald [RGST-2003]) and aligned with the Grand Council and **Phase 8.5 (`EP-0250`–`EP-0254`)**:
 
-- **⚡ Claude Shannon (Zero-Copy Carrier Polymorphism)**:
-  Zero new data structures are needed for tropical polynomials: `SparseMPoly[float] = dict[tuple[int, ...], float]` is shared 1-to-1 with `EP-0220`.
-- **⚖️ Emmy Noether (The Zero-Tension Balancing Conservation Law)**:
-  A polyhedral complex is a tropical variety if and only if it satisfies the **Balancing Condition** ($\sum m_e u_e = \mathbf{0}$) at every vertex. Physically, a tropical curve is a mechanical web of strings under integer tension $m_e$ in static equilibrium—a discrete conservation law dual to the closure of cycles in the Newton polygon subdivision.
+- **⚡ Claude Shannon (Zero-Copy Carrier Polymorphism & Shared Kernels)**:
+  Zero new data structures are needed for tropical polynomials: `SparseMPoly[float] = dict[tuple[int, ...], float]` is shared 1-to-1 with `EP-0220`. Lower-hull normal/balancing linear solves reuse Phase 8.5's consolidated sparse linear algebra kernels (`EP-0251`), and `.to_simplicial_complex()` builds on `EP-0251`'s single-rebuild `SimplicialComplex` with degenerate-simplex guards and exact `matrix.rank` for `betti_numbers`.
+- **⚖️ Emmy Noether (The Zero-Tension Balancing Conservation Law & Semiring Soundness)**:
+  A polyhedral complex is a tropical variety if and only if it satisfies the **Balancing Condition** ($\sum m_e u_e = \mathbf{0}$) at every vertex. Physically, a tropical curve is a mechanical web of strings under integer tension $m_e$ in static equilibrium—a discrete conservation law dual to the closure of cycles in the Newton polygon subdivision. Tropical evaluation relies on `EP-0250`'s zero-annihilation guards (`inf + (-inf) == zero`, never `NaN`) on `TropicalSemiring` and `ArcticSemiring`.
 - **🔬 Karl Popper (Falsifiable Corner-Locus & Balancing Oracles)**:
   Every extracted vertex $v \in \mathcal{T}(f)$ is empirically falsifiable on two independent axes:
   1. **Multi-Attainment**: At least $n + 1$ monomials achieve the exact minimum $f_{\text{trop}}(v)$ at $v$.
   2. **Zero-Tension Equilibrium**: The dual normal primitive vectors around $v$ sum to $\mathbf{0} \in \mathbb{Z}^n$.
-- **💡 Richard Feynman (The Freshman Test)**:
-  *"In tropical math, addition is `min` and multiplication is `+`, so a polynomial like $x^2 + xy + y^2$ becomes $\min(2x, x+y, 2y)$—a roof made of flat planes! Since $\min$ can never equal zero by cancelling positive and negative numbers, what replaces 'roots'? The creases where two or more roof planes collide!"*
+  Verification routines obey Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts (`_materialize_samples`, `NaN != NaN` equality guard).
+- **💡 Richard Feynman (The Freshman Test & Display Hygiene)**:
+  *"In tropical math, addition is `min` and multiplication is `+`, so a polynomial like $x^2 + xy + y^2$ becomes $\min(2x, x+y, 2y)$—a roof made of flat planes! Since $\min$ can never equal zero by cancelling positive and negative numbers, what replaces 'roots'? The creases where two or more roof planes collide!"* `TropicalHypersurface` implements `EP-0254`'s `RichDisplayable` protocol (HTML-escaped Jupyter rendering) and keeps `src/` free of cross-package private imports and `EP-XXXX` references.
 
 ---
 
@@ -81,14 +82,14 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from algebrax.algebra._polynomial import Monomial, SparseMPoly
-from algebrax.semiring.optimization import MaxPlusSemiring, TropicalSemiring
+from algebrax.algebra import Monomial, SparseMPoly
+from algebrax.semiring import ArcticSemiring, TropicalSemiring
 
 
 def tropical_eval(
     poly: SparseMPoly[float],
     point: Sequence[float],
-    semiring: TropicalSemiring | MaxPlusSemiring | None = None,
+    semiring: TropicalSemiring | ArcticSemiring | None = None,
 ) -> float:
     r"""Evaluate tropical polynomial $\bigoplus_{\alpha} (c_\alpha \odot w^{\odot \alpha})$ at `point`."""
     ...
@@ -99,7 +100,7 @@ def active_monomials(
     point: Sequence[float],
     *,
     tol: float = 1e-9,
-    semiring: TropicalSemiring | MaxPlusSemiring | None = None,
+    semiring: TropicalSemiring | ArcticSemiring | None = None,
 ) -> set[Monomial]:
     r"""Return all monomials $\alpha$ that attain the tropical optimum at `point`."""
     ...
@@ -136,7 +137,7 @@ class TropicalHypersurface(GeometricVariety[float]):
         poly: SparseMPoly[float],
         n_vars: int = 2,
         *,
-        semiring: TropicalSemiring | MaxPlusSemiring | None = None,
+        semiring: TropicalSemiring | ArcticSemiring | None = None,
         tol: float = 1e-9,
     ) -> None: ...
 
@@ -187,7 +188,9 @@ def tropical_plucker_relations(
     ...
 ```
 
-### 3. Verification Oracles (`src/algebrax/verification.py`)
+### 3. Verification Oracles (`src/algebrax/verification/_variety.py`)
+
+Exported publicly via `algebrax.verification` and complying with Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts:
 
 - `verify_tropical_hypersurface_laws(hypersurface)`:
   1. Verifies every vertex $v$ satisfies `len(active_monomials(poly, v)) >= n_vars + 1`.
@@ -235,3 +238,5 @@ Prototyped and verified in [`references/explorations/EXP-0009-algebraic-and-trop
 
 * **2026-11-14:**
   * Initial Draft authored for Phase 9 from `EXP-0009`.
+* **2026-11-26:**
+  * Aligned with Phase 8.5 (`EP-0250`–`EP-0254`): replaced non-existent `MaxPlusSemiring` with `ArcticSemiring`, switched private `algebra._polynomial` import to public `algebrax.algebra`, updated verification path to `src/algebrax/verification/_variety.py`, and documented `EP-0250`/`EP-0251`/`EP-0253`/`EP-0254` contracts.

@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                           |
 | **Type**          | Standards Track                                                                                 |
 | **Created**       | 2026-11-14                                                                                      |
-| **Updated**       | 2026-11-14                                                                                      |
+| **Updated**       | 2026-11-26                                                                                      |
 | **Replaces**      | —                                                                                               |
 | **Superseded-By** | —                                                                                               |
 
@@ -25,7 +25,7 @@ status: draft
 
 ## Abstract
 
-This proposal unifies three exact algebraic transform frameworks across [`algebrax.algebra`](https://github.com/erivlis/algebrax/tree/main/src/algebrax/algebra), [`algebrax.variety`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md), [`algebrax.galois`](EP-0112-galois-finite-fields.md), and [`algebrax.lattice`](https://github.com/erivlis/algebrax/blob/main/src/algebrax/lattice.py):
+This proposal unifies three exact algebraic transform frameworks across [`algebrax.algebra`](https://github.com/erivlis/algebrax/tree/main/src/algebrax/algebra) (which canonically hosts `ModularField`, `GaloisField`, `PolynomialAlgebra`, and `CommQuotientRing`), [`algebrax.variety`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md), and [`algebrax.lattice`](https://github.com/erivlis/algebrax/blob/main/src/algebrax/lattice.py):
 
 1. **General Principal Polynomial Modulus Ideals (`PolynomialModulusIdeal`) & Püschel–Moura Algebraic Signal Models (`AlgebraicSignalModel`)**:
    Generalizes `PolynomialTruncationIdeal` ($\langle x^d \rangle$) to arbitrary monic modulus polynomials $\langle P(x) \rangle \triangleleft k[x]$ and connects Püschel–Moura's Algebraic Signal Processing triple $(\mathcal{A} = k[X]/I, \mathcal{M}, \Phi)$ directly to Stickelberger companion matrices (`EP-0221`), deriving the Discrete Cosine Transform (`dct` / `idct` via Chebyshev ideals $\langle T_N(x) \rangle$), Discrete Sine Transform (`dst` / `idst` via $\langle U_N(x) \rangle$), and multivariate Variety Fourier Transforms.
@@ -49,14 +49,16 @@ This proposal unifies three exact algebraic transform frameworks across [`algebr
 
 ## Rationale
 
-Validated in [**EXP-0010**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md) (Experiments 2, 3, and 5) and aligned with the Grand Council:
+Validated in [**EXP-0010**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md) (Experiments 2, 3, and 5) and aligned with the Grand Council and **Phase 8.5 (`EP-0250`–`EP-0254`)**:
 
-- **🧩 Bertrand Russell (Püschel–Moura Unification of Phase 9 Varieties & Signal Transforms)**:
-  Formalizes Püschel & Moura's theorem ([PUSCHEL-2006]): a linear signal model is simply a polynomial `QuotientRing` $k[x_1, \dots, x_n]/I$, its shift operator is the Stickelberger companion matrix $M_{x_i}$ from [`EP-0221`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md), and its spectral transform evaluates polynomials at the variety points $V(I)$ ($\mathbb{C}[x]/\langle x^N - 1 \rangle \to \text{DFT}$, $\mathbb{R}[x]/\langle T_N(x) \rangle \to \text{DCT}$ with `9.99e-16` node accuracy in `EXP-0010`).
-- **🔬 Karl Popper (Zero-Drift Bit-Exact NTT)**:
-  Eliminates floating-point approximation from modular and integer polynomial convolution via exact roots of unity $\omega \in \mathbb{F}_p^\times$.
+- **🧩 Bertrand Russell (Püschel–Moura Unification & Phase 8.5 Field/Quotient Soundness)**:
+  Formalizes Püschel & Moura's theorem ([PUSCHEL-2006]): a linear signal model is simply a commutative polynomial quotient `CommQuotientRing` $k[x_1, \dots, x_n]/I$ (distinct from general non-commutative `QuotientRing` under [`EP-0250`](EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md)), its shift operator is the Stickelberger companion matrix $M_{x_i}$ from [`EP-0221`](EP-0221-affine-algebraic-varieties-and-stickelberger-solvers.md), and its spectral transform evaluates polynomials at the variety points $V(I)$ ($\mathbb{C}[x]/\langle x^N - 1 \rangle \to \text{DFT}$, $\mathbb{R}[x]/\langle T_N(x) \rangle \to \text{DCT}$ with `9.99e-16` node accuracy in `EXP-0010`). Exact NTT builds directly on `EP-0250`'s primality-checked `ModularField(p)` and irreducibility-validated `GaloisField`.
+- **🔬 Karl Popper (Zero-Drift Bit-Exact NTT & Non-Vacuous Oracles)**:
+  Eliminates floating-point approximation from modular and integer polynomial convolution via exact roots of unity $\omega \in \mathbb{F}_p^\times$. Verification routines follow `EP-0253`'s non-vacuous sample contracts (`_materialize_samples`, `NaN != NaN` equality guard).
 - **⚡ Claude Shannon ($O(n 2^n)$ Fast Möbius Transform vs. $O(4^n)$ Naive Join Convolution)**:
-  In `EXP-0010` Experiment 5, the Yates/SOS Fast Zeta and Möbius transforms achieved a **14.3x speedup** at $n = 9$ (`1.38 ms` vs. `19.82 ms`) with `0.00e+00` error.
+  In `EXP-0010` Experiment 5, the Yates/SOS Fast Zeta and Möbius transforms achieved a **14.3x speedup** at $n = 9$ (`1.38 ms` vs. `19.82 ms`) with `0.00e+00` error. Exact rational/modular signal models align with `EP-0252`'s widened `typing.N` (`Fraction`) and parameterized `AlgebraicTrie` where prefix-indexed signal tables are used.
+- **🛡️ The Golem (Defensive Transform & Lattice Bounds)**:
+  Enforces `EP-0254`'s defensive boundary validation across `transforms.py` and `lattice.py` (`n > 0`, `n_bits >= 0`, non-negative index keys, safe lattice joins over signed weights, and public-only imports).
 - **💡 Richard Feynman (The Freshman Test)**:
   *"Why does the Discrete Cosine Transform use cosines instead of complex exponentials? Because at the boundary of an image you reflect the signal instead of wrapping around a circle—so the shift operator obeys the Chebyshev polynomial $T_N(x) = 0$ instead of $x^N - 1 = 0$!"*
 
@@ -72,9 +74,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Generic, TypeVar
 
-from algebrax.algebra._ideals import PrincipalIdeal
-from algebrax.algebra._polynomial import PolynomialAlgebra
-from algebrax.algebra._quotient import QuotientRing
+from algebrax.algebra import CommQuotientRing, PolynomialAlgebra, PrincipalIdeal
 from algebrax.typing import SparseMatrix, SparseVector
 
 V = TypeVar("V")
@@ -99,14 +99,14 @@ class AlgebraicSignalModel(Generic[V]):
 
     def __init__(self, ring: PolynomialAlgebra[V], modulus: dict[int, V]) -> None:
         self.ideal = PolynomialModulusIdeal(ring, modulus)
-        self.filter_algebra = QuotientRing(ring, self.ideal)
+        self.filter_algebra = CommQuotientRing(ring, self.ideal)
 
     def shift_matrix(self) -> SparseMatrix[int, V]:
         """Return the Stickelberger shift companion matrix M_x on basis {1, x, ..., x^{N-1}}."""
         ...
 
     def filter_signal(self, filter_poly: dict[int, V], signal: dict[int, V]) -> dict[int, V]:
-        """Apply polynomial filter h(M_x) * s via QuotientRing multiplication."""
+        """Apply polynomial filter h(M_x) * s via CommQuotientRing multiplication."""
         return self.filter_algebra.mul(filter_poly, signal)
 
 
@@ -186,11 +186,13 @@ def lattice_join_convolve(
     ...
 ```
 
-### 4. Verification Oracles (`src/algebrax/verification.py`)
+### 4. Verification Oracles (`src/algebrax/verification/`)
+
+Exported publicly via `algebrax.verification` (complying with Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts):
 
 - `verify_ntt_laws(a, b, n, prime)`:
   1. Verifies `intt(ntt(a, n, prime), n, prime) == a`.
-  2. Verifies `ntt_convolve(a, b, n, prime)` matches `QuotientRing(PolynomialAlgebra(ModularField(prime)), PolynomialModulusIdeal(..., x^n - 1)).mul(a, b)`.
+  2. Verifies `ntt_convolve(a, b, n, prime)` matches `CommQuotientRing(PolynomialAlgebra(ModularField(prime)), PolynomialModulusIdeal(..., x^n - 1)).mul(a, b)`.
 - `verify_mobius_inversion_laws(f, g, n_bits)`:
   1. Verifies Rota inversion `fast_mobius_transform(fast_zeta_transform(f, n_bits), n_bits) == f`.
   2. Verifies join-convolution theorem `lattice_join_convolve(f, g, n_bits)` against direct subset union sum.
@@ -205,7 +207,7 @@ def lattice_join_convolve(
 
 ## How to Teach This / Documentation Plan
 
-- **User Guide**: Add sections in `docs/guide/transforms.md` covering Püschel–Moura polynomial signal models, exact modular NTT vs. floating-point FFT, and Rota Möbius inversion on lattices.
+- **User Guide**: Add sections in `docs/guide/transforms/spectral.md` covering Püschel–Moura polynomial signal models, exact modular NTT vs. floating-point FFT, and Rota Möbius inversion on lattices.
 - **Recipe**: Add `recipes/exact_ntt_and_algebraic_signal_models.py` (and synced `.ipynb`).
 
 ---
@@ -233,3 +235,5 @@ Prototyped and verified in [`references/explorations/EXP-0010-generalized-harmon
 
 * **2026-11-14:**
   * Initial Draft authored for Phase 10 from `EXP-0010`.
+* **2026-11-26:**
+  * Aligned with Phase 8.5 (`EP-0250`–`EP-0254`): switched private `algebra._*` imports to public `algebrax.algebra`, aligned `CommQuotientRing` and primality-checked `ModularField`/`GaloisField`, updated verification path to `src/algebrax/verification/`, and fixed user guide path to `docs/guide/transforms/spectral.md`.

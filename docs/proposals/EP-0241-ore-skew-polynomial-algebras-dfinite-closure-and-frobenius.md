@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                                  |
 | **Type**          | Standards Track                                                                                        |
 | **Created**       | 2026-11-15                                                                                             |
-| **Updated**       | 2026-11-15                                                                                             |
+| **Updated**       | 2026-11-26                                                                                             |
 | **Replaces**      | —                                                                                                      |
 | **Superseded-By** | —                                                                                                      |
 
@@ -37,7 +37,7 @@ This proposal introduces [`OreAlgebra`](https://github.com/erivlis/algebrax/blob
 
 In computational mathematics, linear ODEs ($\partial_x$), recurrence relations ($S_n$), finite differences ($\Delta = S_n - 1$), and $q$-difference equations ($D_q$) are traditionally implemented as four separate codebases despite obeying identical Euclidean and closure theorems:
 
-1. **Bridging Phase 10 Shift Models to Arbitrary Linear Operators**: [`EP-0231`](EP-0231-algebraic-signal-processing-ntt-and-mobius-transforms.md) models constant-coefficient finite shift filters via commutative `QuotientRing`s. Polynomial-coefficient recurrences (e.g., $n S_n - (n+1)$ or Fibonacci $S_n^2 - S_n - 1$) fail to commute with $n$ and require an **Ore skew-polynomial ring**.
+1. **Bridging Phase 10 Shift Models to Arbitrary Linear Operators**: [`EP-0231`](EP-0231-algebraic-signal-processing-ntt-and-mobius-transforms.md) models constant-coefficient finite shift filters via commutative `CommQuotientRing`s. Polynomial-coefficient recurrences (e.g., $n S_n - (n+1)$ or Fibonacci $S_n^2 - S_n - 1$) fail to commute with $n$ and require an **Ore skew-polynomial ring**.
 2. **Automatic Closure of Special Functions & Sequences**: Proving identities like $\exp(x) + \cos(x)$ or synthesizing a recurrence for $a_n = F_n + n$ requires $\operatorname{lclm}(L_1, L_2)$ over non-commutative operator rings.
 3. **Algebraic Singularity Extraction Before Numeric Evaluation**: Before running numeric ODE integrators or Taylor series around a singular point like Bessel's $x^2 y'' + xy' + (x^2 - \nu^2)y = 0$, the Euler operator $\theta = x\partial_x$ extracts the exact indicial roots $\rho = \pm \nu$ purely algebraically.
 
@@ -45,16 +45,16 @@ In computational mathematics, linear ODEs ($\partial_x$), recurrence relations (
 
 ## Rationale
 
-Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md) (Experiments 2 and 6) and aligned with the Grand Council:
+Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md) (Experiments 2 and 6) and aligned with the Grand Council and **Phase 8.5 (`EP-0250`–`EP-0254`)**:
 
 - **⚖️ Emmy Noether (Operator Unification & Symplectic/Matrix Correspondence)**:
-  Differential ($\sigma = \mathrm{id}, \delta = \frac{d}{dx}$), shift ($\sigma(p(n)) = p(n+1), \delta = 0$), forward-difference ($\sigma = S_n, \delta = S_n - \mathrm{id}$), and $q$-dilation ($\sigma(p(x)) = p(qx), \delta = 0$) are all instances of one algebraic law $\partial r = \sigma(r)\partial + \delta(r)$. Meanwhile, `differential_companion_matrix` mirrors Phase 9's Stickelberger companion matrix (`EP-0221`), turning scalar order-$m$ Ore operators into matrix systems.
-- **⚡ Claude Shannon (Primitive Content Reduction & Unboxed Sparse Operators)**:
-  Ore operators are unboxed `dict[int, R]` mappings (operator order $\to$ coefficient in $R$). As observed during `EXP-0011` prototyping, naive pseudo-division accumulates scalar polynomial factors in `lclm` and `gcrd`; mandatory primitive-part/content GCD normalization keeps intermediate coefficients minimal.
+  Differential ($\sigma = \mathrm{id}, \delta = \frac{d}{dx}$), shift ($\sigma(p(n)) = p(n+1), \delta = 0$), forward-difference ($\sigma = S_n, \delta = S_n - \mathrm{id}$), and $q$-dilation ($\sigma(p(x)) = p(qx), \delta = 0$) are all instances of one algebraic law $\partial r = \sigma(r)\partial + \delta(r)$. Meanwhile, `differential_companion_matrix` mirrors Phase 9's Stickelberger companion matrix (`EP-0221`), turning scalar order-$m$ Ore operators into matrix systems. `OreAlgebra` strictly inherits non-commutative `Ring` (never `CommRing`/`LawCommutative`, consistent with `EP-0250`), and exact `Fraction` scalars align with `EP-0252`'s widened `typing.N`.
+- **⚡ Claude Shannon (Primitive Content Reduction, Sparse Operators & Shared Exact Kernels)**:
+  Ore operators are unboxed `dict[int, R]` mappings (operator order $\to$ coefficient in $R$). As observed during `EXP-0011` prototyping, naive pseudo-division accumulates scalar polynomial factors in `lclm` and `gcrd`; mandatory primitive-part/content GCD normalization keeps intermediate coefficients minimal. Linear system solves inside `lclm`, `symmetric_product`, and `guess_ore_operator` reuse Phase 8.5 [`EP-0251`](EP-0251-sparse-linear-algebra-kernel-decompositions-and-hot-paths.md)'s consolidated `matrix.nullspace` / `sparse_rref` kernels (zero duplicated elimination loops).
 - **🔬 Karl Popper (Falsifiable Divisibility & Annihilation Laws)**:
-  Prototyping in `EXP-0011` immediately caught a subtle degree-bound bug in `lclm` (`deg(u1) == deg(b) - deg(gcrd)`, not `deg(a) - deg(gcrd)`). Every Ore `lclm` and `symmetric_product` output is falsifiable via exact right-divisibility (`right_divmod(L, A)[1] == 0`) and exact series/sequence residual evaluation (`max residual == 0`).
-- **🛡️ The Golem (Exact Field / Domain Mandate)**:
-  Like `WeylLeftIdeal` (`EP-0240`), Ore Euclidean `gcrd`/`lclm` MUST reject IEEE-754 floating-point base coefficients, requiring exact fields/integral domains (`StandardField(Fraction)`, `ModularField(p)`, or polynomial rings over exact fields).
+  Prototyping in `EXP-0011` immediately caught a subtle degree-bound bug in `lclm` (`deg(u1) == deg(b) - deg(gcrd)`, not `deg(a) - deg(gcrd)`). Every Ore `lclm` and `symmetric_product` output is falsifiable via exact right-divisibility (`right_divmod(L, A)[1] == 0`) and exact series/sequence residual evaluation (`max residual == 0`), adhering to Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts.
+- **🛡️ The Golem (Exact Field / Domain Mandate & Hygiene)**:
+  Like `WeylLeftIdeal` (`EP-0240`), Ore Euclidean `gcrd`/`lclm` MUST reject IEEE-754 floating-point base coefficients, requiring exact fields/integral domains (`StandardField(Fraction)`, primality-validated `ModularField(p)` from `EP-0250`, or polynomial rings over exact fields). Modules obey `EP-0254` hygiene (public-only cross-package imports, zero `EP-XXXX` references in `src/`).
 
 ---
 
@@ -68,8 +68,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Generic, Literal, TypeVar
 
-from algebrax.algebra._mixins import HasSkewDerivation, LawAssociative
-from algebrax.algebra._ring import Ring
+from algebrax.algebra import HasSkewDerivation, LawAssociative, Ring
 
 R = TypeVar("R")
 OreOp = dict[int, R]  # Maps operator power D^k -> coefficient in R
@@ -170,7 +169,9 @@ def guess_ore_operator(
     ...
 ```
 
-### 3. Verification Oracles (`src/algebrax/verification.py`)
+### 3. Verification Oracles (`src/algebrax/verification/_differential.py`)
+
+Exported publicly via `algebrax.verification` (complying with Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts):
 
 - `verify_ore_algebra_laws(ore, op_a, op_b, sample_coeffs)`:
   1. Verifies skew commutation $\partial \cdot r == \sigma(r)\partial + \delta(r)$ and non-commutative associativity.
@@ -219,3 +220,5 @@ Prototyped and verified in [`references/explorations/EXP-0011-differential-and-o
 * **2026-11-15:**
   * Initial Draft authored for Phase 11 from `EXP-0011`.
   * Added `differential_newton_polygon` (Katz slopes) and `guess_ore_operator` ($D$-finite Padé/recurrence guessing) validated in `EXP-0011` Experiment 9.
+* **2026-11-26:**
+  * Aligned with Phase 8.5 (`EP-0250`–`EP-0254`): switched private `algebra._*` imports to public `algebrax.algebra`, aligned `CommQuotientRing` and primality-validated `ModularField(p)`, documented `EP-0251` exact `matrix.nullspace`/`sparse_rref` reuse, updated verification path to `src/algebrax/verification/_differential.py`, and noted `EP-0253`/`EP-0254` contracts.

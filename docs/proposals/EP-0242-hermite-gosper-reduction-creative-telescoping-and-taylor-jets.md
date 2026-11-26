@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                                          |
 | **Type**          | Standards Track                                                                                                |
 | **Created**       | 2026-11-15                                                                                                     |
-| **Updated**       | 2026-11-15                                                                                                     |
+| **Updated**       | 2026-11-26                                                                                                     |
 | **Replaces**      | —                                                                                                              |
 | **Superseded-By** | —                                                                                                              |
 
@@ -30,7 +30,7 @@ This proposal completes AlgebraX’s differential and difference calculus stack 
 1. **Exact Rational Integration (`square_free_decomposition`, `hermite_reduce`, `rothstein_trager_resultant`)**: Pure-Python integration over exact fields (`StandardField(Fraction)`) reducing any rational function $A(x)/D(x)$ to $P(x) + G_{\text{num}}/G_{\text{den}} + \int H(x)/S(x)\,dx$ with strictly square-free $S(x)$—avoiding complex root factorization and achieving **37.7x speedups** over `sympy.integrate` in `EXP-0011`.
 2. **Discrete Hypergeometric Summation (`gosper_sum`)**: Exact Gosper dispersion resultant $R(h)$ and certificate solver $r(n)$ for indefinite hypergeometric sums, including rigorous non-summability proofs (`None`).
 3. **Creative Telescoping (`creative_telescope`)**: Zeilberger/Chyzak Ore elimination synthesizing telescoping operator certificates $(L, B)$ for definite hypergeometric and holonomic integrals/sums.
-4. **Univariate & Multivariate `TaylorJetAlgebra[V]`**: A safe ergonomic factory wrapping `QuotientRing` over `PolynomialTruncationIdeal(order + 1, ...)` and multivariate $k[x_1, \dots, x_n]/\mathfrak{m}^{r+1}$ quotients, generalizing [`DualNumberAlgebra`](https://github.com/erivlis/algebrax/blob/main/src/algebrax/algebra/_dual.py) ($n=1, r=1$) to arbitrary-order exact partial/Lie derivatives, Newton series reciprocals (`inv`), Lagrange reversion, and Newton–Picard nonlinear ODE solvers (`solve_ode_jet`).
+4. **Univariate & Multivariate `TaylorJetAlgebra[V]`**: A safe ergonomic factory wrapping `CommQuotientRing` (`EP-0250`) over `PolynomialTruncationIdeal(order + 1, ...)` and multivariate $k[x_1, \dots, x_n]/\mathfrak{m}^{r+1}$ quotients, generalizing [`DualNumberAlgebra`](https://github.com/erivlis/algebrax/blob/main/src/algebrax/algebra/_dual.py) ($n=1, r=1$) to arbitrary-order exact partial/Lie derivatives, Newton series reciprocals (`inv`), Lagrange reversion, and Newton–Picard nonlinear ODE solvers (`solve_ode_jet`).
 
 ---
 
@@ -45,16 +45,16 @@ This proposal completes AlgebraX’s differential and difference calculus stack 
 
 ## Rationale
 
-Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md) (Experiments 3, 4, 6, and 7) and aligned with the Grand Council:
+Validated in [**EXP-0011**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0011-differential-and-ore-algebras/README.md) (Experiments 3, 4, 6, and 7) and aligned with the Grand Council and **Phase 8.5 (`EP-0250`–`EP-0254`)**:
 
-- **⚡ Claude Shannon (Sparse Polynomial Algorithms > Symbolic Trees)**:
-  Unboxed `dict[int, Fraction]` Yun/Hermite reduction achieved a **37.7x speedup** over `sympy.integrate` (`2.95 ms` vs. `111.35 ms`). Keeping `DualNumberAlgebra` (`tuple[float, float]`) untouched for ultra-lightweight 1st-order AD while introducing `TaylorJetAlgebra` for arbitrary order/variables preserves performance across both regimes.
+- **⚡ Claude Shannon (Sparse Polynomial Algorithms > Symbolic Trees & Shared Exact Kernels)**:
+  Unboxed `dict[int, Fraction]` Yun/Hermite reduction achieved a **37.7x speedup** over `sympy.integrate` (`2.95 ms` vs. `111.35 ms`). Keeping `DualNumberAlgebra` (`tuple[float, float]`) untouched for ultra-lightweight 1st-order AD while introducing `TaylorJetAlgebra` for arbitrary order/variables preserves performance across both regimes. Linear solves in `gosper_sum` and `creative_telescope` reuse Phase 8.5 [`EP-0251`](EP-0251-sparse-linear-algebra-kernel-decompositions-and-hot-paths.md)'s exact `matrix.solve_exact` / `nullspace` kernels, and exact `Fraction` arithmetic aligns with `EP-0252`'s widened `typing.N`.
 - **🔬 Karl Popper (Exact FTC, Gosper & Creative Telescoping Oracles)**:
-  Prototyping in `EXP-0011` caught sign/index bugs in Yun (`z / a_i`), Hermite (`-(m-1)`), and Gosper (`c(n)` shift `-j`) immediately through derivative/shift residual checks and `SymPy` differential comparison. Both Hermite and Creative Telescoping return explicit **proof-carrying rational/operator certificates** verified directly in $O(\deg)$ arithmetic (`EP-0186` alignment).
-- **🛡️ The Golem (Safe Factory & Deliberate Deferrals)**:
-  Wrapping `PolynomialTruncationIdeal(order + 1, field.zero)` inside `TaylorJetAlgebra` prevents off-by-one truncation bugs. Full transcendental Risch integration towers and Ritt–Wu nonlinear characteristic sets are deliberately deferred to `SymPy` under the Dennis Point.
-- **🧩 Bertrand Russell (`inv` vs. Kleene `star`)**:
-  While `DualNumberAlgebra` exposes `star(a) = 1/(1-a)` as a `StarSemiring`, general `TaylorJetAlgebra` is a commutative `QuotientRing` whose unit group consists of jets with invertible constant term $a_0 \ne 0$, computed via quadratic Newton reciprocal `inv(a)` ($y_{k+1} = y_k(2 - a y_k)$) rather than conflating division with Kleene star.
+  Prototyping in `EXP-0011` caught sign/index bugs in Yun (`z / a_i`), Hermite (`-(m-1)`), and Gosper (`c(n)` shift `-j`) immediately through derivative/shift residual checks and `SymPy` differential comparison. Both Hermite and Creative Telescoping return explicit **proof-carrying rational/operator certificates** verified directly in $O(\deg)$ arithmetic (`EP-0186` alignment) and obey Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts.
+- **🛡️ The Golem (Safe Factory, Hygiene & Deliberate Deferrals)**:
+  Wrapping `PolynomialTruncationIdeal(order + 1, field.zero)` inside `TaylorJetAlgebra` prevents off-by-one truncation bugs. Full transcendental Risch integration towers and Ritt–Wu nonlinear characteristic sets are deliberately deferred to `SymPy` under the Dennis Point. Modules obey `EP-0254` hygiene (public-only cross-package imports, zero `EP-XXXX` citations in `src/`).
+- **🧩 Bertrand Russell (`CommQuotientRing` & `inv` vs. Kleene `star`)**:
+  While `DualNumberAlgebra` exposes `star(a) = 1/(1-a)` as a `StarSemiring`, general `TaylorJetAlgebra` wraps Phase 8.5 [`EP-0250`](EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md)'s `CommQuotientRing` (distinguishing commutative quotients from general non-commutative `QuotientRing`) whose unit group consists of jets with invertible constant term $a_0 \ne 0$, computed via quadratic Newton reciprocal `inv(a)` ($y_{k+1} = y_k(2 - a y_k)$) rather than conflating division with Kleene star.
 
 ---
 
@@ -68,7 +68,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from algebrax.algebra._field import Field
+from algebrax.algebra import Field
 
 V = TypeVar("V")
 UniPoly = dict[int, V]
@@ -140,7 +140,7 @@ class TaylorJetAlgebra(CommRing[dict[Monomial, V]], HasDerivation[dict[Monomial,
     r"""Exact truncated Taylor Jet algebra $k[x_1, \dots, x_n] / \mathfrak{m}^{r+1}$ (total degree $\le r$).
 
     Generalizes `DualNumberAlgebra` (n=1, r=1) over any exact `Field[V]`.
-    When $n = 1$, wraps `QuotientRing(PolynomialAlgebra(field), PolynomialTruncationIdeal(order + 1, field.zero))`.
+    When $n = 1$, wraps `CommQuotientRing(PolynomialAlgebra(field), PolynomialTruncationIdeal(order + 1, field.zero))`.
     """
 
     def __init__(self, field: Field[V], order: int, n_vars: int = 1) -> None: ...
@@ -179,7 +179,9 @@ def solve_hamiltonian_jet(
     ...
 ```
 
-### 4. Verification Oracles (`src/algebrax/verification.py`)
+### 4. Verification Oracles (`src/algebrax/verification/_differential.py`)
+
+Exported publicly via `algebrax.verification` (complying with Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts):
 
 - `verify_hermite_decomposition(num, den, decomp, field)`: Verifies exact rational reconstruction $(P + G_{\text{num}}/G_{\text{den}})' + H/S \equiv A/D$ and $\deg\gcd(S, S') == 0$.
 - `verify_gosper_certificate(f, g, cert, field)`: Verifies $r(n+1)\frac{f(n)}{g(n)} - r(n) \equiv 1$ in $\mathbb{Q}(n)$ (and compares with `sympy.concrete.gosper.gosper_sum` in verification tests).
@@ -228,3 +230,5 @@ Prototyped and verified in [`references/explorations/EXP-0011-differential-and-o
   * Initial Draft authored for Phase 11 from `EXP-0011`.
   * Added `LawRotaBaxter` (weight 0) and `guess_ore_operator` (`EP-0241`) integration verification notes from `EXP-0011` Experiment 9.
   * Added `solve_hamiltonian_jet` with exact truncated energy & symplectic Jacobian conservation checks from `EXP-0011` Experiment 10.
+* **2026-11-26:**
+  * Aligned with Phase 8.5 (`EP-0250`–`EP-0254`): updated `TaylorJetAlgebra` to wrap `CommQuotientRing` (`EP-0250`), switched private `algebra._field` import to public `algebrax.algebra`, documented `EP-0251` exact linear-algebra kernel reuse, updated verification path to `src/algebrax/verification/_differential.py`, and noted `EP-0253`/`EP-0254` contracts.

@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                          |
 | **Type**          | Standards Track                                                                                |
 | **Created**       | 2026-11-14                                                                                     |
-| **Updated**       | 2026-11-15                                                                                     |
+| **Updated**       | 2026-11-26                                                                                     |
 | **Replaces**      | —                                                                                              |
 | **Superseded-By** | —                                                                                              |
 
@@ -53,15 +53,17 @@ In [`src/algebrax/transforms.py`](https://github.com/erivlis/algebrax/blob/main/
 
 ## Rationale
 
-Validated in [**EXP-0010**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md) (Experiment 1) and aligned with the Grand Council:
+Validated in [**EXP-0010**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md) (Experiment 1) and aligned with the Grand Council and **Phase 8.5 (`EP-0250`–`EP-0254`)**:
 
-- **⚖️ Emmy Noether (The Peter–Weyl Isomorphism & Plancherel Conservation)**:
-  Restores the exact duality between a group algebra $\mathbb{C}[G]$ (`MonoidAlgebra`) and its dual representation category $\widehat{G}$:
+- **⚖️ Emmy Noether (The Peter–Weyl Isomorphism & Non-Commutative Soundness)**:
+  Restores the exact duality between a non-commutative group algebra $\mathbb{C}[G]$ (`MonoidAlgebra`, corrected in [`EP-0250`](EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md) to inherit non-commutative `Ring` rather than `CommRing`) and its dual representation category $\widehat{G}$ (flat Layer-1 `GroupRepresentation` protocol and unified permutation composition convention from `EP-0250`):
   $$\sum_{g \in G} |f(g)|^2 = \frac{1}{|G|} \sum_{\lambda \in \widehat{G}} d_\lambda \|\hat{f}(\rho_\lambda)\|_F^2$$
-- **⚡ Claude Shannon (Block-Diagonal Spectral Compression)**:
-  Convolving two signals on a group $G$ of order $|G|$ costs $O(|G|^2)$ directly, whereas in the Peter–Weyl basis it decomposes into independent $d_\lambda \times d_\lambda$ matrix multiplications of total cost $\sum_\lambda d_\lambda^3 \ll |G|^2$, and $k$-step Markov chain convolution $P^{*k}$ reduces to $O(\log k)$ binary matrix exponentiation $\hat{P}(\rho_\lambda)^k$.
+- **⚡ Claude Shannon (Block-Diagonal Spectral Compression & Sparse Kernels)**:
+  Convolving two signals on a group $G$ of order $|G|$ costs $O(|G|^2)$ directly, whereas in the Peter–Weyl basis it decomposes into independent $d_\lambda \times d_\lambda$ matrix multiplications of total cost $\sum_\lambda d_\lambda^3 \ll |G|^2$, and $k$-step Markov chain convolution $P^{*k}$ reduces to $O(\log k)$ binary matrix exponentiation $\hat{P}(\rho_\lambda)^k$ using `EP-0251`'s $O(\text{nnz})$ matrix kernels.
 - **🔬 Karl Popper (Falsifiable Inversion, Convolution & Parseval Oracles)**:
-  Every non-Abelian Fourier transform is verified against three exact laws (`0.00e+00` residual on $S_3$ in `EXP-0010`): inversion identity, non-commutative convolution homomorphism, and Plancherel energy equality.
+  Every non-Abelian Fourier transform is verified against three exact laws (`0.00e+00` residual on $S_3$ in `EXP-0010`): inversion identity, non-commutative convolution homomorphism, and Plancherel energy equality, following `EP-0253` non-vacuous sample contracts and `NaN != NaN` equality guards.
+- **🛡️ The Golem (State Safety & Defensive Bounds)**:
+  Relies on `EP-0254`'s immutable `ExplicitGroupRep.__call__` matrix returns (preventing aliasing of cached irrep matrices during Fourier accumulation) and strict input validation (`steps >= 0`, `group_order > 0`).
 - **💡 Richard Feynman (The Freshman Test)**:
   *"On a circle, shifting a wave only changes its phase, so frequencies are single complex numbers $e^{i\omega t}$. On a non-commutative group like triangle symmetries $S_3$, flipping and rotating don't commute—so each 'frequency' $\rho_\lambda$ is a tiny matrix, and multiplying Fourier coefficients is just matrix multiplication!"*
 
@@ -77,7 +79,7 @@ from __future__ import annotations
 from collections.abc import Hashable, Mapping, Sequence
 from typing import TypeVar
 
-from algebrax.group.finite import FiniteGroup
+from algebrax.group import FiniteGroup
 from algebrax.rep import GroupRepresentation
 from algebrax.typing import SparseMatrix, SparseVector
 
@@ -151,7 +153,9 @@ def diaconis_upper_bound(
     ...
 ```
 
-### 3. Verification Oracles (`src/algebrax/verification.py`)
+### 3. Verification Oracles (`src/algebrax/verification/`)
+
+Exported publicly via `algebrax.verification` (complying with Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts):
 
 - `verify_peter_weyl_laws(signal_a, signal_b, group, irreps)`:
   1. Verifies Burnside dimension sum $\sum_{\lambda \in \widehat{G}} d_\lambda^2 == |G|$.
@@ -169,7 +173,7 @@ def diaconis_upper_bound(
 
 ## How to Teach This / Documentation Plan
 
-- **User Guide**: Expand `docs/guide/transforms.md` with a section on Non-Abelian Group Fourier Transforms ($S_3, D_4$) and why 1D characters collide on non-central signals.
+- **User Guide**: Expand `docs/guide/transforms/spectral.md` with a section on Non-Abelian Group Fourier Transforms ($S_3, D_4$) and why 1D characters collide on non-central signals.
 - **Recipe**: Add `recipes/diaconis_card_shuffling_fourier.py` (and synced `.ipynb`) analyzing random transposition / riffle shuffles on $S_n$ via Peter–Weyl spectral decay.
 
 ---
@@ -199,3 +203,5 @@ Prototyped and verified in [`references/explorations/EXP-0010-generalized-harmon
   * Initial Draft authored for Phase 10 from `EXP-0010`.
 * **2026-11-15:**
   * Updated imports and signatures to reference `algebrax.rep.GroupRepresentation[complex, G]` and `algebrax.group.FiniteGroup[G]`.
+* **2026-11-26:**
+  * Aligned with Phase 8.5 (`EP-0250`–`EP-0254`): noted non-commutative `MonoidAlgebra`, flat `GroupRepresentation`, unified permutation composition, immutable `ExplicitGroupRep` returns, public `algebrax.group` import, modular `src/algebrax/verification/` path, and `docs/guide/transforms/spectral.md`.

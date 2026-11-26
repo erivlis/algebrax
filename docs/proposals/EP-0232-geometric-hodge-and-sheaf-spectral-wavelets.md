@@ -17,7 +17,7 @@ status: draft
 | **Status**        | Draft                                                                                          |
 | **Type**          | Standards Track                                                                                |
 | **Created**       | 2026-11-14                                                                                     |
-| **Updated**       | 2026-11-14                                                                                     |
+| **Updated**       | 2026-11-26                                                                                     |
 | **Replaces**      | —                                                                                              |
 | **Superseded-By** | —                                                                                              |
 
@@ -41,7 +41,7 @@ This proposal bridges [`algebrax.transforms`](https://github.com/erivlis/algebra
 
 ## Motivation
 
-In Phase 4, AlgebraX introduced the Graph Laplacian (`graph_laplacian`), the $k$-th Hodge Laplacian (`hodge_laplacian` in [`EP-0160`](EP-0160-discrete-exterior-calculus-and-hodge-decomposition.md)), and the Sheaf Coboundary Laplacian (`sheaf_laplacian` in [`EP-0161`](EP-0161-cellular-sheaves-and-network-laplacians.md)). However:
+In Phase 4, AlgebraX introduced the Graph Laplacian (`laplacian_matrix`), the $k$-th Hodge Laplacian (`hodge_laplacian` in [`EP-0160`](EP-0160-discrete-exterior-calculus-and-hodge-decomposition.md)), and the Sheaf Coboundary Laplacian (`sheaf_laplacian` in [`EP-0161`](EP-0161-cellular-sheaves-and-network-laplacians.md)). However:
 
 1. **No Spectral Transform or Wavelet Layer**: Users can compute the Laplacian matrix $\mathcal{L}$, but there is no API to transform signals into the Laplacian frequency domain, design low-pass / band-pass / heat-diffusion spectral filters $g(\mathcal{L})f$, or compute localized graph/simplicial wavelets.
 2. **Avoiding $O(N^3)$ Full Eigendecomposition on Sparse Complexes**: Diagonalizing a Laplacian of size $N$ costs $O(N^3)$ time and $O(N^2)$ dense memory. By contrast, Hammond, Vandergheynst & Gribonval ([HAMMOND-2009]) showed that Chebyshev polynomial approximation $T_k(\tilde{\mathcal{L}})f$ requires **only sparse dictionary matrix-vector products**, running **60x faster** (`0.24 ms` vs. `14.42 ms` with `1.80e-09` relative accuracy in [`EXP-0010`](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md) Experiment 4).
@@ -51,14 +51,16 @@ In Phase 4, AlgebraX introduced the Graph Laplacian (`graph_laplacian`), the $k$
 
 ## Rationale
 
-Validated in [**EXP-0010**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md) (Experiment 4) and aligned with the Grand Council:
+Validated in [**EXP-0010**](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0010-generalized-harmonic-analysis/README.md) (Experiment 4) and aligned with the Grand Council and **Phase 8.5 (`EP-0251`–`EP-0254`)**:
 
-- **⚡ Claude Shannon (Matrix-Free Sparse Clenshaw/Chebyshev Recurrence)**:
-  Operates directly on AlgebraX's unboxed `SparseMatrix[K, float]` and `SparseVector[K, float]` via `algebrax.matrix.multiply`, preserving sparsity and zero-dependency execution.
-- **⚖️ Emmy Noether (Hodge Orthogonality $L_k^{\text{down}} L_k^{\text{up}} = \mathbf{0}$)**:
-  Because $\partial_k \circ \partial_{k+1} = 0$, the lower and upper Hodge Laplacians commute and annihilate each other ($L_k^{\text{down}} L_k^{\text{up}} = 0$), allowing independent polynomial filtering of gradient and curl frequency spectra.
+- **⚡ Claude Shannon (Matrix-Free Sparse Clenshaw/Chebyshev Recurrence & $O(\text{nnz})$ Hot Paths)**:
+  Operates directly on AlgebraX's unboxed `SparseMatrix[K, float]` and `SparseVector[K, float]` via `algebrax.matrix.mat_vec`, directly benefiting from [`EP-0251`](EP-0251-sparse-linear-algebra-kernel-decompositions-and-hot-paths.md)'s $O(N^2) \to O(\text{nnz})$ `mat_vec`/`inner` optimization, single-rebuild `SimplicialComplex`, `CellularSheaf` `tol` forwarding, and corrected sparse-zero semantics in `gradient`/`laplacian`.
+- **⚖️ Emmy Noether (Hodge Orthogonality $L_k^{\text{down}} L_k^{\text{up}} = \mathbf{0}$ & Semiring Propagation)**:
+  Because $\partial_k \circ \partial_{k+1} = 0$, the lower and upper Hodge Laplacians commute and annihilate each other ($L_k^{\text{down}} L_k^{\text{up}} = 0$), allowing independent polynomial filtering of gradient and curl frequency spectra. Builds on [`EP-0252`](EP-0252-universal-semiring-propagation-and-domain-unification.md)'s semiring-propagating `SparseChainComplex.hodge_laplacian` and `RectSparseMatrix` rectangular incidence operators.
 - **🔬 Karl Popper (Parseval Energy & Chebyshev Convergence Oracles)**:
-  Verifies that Chebyshev polynomial filters converge exponentially to exact spectral functions $g(\mathcal{L})f$ and that the Graph/Hodge Fourier Transform is an orthogonal isometry preserving inner products $\langle f, h \rangle = \langle \hat{f}, \hat{h} \rangle$.
+  Verifies that Chebyshev polynomial filters converge exponentially to exact spectral functions $g(\mathcal{L})f$ and that the Graph/Hodge Fourier Transform is an orthogonal isometry preserving inner products $\langle f, h \rangle = \langle \hat{f}, \hat{h} \rangle$, adhering to `EP-0253` non-vacuous sample contracts and `NaN != NaN` equality guards.
+- **🛡️ The Golem (Explicit Laplacian Semantics & State Safety)**:
+  Respects `EP-0254`'s explicit `is_laplacian` parameter on `laplacian_smoothing` (eliminating signed-weight guesswork) and defensive copies on `SparseChainComplex`.
 - **💡 Richard Feynman (The Freshman Test)**:
   *"How do you build a wavelet on an irregular network where you can't just 'stretch' $x \to x/s$? You let a drop of heat diffuse across the edges using the Laplacian $e^{-tL}$, and take the difference between two time scales—and with Chebyshev polynomials, you just hop from neighbor to neighbor $K$ times without ever finding a single eigenvalue!"*
 
@@ -136,7 +138,9 @@ def hodge_spectral_filter(
     ...
 ```
 
-### 3. Verification Oracles (`src/algebrax/verification.py`)
+### 3. Verification Oracles (`src/algebrax/verification/`)
+
+Exported publicly via `algebrax.verification` (complying with Phase 8.5 [`EP-0253`](EP-0253-verification-engine-hardening-and-grounded-proofs.md) non-vacuous sample contracts):
 
 - `verify_chebyshev_spectral_filter(laplacian, signal, kernel_fn)`:
   1. Verifies that for any polynomial kernel $p(\lambda)$ of degree $d \le K$, `chebyshev_spectral_filter(L, f, p, order=K)` matches exact matrix polynomial evaluation $p(L)f$ to machine precision (`< 1e-12`).
@@ -152,7 +156,7 @@ Strictly additive. Introduces `chebyshev_spectral_filter`, `spectral_wavelet_tra
 
 ## How to Teach This / Documentation Plan
 
-- **User Guide**: Add a spectral wavelets & Hodge filtering guide in `docs/guide/topology/spectral_wavelets.md` and cross-link from `docs/guide/transforms.md`.
+- **User Guide**: Add a spectral wavelets & Hodge filtering guide in `docs/guide/topology/spectral_wavelets.md` and cross-link from `docs/guide/transforms/spectral.md`.
 - **Recipe**: Add `recipes/simplicial_hodge_wavelet_denoising.py` (and synced `.ipynb`) demonstrating vortex-preserving edge-flow denoising on a 2D mesh with holes.
 
 ---
@@ -180,3 +184,5 @@ Prototyped and verified in [`references/explorations/EXP-0010-generalized-harmon
 
 * **2026-11-14:**
   * Initial Draft authored for Phase 10 from `EXP-0010`.
+* **2026-11-26:**
+  * Aligned with Phase 8.5 (`EP-0251`–`EP-0254`): fixed broken symbols (`graph_laplacian` → `laplacian_matrix`, `algebrax.matrix.multiply` → `algebrax.matrix.mat_vec`), documented $O(\text{nnz})$ `mat_vec` & semiring `hodge_laplacian`/`RectSparseMatrix` integration, updated verification path to `src/algebrax/verification/`, and fixed user guide path to `docs/guide/transforms/spectral.md`.
