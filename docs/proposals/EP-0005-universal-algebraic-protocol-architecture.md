@@ -109,7 +109,7 @@ And the orthogonal single-principle **categorical capabilities** (`algebrax.cate
 - `HasQuiver[Obj, Mor]`: `def source(self, f: Mor) -> Obj: ...`, `def target(self, f: Mor) -> Obj: ...`
 - `HasCatId[Obj, Mor]`: `def id(self, x: Obj) -> Mor: ...`
 - `HasCompose[Mor]`: `def compose(self, f: Mor, g: Mor) -> Mor: ...`
-- `HasMorInv[Mor]`: `def invert_path(self, path: Mor) -> Mor: ...`
+- `HasMorInv[Mor]`: `def inv(self, morphism: Mor) -> Mor: ...`
 - `HasTerminal[Obj]`: `@property def terminal(self) -> Obj: ...`
 - `HasProducts[Obj, Mor]`: `def product(self, a: Obj, b: Obj) -> Obj: ...`, `proj1`, `proj2`, `pair`
 - `HasExponentials[Obj, Mor]`: `def exponential(self, base: Obj, exp: Obj) -> Obj: ...`, `eval_mor`, `curry`, `uncurry`

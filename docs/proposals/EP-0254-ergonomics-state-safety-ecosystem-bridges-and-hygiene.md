@@ -2,7 +2,7 @@
 title: "EP-0254: Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene"
 description: "Fix defensive boundary and state-aliasing bugs across CLI, display, converters, probability, transforms, lattice, and group, and refactor god modules, public exports, and lint hygiene."
 icon: lucide/sparkles
-status: draft
+status: accepted
 ---
 
 # EP-0254: Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene
@@ -14,18 +14,20 @@ status: draft
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                |
 | **Sponsor**       | Core Maintainers                                                           |
 | **Delegate**      | 💡 Feynman (Clarity), 🌿 Steward (Harmony) & 🛡️ Golem (Safety)              |
-| **Status**        | Draft                                                                      |
+| **Status**        | Accepted                                                                   |
 | **Type**          | Standards Track                                                            |
 | **Created**       | 2026-11-26                                                                 |
-| **Updated**       | 2026-11-26                                                                 |
+| **Updated**       | 2026-11-27                                                                 |
 | **Replaces**      | —                                                                          |
 | **Superseded-By** | —                                                                          |
+
+**Prerequisites**: Runs **last** in Phase 8.5 (`EP-0250` → `EP-0251` → `EP-0252` → `EP-0253` → `EP-0254`), consuming `algebrax.semiring._registry` domain metadata from `EP-0250`, `canonical_sort_keys` from `EP-0251`, and `make_zero_predicate` from `EP-0252`, and splitting `verification/_{algebra,rep}.py` only after `EP-0253` lands.
 
 ---
 
 ## Abstract
 
-This proposal addresses codebase-wide safety, ergonomics, ecosystem bridge, and maintainability findings from the Second Grand Council Audit. It fixes silent CLI fallbacks, HTML-escaping and sentinel bugs in `display.py`, negative-index wraparound and format bugs in `converters.py`, defensive boundary crashes (`ZeroDivisionError`, aliased mutable returns, non-bijective permutation signatures) in core utilities, and cleans up structural debt: decomposing 1,000+ line god modules, unifying duplicated sparse helpers, fixing leaked/incomplete `__all__` exports, removing global `F401` lint suppression, and eliminating all internal `EP-XXXX` references from `src/`.
+This proposal addresses codebase-wide safety, ergonomics, ecosystem bridge, and maintainability findings from the Second Grand Council Audit. It fixes silent CLI fallbacks, HTML-escaping and sentinel bugs in `display.py` (plus a minimal `RichDisplayable` protocol unblocking `EP-0222`), negative-index wraparound and format bugs in `converters.py`, defensive boundary crashes (`ZeroDivisionError`, aliased mutable state on `ExplicitGroupRep`/`ExplicitLieRep` and `markov_step`, non-bijective permutation signatures) in core utilities, and cleans up structural debt: decomposing oversized `verification/` modules, consolidating duplicated sparse helpers in Layer-1/2 `converters.py`, fixing leaked/incomplete `__all__` exports, cleanly removing redundant `verify_padic_ultrametric`, re-enabling Ruff `F401`, and eliminating all internal `EP-XXXX` references from `src/`.
 
 ---
 
@@ -34,26 +36,26 @@ This proposal addresses codebase-wide safety, ergonomics, ecosystem bridge, and 
 While AlgebraX's mathematical breadth has grown to 111 modules and 36.6k LOC, peripheral ergonomics, defensive boundaries, and structural hygiene have accumulated friction that hurts both newcomers (the Freshman Test) and long-term maintainers:
 
 1. **Silent CLI & Display Failures**:
-   - `algebrax.__main__` silently catches exceptions when instantiating parameterized `--semiring` flags (`Modular`, `GaloisField`, `Clifford`, `Polynomial`), silently falling back to `StandardSemiring`; carries a stale `'0.8.0'` fallback version; misclassifies `String`/`KCollapsed` under `'logic'`; and only verifies 12 of 33 semirings in `cmd_verify --all`.
-   - `display.py` interpolates titles, keys, and values into raw HTML without `html.escape` (broken rendering / XSS in Jupyter), uses `''` as a missing-cell sentinel (hiding genuine `''` entries like `StringSemiring.one`), and covers only matrices/vectors/tries/semirings.
+   - `algebrax.__main__` silently catches exceptions when instantiating parameterized `--semiring` flags (`Polynomial`, `MonoidAlgebra`, `QuotientMonoidAlgebra`, `Clifford`), falling back silently to `StandardSemiring`; carries a stale `'0.8.0'` fallback version; misclassifies `String`/`KCollapsed` under `'logic'`; and only verifies 12 of 33 semirings in `cmd_verify --all`.
+   - `display.py` interpolates titles, keys, and values into raw HTML without `html.escape` (broken rendering / XSS in Jupyter), uses `''` as a missing-cell sentinel (hiding genuine empty-string `''` entries in string-valued matrices), and lacks a formal `RichDisplayable` protocol needed by Phase 9 (`EP-0222`).
 2. **Ecosystem Bridge & Defensive Boundary Bugs**:
-   - `converters.to_numpy` omits `r >= 0 and c >= 0` (silently wrapping negative keys via NumPy indexing) and silently drops non-`int` keys with no index-map option; `from_numpy` raises `ValueError` instead of `TypeError`; `to_scipy` ignores `format` on empty matrices.
+   - `converters.to_numpy` omits `r >= 0 and c >= 0` (silently wrapping negative keys via NumPy indexing), calls `max(matrix.keys())` even when `shape` is provided, and silently drops non-`int` keys with no index-map option; `from_numpy` raises `ValueError` instead of `TypeError` for non-`np.ndarray` inputs; `to_scipy` ignores `format` on empty matrices and lacks symmetric non-int/negative key validation; `from_scipy` has an unused `import scipy.sparse as sp`, and `_get_shape` has a dead `current_depth` parameter.
    - `analysis.calculus.laplacian_smoothing` uses an implicit `any(w < 0 ...)` heuristic to guess whether `graph` is already a Laplacian—silently corrupting signed adjacency matrices.
-   - Aliased mutable state leaks from `probability.markov_step(steps=0)`, `automata.simulate_nfa([])`, `SparseChainComplex.__init__`, and `ExplicitGroupRep.__call__`.
-   - Unhandled `ZeroDivisionError` / silent corruption in `group.permutation.signature` (non-bijection `{0: 1, 1: 1}` returns `-1` and formats `"broken cycle at None"`), `lattice.harmonic_mean` (`a == -b`), `lattice.join` (wiping negative values via `max(v, 0)`), `lattice.product` (union scan when `default == 0`), `transforms.dft`/`idft` (`n <= 0` / negative keys), `transforms.lorentz_boost(axis=0)`, and `probability.bayes_update` (`evidence == 0`) / `entropy` (`base == 1`).
+   - Aliased mutable state leaks from `probability.markov_step(steps=0)`, `ExplicitGroupRep.__call__`, and `ExplicitLieRep`.
+   - Unhandled `ZeroDivisionError` / silent corruption in `group.permutation.signature` (non-bijection `{0: 1, 1: 1}` returns `-1` and formats `"broken cycle at None"`), `lattice.harmonic_mean` (`a == -b`), `lattice.join` (wiping negative values via `max(v, 0)`), `lattice.product` (union scan when `default == 0`), `transforms.dft`/`idft` (`n <= 0` / negative keys), `transforms.lorentz_boost(axis=0)`, and `probability.bayes_update` (`evidence <= 0`) / `entropy`/`cross_entropy`/`kl_divergence`/`mutual_information` (`base == 1` or negative probabilities).
 3. **Maintainability, Export & Lint Hygiene**:
-   - Four god modules exceed 1,000 lines (`verification/_algebra.py` 1,767 lines, `verification/_rep.py` 1,107 lines, `matrix/core.py` 1,095 lines, `analysis/calculus.py` 1,029 lines), with 3 identical sparse-matrix equality helpers in `verification/_rep.py`, 5 ad-hoc sparse zero-pruning helpers with 5 different tolerances (`1e-9` to `1e-15`), and 12 cross-package private `_` imports.
-   - `analysis/__init__.py` leaks private `_get_common_neighbors` and `_is_graph_weighted` in `__all__`; `matrix/__init__.py` omits `block`, `hstack`, `vstack`, `slice_matrix`, `element_wise_binary_op`; `converters.py` docstring omits 10 of 18 exported functions.
-   - `pyproject.toml:165` globally suppresses `F401`, hiding unused imports and dead parameters across `semiring/algebraic.py`, `converters.py`, and `verification/_algebra.py`.
+   - `verification/_algebra.py` (1,767 lines) and `verification/_rep.py` (1,107 lines) are monolithic; 3 identical sparse-matrix equality helpers sit in `verification/_rep.py` (plus duplicates in `rep/lie.py` and `rep/quiver.py`); 5 ad-hoc sparse zero-pruning helpers use 5 different tolerances (`1e-9` to `1e-15`).
+   - `analysis/__init__.py` leaks private `_get_common_neighbors` and `_is_graph_weighted` in `__all__`; `analysis/calculus.py` re-exports `topology` helpers; `matrix/__init__.py` omits `block`, `hstack`, `vstack`, `slice_matrix`, `element_wise_binary_op`; `converters.py` docstring omits 10 of 18 exported functions.
+   - `pyproject.toml:165` globally suppresses `F401`, hiding unused imports across `semiring/algebraic.py`, `converters.py`, and `verification/_algebra.py`; `verify_padic_ultrametric` duplicates `verify_padic_ultrametric_inequality`.
    - 14 internal `EP-XXXX` references leak into `src/` docstrings across 13 files, violating EP non-leakage rules.
 
 ---
 
 ## Rationale
 
-- **💡 Richard Feynman (Clarity & Freshman Test)**: Error messages, CLI commands, Jupyter HTML tables, and exception types (`TypeError` vs `ValueError` vs `KeyError`) should fail loudly, clearly, and predictably—never silently falling back or rendering broken HTML.
-- **🛡️ The Golem (Safety & State Gravity)**: Never return aliased caller dicts or expose mutable internal state on `frozen=True` dataclasses; never rely on implicit negative-weight heuristics or negative-index wraparound.
-- **🌿 The Steward (Harmony & Maintainability)**: Splitting monolithic files along natural domain seams, consolidating duplicated helpers, and re-enabling Ruff `F401` keeps the codebase clean and refactorable as part of the Phase 8.5 Second Grand Council Refinement Track before completing Phase 9 (`EP-0222`) and launching Phases 10–11.
+- **💡 Richard Feynman (Clarity & Freshman Test)**: Error messages, CLI commands, Jupyter HTML tables, and exception types fail loudly, clearly, and predictably—with clean cuts and zero dead aliases.
+- **🛡️ The Golem (Safety & State Gravity)**: Freeze internal matrix dicts once at construction via `types.MappingProxyType` (zero per-call copy overhead, protecting `EP-0230`'s inner loops) and eliminate implicit negative-weight heuristics and negative-index wraparound.
+- **🌿 The Steward (Harmony & Layering)**: Consolidating shared sparse-equality and zero-pruning utilities inside Layer-1/2 `converters.py` (never `verification/_common.py`) preserves clean downward dependencies across `rep/`, `matrix/`, and `verification/`.
 
 ---
 
@@ -61,71 +63,98 @@ While AlgebraX's mathematical breadth has grown to 111 modules and 36.6k LOC, pe
 
 ### 1. CLI & Rich Display Hardening (`__main__.py`, `display.py`)
 - **`src/algebrax/__main__.py`**:
-  - On `--semiring` instantiation failure (e.g., required constructor parameters), print a clear message to `stderr` explaining the required parameters and return exit code `1` (never silently fall back to `StandardSemiring`).
+  - On `--semiring` instantiation failure (e.g., `Polynomial` requiring constructor parameters), print a clear message to `stderr` explaining the required parameters and return exit code `1` (never silently fall back to `StandardSemiring`).
   - Reuse `algebrax.__version__` directly (remove stale `'0.8.0'` fallback).
-  - Derive catalog domain tags and `cmd_verify --all` coverage dynamically from the semiring registry instead of hardcoded partial lists.
+  - Derive catalog domain tags and `cmd_verify --all` coverage dynamically from `algebrax.semiring._registry` (established in `EP-0250 §6`).
 - **`src/algebrax/display.py`**:
   - Escape all rendered text via `html.escape` across `display_matrix`, `display_vector`, `display_trie`, and `semiring_card`.
-  - Replace the `''` missing-cell sentinel with a private `_MISSING = object()` sentinel so genuine empty strings (e.g., `StringSemiring.one`) render accurately.
-  - Introduce a lightweight `RichDisplayable` protocol (`_repr_html_` / `_repr_latex_`) to extend rich Jupyter inspection cleanly to newer domain carriers (`CharacterTable`, `PersistenceInterval`, `AffineVariety`, `FiniteGroup`, `Quiver`, `RootSystem`).
+  - Replace the `''` missing-cell sentinel with a private `_MISSING = object()` sentinel so genuine empty-string `''` entries render accurately.
+  - Define and export a minimal 2-method protocol in `algebrax.display.__all__` (unblocking Phase 9 `EP-0222` without importing `display` from Layer-2 `algebra/` or retrofitting legacy classes):
+    ```python
+    @runtime_checkable
+    class RichDisplayable(Protocol):
+        """Structural protocol for objects supporting Jupyter HTML and LaTeX display."""
+        def _repr_html_(self) -> str: ...
+        def _repr_latex_(self) -> str: ...
+    ```
 
 ### 2. Converters & Defensive Utility Boundaries
 - **`src/algebrax/converters.py`**:
-  - In `to_numpy`: enforce `not isinstance(r, bool) and isinstance(r, int) and 0 <= r < h` (and same for `c`), fix string-key `max()` crash, and add an optional `return_keys: bool = False` (or key-index-map helper) for key-polymorphic sparse matrices (`str`, simplex tuples, `StalkCoord`).
-  - In `from_numpy`: raise `TypeError` when input is not an `np.ndarray`.
-  - In `to_scipy`: honor the requested `format` (`csr`, `csc`, `coo`, etc.) even when `matrix` is empty; remove unused `sp` import and dead `current_depth` parameter in `_get_shape`.
+  - In `to_numpy`: enforce `not isinstance(r, bool) and isinstance(r, int) and 0 <= r < h` (and same for `c`), skip `max(matrix.keys())` when `shape` is explicitly supplied, and add optional `return_keys: bool = False` for key-polymorphic sparse matrices (`str`, simplex tuples, `StalkCoord`).
+  - In `from_numpy`: raise `TypeError` strictly when `not isinstance(arr, np.ndarray)` (preserving `ValueError` for `arr.ndim != 2`).
+  - In `to_scipy`: honor the requested `format` (`csr`, `csc`, `coo`, etc.) even when `matrix` is empty, and add symmetric non-int/negative key validation and `return_keys: bool = False` parity with `to_numpy`.
+  - Remove unused `import scipy.sparse as sp` in `from_scipy`, remove dead `current_depth` parameter in `_get_shape`, and document all 18 exported converter functions in `converters.py`'s module docstring.
 - **`src/algebrax/analysis/calculus.py`**:
   - Replace `laplacian_smoothing`'s negative-weight heuristic (`any(w < 0 ...)`) with an explicit `is_laplacian: bool = False` keyword argument.
 - **State Gravity / Immutability**:
-  - Return fresh shallow copies (`dict(state)` / `dict(start_states)`) on 0-step calls in `probability.markov_step` and `automata.simulate_nfa`; copy `boundary_matrices` in `SparseChainComplex.__init__`; protect internal matrix dicts in `ExplicitGroupRep`.
-- **Boundary Guards**:
-  - `group/permutation.py`: validate bijectivity (`set(mapping.keys()) == set(mapping.values())`) and capture `prev = curr` before `mapping.get(curr)` in `signature`.
-  - `lattice.py`: guard `a + b == 0` in `harmonic_mean`; preserve single-side negative values in `join`; use `set.intersection` when `default == 0` in `product`, `geometric_mean`, and `harmonic_mean`; reject opposite-sign real inputs cleanly in `geometric_mean` (or document complex promotion).
-  - `transforms.py`: validate `n > 0` and non-negative signal indices in `dft`/`idft`/`deconvolve`; validate `axis in (1, 2, 3)` in `lorentz_boost`.
-  - `probability.py`: validate `base > 0 and base != 1` and non-negative probabilities in `entropy`/`cross_entropy`/`kl_divergence`; guard `evidence == 0` in `bayes_update` with a clear `ValueError` (or empty posterior per contract).
+  - Return a fresh shallow copy `dict(state)` on 0-step calls in `probability.markov_step` and validate `steps >= 0` (`ValueError` for negative `steps`). *(Zero-step `automata.simulate_nfa` copy and `SparseChainComplex.__init__` copy land in `EP-0252`.)*
+  - Freeze internal matrix dicts once in `__post_init__` via nested `types.MappingProxyType` on **both** `ExplicitGroupRep` (`rep/group.py`) and `ExplicitLieRep` (`rep/lie.py`) for $O(1)$ zero-copy immutability (`EP-0253` widens `verification/_common.py:45` to `Mapping`).
+- **Boundary Guards & Regression Tests** *(owning the boundary tests relocated from `EP-0253`)*:
+  - `group/permutation.py`: validate bijectivity (`set(mapping.keys()) == set(mapping.values())`, raising `ValueError`) and capture `prev = curr` before `mapping.get(curr)` in `signature`.
+  - `lattice.py`: guard `a + b == 0` (`ValueError`) in `harmonic_mean`; preserve single-side negative values in `join`; use `set.intersection` when `default == 0` in `product`, `geometric_mean`, and `harmonic_mean`; raise `ValueError` for opposite-sign real inputs in `geometric_mean`.
+  - `transforms.py`: validate `n > 0` and non-negative integer signal indices in `dft`/`idft`/`deconvolve`; validate `isinstance(axis, int) and not isinstance(axis, bool) and axis >= 1` in `lorentz_boost` (preserving $D$-vector boosts for `axis >= 4` while rejecting `axis == 0` and `bool`).
+  - `probability.py`: validate `base > 0 and base != 1` and non-negative probabilities in `entropy`, `cross_entropy`, `kl_divergence`, and `mutual_information`; in `bayes_update`, raise `ValueError` when explicit `evidence <= 0` while returning `{}` for disjoint support when `evidence is None`.
 
 ### 3. Module Decomposition, Shared Utilities & Public Hygiene
-- **Canonical Sparse Utilities**:
-  - Consolidate the 5 ad-hoc zero-pruning helpers (`prune_sparse`, `vec_clean`, `_prune_matrix`, `_is_non_zero`, `_prune_vector`) behind one `is_zero`-aware utility honoring `HasZeroPred` when a `Field`/`Semiring` is provided.
-  - Consolidate the 3 identical sparse-matrix equality helpers in `verification/_rep.py` (plus duplicates in `rep/lie.py` and `rep/quiver.py`) into `verification/_common.py`.
-- **God-Module Decomposition (Zero Breaking Public Imports)**:
+- **Canonical Layer-1/2 Sparse Utilities (`src/algebrax/converters.py`)**:
+  - Consolidate the 5 ad-hoc zero-pruning helpers (`prune_sparse`, `vec_clean`, `_prune_matrix`, `_is_non_zero`, `_prune_vector`) behind one shared helper in `converters.py` using hoisted `make_zero_predicate` (`EP-0252`)—never calling `isinstance(..., HasZeroPred)` inside inner loops.
+  - Consolidate the duplicated sparse-matrix equality helpers (`verification/_rep.py`, `rep/lie.py`, `rep/quiver.py`) into `converters.py` (`sparse_matrices_equal`) so `rep/` and `verification/` both depend downward on Layer-1/2 `converters.py` with zero circular imports.
+- **Firm God-Module Decomposition Decisions (Zero Breaking Public Imports)**:
   - Split `verification/_algebra.py` into focused internal submodules (`_magma_group.py`, `_ring_field.py`, `_hopf_normed.py`, `_groebner.py`) re-exported identically via `verification/__init__.py`.
-  - Split `verification/_rep.py` into `_rep_group_lie.py` and `_rep_quantum_quiver.py`.
-  - Consider splitting `matrix/core.py` into `_ops.py`, `_vector.py`, and `_solvers.py` (re-exported via `matrix/core.py` and `matrix/__init__.py`), and `analysis/calculus.py` into discrete calculus vs. spectral graph helpers.
+  - Split `verification/_rep.py` into `_rep_group_lie.py` and `_rep_quantum_quiver.py` re-exported via `verification/__init__.py`.
+  - Remove `topology` re-exports from `analysis/calculus.py` cleanly (shrinking `calculus.py` without breaking `analysis/__init__.py`).
+  - **Defer** splitting `matrix/core.py` (high cross-function coupling, no user benefit in Phase 8.5).
 - **Public Exports & Exception Consistency**:
-  - Remove `_get_common_neighbors` and `_is_graph_weighted` from `analysis/__init__.__all__`; move `topology` re-exports out of `analysis/calculus.py` into `analysis/__init__.py` (or deprecate redundant re-exports).
-  - Align `matrix/__init__.__all__` with `matrix/core.py:__all__` (adding `block`, `hstack`, `vstack`, `slice_matrix`, `element_wise_binary_op` and adding `cg_solve` to `core.__all__`).
-  - Standardize invalid-name/value errors on `ValueError` (e.g., `Semiring.normalize('bad')` and `rep/quiver.py` vertex/edge validation) while reserving `KeyError` for mapping lookups and `TypeError` for wrong types.
-- **Lint & EP Non-Leakage Hygiene**:
-  - Remove global `F401` from `pyproject.toml:165` (use `per-file-ignores` only for `__init__.py` re-exports) and prune all dead imports (`semiring/algebraic.py`, `converters.py`, `verification/_algebra.py`) and redundant aliases (`verify_padic_ultrametric`).
-  - Strip all 14 `EP-XXXX` references from `src/` docstrings across 13 files and add a CI/test check enforcing zero `EP-\d{4}` matches in `src/`.
+  - Remove `_get_common_neighbors` and `_is_graph_weighted` from `analysis/__init__.__all__`.
+  - Align `matrix/__init__.__all__` with `matrix/core.py:__all__` (adding `block`, `hstack`, `vstack`, `slice_matrix`, `element_wise_binary_op`, adding `cg_solve` to `core.__all__`).
+  - **Keep `KeyError`** on `Semiring.normalize('bad')` (catalog lookup semantics); normalize `rep/quiver.py` invalid vertex/edge validation on `ValueError`.
+- **Lint, Clean Removal & EP Non-Leakage Hygiene**:
+  - Remove global `F401` from `pyproject.toml:165`, scoping `per-file-ignores = {"**/__init__.py" = ["F401"]}`, and prune all dead imports (`semiring/algebraic.py`, `converters.py`, `verification/_algebra.py`).
+  - **Clean Cut**: Remove redundant alias `verify_padic_ultrametric` from `verification/__init__.py` and update `tests/algebrax/test_langlands_and_padic.py:253` to `verify_padic_ultrametric_inequality`.
+  - Strip all 14 `EP-XXXX` references from `src/` docstrings across 13 files (verifying AMDS `_SIG_RE` extraction stays green in `test_docstrings.py`) and add a CI test asserting zero `EP-\d{4}` matches anywhere in `src/`.
+
+---
+
+## Acceptance Criteria
+
+1. `python -m algebrax inspect --semiring Polynomial` exits with status `1` and writes an actionable parameter message to `stderr`; `cmd_verify --all` covers all zero-arg semirings dynamically from `_registry`.
+2. `display_matrix` escapes `<script>` HTML payloads and distinguishes `''` entries from `_MISSING` cells; `isinstance(obj, RichDisplayable)` works for objects implementing `_repr_html_` and `_repr_latex_`.
+3. `to_numpy` and `to_scipy` reject negative/`bool` keys, support `return_keys=True` for string/tuple keys, and honor `format` on empty matrices; `from_numpy(non_ndarray)` raises `TypeError` while `from_numpy(np.array([1, 2]))` raises `ValueError`.
+4. `ExplicitGroupRep` and `ExplicitLieRep` raise `TypeError` on external mutation of returned matrices without per-call deep copies; `markov_step(state, P, steps=0)` returns a non-aliased copy and rejects `steps < 0`.
+5. Boundary regression tests pass for `transforms` (`n <= 0`, `lorentz_boost(axis=0)` raises `ValueError`, `lorentz_boost(axis=4)` succeeds), `probability` (`base=1`, negative probabilities, `mutual_information`, `bayes_update(..., evidence=0)`), `lattice` (`harmonic_mean(1, -1)`, negative `join`, `default=0` `product`), and `group.permutation.signature` (non-bijections).
+6. `rep/` contains zero imports from `verification/`; `verification/_algebra.py` and `verification/_rep.py` are cleanly decomposed while all existing `algebrax.verification` public exports (minus cleanly removed `verify_padic_ultrametric`) remain intact.
+7. `ruff check .` passes with `F401` enabled globally (except `**/__init__.py`), `tests/algebrax/test_docstrings.py` passes, and the new CI test confirms zero `EP-\d{4}` occurrences in `src/`.
 
 ---
 
 ## Backwards Compatibility
 
-- **Module splits are strictly non-breaking**: All public symbols remain importable from their existing public packages (`algebrax.verification`, `algebrax.matrix`, `algebrax.analysis`).
-- **Minor behavior changes (bug fixes)**:
+- **Module splits are non-breaking**: All public symbols remain importable from `algebrax.verification`, `algebrax.matrix`, and `algebrax.analysis`.
+- **Intentional clean cuts & bug fixes**:
+  - `verify_padic_ultrametric` is cleanly removed; use `verify_padic_ultrametric_inequality`.
   - `analysis.__all__` no longer exports private `_get_common_neighbors` and `_is_graph_weighted`.
-  - `python -m algebrax inspect --semiring Modular` exits with code `1` instead of silently computing with `StandardSemiring`.
-  - `laplacian_smoothing` requires explicit `is_laplacian=True` when passing a precomputed Laplacian rather than relying on negative edge weights.
+  - `python -m algebrax inspect --semiring Polynomial` exits with code `1` instead of silently falling back to `StandardSemiring`.
+  - `laplacian_smoothing` requires explicit `is_laplacian=True` when passing a precomputed Laplacian.
   - `from_numpy(non_ndarray)` raises `TypeError` instead of `ValueError`.
-  - `group.permutation.signature` raises `ValueError` on non-bijective mappings.
+  - `group.permutation.signature` raises `ValueError` on non-bijective mappings; `bayes_update(..., evidence=0)` raises `ValueError`; `lorentz_boost(axis=0)` raises `ValueError`.
+  - `ExplicitGroupRep` and `ExplicitLieRep` return read-only `MappingProxyType` matrix views.
 
 ---
 
 ## How to Teach This / Documentation Plan
 
-- Update [`docs/guide/matrix/core.md`](../guide/matrix/core.md) and [`docs/guide/analysis/discrete_calculus.md`](../guide/analysis/discrete_calculus.md) for `laplacian_smoothing(..., is_laplacian=...)` and key-preserving `to_numpy`.
-- Update [`docs/converters.md`](../guide/matrix/core.md) / converter docstrings so all 18 exported converter functions are documented accurately.
+- Ensure `RichDisplayable` and updated converter/display utilities pass `tests/algebrax/test_docstrings.py` (with zero `EP-XXXX` leaks in `src/`).
+- Update [`docs/guide/matrix/core.md`](../guide/matrix/core.md) (converter & `to_numpy`/`to_scipy` `return_keys` docs) and [`docs/guide/analysis/discrete_calculus.md`](../guide/analysis/discrete_calculus.md) (`laplacian_smoothing(..., is_laplacian=...)`).
+- Update [`docs/guide/probability/information.md`](../guide/probability/information.md), [`docs/guide/transforms/spectral.md`](../guide/transforms/spectral.md), and [`docs/guide/algebra/lattices_and_order.md`](../guide/algebra/lattices_and_order.md) with boundary precondition notes.
 
 ---
 
 ## Reference Implementation
 
-Target files verified in the Second Grand Council Audit:
-- `src/algebrax/{__main__.py,display.py,converters.py,lattice.py,transforms.py,probability.py,automata.py}`
-- `src/algebrax/group/permutation.py`, `src/algebrax/analysis/{__init__.py,calculus.py}`, `src/algebrax/matrix/{__init__.py,core.py}`
+Target files verified in the Second Grand Council Audit & Review:
+- `src/algebrax/{__main__.py,display.py,converters.py,lattice.py,transforms.py,probability.py}`
+- `src/algebrax/group/permutation.py`, `src/algebrax/rep/{group.py,lie.py,quiver.py}`
+- `src/algebrax/analysis/{__init__.py,calculus.py}`, `src/algebrax/matrix/{__init__.py,core.py}`
 - `src/algebrax/verification/{_common.py,_algebra.py,_rep.py,_topology.py,__init__.py}`
 - `pyproject.toml` and the 13 `src/` files containing `EP-\d{4}` references.
 
@@ -134,16 +163,21 @@ Target files verified in the Second Grand Council Audit:
 ## Rejected Ideas
 
 1. **Auto-Parsing Arbitrary Constructor Args in CLI `--semiring "Modular(7)"` via `eval()`**:
-   - *Rejected*: Severe security hazard (arbitrary code execution) violating Golem's Safety pillar. Explicit safe parsing (or clear error message for parameterized semirings) is strictly safer.
-2. **Keeping Global `F401` Disabled to Avoid Updating `__init__.py`**:
-   - *Rejected*: Ruff's `per-file-ignores = {"**/__init__.py" = ["F401"]}` cleanly supports package re-exports while catching real dead imports in every implementation file.
+   - *Rejected*: Severe security hazard violating Golem's Safety pillar.
+2. **Consolidating `rep/` Sparse Equality Into `verification/_common.py`**:
+   - *Rejected*: Creates a circular dependency because `verification/` imports `rep/`. Layer-1/2 `converters.py` is the proper home.
+3. **Deep-Copying `ExplicitGroupRep` Matrices on Every `__call__`**:
+   - *Rejected*: Allocates $O(|G|^2)$ dict copies in representation/Fourier hot loops (`EP-0230`). Construction-time `MappingProxyType` provides zero-overhead immutability.
+4. **Changing `Semiring.normalize('bad')` From `KeyError` to `ValueError`**:
+   - *Rejected*: `Semiring.normalize` is a catalog mapping lookup; `KeyError` already obeys Pythonic exception semantics.
+5. **Splitting `matrix/core.py` in Phase 8.5**:
+   - *Rejected*: High cross-function coupling with negligible user benefit during a hardening phase.
 
 ---
 
 ## Open Questions
 
-- [ ] Should `probability.bayes_update` return `{}` or raise `ValueError` when total `evidence == 0` (disjoint prior and likelihood)?
-- [ ] Should `Semiring.normalize('unknown')` change from `KeyError` to `ValueError` in this EP (check existing tests expecting `KeyError`)?
+None. All Council review items (`bayes_update`, `Semiring.normalize`, `RichDisplayable`, god-module split scope, `verify_padic_ultrametric` clean removal, and `converters.py` utility placement) are resolved.
 
 ---
 
@@ -151,3 +185,5 @@ Target files verified in the Second Grand Council Audit:
 
 * **2026-11-26:**
   * Initial Draft authored from the Second Grand Council Codebase Audit (Feynman, Steward, Golem, Shannon, Popper, Explorer).
+* **2026-11-27:**
+  * Incorporated Grand Council Pre-Implementation Review revisions: declared Phase 8.5 sequencing prerequisites, moved sparse-equality/zero-pruning consolidation to `converters.py` (preventing circular `rep/`→`verification/` imports), formalized minimal `RichDisplayable` protocol for `EP-0222`, specified `MappingProxyType` immutability on `ExplicitGroupRep` & `ExplicitLieRep`, fixed `lorentz_boost` (`axis >= 1`), added `mutual_information` and `markov_step(steps < 0)` guards, added `to_scipy` parity, fixed CLI/display/`from_scipy`/doc-link inaccuracies, kept `KeyError` on `Semiring.normalize`, cleanly removed `verify_padic_ultrametric`, finalized god-module split scope, absorbed boundary regression tests from `EP-0253`, added Acceptance Criteria, and promoted status to `Accepted`.
