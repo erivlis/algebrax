@@ -12,7 +12,16 @@ from typing import Any, Literal, Protocol, TypeVar, runtime_checkable
 
 from algebrax.algebra._helpers import nsum as _nsum
 from algebrax.algebra._helpers import power as _power
-from algebrax.algebra._mixins import HasAdd, HasMul, HasOne, HasPlus, HasStar, HasZero, LawIdempotent
+from algebrax.algebra._mixins import (
+    HasAdd,
+    HasMul,
+    HasOne,
+    HasPlus,
+    HasStar,
+    HasZero,
+    LawCommutative,
+    LawIdempotent,
+)
 
 V = TypeVar('V')
 
@@ -82,79 +91,9 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
         Returns:
             A dictionary mapping human-readable semiring names to their class types.
         """
-        from algebrax.algebra._dual import DualNumberAlgebra
-        from algebrax.algebra._field import GaloisField
-        from algebrax.algebra._polynomial import PolynomialAlgebra
-        from algebrax.clifford import (
-            CliffordAlgebra,
-            GeneralizedCliffordAlgebra,
-            QuantumCliffordAlgebra,
-        )
-        from algebrax.semiring.algebraic import (
-            BinomialConvolutionSemiring,
-            KnotSemiring,
-            MonoidAlgebraSemiring,
-            MultivariateBinomialConvolutionSemiring,
-            ProvenanceSemiring,
-            QuotientMonoidAlgebraSemiring,
-        )
-        from algebrax.semiring.arithmetic import ModularSemiring, StandardSemiring
-        from algebrax.semiring.logic import BooleanSemiring, DigitalSemiring, LukasiewiczSemiring
-        from algebrax.semiring.optimization import (
-            ArcticSemiring,
-            BottleneckSemiring,
-            MinTimesSemiring,
-            ReliabilitySemiring,
-            TropicalSemiring,
-            ViterbiSemiring,
-        )
-        from algebrax.semiring.statistical import (
-            BivariateVarianceSemiring,
-            ExpectationSemiring,
-            KurtosisSemiring,
-            LogSemiring,
-            MultivariateMomentSemiring,
-            SkewnessSemiring,
-            StatisticalMomentSemiring,
-            VarianceSemiring,
-        )
-        from algebrax.semiring.structures import KCollapsedSemiring, StringSemiring
+        from algebrax.semiring._registry import semiring_catalog
 
-        return {
-            'Standard': StandardSemiring,
-            'Modular': ModularSemiring,
-            'Tropical': TropicalSemiring,
-            'Arctic': ArcticSemiring,
-            'Viterbi': ViterbiSemiring,
-            'Reliability': ReliabilitySemiring,
-            'Bottleneck': BottleneckSemiring,
-            'MinTimes': MinTimesSemiring,
-            'Boolean': BooleanSemiring,
-            'Lukasiewicz': LukasiewiczSemiring,
-            'Log': LogSemiring,
-            'Expectation': ExpectationSemiring,
-            'Variance': VarianceSemiring,
-            'BivariateVariance': BivariateVarianceSemiring,
-            'Skewness': SkewnessSemiring,
-            'Kurtosis': KurtosisSemiring,
-            'StatisticalMoment': StatisticalMomentSemiring,
-            'BinomialConvolution': BinomialConvolutionSemiring,
-            'MultivariateBinomialConvolution': MultivariateBinomialConvolutionSemiring,
-            'MultivariateMoment': MultivariateMomentSemiring,
-            'DualNumber': DualNumberAlgebra,
-            'String': StringSemiring,
-            'KCollapsed': KCollapsedSemiring,
-            'Digital': DigitalSemiring,
-            'MonoidAlgebra': MonoidAlgebraSemiring,
-            'Knot': KnotSemiring,
-            'Polynomial': PolynomialAlgebra,
-            'Provenance': ProvenanceSemiring,
-            'QuotientMonoidAlgebra': QuotientMonoidAlgebraSemiring,
-            'Clifford': CliffordAlgebra,
-            'GaloisField': GaloisField,
-            'GeneralizedClifford': GeneralizedCliffordAlgebra,
-            'QuantumClifford': QuantumCliffordAlgebra,
-        }
+        return semiring_catalog()
 
     @classmethod
     def default(cls) -> 'Semiring[Any]':
@@ -202,6 +141,25 @@ class Semiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], Protocol):
 # Explicitly restrict structural protocol attrs to pure algebraic operations,
 # excluding utility classmethods/staticmethods (normalize, catalog, default, etc.)
 Semiring.__protocol_attrs__ = frozenset({'zero', 'one', 'add', 'mul'})
+
+
+@runtime_checkable
+class CommSemiring(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], LawCommutative, Protocol):
+    r"""A commutative semiring $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ with $a \cdot b = b \cdot a$.
+
+    Algebraic Signature:
+        $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ with $a \cdot b = b \cdot a$
+
+    Operations:
+        - `zero`: Additive neutral element (`HasZero[V]`).
+        - `add(a, b)`: Commutative, associative addition (`HasAdd[V]`).
+        - `one`: Multiplicative identity element (`HasOne[V]`).
+        - `mul(a, b)`: Commutative, associative multiplication (`HasMul[V]`).
+    """
+
+    @property
+    def is_commutative(self) -> Literal[True]:
+        return True
 
 
 @runtime_checkable
@@ -278,6 +236,7 @@ class KleeneAlgebra(
 
 __all__ = [
     'ClosedSemiring',
+    'CommSemiring',
     'ConwaySemiring',
     'KleeneAlgebra',
     'Semiring',

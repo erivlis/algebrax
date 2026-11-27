@@ -35,10 +35,17 @@ def _clifford_blade_mul(
     k1: tuple[int, ...], k2: tuple[int, ...], p: int = 3, q: int = 0, r: int = 0
 ) -> list[tuple[tuple[int, ...], float]]:
     """
-    Canonical blade reduction for Clifford Algebra Cl(p, q, r).
-    e_i^2 = +1 (i <= p), -1 (p < i <= p+q), 0 (i > p+q).
+    Canonical blade reduction for Clifford Algebra Cl(p, q, r) using 1-based generator indices.
+    e_i^2 = +1 (1 <= i <= p), -1 (p < i <= p+q), 0 (p+q < i <= p+q+r).
     """
+    dim = p + q + r
     combined = list(k1 + k2)
+    for idx in combined:
+        if idx < 1 or idx > dim:
+            raise ValueError(
+                f'Generator index {idx} out of range for Clifford algebra Cl({p}, {q}, {r}) '
+                f'with 1-based indices 1..{dim}.'
+            )
     n = len(combined)
     sign = 1.0
 
@@ -59,10 +66,8 @@ def _clifford_blade_mul(
                 sign *= 1.0
             elif idx <= p + q:
                 sign *= -1.0
-            elif idx <= p + q + r:
-                return []  # e_k^2 = 0 degenerate generator
             else:
-                raise ValueError(f'Generator index {idx} exceeds Clifford dimension p+q+r={p + q + r}')
+                return []  # e_k^2 = 0 degenerate generator
             i += 2
         else:
             canonical.append(combined[i])
@@ -398,10 +403,10 @@ def geometric_product(
         The geometric product multivector.
 
     Example:
-        >>> e1 = {(0,): 1.0}
-        >>> e2 = {(1,): 1.0}
+        >>> e1 = {(1,): 1.0}
+        >>> e2 = {(2,): 1.0}
         >>> prod = geometric_product(e1, e2, p=3)
-        >>> prod == {(0, 1): 1.0}
+        >>> prod == {(1, 2): 1.0}
         True
     """
     cs = CliffordAlgebra(p=p, q=q, r=r)
@@ -421,8 +426,8 @@ def rotor_rotation(
     v' = R * v * R^dag.
 
     Args:
-        v: Vector or multivector to rotate.
-        bivector: Plane of rotation tuple, e.g. (0, 1) for the xy-plane.
+        v: Vector or multivector to rotate (using 1-based blade indices 1..p+q+r).
+        bivector: Plane of rotation tuple, e.g. (1, 2) for the xy-plane.
         angle_rad: Rotation angle in radians.
         p: Number of positive basis vectors.
         q: Number of negative basis vectors.
@@ -433,9 +438,9 @@ def rotor_rotation(
 
     Example:
         >>> import math
-        >>> v = {(0,): 1.0}  # x-axis unit vector
-        >>> v_rot = rotor_rotation(v, bivector=(0, 1), angle_rad=math.pi / 2)
-        >>> math.isclose(v_rot.get((1,), 0.0), 1.0, abs_tol=1e-6)
+        >>> v = {(1,): 1.0}  # x-axis unit vector e_1
+        >>> v_rot = rotor_rotation(v, bivector=(1, 2), angle_rad=math.pi / 2)
+        >>> math.isclose(v_rot.get((2,), 0.0), 1.0, abs_tol=1e-6)
         True
     """
     cs = CliffordAlgebra(p=p, q=q, r=r)

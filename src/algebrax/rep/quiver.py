@@ -27,6 +27,7 @@ from collections.abc import Hashable, Mapping, Sequence
 from dataclasses import dataclass
 from fractions import Fraction
 from math import gcd
+from types import MappingProxyType
 from typing import Any, Generic, Literal, TypeVar
 
 from algebrax.lie.roots import RootSystem
@@ -39,7 +40,7 @@ V = TypeVar('V', bound=Hashable)
 E = TypeVar('E', bound=Hashable)
 
 __all__ = [
-    'Quiver',
+    'FiniteQuiver',
     'QuiverRepresentation',
     'bgp_reflect_dimension',
     'classify_dynkin_type',
@@ -73,7 +74,7 @@ def _is_identity_sparse(mat: Mapping[int, Mapping[int, Any]], dim: int, tol: flo
     return all(abs(complex(mat.get(i, {}).get(i, 0.0)) - 1.0) <= tol for i in range(dim))
 
 
-def _normalize_dim_vector(quiver: Quiver[V, Any], dim_vec: Mapping[V, int] | Sequence[int]) -> list[int]:
+def _normalize_dim_vector(quiver: FiniteQuiver[V, Any], dim_vec: Mapping[V, int] | Sequence[int]) -> list[int]:
     if isinstance(dim_vec, Mapping):
         missing = [v for v in quiver.vertices if v not in dim_vec]
         if missing:
@@ -183,35 +184,41 @@ def _analyze_symmetric_form(
 
 
 @dataclass(frozen=True)
-class Quiver(Generic[V, E]):
+class FiniteQuiver(Generic[V, E]):
     r"""A finite directed multigraph quiver $Q = (V_Q, E_Q, s, t)$.
+
+    Conforms structurally to `algebrax.category.Quiver[V, E]` via `source(arrow)` and
+    `target(arrow)` methods, while exposing read-only `source_map` and `target_map` views.
+
+    Algebraic Signature:
+        $Q = \langle V_Q, E_Q, s: E_Q \to V_Q, t: E_Q \to V_Q \rangle$
 
     Attributes:
         vertices: Ordered tuple of distinct vertex identifiers $V_Q$.
         edges: Ordered tuple of distinct arrow identifiers $E_Q$.
-        source: Mapping $s : E_Q \to V_Q$ giving each arrow's source (tail) vertex.
-        target: Mapping $t : E_Q \to V_Q$ giving each arrow's target (head) vertex.
+        source_map: Read-only mapping $s : E_Q \to V_Q$ giving each arrow's source (tail) vertex.
+        target_map: Read-only mapping $t : E_Q \to V_Q$ giving each arrow's target (head) vertex.
     """
 
     vertices: tuple[V, ...]
     edges: tuple[E, ...]
-    source: dict[E, V]
-    target: dict[E, V]
+    source_map: Mapping[E, V]
+    target_map: Mapping[E, V]
 
     def __post_init__(self) -> None:
         verts = tuple(self.vertices)
         edgs = tuple(self.edges)
         if len(set(verts)) != len(verts):
-            raise ValueError('Quiver vertices must be unique.')
+            raise ValueError('FiniteQuiver vertices must be unique.')
         if len(set(edgs)) != len(edgs):
-            raise ValueError('Quiver edges must be unique.')
+            raise ValueError('FiniteQuiver edges must be unique.')
 
         vert_set = set(verts)
-        src = dict(self.source)
-        tgt = dict(self.target)
+        src = dict(self.source_map)
+        tgt = dict(self.target_map)
         for e in edgs:
             if e not in src or e not in tgt:
-                raise KeyError(f'Edge {e!r} must be present in both source and target mappings.')
+                raise KeyError(f'Edge {e!r} must be present in both source_map and target_map.')
             if src[e] not in vert_set:
                 raise ValueError(f'Source vertex {src[e]!r} of edge {e!r} not in quiver vertices.')
             if tgt[e] not in vert_set:
@@ -219,20 +226,28 @@ class Quiver(Generic[V, E]):
 
         object.__setattr__(self, 'vertices', verts)
         object.__setattr__(self, 'edges', edgs)
-        object.__setattr__(self, 'source', src)
-        object.__setattr__(self, 'target', tgt)
+        object.__setattr__(self, 'source_map', MappingProxyType(src))
+        object.__setattr__(self, 'target_map', MappingProxyType(tgt))
 
     @classmethod
     def from_edges(
         cls,
         vertices: Sequence[V],
         edge_specs: Sequence[tuple[E, V, V]],
-    ) -> Quiver[V, E]:
-        """Construct a Quiver from vertices and `(edge_id, source, target)` triples."""
+    ) -> FiniteQuiver[V, E]:
+        """Construct a FiniteQuiver from vertices and `(edge_id, source, target)` triples."""
         edges = tuple(e for e, _, _ in edge_specs)
         src = {e: u for e, u, _ in edge_specs}
         tgt = {e: v for e, _, v in edge_specs}
-        return cls(vertices=tuple(vertices), edges=edges, source=src, target=tgt)
+        return cls(vertices=tuple(vertices), edges=edges, source_map=src, target_map=tgt)
+
+    def source(self, arrow: E) -> V:
+        """Return the source (tail) vertex $s(\\alpha)$ of `arrow`."""
+        return self.source_map[arrow]
+
+    def target(self, arrow: E) -> V:
+        """Return the target (head) vertex $t(\\alpha)$ of `arrow`."""
+        return self.target_map[arrow]
 
     @property
     def num_vertices(self) -> int:
@@ -244,18 +259,18 @@ class Quiver(Generic[V, E]):
 
     def incoming(self, vertex: V) -> tuple[E, ...]:
         """Return all arrows with target equal to `vertex`."""
-        return tuple(e for e in self.edges if self.target[e] == vertex)
+        return tuple(e for e in self.edges if self.target_map[e] == vertex)
 
     def outgoing(self, vertex: V) -> tuple[E, ...]:
         """Return all arrows with source equal to `vertex`."""
-        return tuple(e for e in self.edges if self.source[e] == vertex)
+        return tuple(e for e in self.edges if self.source_map[e] == vertex)
 
     def is_acyclic(self) -> bool:
         """Return True if the quiver contains no directed cycles (including self-loops)."""
         in_deg: dict[V, int] = dict.fromkeys(self.vertices, 0)
         adj: dict[V, list[V]] = {v: [] for v in self.vertices}
         for e in self.edges:
-            u, v = self.source[e], self.target[e]
+            u, v = self.source_map[e], self.target_map[e]
             adj[u].append(v)
             in_deg[v] += 1
         queue = deque(v for v, d in in_deg.items() if d == 0)
@@ -275,7 +290,7 @@ class Quiver(Generic[V, E]):
         n = len(self.vertices)
         mat = [[1 if i == j else 0 for j in range(n)] for i in range(n)]
         for e in self.edges:
-            mat[idx[self.source[e]]][idx[self.target[e]]] -= 1
+            mat[idx[self.source_map[e]]][idx[self.target_map[e]]] -= 1
         return mat
 
     def symmetric_cartan_matrix(self) -> list[list[int]]:
@@ -287,16 +302,16 @@ class Quiver(Generic[V, E]):
         n = len(e_mat)
         return [[e_mat[i][j] + e_mat[j][i] for j in range(n)] for i in range(n)]
 
-    def connected_components(self) -> list[Quiver[V, E]]:
+    def connected_components(self) -> list[FiniteQuiver[V, E]]:
         """Partition the quiver into its weakly connected component subquivers."""
         adj: dict[V, set[V]] = {v: set() for v in self.vertices}
         for e in self.edges:
-            u, v = self.source[e], self.target[e]
+            u, v = self.source_map[e], self.target_map[e]
             adj[u].add(v)
             adj[v].add(u)
 
         seen: set[V] = set()
-        components: list[Quiver[V, E]] = []
+        components: list[FiniteQuiver[V, E]] = []
         for start in self.vertices:
             if start in seen:
                 continue
@@ -312,13 +327,13 @@ class Quiver(Generic[V, E]):
                     if nbr not in comp_set:
                         queue.append(nbr)
             comp_verts = tuple(v for v in self.vertices if v in comp_set)
-            comp_edges = tuple(e for e in self.edges if self.source[e] in comp_set)
+            comp_edges = tuple(e for e in self.edges if self.source_map[e] in comp_set)
             components.append(
-                Quiver(
+                FiniteQuiver(
                     vertices=comp_verts,
                     edges=comp_edges,
-                    source={e: self.source[e] for e in comp_edges},
-                    target={e: self.target[e] for e in comp_edges},
+                    source_map={e: self.source_map[e] for e in comp_edges},
+                    target_map={e: self.target_map[e] for e in comp_edges},
                 )
             )
         return components
@@ -342,7 +357,7 @@ class Quiver(Generic[V, E]):
             next_frontier: list[tuple[V, V, tuple[E, ...]]] = []
             for start_v, cur_v, edge_seq in frontier:
                 for e in self.outgoing(cur_v):
-                    nxt_v = self.target[e]
+                    nxt_v = self.target_map[e]
                     nxt_seq = (*edge_seq, e)
                     paths.append((start_v, nxt_seq))
                     next_frontier.append((start_v, nxt_v, nxt_seq))
@@ -360,7 +375,7 @@ class QuiverRepresentation(Generic[K, V, E]):
     $d_v \times d_u$ representing the linear map $M_\alpha : V_u \to V_v$.
     """
 
-    quiver: Quiver[V, E]
+    quiver: FiniteQuiver[V, E]
     dimensions: dict[V, int]
     edge_maps: dict[E, SparseMatrix[int, K]]
 
@@ -376,8 +391,8 @@ class QuiverRepresentation(Generic[K, V, E]):
 
         maps: dict[E, SparseMatrix[int, K]] = {}
         for e in self.quiver.edges:
-            u = self.quiver.source[e]
-            v = self.quiver.target[e]
+            u = self.quiver.source(e)
+            v = self.quiver.target(e)
             du, dv = dims[u], dims[v]
             mat = self.edge_maps.get(e, {})
             cleaned: dict[int, dict[int, K]] = {}
@@ -429,8 +444,8 @@ def direct_sum_quiver_rep(
     dims = {v: rep1.dimensions[v] + rep2.dimensions[v] for v in quiver.vertices}
     maps: dict[E, SparseMatrix[int, K]] = {}
     for e in quiver.edges:
-        u = quiver.source[e]
-        v = quiver.target[e]
+        u = quiver.source(e)
+        v = quiver.target(e)
         off_u = rep1.dimensions[u]
         off_v = rep1.dimensions[v]
         combined: dict[int, dict[int, K]] = {}
@@ -443,7 +458,7 @@ def direct_sum_quiver_rep(
     return QuiverRepresentation(quiver=quiver, dimensions=dims, edge_maps=maps)
 
 
-def simple_representation(quiver: Quiver[V, E], vertex: V) -> QuiverRepresentation[float, V, E]:
+def simple_representation(quiver: FiniteQuiver[V, E], vertex: V) -> QuiverRepresentation[float, V, E]:
     r"""Construct the simple 1-dimensional representation $S(i)$ concentrated at `vertex` with zero arrow maps."""
     if vertex not in quiver.vertices:
         raise KeyError(f'Vertex {vertex!r} not in quiver.')
@@ -453,7 +468,7 @@ def simple_representation(quiver: Quiver[V, E], vertex: V) -> QuiverRepresentati
 
 
 def interval_representation(
-    quiver: Quiver[V, E],
+    quiver: FiniteQuiver[V, E],
     support_vertices: Sequence[V],
 ) -> QuiverRepresentation[float, V, E]:
     r"""Construct the thin indecomposable indicator representation with $K^1$ on `support_vertices`
@@ -466,7 +481,7 @@ def interval_representation(
     dims = {v: (1 if v in sup else 0) for v in quiver.vertices}
     maps: dict[E, SparseMatrix[int, float]] = {}
     for e in quiver.edges:
-        if quiver.source[e] in sup and quiver.target[e] in sup:
+        if quiver.source(e) in sup and quiver.target(e) in sup:
             maps[e] = {0: {0: 1.0}}
         else:
             maps[e] = {}
@@ -474,7 +489,7 @@ def interval_representation(
 
 
 def euler_form(
-    quiver: Quiver[V, E],
+    quiver: FiniteQuiver[V, E],
     dim_u: Mapping[V, int] | Sequence[int],
     dim_v: Mapping[V, int] | Sequence[int],
 ) -> int:
@@ -485,12 +500,12 @@ def euler_form(
     v_vec = _normalize_dim_vector(quiver, dim_v)
     idx = {v: i for i, v in enumerate(quiver.vertices)}
     vertex_term = sum(ui * vi for ui, vi in zip(u_vec, v_vec))
-    edge_term = sum(u_vec[idx[quiver.source[e]]] * v_vec[idx[quiver.target[e]]] for e in quiver.edges)
+    edge_term = sum(u_vec[idx[quiver.source(e)]] * v_vec[idx[quiver.target(e)]] for e in quiver.edges)
     return vertex_term - edge_term
 
 
 def tits_quadratic_form(
-    quiver: Quiver[V, E],
+    quiver: FiniteQuiver[V, E],
     dim_vec: Mapping[V, int] | Sequence[int],
 ) -> int:
     r"""Evaluate the Euler-Tits quadratic form
@@ -500,7 +515,7 @@ def tits_quadratic_form(
 
 
 def bgp_reflect_dimension(
-    quiver: Quiver[V, E],
+    quiver: FiniteQuiver[V, E],
     dim_vec: Mapping[V, int],
     vertex: V,
 ) -> dict[V, int]:
@@ -514,15 +529,15 @@ def bgp_reflect_dimension(
     if vertex not in quiver.vertices:
         raise KeyError(f'Vertex {vertex!r} not in quiver.')
     for e in quiver.edges:
-        if quiver.source[e] == vertex and quiver.target[e] == vertex:
+        if quiver.source(e) == vertex and quiver.target(e) == vertex:
             raise ValueError(f'Cannot apply BGP reflection at vertex {vertex!r} with a self-loop.')
     out = {v: int(dim_vec[v]) for v in quiver.vertices}
     neighbor_sum = 0
     for e in quiver.edges:
-        if quiver.source[e] == vertex:
-            neighbor_sum += out[quiver.target[e]]
-        elif quiver.target[e] == vertex:
-            neighbor_sum += out[quiver.source[e]]
+        if quiver.source(e) == vertex:
+            neighbor_sum += out[quiver.target(e)]
+        elif quiver.target(e) == vertex:
+            neighbor_sum += out[quiver.source(e)]
     out[vertex] = neighbor_sum - out[vertex]
     return out
 
@@ -579,13 +594,13 @@ def _classify_connected_tree(
     return 'Wild'
 
 
-def _classify_connected_component(comp: Quiver[V, E]) -> tuple[Literal['finite', 'tame', 'wild'], str]:
+def _classify_connected_component(comp: FiniteQuiver[V, E]) -> tuple[Literal['finite', 'tame', 'wild'], str]:
     """Classify a single connected quiver component into (rep_type, dynkin_label)."""
     n = comp.num_vertices
     m = comp.num_edges
     idx = {v: i for i, v in enumerate(comp.vertices)}
 
-    loops = sum(1 for e in comp.edges if comp.source[e] == comp.target[e])
+    loops = sum(1 for e in comp.edges if comp.source(e) == comp.target(e))
     if loops > 0:
         if n == 1 and m == 1:
             return 'tame', '~A0'
@@ -594,7 +609,7 @@ def _classify_connected_component(comp: Quiver[V, E]) -> tuple[Literal['finite',
     # Count undirected multiplicities between distinct vertices
     pair_counts: dict[tuple[int, int], int] = {}
     for e in comp.edges:
-        u, v = idx[comp.source[e]], idx[comp.target[e]]
+        u, v = idx[comp.source(e)], idx[comp.target(e)]
         pair = (u, v) if u < v else (v, u)
         pair_counts[pair] = pair_counts.get(pair, 0) + 1
 
@@ -631,7 +646,7 @@ def _classify_connected_component(comp: Quiver[V, E]) -> tuple[Literal['finite',
     return 'finite', label
 
 
-def classify_dynkin_type(quiver: Quiver[V, E]) -> str:
+def classify_dynkin_type(quiver: FiniteQuiver[V, E]) -> str:
     r"""Identify the Dynkin / Euclidean ADE label of a quiver (e.g. `'A3'`, `'D4'`, `'E6'`, `'~A1'`, `'Wild'`).
 
     Disconnected quivers return `' + '`-joined component labels (e.g. `'A2 + D4'`).
@@ -642,7 +657,7 @@ def classify_dynkin_type(quiver: Quiver[V, E]) -> str:
     return ' + '.join(labels)
 
 
-def classify_representation_type(quiver: Quiver[V, E]) -> Literal['finite', 'tame', 'wild']:
+def classify_representation_type(quiver: FiniteQuiver[V, E]) -> Literal['finite', 'tame', 'wild']:
     r"""Classify quiver representation type via Gabriel's ADE & Donovan-Freislich-Nazarova theorems.
 
     Returns:
@@ -663,7 +678,7 @@ def classify_representation_type(quiver: Quiver[V, E]) -> Literal['finite', 'tam
     return 'finite'
 
 
-def gabriel_positive_roots(quiver: Quiver[V, E]) -> list[dict[V, int]]:
+def gabriel_positive_roots(quiver: FiniteQuiver[V, E]) -> list[dict[V, int]]:
     r"""Return all positive roots $\Phi^+$ (dimension vectors of indecomposables) of a finite-type ADE quiver.
 
     By Gabriel's Theorem (1972), isomorphism classes of indecomposable representations of an ADE
@@ -696,7 +711,7 @@ def dynkin_quiver(
     family: str,
     rank: int | None = None,
     orientation: Literal['linear', 'alternating'] = 'linear',
-) -> Quiver[int, str]:
+) -> FiniteQuiver[int, str]:
     r"""Build a canonical simply-laced ADE Dynkin quiver ($A_n, D_n, E_6, E_7, E_8$)
     matching the vertex ordering of `algebrax.lie.RootSystem`.
     """
@@ -738,24 +753,24 @@ def dynkin_quiver(
             edge_specs.append((f'e{idx_e}', v, u))
         else:
             edge_specs.append((f'e{idx_e}', u, v))
-    return Quiver.from_edges(verts, edge_specs)
+    return FiniteQuiver.from_edges(verts, edge_specs)
 
 
-def kronecker_quiver(num_arrows: int = 2) -> Quiver[int, str]:
+def kronecker_quiver(num_arrows: int = 2) -> FiniteQuiver[int, str]:
     r"""Build the $m$-arrow Kronecker quiver $0 \rightrightarrows 1$.
 
     `m=1` is $A_2$ (finite), `m=2` is $\widetilde{A}_1$ (tame), and `m>=3` is wild.
     """
     if num_arrows < 1:
         raise ValueError(f'num_arrows must be >= 1, got {num_arrows}.')
-    return Quiver.from_edges((0, 1), [(f'a{k}', 0, 1) for k in range(num_arrows)])
+    return FiniteQuiver.from_edges((0, 1), [(f'a{k}', 0, 1) for k in range(num_arrows)])
 
 
-def cycle_quiver(n: int) -> Quiver[int, str]:
+def cycle_quiver(n: int) -> FiniteQuiver[int, str]:
     r"""Build the oriented $n$-cycle quiver $\widetilde{A}_{n-1}$ ($n \ge 1$; $n=1$ is the Jordan self-loop quiver)."""
     if n < 1:
         raise ValueError(f'cycle_quiver requires n >= 1, got {n}.')
-    return Quiver.from_edges(tuple(range(n)), [(f'e{i}', i, (i + 1) % n) for i in range(n)])
+    return FiniteQuiver.from_edges(tuple(range(n)), [(f'e{i}', i, (i + 1) % n) for i in range(n)])
 
 
 def to_cellular_sheaf(rep: QuiverRepresentation[Any, V, E]) -> CellularSheaf[V]:
@@ -779,8 +794,8 @@ def to_cellular_sheaf(rep: QuiverRepresentation[Any, V, E]) -> CellularSheaf[V]:
         sheaf.add_vertex(v, rep.dimensions[v])
 
     for e in quiver.edges:
-        u = quiver.source[e]
-        v = quiver.target[e]
+        u = quiver.source(e)
+        v = quiver.target(e)
         if u == v:
             raise ValueError(f'CellularSheaf does not support self-loop edge {e!r} on vertex {u!r}.')
         pair = frozenset((u, v))
@@ -831,7 +846,7 @@ def from_cellular_sheaf(
 
         if can_direct:
             verts = tuple(sheaf.vertex_stalks.keys())
-            q = Quiver.from_edges(verts, [(e_id, s, t) for e_id, s, t, _ in direct_edges])
+            q = FiniteQuiver.from_edges(verts, [(e_id, s, t) for e_id, s, t, _ in direct_edges])
             maps = {e_id: mat for e_id, _, _, mat in direct_edges}
             return QuiverRepresentation(quiver=q, dimensions=dict(sheaf.vertex_stalks), edge_maps=maps)
         if mode == 'direct':
@@ -857,7 +872,7 @@ def from_cellular_sheaf(
             edge_specs.append((arrow_id, ('v', endpoint), ('e', canon_e)))
             maps_inc[arrow_id] = sheaf.restrictions.get((endpoint, canon_e), {})
 
-    q_inc = Quiver.from_edges(all_nodes, edge_specs)
+    q_inc = FiniteQuiver.from_edges(all_nodes, edge_specs)
     return QuiverRepresentation(quiver=q_inc, dimensions=dims, edge_maps=maps_inc)
 
 
@@ -869,8 +884,8 @@ def _compose_morphism_check(
 ) -> bool:
     """Internal helper verifying f_{t(e)} @ M_e == N_e @ f_{s(e)} on all arrows."""
     for e in rep1.quiver.edges:
-        u = rep1.quiver.source[e]
-        v = rep1.quiver.target[e]
+        u = rep1.quiver.source(e)
+        v = rep1.quiver.target(e)
         lhs = dot(morphism_maps[v], rep1.edge_maps[e])
         rhs = dot(rep2.edge_maps[e], morphism_maps[u])
         for r in set(lhs.keys()) | set(rhs.keys()):

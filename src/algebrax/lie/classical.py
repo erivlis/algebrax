@@ -236,7 +236,7 @@ def clifford_lie_algebra(
         cs = CliffordAlgebra(p=clifford_or_p, q=q, r=r)
         total_dim = clifford_or_p + q + r
 
-    bivectors = list(itertools.combinations(range(total_dim), 2))
+    bivectors = list(itertools.combinations(range(1, total_dim + 1), 2))
     dim = len(bivectors)
     bivector_to_idx = {b: i for i, b in enumerate(bivectors)}
     names = [f'e_{b[0]}{b[1]}' for b in bivectors]

@@ -163,22 +163,22 @@ class RelationActionAlgebra(ActionAlgebra[frozenset[tuple[T, T]]], Generic[T]):
 
     def rdiv(
         self,
-        b: frozenset[tuple[T, T]],
         a: frozenset[tuple[T, T]],
+        b: frozenset[tuple[T, T]],
     ) -> frozenset[tuple[T, T]]:
-        r"""Right residual $b / a = \{(x, y) \mid \forall z: (y, z) \in a \implies (x, z) \in b\}$."""
-        # For each y, find all z such that (y, z) in a
-        outgoing_a: dict[T, set[T]] = {}
-        for y, z in a:
-            outgoing_a.setdefault(y, set()).add(z)
+        r"""Right residual $a / b = \{(x, y) \mid \forall z: (y, z) \in b \implies (x, z) \in a\}$."""
+        # For each y, find all z such that (y, z) in b
+        outgoing_b: dict[T, set[T]] = {}
+        for y, z in b:
+            outgoing_b.setdefault(y, set()).add(z)
 
-        b_set = set(b)
+        a_set = set(a)
 
         res: set[tuple[T, T]] = set()
         for y in self.domain:
-            req_zs = outgoing_a.get(y, set())
+            req_zs = outgoing_b.get(y, set())
             for x in self.domain:
-                if all((x, z) in b_set for z in req_zs):
+                if all((x, z) in a_set for z in req_zs):
                     res.add((x, y))
         return frozenset(res)
 

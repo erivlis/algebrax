@@ -7,7 +7,7 @@ Algebraic Signatures (EP-0150 AMDS):
 """
 
 import math
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from fractions import Fraction
 from typing import Literal, Protocol, TypeVar, runtime_checkable
 
@@ -204,6 +204,9 @@ class ModularField(Field[int]):
             raise ZeroDivisionError('Cannot divide by zero element in finite field.')
         return (a * pow(b_mod, -1, self._p)) % self._p
 
+    def nsum(self, a: int, n: int) -> int:
+        return (a * n) % self._p
+
 
 def _gf_poly_mod(
     exp: int, coeff: int, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)
@@ -220,12 +223,13 @@ def _gf_poly_mod(
     if exp < m:
         return [(exp, c)]
 
+    inv_lc = pow(irreduc_poly[-1] % p, -1, p)
     poly = [0] * (exp + 1)
     poly[exp] = c
 
     for deg in range(exp, m - 1, -1):
         if poly[deg] != 0:
-            factor = poly[deg]
+            factor = (poly[deg] * inv_lc) % p
             for i in range(len(irreduc_poly)):
                 target_deg = deg - m + i
                 poly[target_deg] = (poly[target_deg] - factor * irreduc_poly[i]) % p
@@ -312,6 +316,89 @@ def _gf_poly_sub_mul(a: list[int], q: list[int], b: list[int], p: int) -> list[i
     return _gf_poly_trim(res, p)
 
 
+def _gf_poly_mul_mod(a: list[int], b: list[int], mod_poly: list[int], p: int) -> list[int]:
+    """Multiply two dense F_p[x] polynomials modulo mod_poly."""
+    if not a or not b:
+        return []
+    prod = [0] * (len(a) + len(b) - 1)
+    for i, ca in enumerate(a):
+        if ca:
+            for j, cb in enumerate(b):
+                if cb:
+                    prod[i + j] = (prod[i + j] + ca * cb) % p
+    _, rem = _gf_poly_divmod(prod, mod_poly, p)
+    return rem
+
+
+def _gf_poly_pow_mod(base: list[int], exp: int, mod_poly: list[int], p: int) -> list[int]:
+    """Binary exponentiation base^exp mod mod_poly in F_p[x]."""
+    _, result = _gf_poly_divmod([1], mod_poly, p)
+    _, cur = _gf_poly_divmod(base, mod_poly, p)
+    e = exp
+    while e > 0:
+        if e & 1:
+            result = _gf_poly_mul_mod(result, cur, mod_poly, p)
+        e >>= 1
+        if e > 0:
+            cur = _gf_poly_mul_mod(cur, cur, mod_poly, p)
+    return result
+
+
+def _gf_poly_gcd(a: list[int], b: list[int], p: int) -> list[int]:
+    """Monic Euclidean GCD of two polynomials in F_p[x]."""
+    r0 = _gf_poly_trim(a, p)
+    r1 = _gf_poly_trim(b, p)
+    while r1:
+        _, r2 = _gf_poly_divmod(r0, r1, p)
+        r0, r1 = r1, r2
+    if not r0:
+        return []
+    inv_lc = pow(r0[-1], -1, p)
+    return [(c * inv_lc) % p for c in r0]
+
+
+def _distinct_prime_factors(n: int) -> list[int]:
+    """Return the distinct prime divisors of positive integer n."""
+    factors: list[int] = []
+    d = 2
+    rem = n
+    while d * d <= rem:
+        if rem % d == 0:
+            factors.append(d)
+            while rem % d == 0:
+                rem //= d
+        d += 1 if d == 2 else 2
+    if rem > 1:
+        factors.append(rem)
+    return factors
+
+
+def _is_irreducible_fp(monic_poly: tuple[int, ...], p: int) -> bool:
+    """Rabin's irreducibility test for a monic polynomial over F_p."""
+    n = len(monic_poly) - 1
+    if n < 1:
+        return False
+    if n == 1:
+        return True
+    f = list(monic_poly)
+    check_exps = {n // q for q in _distinct_prime_factors(n)}
+    h = [0, 1]  # x mod f
+    for k in range(1, n + 1):
+        h = _gf_poly_pow_mod(h, p, f, p)  # h = x^(p^k) mod f
+        if k in check_exps:
+            diff = list(h)
+            if len(diff) < 2:
+                diff.extend([0] * (2 - len(diff)))
+            diff[1] = (diff[1] - 1) % p
+            diff = _gf_poly_trim(diff, p)
+            if not diff:
+                return False
+            g = _gf_poly_gcd(diff, f, p)
+            if len(g) != 1:
+                return False
+    return h == [0, 1]
+
+
 def _gf_poly_inv(a: dict[int, int], p: int, irreduc_poly: tuple[int, ...]) -> dict[int, int]:
     """Compute multiplicative inverse of non-zero element a in GF(p^m) via Extended Euclidean Algorithm."""
     reduced = _gf_reduce_dict(a, p, irreduc_poly)
@@ -357,21 +444,34 @@ class GaloisField(QuotientMonoidAlgebraSemiring[int, int], Field[dict[int, int]]
 
     Properties:
         Exact finite `Field` (and `Semiring`), commutative, associative, distributive.
+        Normalizes `irreduc_poly` to monic form modulo $p$ and validates irreducibility via Rabin's test.
 
     Applications:
         Error-correcting codes (Reed-Solomon), cryptography (AES $\mathrm{GF}(2^8)$),
         and multivariate polynomials / Gröbner bases over $\mathrm{GF}(p^m)$.
     """
 
-    def __init__(self, p: int = 2, irreduc_poly: tuple[int, ...] = (1, 1, 0, 1, 1, 0, 0, 0, 1)):
+    def __init__(
+        self,
+        p: int = 2,
+        irreduc_poly: Sequence[int] = (1, 1, 0, 1, 1, 0, 0, 0, 1),
+        *,
+        validate_irreducible: bool = True,
+    ):
         if not _is_prime(p):
             raise ValueError(f'Field characteristic must be a prime >= 2, got {p!r}.')
-        if len(irreduc_poly) < 2 or (irreduc_poly[-1] % p) == 0:
+        raw_poly = tuple(int(c) % p for c in irreduc_poly)
+        if len(raw_poly) < 2 or raw_poly[-1] == 0:
             raise ValueError(
                 'irreduc_poly must have degree >= 1 with a non-zero leading coefficient modulo p.'
             )
+        inv_lc = pow(raw_poly[-1], -1, p)
+        monic_poly = tuple((c * inv_lc) % p for c in raw_poly)
+        if validate_irreducible and not _is_irreducible_fp(monic_poly, p):
+            raise ValueError(f'Polynomial {tuple(irreduc_poly)!r} is reducible over F_{p}.')
+
         self.p = p
-        self.irreduc_poly = irreduc_poly
+        self.irreduc_poly: tuple[int, ...] = monic_poly
 
         def key_op(k1: int, k2: int) -> int:
             return k1 + k2
@@ -379,10 +479,8 @@ class GaloisField(QuotientMonoidAlgebraSemiring[int, int], Field[dict[int, int]]
         def quotient_fn(key: int, coeff: int) -> Iterable[tuple[int, int]]:
             return _gf_poly_mod(key, coeff, p=self.p, irreduc_poly=self.irreduc_poly)
 
-        from algebrax.semiring.arithmetic import ModularSemiring
-
         super().__init__(
-            coeff_semiring=ModularSemiring(self.p),
+            coeff_semiring=ModularField(self.p),  # type: ignore[arg-type]
             key_op=key_op,
             zero_key=0,
             quotient_fn=quotient_fn,

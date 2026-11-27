@@ -17,9 +17,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Generic, Literal, Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._homomorphisms import LieAlgebraHom
 from algebrax.lie.classical import sl_n, su_n
-from algebrax.lie.core import LieAlgebra
+from algebrax.lie.core import LieAlgebra, LieElement
 from algebrax.lie.roots import RootSystem
 from algebrax.matrix.core import add, dot, inverse, trace, transpose
 from algebrax.rep.group import _prune_matrix, _scale_matrix
@@ -139,10 +138,11 @@ def _rref_nullspace(
 
 
 @runtime_checkable
-class LieRepresentation(LieAlgebraHom[int, SparseMatrix[int, K]], Protocol[K]):
+class LieRepresentation(Protocol[K]):
     r"""Protocol for a linear representation $\rho : \mathfrak{g} \to \mathfrak{gl}(V)$ over sparse matrices.
 
-    Refines `LieAlgebraHom[int, SparseMatrix[int, K]]` with representation space dimension.
+    Structurally conforms to `LieAlgebraHom[LieElement, SparseMatrix[int, K]]` with
+    representation space dimension.
 
     Algebraic Signature:
         $\rho : \mathfrak{g} \longrightarrow \mathfrak{gl}_d(\mathbb{K}), \quad
@@ -154,8 +154,8 @@ class LieRepresentation(LieAlgebraHom[int, SparseMatrix[int, K]], Protocol[K]):
         """Dimension of the representation vector space $V$."""
         ...
 
-    def __call__(self, generator_idx: int) -> SparseMatrix[int, K]:
-        """Evaluate the representation matrix $\rho(X_i)$ for basis generator index `generator_idx`."""
+    def __call__(self, x: LieElement) -> SparseMatrix[int, K]:
+        r"""Evaluate the representation matrix $\rho(X)$ on a Lie algebra element $X \in \mathfrak{g}$."""
         ...
 
 
@@ -168,7 +168,7 @@ class ExplicitLieRep(Generic[K]):
 
     Algebraic Signature:
         $\rho : \mathfrak{g} \longrightarrow \mathfrak{gl}_d(\mathbb{K}), \quad
-        X_i \longmapsto M_i \in \mathrm{SparseMatrix}[d \times d]$
+        X \longmapsto \sum_a X^a M_a \in \mathrm{SparseMatrix}[d \times d]$
 
     Attributes:
         algebra: Underlying `LieAlgebra` $\mathfrak{g}$.
@@ -189,19 +189,25 @@ class ExplicitLieRep(Generic[K]):
         if self.dimension <= 0:
             raise ValueError(f'Representation dimension must be positive, got {self.dimension}.')
 
-    def __call__(self, generator_idx: int) -> SparseMatrix[int, K]:
-        if not (0 <= generator_idx < len(self.generator_matrices)):
+    def generator_matrix(self, idx: int) -> SparseMatrix[int, K]:
+        r"""Return the representation matrix $\rho(X_i)$ for basis generator index `idx`."""
+        if not (0 <= idx < len(self.generator_matrices)):
             raise IndexError(
-                f'Generator index {generator_idx} out of range [0, {len(self.generator_matrices)}).'
+                f'Generator index {idx} out of range [0, {len(self.generator_matrices)}).'
             )
-        return self.generator_matrices[generator_idx]
+        return self.generator_matrices[idx]
 
-    def evaluate(
+    def __call__(
         self,
-        element: Sequence[float | complex] | dict[int | str, float | complex],
+        element: LieElement | Sequence[float | complex] | Mapping[int | str, float | complex],
     ) -> SparseMatrix[int, Any]:
-        r"""Evaluate $\rho(X) = \sum_a X^a \rho(X_a)$ for any Lie algebra coordinate or named vector."""
-        coords = self.algebra._normalize_element(element)
+        r"""Evaluate $\rho(X) = \sum_a X^a \rho(X_a)$ for any Lie algebra element."""
+        if isinstance(element, int):
+            raise TypeError(
+                'ExplicitLieRep.__call__ expects a LieElement (dict/sequence), not a bare int; '
+                'use rep.generator_matrix(idx) or rep({idx: 1.0}) for a basis generator.'
+            )
+        coords = self.algebra._normalize_element(element)  # type: ignore[arg-type]
         acc: dict[int, dict[int, Any]] = {}
         for idx, coeff in coords.items():
             term = _scale_matrix(self.generator_matrices[idx], coeff)
@@ -209,13 +215,20 @@ class ExplicitLieRep(Generic[K]):
                 acc = dict(add(acc, term))  # type: ignore[arg-type]
         return _prune_matrix(acc)
 
+    def evaluate(
+        self,
+        element: LieElement | Sequence[float | complex] | Mapping[int | str, float | complex],
+    ) -> SparseMatrix[int, Any]:
+        r"""Evaluate $\rho(X) = \sum_a X^a \rho(X_a)$ for any Lie algebra coordinate or named vector."""
+        return self(element)
+
     def exp_map(
         self,
-        element: Sequence[float | complex] | dict[int | str, float | complex],
+        element: LieElement | Sequence[float | complex] | Mapping[int | str, float | complex],
         order: int = 18,
     ) -> SparseMatrix[int, Any]:
         r"""Bridge to the Lie group representation via the matrix exponential $\exp(\rho(X))$."""
-        return _sparse_expm(self.evaluate(element), self.dimension, order=order)
+        return _sparse_expm(self(element), self.dimension, order=order)
 
     def direct_sum(self, other: ExplicitLieRep[K]) -> ExplicitLieRep[K]:
         r"""Form the direct sum representation $(\rho_1 \oplus \rho_2)(X) = \mathrm{diag}(\rho_1(X), \rho_2(X))$."""
@@ -237,6 +250,13 @@ class ExplicitLieRep(Generic[K]):
             generator_matrices=tuple(dual_mats),
             dimension=self.dimension,
         )
+
+
+def _rep_generator(rep: LieRepresentation[Any], idx: int) -> SparseMatrix[int, Any]:
+    """Return representation matrix rho(X_idx) for a basis generator index."""
+    if isinstance(rep, ExplicitLieRep):
+        return rep.generator_matrix(idx)
+    return rep({idx: 1.0})
 
 
 def _same_lie_algebra(alg1: LieAlgebra, alg2: LieAlgebra, tol: float = 1e-12) -> bool:
@@ -269,7 +289,7 @@ def direct_sum_lie_rep(reps: Sequence[ExplicitLieRep[K]]) -> ExplicitLieRep[K]:
         shifted: dict[int, dict[int, K]] = {}
         offset = 0
         for rep, dim in zip(reps, dims):
-            for r_idx, row in rep(gen_idx).items():
+            for r_idx, row in rep.generator_matrix(gen_idx).items():
                 shifted[r_idx + offset] = {c_idx + offset: val for c_idx, val in row.items()}
             offset += dim
         gen_mats.append(shifted)
@@ -295,8 +315,8 @@ def tensor_product_lie_rep(
     gen_mats: list[SparseMatrix[int, Any]] = []
 
     for gen_idx in range(rep_a.algebra.dim):
-        ma = rep_a(gen_idx)
-        mb = rep_b(gen_idx)
+        ma = rep_a.generator_matrix(gen_idx)
+        mb = rep_b.generator_matrix(gen_idx)
         combined: dict[int, dict[int, Any]] = {}
 
         # Term 1: rho_a(X) (x) I_{d_b}
@@ -447,8 +467,8 @@ def is_lie_intertwiner(
         if isinstance(rep2_alg, LieAlgebra) and not _same_lie_algebra(alg, rep2_alg):
             raise ValueError('Representations in is_lie_intertwiner must share the same LieAlgebra.')
     for i in range(alg.dim):
-        lhs = dot(op, rep1(i))
-        rhs = dot(rep2(i), op)
+        lhs = dot(op, _rep_generator(rep1, i))
+        rhs = dot(_rep_generator(rep2, i), op)
         all_rows = set(lhs.keys()) | set(rhs.keys())
         for r in all_rows:
             row_l = lhs.get(r, {})
@@ -490,7 +510,7 @@ def weight_space_decomposition(
     if not cartan_indices:
         raise ValueError('cartan_indices must be a non-empty sequence of Cartan generator indices.')
 
-    cartan_mats = [rep(idx) for idx in cartan_indices]
+    cartan_mats = [_rep_generator(rep, idx) for idx in cartan_indices]
     for idx, mat in zip(cartan_indices, cartan_mats):
         _check_diagonal_cartan(mat, idx, tol)
 
@@ -546,7 +566,7 @@ def highest_weight_vectors(
         List of `(weight_tuple, sparse_vector)` pairs for every linearly independent highest-weight vector.
     """
     spaces = weight_space_decomposition(rep, cartan_indices, tol=tol)
-    raising_mats = [rep(idx) for idx in raising_indices]
+    raising_mats = [_rep_generator(rep, idx) for idx in raising_indices]
     hw_vectors: list[tuple[tuple[float | complex, ...], dict[int, float | complex]]] = []
 
     for weight, basis_vecs in spaces.items():
@@ -607,13 +627,13 @@ def quadratic_casimir(
 
     acc: dict[int, dict[int, Any]] = {}
     for i, row in g_inv.items():
-        rho_i = rep(i)
+        rho_i = _rep_generator(rep, i)
         if not rho_i:
             continue
         for j, coeff in row.items():
             if abs(complex(coeff)) <= tol:
                 continue
-            rho_j = rep(j)
+            rho_j = _rep_generator(rep, j)
             if not rho_j:
                 continue
             prod = dot(rho_i, rho_j)
@@ -755,7 +775,7 @@ def cubic_casimir_tensor(
         active_rep = rep
 
     n = algebra.dim
-    gens = [active_rep(i) for i in range(n)]
+    gens = [_rep_generator(active_rep, i) for i in range(n)]
     # Precompute pairwise products rho(X_j) rho(X_k) once for all j <= k
     prods: dict[tuple[int, int], SparseMatrix[int, Any]] = {}
     for j in range(n):
@@ -839,8 +859,8 @@ def cubic_casimir_operator(
 
     acc: dict[int, dict[int, Any]] = {}
     for (i, j), k_terms in by_ij.items():
-        rho_i = rep(i)
-        rho_j = rep(j)
+        rho_i = _rep_generator(rep, i)
+        rho_j = _rep_generator(rep, j)
         if not rho_i or not rho_j:
             continue
         ij_prod = _prune_matrix(dot(rho_i, rho_j), tol=tol)
@@ -848,7 +868,7 @@ def cubic_casimir_operator(
             continue
         k_sum: dict[int, dict[int, Any]] = {}
         for k, coeff in k_terms:
-            rho_k = rep(k)
+            rho_k = _rep_generator(rep, k)
             if not rho_k:
                 continue
             scaled_k = _scale_matrix(rho_k, coeff, tol=tol)

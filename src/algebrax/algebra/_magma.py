@@ -13,7 +13,7 @@ Algebraic Signatures:
 
 from typing import Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra._mixins import HasAdd, HasMul, HasOp
+from algebrax.algebra._mixins import HasAdd, HasMul, HasOp, HasResiduals
 
 V = TypeVar('V')
 
@@ -83,25 +83,19 @@ class Band(HasMul[V], Protocol):
 
 
 @runtime_checkable
-class Quasigroup(HasMul[V], Protocol):
-    r"""A magma with unique left and right division: $a \cdot x = b$ and $y \cdot a = b$.
+class Quasigroup(HasMul[V], HasResiduals[V], Protocol):
+    r"""A magma with unique left and right division: $a \cdot x = b$ and $x \cdot b = a$.
 
     Algebraic Signature:
         $\langle V, \cdot, \backslash, / \rangle$
 
     Operations:
         - `mul(a, b)`: Binary multiplication (`HasMul[V]`).
-        - `ldiv(a, b)`: Left division $a \backslash b$ (unique $x$ such that $a \cdot x = b$).
-        - `rdiv(a, b)`: Right division $a / b$ (unique $y$ such that $y \cdot a = b$).
+        - `ldiv(a, b)`: Left division $a \backslash b$ (unique $x$ such that $a \cdot x = b$, `HasResiduals[V]`).
+        - `rdiv(a, b)`: Right division $a / b$ (unique $x$ such that $x \cdot b = a$, `HasResiduals[V]`).
     """
 
-    def ldiv(self, a: V, b: V) -> V:
-        r"""Left division: unique $x$ such that $a \cdot x = b$."""
-        ...
-
-    def rdiv(self, a: V, b: V) -> V:
-        r"""Right division: unique $y$ such that $y \cdot a = b$."""
-        ...
+    ...
 
 
 # --- Additive Dual Branch ---

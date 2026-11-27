@@ -49,7 +49,7 @@ from algebrax.algebra._hopf import Bialgebra, Coalgebra, HopfAlgebra
 from algebrax.algebra._ideals import GroebnerIdeal, Ideal
 from algebrax.algebra._normed import InnerProductSpace, NormedSpace
 from algebrax.algebra._polynomial import MultivariatePolynomialAlgebra, SparseMPoly, monomial_divides
-from algebrax.algebra._quotient import QuotientRing
+from algebrax.algebra._quotient import CommQuotientRing, QuotientRing
 from algebrax.verification._common import _float_equal, _require_samples, semiring_elements_equal
 
 C = TypeVar('C')
@@ -1058,7 +1058,7 @@ def verify_groebner_basis_laws(
         r_samples = _require_samples(samples)
 
     i_samples: list[SparseMPoly[V]] = list(basis[:3]) if basis else [ring.zero]
-    quotient: QuotientRing[SparseMPoly[V]] = QuotientRing(ring, ideal)
+    quotient: CommQuotientRing[SparseMPoly[V]] = CommQuotientRing(ring, ideal)
     q_res = verify_quotient_ring_laws(quotient, r_samples, i_samples, tol=tol)
     comm_res = verify_comm_ring_laws(quotient, [quotient.project(r) for r in r_samples], tol=tol)
 

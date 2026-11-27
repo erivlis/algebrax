@@ -111,7 +111,7 @@ from algebrax.rep.quantum import (
     universal_r_matrix_sl2_fundamental,
 )
 from algebrax.rep.quiver import (
-    Quiver,
+    FiniteQuiver,
     QuiverRepresentation,
     bgp_reflect_dimension,
     classify_dynkin_type,
@@ -134,13 +134,13 @@ __all__ = [
     'CharacterTable',
     'ExplicitGroupRep',
     'ExplicitLieRep',
+    'FiniteQuiver',
     'GroupRepresentation',
     'LieRepresentation',
     'MolienSeries',
     'PBWKey',
     'QuantumElement',
     'QuantumSL2',
-    'Quiver',
     'QuiverRepresentation',
     'RepOperator',
     'TensorElement',

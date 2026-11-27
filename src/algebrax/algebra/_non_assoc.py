@@ -21,8 +21,10 @@ from algebrax.algebra._mixins import (
     HasZero,
     LawAlternative,
     LawAnticommutative,
+    LawAssociative,
     LawCommutative,
     LawJordan,
+    LawLie,
     LawMalcev,
 )
 from algebrax.algebra._semiring import Semiring
@@ -159,7 +161,9 @@ class PoissonAlgebra(
     HasNeg[M],
     HasMul[M],
     HasBracket[M],
+    LawAssociative,
     LawCommutative,
+    LawLie,
     Protocol[R, M],
 ):
     r"""A Poisson algebra $\langle R, P, \cdot_s, \mathbf{0}, +, -, \cdot, \{\cdot, \cdot\} \rangle$.
@@ -170,7 +174,15 @@ class PoissonAlgebra(
     """
 
     @property
+    def is_associative(self) -> Literal[True]:
+        return True
+
+    @property
     def is_commutative(self) -> Literal[True]:
+        return True
+
+    @property
+    def is_lie(self) -> Literal[True]:
         return True
 
 

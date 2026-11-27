@@ -8,8 +8,9 @@ import operator
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, TypeVar
 
+from algebrax.algebra._mixins import LawCommutative
 from algebrax.algebra._module import Algebra, Semimodule
-from algebrax.algebra._ring import CommRing
+from algebrax.algebra._ring import CommRing, Ring
 from algebrax.algebra._semiring import Semiring
 from algebrax.typing import K, SparseVector
 
@@ -106,7 +107,12 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVe
         if n == 0:
             return {}
         result = {}
-        coeff_nsum = self.coeff_semiring.nsum
+        coeff_nsum = getattr(self.coeff_semiring, 'nsum', None)
+        if coeff_nsum is None:
+            from algebrax.algebra._helpers import nsum as _nsum
+
+            def coeff_nsum(coeff: T, count: int) -> T:
+                return _nsum(self.coeff_semiring, coeff, count)
         zero = self.coeff_semiring.zero
         for exp, coeff in a.items():
             scaled = coeff_nsum(coeff, n)
@@ -115,7 +121,7 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVe
         return result
 
 
-class MonoidAlgebra(MonoidAlgebraSemiring[K, T], Algebra[T, SparseVector[K, T]], CommRing[SparseVector[K, T]]):
+class MonoidAlgebra(MonoidAlgebraSemiring[K, T], Algebra[T, SparseVector[K, T]], Ring[SparseVector[K, T]]):
     r"""The Monoid Algebra (and Monoid Ring) $R[M]$ over coefficient ring $R$ and monoid $M$.
 
     Algebraic Signature:
@@ -130,7 +136,8 @@ class MonoidAlgebra(MonoidAlgebraSemiring[K, T], Algebra[T, SparseVector[K, T]],
         - Subtraction ($a - b$): Direct sparse difference $a + (-b)$.
 
     Properties:
-        Satisfies `Algebra`, `Module`, `CommRing` (when $R$ and $M$ are commutative), `Ring`, and `Semiring`.
+        Satisfies `Algebra`, `Module`, `Ring`, and `Semiring`.
+        For provably commutative monoid algebras witnessing `CommRing`, use `CommMonoidAlgebra`.
     """
 
     def neg(self, a: SparseVector[K, T]) -> SparseVector[K, T]:
@@ -146,6 +153,57 @@ class MonoidAlgebra(MonoidAlgebraSemiring[K, T], Algebra[T, SparseVector[K, T]],
         return self.add(a, self.neg(b))
 
 
+class CommMonoidAlgebra(MonoidAlgebra[K, T], CommRing[SparseVector[K, T]]):
+    r"""A provably commutative Monoid Algebra $R[M]$ over a commutative ring $R$ and commutative monoid $M$.
+
+    Algebraic Signature:
+        $\langle R, R[M], \cdot_s, \emptyset, +, -, \{e_M: 1_R\}, \ast \rangle$ with $a \ast b = b \ast a$
+
+    Carrier:
+        `dict[K, T]` (Sparse mapping from commutative monoid elements $m \in M$ to non-zero coefficients $a_m \in R$).
+
+    Properties:
+        Validates that `coeff_ring` satisfies `CommRing` (and, if `monoid` is supplied, that it
+        witnesses `LawCommutative`), nominally satisfying `CommRing`, `Ring`, `Algebra`, and `Semiring`.
+    """
+
+    def __init__(
+        self,
+        coeff_ring: CommRing[T],
+        key_op: Callable[[K, K], K] = operator.add,
+        zero_key: K = 0,  # type: ignore[assignment]
+        *,
+        monoid: object | None = None,
+        commutative_monoid: bool = True,
+    ) -> None:
+        if not isinstance(coeff_ring, CommRing):
+            raise TypeError(
+                f'CommMonoidAlgebra requires a CommRing coefficient ring, got {type(coeff_ring).__name__}.'
+            )
+        if not commutative_monoid:
+            raise ValueError('CommMonoidAlgebra requires a commutative monoid.')
+        if monoid is not None:
+            if not isinstance(monoid, LawCommutative):
+                raise TypeError(
+                    f'CommMonoidAlgebra requires a commutative monoid witnessing LawCommutative, '
+                    f'got {type(monoid).__name__}.'
+                )
+            if hasattr(monoid, 'mul') and hasattr(monoid, 'one'):
+                key_op = monoid.mul  # type: ignore[assignment]
+                zero_key = monoid.one  # type: ignore[assignment]
+            elif hasattr(monoid, 'add') and hasattr(monoid, 'zero'):
+                key_op = monoid.add  # type: ignore[assignment]
+                zero_key = monoid.zero  # type: ignore[assignment]
+            elif hasattr(monoid, 'op') and hasattr(monoid, 'identity'):
+                key_op = monoid.op  # type: ignore[assignment]
+                zero_key = monoid.identity  # type: ignore[assignment]
+            else:
+                raise TypeError(
+                    f'Monoid {type(monoid).__name__} must expose (mul, one), (add, zero), or (op, identity).'
+                )
+        super().__init__(coeff_ring, key_op=key_op, zero_key=zero_key)  # type: ignore[arg-type]
+
+
 class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T]):
     r"""The Quotient Monoid Algebra Semiring $S[M] / I$.
 
@@ -155,7 +213,7 @@ class QuotientMonoidAlgebraSemiring(MonoidAlgebraSemiring[K, T]):
     Carrier:
         `dict[K, T]` (Sparse mapping reduced to canonical basis representatives modulo $I$).
 
-    Two-Level Quotient Mechanics (EP-0201):
+    Two-Level Quotient Mechanics:
         1. **In-Loop Basis-Pair Rewriting (`quotient_fn`)**: During convolution $a \ast b$, each raw
            basis product $(k_1 \cdot k_2, c_1 c_2)$ is expanded into canonical terms via
            `quotient_fn(raw_key, raw_coeff) -> Iterable[tuple[K, T]]`.
@@ -234,6 +292,7 @@ class QuotientMonoidAlgebra(QuotientMonoidAlgebraSemiring[K, T], MonoidAlgebra[K
 
 
 __all__ = [
+    'CommMonoidAlgebra',
     'MonoidAlgebra',
     'MonoidAlgebraSemiring',
     'QuotientMonoidAlgebra',

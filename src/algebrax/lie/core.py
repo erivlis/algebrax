@@ -12,9 +12,9 @@ import math
 import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TypeAlias
+from typing import Literal, TypeAlias
 
-from algebrax.algebra import NonAssocAlgebra
+from algebrax.algebra import HasBracket, LawAnticommutative, LawLie, NonAssocAlgebra
 from algebrax.matrix import (
     commutator,
     frobenius_inner,
@@ -190,7 +190,12 @@ class StructureConstants:
         return all(abs(val) <= tol for val in jacobi_sum.values())
 
 
-class LieAlgebra(NonAssocAlgebra[float | complex, LieElement]):
+class LieAlgebra(
+    NonAssocAlgebra[float | complex, LieElement],
+    HasBracket[LieElement],
+    LawAnticommutative,
+    LawLie,
+):
     r"""Finite-dimensional Lie algebra equipped with an alternating bilinear bracket.
 
     Algebraic Signature:
@@ -200,6 +205,16 @@ class LieAlgebra(NonAssocAlgebra[float | complex, LieElement]):
     Represents a Lie algebra either through explicit structure constants $f_{ab}^c$
     or through a set of sparse matrix generators $T_a \in \mathfrak{gl}(n, \mathbb{C})$.
     """
+
+    @property
+    def is_anticommutative(self) -> Literal[True]:
+        """Witness that the Lie bracket is anticommutative: [X, Y] = -[Y, X]."""
+        return True
+
+    @property
+    def is_lie(self) -> Literal[True]:
+        """Witness that the Lie bracket satisfies the Jacobi identity."""
+        return True
 
     def __init__(
         self,

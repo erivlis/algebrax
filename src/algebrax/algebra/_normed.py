@@ -16,7 +16,7 @@ V = TypeVar('V')
 
 
 @runtime_checkable
-class NormedSpace(HasZero[V], HasAdd[V], HasNeg[V], HasScale[R, V], HasNorm[V], Protocol):
+class NormedSpace(HasScale[R, V], HasZero[V], HasAdd[V], HasNeg[V], HasNorm[V], Protocol[R, V]):
     r"""A vector space $V$ over field $R$ equipped with a norm $\|\cdot\| : V \to \mathbb{R}_{\ge 0}$.
 
     Algebraic Signature:
@@ -39,7 +39,7 @@ class NormedSpace(HasZero[V], HasAdd[V], HasNeg[V], HasScale[R, V], HasNorm[V], 
 
 @runtime_checkable
 class InnerProductSpace(
-    HasZero[V], HasAdd[V], HasNeg[V], HasScale[R, V], HasNorm[V], HasInner[R, V], Protocol
+    HasScale[R, V], HasZero[V], HasAdd[V], HasNeg[V], HasNorm[V], HasInner[R, V], Protocol[R, V]
 ):
     r"""An inner product space (finite-dimensional Hilbert space) equipped with $\langle u, v \rangle$.
 

@@ -1,9 +1,10 @@
 r"""
 Canonical universal quotient constructions $S / I$, $R / I$, and $A / I$.
 
-Algebraic Signatures (EP-0201 / EP-0150 AMDS):
+Algebraic Signatures:
     QuotientSemiring:  $\langle S / I, \mathbf{0}, +, \mathbf{1}, \cdot, ^* \rangle$
     QuotientRing:      $\langle R / I, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$
+    CommQuotientRing:  $\langle R / I, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ with $a \cdot b = b \cdot a$
     QuotientAlgebra:   $\langle R, A / I, \cdot_s, \mathbf{0}, +, -, (\mathbf{1}), \cdot \rangle$
 """
 
@@ -54,7 +55,7 @@ class QuotientSemiring(Semiring[V], Generic[V]):
         return self.ideal.reduce(x)
 
 
-class QuotientRing(QuotientSemiring[V], CommRing[V], Generic[V]):
+class QuotientRing(QuotientSemiring[V], Ring[V], Generic[V]):
     r"""Canonical quotient ring $R / I$ of a ring $R$ modulo a two-sided ideal $I \triangleleft R$.
 
     Algebraic Signature:
@@ -70,7 +71,8 @@ class QuotientRing(QuotientSemiring[V], CommRing[V], Generic[V]):
         - $[a] - [b] = \mathrm{reduce}(a - b)$
 
     Properties:
-        Nominally and structurally satisfies `CommRing[V]`, `Ring[V]`, and `Semiring[V]`.
+        Nominally and structurally satisfies `Ring[V]` and `Semiring[V]`.
+        For provably commutative quotients witnessing `CommRing[V]`, use `CommQuotientRing`.
         The canonical projection $\pi(x) = \mathrm{ideal.reduce}(x)$ is a surjective `RingHom`
         with $\ker \pi = I$.
     """
@@ -86,13 +88,35 @@ class QuotientRing(QuotientSemiring[V], CommRing[V], Generic[V]):
         return self.ideal.reduce(self.base_ring.sub(self.ideal.reduce(a), self.ideal.reduce(b)))
 
 
-class QuotientAlgebra(QuotientRing[V], NonAssocAlgebra[R, V], Generic[R, V]):
+class CommQuotientRing(QuotientRing[V], CommRing[V], Generic[V]):
+    r"""Canonical commutative quotient ring $R / I$ of a commutative ring $R$ modulo an ideal $I \triangleleft R$.
+
+    Algebraic Signature:
+        $\langle R / I, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ with $[a][b] = [b][a]$
+
+    Carrier:
+        Unboxed canonical coset representatives $V$ computed via `ideal.reduce(x)`.
+
+    Properties:
+        Validates that `base_ring` satisfies `CommRing` at construction time, and nominally
+        witnesses `CommRing[V]`, `QuotientRing[V]`, `Ring[V]`, and `Semiring[V]`.
+    """
+
+    def __init__(self, base_ring: CommRing[V], ideal: Ideal[V]) -> None:
+        if not isinstance(base_ring, CommRing):
+            raise TypeError(f'CommQuotientRing requires a CommRing base_ring, got {type(base_ring).__name__}.')
+        super().__init__(base_ring, ideal)
+
+
+class QuotientAlgebra(QuotientSemiring[V], NonAssocAlgebra[R, V], Generic[R, V]):
     r"""Canonical quotient algebra $A / I$ over scalar ring $R$.
 
-    Inherits all ring/semiring quotient operations (`zero`, `one`, `add`, `mul`, `neg`, `sub`,
-    `nsum`, `power`, `eq`, `project`) from `QuotientRing[V]` and adds scalar action `smul(r, m)`.
-    Supports both associative unital algebras (satisfying `Algebra[R, V]`) and non-associative
-    algebras such as Lie algebras modulo a `LieIdeal` (satisfying `NonAssocAlgebra[R, V]`).
+    Algebraic Signature:
+        $\langle R, A / I, \cdot_s, \mathbf{0}, +, -, (\mathbf{1}), \cdot \rangle$
+
+    Inherits quotient addition, multiplication, equality, and projection from `QuotientSemiring[V]`
+    without falsely claiming associativity (`LawAssociative`) or commutativity (`CommRing`), and
+    supports non-unital algebras such as Lie algebras modulo a `LieIdeal`.
     """
 
     def __init__(self, base_algebra: NonAssocAlgebra[R, V], ideal: Ideal[V]) -> None:
@@ -106,11 +130,23 @@ class QuotientAlgebra(QuotientRing[V], NonAssocAlgebra[R, V], Generic[R, V]):
             raise AttributeError('Underlying non-associative algebra does not define a multiplicative identity one.')
         return self.ideal.reduce(one_val)
 
+    def neg(self, a: V) -> V:
+        return self.ideal.reduce(self.base_algebra.neg(self.ideal.reduce(a)))
+
+    def sub(self, a: V, b: V) -> V:
+        ra = self.ideal.reduce(a)
+        rb = self.ideal.reduce(b)
+        sub_fn = getattr(self.base_algebra, 'sub', None)
+        if sub_fn is not None:
+            return self.ideal.reduce(sub_fn(ra, rb))
+        return self.ideal.reduce(self.base_algebra.add(ra, self.base_algebra.neg(rb)))
+
     def smul(self, r: R, m: V) -> V:
         return self.ideal.reduce(self.base_algebra.smul(r, self.ideal.reduce(m)))
 
 
 __all__ = [
+    'CommQuotientRing',
     'QuotientAlgebra',
     'QuotientRing',
     'QuotientSemiring',

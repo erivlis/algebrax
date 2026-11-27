@@ -74,7 +74,7 @@ class HasMorInv(Protocol[Mor]):
         $\langle \mathrm{Hom}, ()^{-1} \rangle$
     """
 
-    def invert_path(self, path: Mor) -> Mor:
+    def inv(self, morphism: Mor) -> Mor:
         r"""Invert a morphism $f : x \to y$ into $f^{-1} : y \to x$."""
         ...
 

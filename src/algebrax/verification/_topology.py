@@ -480,9 +480,10 @@ def verify_path_groupoid_laws(
     sample_paths: Iterable[tuple[Any, ...]],
 ) -> dict[str, bool]:
     r"""Verify fundamental path groupoid $\Pi_1(K)$ axioms up to simplicial homotopy ($\sim$):
-    - Left/Right Identity: $\mathrm{id}_{\mathrm{target}(p)} \circ p = p = p \circ \mathrm{id}_{\mathrm{source}(p)}$
-    - Left Inverse Homotopy: $p^{-1} \circ p \sim \mathrm{id}_{\mathrm{source}(p)}$
-    - Right Inverse Homotopy: $p \circ p^{-1} \sim \mathrm{id}_{\mathrm{target}(p)}$
+    - Left/Right Identity: $\mathrm{compose}(\mathrm{id}_a, p) = p = \mathrm{compose}(p, \mathrm{id}_b)$
+      where $a = \mathrm{source}(p)$, $b = \mathrm{target}(p)$
+    - Left Inverse Homotopy: $\mathrm{compose}(p^{-1}, p) \sim \mathrm{id}_{\mathrm{target}(p)}$
+    - Right Inverse Homotopy: $\mathrm{compose}(p, p^{-1}) \sim \mathrm{id}_{\mathrm{source}(p)}$
     - Involution of Inversion: $(p^{-1})^{-1} = p$
     - 2-Simplex Face Homotopy: $\forall \{u, v, w\} \in K_2,\; (u, v, w) \sim (u, w)$
     """
@@ -497,21 +498,21 @@ def verify_path_groupoid_laws(
         v = groupoid.target(p)
         id_u = groupoid.id(u)
         id_v = groupoid.id(v)
-        if groupoid.compose(p, id_u) != p or groupoid.compose(id_v, p) != p:
+        if groupoid.compose(id_u, p) != p or groupoid.compose(p, id_v) != p:
             id_ok = False
 
-        p_inv = groupoid.invert_path(p)
-        if groupoid.invert_path(p_inv) != p:
+        p_inv = groupoid.inv(p)
+        if groupoid.inv(p_inv) != p:
             involution_ok = False
 
-        # p_inv o p: first traverse p (u -> v), then p_inv (v -> u), yielding loop at u
-        loop_u = groupoid.compose(p_inv, p)
-        if not groupoid.are_homotopic(loop_u, id_u):
+        # Diagrammatic compose(p_inv, p): traverse p_inv (v -> u), then p (u -> v), yielding loop at v
+        loop_v = groupoid.compose(p_inv, p)
+        if not groupoid.are_homotopic(loop_v, id_v):
             left_inv_ok = False
 
-        # p o p_inv: first traverse p_inv (v -> u), then p (u -> v), yielding loop at v
-        loop_v = groupoid.compose(p, p_inv)
-        if not groupoid.are_homotopic(loop_v, id_v):
+        # Diagrammatic compose(p, p_inv): traverse p (u -> v), then p_inv (v -> u), yielding loop at u
+        loop_u = groupoid.compose(p, p_inv)
+        if not groupoid.are_homotopic(loop_u, id_u):
             right_inv_ok = False
 
     face_homotopy_ok = True

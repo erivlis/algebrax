@@ -18,6 +18,7 @@ from collections.abc import Sequence
 from typing import Any, TypeVar
 
 from algebrax.algebra import (
+    CommQuotientRing,
     Field,
     GaloisField,
     GroebnerIdeal,
@@ -26,7 +27,6 @@ from algebrax.algebra import (
     Monomial,
     MultivariatePolynomialAlgebra,
     PAdicField,
-    QuotientRing,
     SparseMPoly,
     StandardField,
     groebner_basis,
@@ -328,7 +328,7 @@ class AffineVariety(SmoothableVariety[V]):
         self.ring: MultivariatePolynomialAlgebra[V] = ring
         self._method: GroebnerMethod = method
         self._ideal: GroebnerIdeal[V] = GroebnerIdeal(ring, generators, method=method)
-        self._coordinate_ring: QuotientRing[SparseMPoly[V]] = QuotientRing(ring, self._ideal)
+        self._coordinate_ring: CommQuotientRing[SparseMPoly[V]] = CommQuotientRing(ring, self._ideal)
         self._quotient_basis_computed: bool = False
         self._quotient_basis_cache: list[Monomial] | None = None
         self._graded_lms_cache: tuple[Monomial, ...] | None = None
@@ -352,7 +352,7 @@ class AffineVariety(SmoothableVariety[V]):
         return self._ideal
 
     @property
-    def coordinate_ring(self) -> QuotientRing[SparseMPoly[V]]:
+    def coordinate_ring(self) -> CommQuotientRing[SparseMPoly[V]]:
         r"""Coordinate ring $k[V] = k[x_1, \dots, x_n] / I$."""
         return self._coordinate_ring
 

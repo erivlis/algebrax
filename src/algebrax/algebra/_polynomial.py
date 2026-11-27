@@ -18,6 +18,7 @@ from typing import Any, Generic, Literal, TypeVar
 from algebrax.algebra._field import Field, ModularField
 from algebrax.algebra._mixins import HasDerivation
 from algebrax.algebra._monoid_algebra import MonoidAlgebra
+from algebrax.algebra._ring import CommRing
 from algebrax.algebra._semiring import Semiring
 
 T = TypeVar('T')
@@ -234,7 +235,7 @@ def _uni_pth_root(poly: dict[int, V], field: Field[V]) -> dict[int, V] | None:
 
 
 class PolynomialAlgebra(MonoidAlgebra[int, T]):
-    r"""The Univariate Polynomial Algebra and Commutative Ring $R[x]$ over coefficient ring $R$.
+    r"""The Univariate Polynomial Algebra $R[x]$ over coefficient semiring/ring $R$.
 
     Algebraic Signature:
         $\langle R, R[x], \cdot_s, \emptyset, +, -, \{0: 1_R\}, \cdot \rangle$
@@ -253,7 +254,7 @@ class PolynomialAlgebra(MonoidAlgebra[int, T]):
 
     Properties:
         Associative, distributive; commutative if $R$ is commutative.
-        Fulfills `Algebra`, `CommRing`, `Ring`, `Module`, and `Semiring`.
+        Fulfills `Algebra`, `Ring`, `Module`, and `Semiring`.
 
     Applications:
         Generating functions, algebraic combinatorics, spectral graph polynomials.
@@ -270,6 +271,7 @@ class PolynomialAlgebra(MonoidAlgebra[int, T]):
 
 class MultivariatePolynomialAlgebra(
     MonoidAlgebra[Monomial, V],
+    CommRing[SparseMPoly[V]],
     HasDerivation[SparseMPoly[V]],
     Generic[V],
 ):
@@ -321,6 +323,8 @@ class MultivariatePolynomialAlgebra(
         self.n_vars: int = n_vars
         self.order: MonomialOrder = order
         self.key_fn: Callable[[Monomial], Any] = _ORDER_KEYS[order]
+        if n_vars % 2 == 0:
+            self.is_lie: Literal[True] = True
         super().__init__(field, key_op=monomial_add, zero_key=(0,) * n_vars)  # type: ignore[arg-type]
 
     def clean(self, poly: SparseMPoly[V]) -> SparseMPoly[V]:

@@ -2,7 +2,7 @@
 Bounded structures semirings.
 """
 
-from algebrax.algebra import Semiring
+from algebrax.algebra import Semiring, StarSemiring
 
 
 class StringSemiring(Semiring[set[str]]):
@@ -52,15 +52,12 @@ class StringSemiring(Semiring[set[str]]):
             return set()
         return a
 
-    def star(self, a: set[str]) -> set[str]:
-        raise NotImplementedError('Kleene star not supported for StringSemiring')
 
-
-class KCollapsedSemiring(Semiring[int]):
+class KCollapsedSemiring(Semiring[int], StarSemiring[int]):
     r"""The $K$-Collapsed Bounded Counting Semiring.
 
     Algebraic Signature:
-        $\langle \{0, 1, \dots, K\}, \min(K, a+b), \min(K, a \cdot b), 0, 1 \rangle$
+        $\langle \{0, 1, \dots, K\}, \min(K, a+b), \min(K, a \cdot b), 0, \min(K, 1) \rangle$
 
     Carrier:
         `int` (Bounded non-negative integers in range $[0, K]$).
@@ -69,16 +66,18 @@ class KCollapsedSemiring(Semiring[int]):
         - Addition ($\oplus$): Saturated sum $\min(K, a + b)$.
         - Multiplication ($\otimes$): Saturated product $\min(K, a \cdot b)$.
         - Zero Element ($\mathbb{0}$): $0$.
-        - One Element ($\mathbb{1}$): $1$.
+        - One Element ($\mathbb{1}$): $\min(K, 1)$ ($0$ for the trivial zero semiring $K=0$, $1$ for $K \ge 1$).
 
     Properties:
-        Commutative, associative, saturated arithmetic with absorption at $K$.
+        Commutative, associative, saturated arithmetic with absorption at $K$, `StarSemiring`.
 
     Applications:
         Bounded path counting, cycle threshold detection, finite-capacity resource tracking.
     """
 
     def __init__(self, k: int = 1):
+        if k < 0:
+            raise ValueError(f'KCollapsedSemiring threshold k must be non-negative, got {k}.')
         self.k = k
 
     @property
@@ -87,7 +86,7 @@ class KCollapsedSemiring(Semiring[int]):
 
     @property
     def one(self) -> int:
-        return 1
+        return 0 if self.k == 0 else 1
 
     def add(self, a: int, b: int) -> int:
         return min(self.k, a + b)
@@ -104,15 +103,14 @@ class KCollapsedSemiring(Semiring[int]):
 
     def power(self, a: int, n: int) -> int:
         if n == 0:
-            return 1
+            return self.one
         # a^n in this semiring is min(k, a^n)
-        # We can compute a^n normally and clamp.
         return min(self.k, a**n)
 
     def star(self, a: int) -> int:
         # 1 + a + a^2 + ...
         # If a >= 1, sum diverges to infinity, so clamped to k.
-        # If a = 0, sum is 1.
+        # If a = 0, sum is self.one (0 when k == 0, 1 when k >= 1).
         if a == 0:
-            return 1
+            return self.one
         return self.k

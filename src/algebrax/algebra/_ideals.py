@@ -138,34 +138,43 @@ class IntegerModuloIdeal(PrincipalIdeal[int]):
         return self.contains(element)
 
 
-class NilpotentIdeal(PrincipalIdeal[int | dict[int, T]]):
-    r"""The nilpotent ideal $(\varepsilon^k)$ of infinitesimal order $k$ in $\mathbb{R}[\varepsilon]$.
+class NilpotentIdeal(PrincipalIdeal[dict[int, T]], Generic[T]):
+    r"""The nilpotent ideal $(\varepsilon^k)$ of infinitesimal order $k$ in $R[\varepsilon]$.
 
-    Supports both integer degree exponents ($d \ge k$) and sparse univariate polynomial dicts
-    (`dict[int, T]`), annihilating all monomials of degree $\ge k$.
+    Algebraic Signature:
+        $\langle R[\varepsilon], \operatorname{contains}, \operatorname{reduce}, \varepsilon^k \rangle$
+
+    Carrier:
+        `dict[int, T]` (Sparse univariate polynomial mapping degree $d \in \mathbb{N}_0$ to coefficient $c_d \in R$),
+        annihilating all monomials of degree $\ge k$. For bare integer degree exponents, use `reduce_degree(deg)`.
     """
 
-    def __init__(self, nilpotency_degree: int = 2) -> None:
+    def __init__(self, nilpotency_degree: int = 2, zero_coeff: T = 0) -> None:  # type: ignore[assignment]
         if nilpotency_degree <= 0:
             raise ValueError(f'Nilpotency degree must be positive, got {nilpotency_degree}')
         self.nilpotency_degree = nilpotency_degree
+        self.zero_coeff = zero_coeff
 
     @property
-    def generator(self) -> int:
-        return self.nilpotency_degree
+    def generator(self) -> dict[int, T]:
+        return {self.nilpotency_degree: type(self.zero_coeff)(1)}  # type: ignore[call-arg]
 
-    def contains(self, element: int | dict[int, T]) -> bool:
-        if isinstance(element, int):
-            return element >= self.nilpotency_degree
-        return all(deg >= self.nilpotency_degree for deg, coeff in element.items() if coeff != 0)
+    def contains(self, poly: dict[int, T]) -> bool:
+        return all(deg >= self.nilpotency_degree for deg, coeff in poly.items() if coeff != self.zero_coeff)
 
-    def reduce(self, element: int | dict[int, T]) -> int | dict[int, T] | None:
-        if isinstance(element, int):
-            return None if element >= self.nilpotency_degree else element
-        return {deg: coeff for deg, coeff in element.items() if deg < self.nilpotency_degree and coeff != 0}
+    def reduce(self, poly: dict[int, T]) -> dict[int, T]:
+        return {
+            deg: coeff
+            for deg, coeff in poly.items()
+            if deg < self.nilpotency_degree and coeff != self.zero_coeff
+        }
 
-    def __contains__(self, element: int | dict[int, T]) -> bool:
-        return self.contains(element)
+    def reduce_degree(self, deg: int) -> int | None:
+        r"""Truncate a bare monomial degree exponent $d$, returning `None` if $d \ge k$."""
+        return None if deg >= self.nilpotency_degree else deg
+
+    def __contains__(self, poly: dict[int, T]) -> bool:
+        return self.contains(poly)
 
 
 class PolynomialTruncationIdeal(PrincipalIdeal[dict[int, T]], Generic[T]):

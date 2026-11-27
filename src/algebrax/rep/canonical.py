@@ -139,10 +139,14 @@ def _perm_sign(p: tuple[int, ...]) -> int:
 
 
 def symmetric_defining_rep(n: int) -> ExplicitGroupRep[float, tuple[int, ...]]:
-    """Construct the $n$-dimensional defining permutation representation of $S_n$."""
+    r"""Construct the $n$-dimensional defining permutation representation of $S_n$.
+
+    Satisfies $\rho(p ; q) = \rho(p) \rho(q)$ under diagrammatic left-to-right composition
+    `symmetric_mul(p, q)(i) = q[p[i]]` via row-action matrices $P(p)_{i, p[i]} = 1$.
+    """
     mats: dict[tuple[int, ...], SparseMatrix[int, float]] = {}
     for p in symmetric_elements(n):
-        mats[p] = {p[i]: {i: 1.0} for i in range(n)}
+        mats[p] = {i: {p[i]: 1.0} for i in range(n)}
     return ExplicitGroupRep(matrices=mats, dimension=n)
 
 
@@ -158,24 +162,26 @@ def symmetric_standard_rep(n: int) -> ExplicitGroupRep[float, tuple[int, ...]]:
     r"""Construct the $(n-1)$-dimensional irreducible standard representation of $S_n$ ($n \ge 2$).
 
     Acts on the invariant hyperplane $\{x \in \mathbb{R}^n : \sum_i x_i = 0\}$ using the
-    exact integral basis $v_j = e_j - e_{n-1}$ ($0 \le j < n - 1$).
+    exact integral basis $v_j = e_j - e_{n-1}$ ($0 \le j < n - 1$), satisfying
+    $\rho(p ; q) = \rho(p) \rho(q)$ under diagrammatic `symmetric_mul`.
     """
     if n < 2:
         raise ValueError(f'Standard representation requires n >= 2, got {n}.')
     dim = n - 1
     mats: dict[tuple[int, ...], SparseMatrix[int, float]] = {}
     for p in symmetric_elements(n):
+        q = symmetric_inv(p)
         mat: dict[int, dict[int, float]] = {}
-        pn = p[dim]
+        qn = q[dim]
         for j in range(dim):
-            pj = p[j]
-            # p(v_j) = e_{p(j)} - e_{p(n-1)} = v_{p(j)} - v_{p(n-1)}, where v_{n-1} = 0
-            if pj < dim and pn < dim and pj == pn:
+            qj = q[j]
+            # q(v_j) = e_{q(j)} - e_{q(n-1)} = v_{q(j)} - v_{q(n-1)}, where v_{n-1} = 0
+            if qj < dim and qn < dim and qj == qn:
                 continue
-            if pj < dim:
-                mat.setdefault(pj, {})[j] = mat.get(pj, {}).get(j, 0.0) + 1.0
-            if pn < dim:
-                mat.setdefault(pn, {})[j] = mat.get(pn, {}).get(j, 0.0) - 1.0
+            if qj < dim:
+                mat.setdefault(qj, {})[j] = mat.get(qj, {}).get(j, 0.0) + 1.0
+            if qn < dim:
+                mat.setdefault(qn, {})[j] = mat.get(qn, {}).get(j, 0.0) - 1.0
         mats[p] = _prune_matrix(mat)
     return ExplicitGroupRep(matrices=mats, dimension=dim)
 

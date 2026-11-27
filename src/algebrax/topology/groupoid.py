@@ -27,11 +27,13 @@ PathMor = tuple[Any, ...]
 class SimplicialPathGroupoid(Groupoid[Any, PathMor]):
     r"""Fundamental path groupoid $\Pi_1(K)$ over a simplicial complex $K$.
 
-    Algebraic Laws (Up to Homotopy $\sim$):
-        - Identity: $\mathrm{id}_v = (v,)$ with $\mathrm{id}_b \circ p = p = p \circ \mathrm{id}_a$.
-        - Associativity: $(p_3 \circ p_2) \circ p_1 = p_3 \circ (p_2 \circ p_1)$.
-        - Left/Right Inverses: $p^{-1} \circ p \sim \mathrm{id}_{\mathrm{source}(p)}$ and
-          $p \circ p^{-1} \sim \mathrm{id}_{\mathrm{target}(p)}$.
+    Algebraic Laws (Up to Homotopy $\sim$, Diagrammatic Order `compose(f, g)` = $f ; g$):
+        - Identity: $\mathrm{id}_v = (v,)$ with
+          $\mathrm{compose}(\mathrm{id}_a, p) = p = \mathrm{compose}(p, \mathrm{id}_b)$.
+        - Associativity:
+          $\mathrm{compose}(\mathrm{compose}(p_1, p_2), p_3) = \mathrm{compose}(p_1, \mathrm{compose}(p_2, p_3))$.
+        - Left/Right Inverses: $\mathrm{compose}(p, \mathrm{inv}(p)) \sim \mathrm{id}_{\mathrm{source}(p)}$ and
+          $\mathrm{compose}(\mathrm{inv}(p), p) \sim \mathrm{id}_{\mathrm{target}(p)}$.
         - 2-Simplex Homotopy: If $\{u, v, w\} \in K_2$, then $(u, v, w) \sim (u, w)$.
     """
 
@@ -117,10 +119,10 @@ class SimplicialPathGroupoid(Groupoid[Any, PathMor]):
                 return False
         return True
 
-    def compose(self, g: PathMor, f: PathMor) -> PathMor:
+    def compose(self, f: PathMor, g: PathMor) -> PathMor:
         r"""Compose path $f: a \to b$ followed by $g: b \to c$ via concatenation.
 
-        Follows categorical composition order $g \circ f$: `f` is traversed first,
+        Follows diagrammatic composition order (`Category.compose(f, g)`): `f` is traversed first,
         then `g` starting from `f[-1] == g[0]`.
         """
         if not f or not g:
@@ -131,12 +133,12 @@ class SimplicialPathGroupoid(Groupoid[Any, PathMor]):
             raise ValueError(msg)
         return f + g[1:]
 
-    def invert_path(self, path: PathMor) -> PathMor:
+    def inv(self, morphism: PathMor) -> PathMor:
         r"""Invert path $p = (v_0, \dots, v_n)$ to $p^{-1} = (v_n, \dots, v_0)$."""
-        if not path:
+        if not morphism:
             msg = 'Cannot invert an empty path'
             raise ValueError(msg)
-        return path[::-1]
+        return morphism[::-1]
 
     @staticmethod
     def reduce_backtracking(path: PathMor) -> PathMor:

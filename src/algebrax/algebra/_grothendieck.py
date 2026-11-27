@@ -13,8 +13,8 @@ from typing import Any, Generic, TypeVar
 
 from algebrax.algebra._group import AddCommGroup
 from algebrax.algebra._monoid import AddCommMonoid
-from algebrax.algebra._ring import CommRing
-from algebrax.algebra._semiring import Semiring
+from algebrax.algebra._ring import CommRing, Ring
+from algebrax.algebra._semiring import CommSemiring, Semiring
 
 M = TypeVar('M')
 G = TypeVar('G')
@@ -126,12 +126,16 @@ class GrothendieckGroup(AddCommGroup[tuple[M, M]], Generic[M]):
         return lifted
 
 
-class GrothendieckRing(GrothendieckGroup[M], CommRing[tuple[M, M]], Generic[M]):
-    r"""The universal Grothendieck ring $K_0(S)$ of a commutative semiring $S$.
+class GrothendieckRing(GrothendieckGroup[M], Ring[tuple[M, M]], Generic[M]):
+    r"""The universal Grothendieck ring $K_0(S)$ of a semiring $S$.
+
+    Algebraic Signature:
+        $\langle S \times S / \sim, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$
 
     Extends `GrothendieckGroup` with formal difference multiplication:
         $$(a - b) \cdot (c - d) = (a c + b d, a d + b c)$$
     and multiplicative identity $\mathbf{1}_{K_0} = (1_S, 0_S)$.
+    For provably commutative Grothendieck rings witnessing `CommRing`, use `CommGrothendieckRing`.
     """
 
     def __init__(
@@ -159,7 +163,32 @@ class GrothendieckRing(GrothendieckGroup[M], CommRing[tuple[M, M]], Generic[M]):
         return self._normalize((pos, neg))
 
 
+class CommGrothendieckRing(GrothendieckRing[M], CommRing[tuple[M, M]], Generic[M]):
+    r"""The commutative Grothendieck ring $K_0(S)$ of a commutative semiring $S$.
+
+    Algebraic Signature:
+        $\langle S \times S / \sim, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ with $x \cdot y = y \cdot x$
+
+    Validates that `semiring` satisfies `CommSemiring` at construction time, and nominally
+    witnesses `CommRing[tuple[M, M]]`, `GrothendieckRing[M]`, `Ring[tuple[M, M]]`, and `GrothendieckGroup[M]`.
+    """
+
+    def __init__(
+        self,
+        semiring: CommSemiring[M],
+        *,
+        eq_fn: Callable[[M, M], bool] | None = None,
+        normalize_fn: Callable[[tuple[M, M]], tuple[M, M]] | None = None,
+    ) -> None:
+        if not isinstance(semiring, CommSemiring):
+            raise TypeError(
+                f'CommGrothendieckRing requires a CommSemiring base semiring, got {type(semiring).__name__}.'
+            )
+        super().__init__(semiring, eq_fn=eq_fn, normalize_fn=normalize_fn)
+
+
 __all__ = [
+    'CommGrothendieckRing',
     'GrothendieckGroup',
     'GrothendieckRing',
 ]

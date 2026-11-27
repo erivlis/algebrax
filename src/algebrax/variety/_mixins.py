@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Protocol, TypeVar, runtime_checkable
 
-from algebrax.algebra import GroebnerIdeal, QuotientRing, SparseMPoly
+from algebrax.algebra import CommQuotientRing, GroebnerIdeal, SparseMPoly
 from algebrax.typing import SparseMatrix
 
 P = TypeVar('P')
@@ -57,7 +57,7 @@ class HasCoordinateRing(Protocol[V]):
     def ideal(self) -> GroebnerIdeal[V]: ...
 
     @property
-    def coordinate_ring(self) -> QuotientRing[SparseMPoly[V]]: ...
+    def coordinate_ring(self) -> CommQuotientRing[SparseMPoly[V]]: ...
 
 
 @runtime_checkable

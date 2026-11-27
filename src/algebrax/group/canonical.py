@@ -171,8 +171,8 @@ def alternating_elements(n: int) -> list[tuple[int, ...]]:
 
 
 def symmetric_mul(p: tuple[int, ...], q: tuple[int, ...]) -> tuple[int, ...]:
-    r"""Compose two tuple permutations $(p \circ q)(i) = p[q[i]]$."""
-    return tuple(p[q[i]] for i in range(len(p)))
+    r"""Compose two tuple permutations in diagrammatic left-to-right order: $(p ; q)(i) = q[p[i]]$."""
+    return tuple(q[p[i]] for i in range(len(p)))
 
 
 def symmetric_inv(p: tuple[int, ...]) -> tuple[int, ...]:

@@ -13,7 +13,7 @@ All tensor products $C \otimes C$ are represented using unboxed sparse tuple key
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Protocol, TypeVar, runtime_checkable
+from typing import Any, Literal, Protocol, TypeVar, runtime_checkable
 
 from algebrax.algebra._group import Group
 from algebrax.algebra._mixins import (
@@ -26,6 +26,7 @@ from algebrax.algebra._mixins import (
     HasOne,
     HasScale,
     HasZero,
+    LawAssociative,
 )
 from algebrax.algebra._monoid_algebra import MonoidAlgebra
 from algebrax.algebra._semiring import Semiring
@@ -68,6 +69,7 @@ class Bialgebra(
     HasMul[C],
     HasCoproduct[C],
     HasCounit[R, C],
+    LawAssociative,
     Protocol[R, C],
 ):
     r"""A bialgebra: flat composition of Algebra and Coalgebra atomic mixins.
@@ -81,6 +83,10 @@ class Bialgebra(
             $\epsilon(a \cdot b) = \epsilon(a) \epsilon(b)$,
             $\epsilon(\mathbf{1}) = 1_R$.
     """
+
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
 
     def sub(self, a: C, b: C) -> C:
         r"""Vector difference $a - b = a + (-b)$."""
@@ -98,6 +104,7 @@ class HopfAlgebra(
     HasCoproduct[C],
     HasCounit[R, C],
     HasAntipode[C],
+    LawAssociative,
     Protocol[R, C],
 ):
     r"""A Hopf algebra: a bialgebra equipped with an antipode $S: C \to C$ satisfying:
@@ -105,6 +112,10 @@ class HopfAlgebra(
     $$\mu \circ (\mathrm{id} \otimes S) \circ \Delta = \eta \circ \epsilon$$
     where $\mu(a \otimes b) = a \cdot b$ and $\eta(r) = r \cdot_s \mathbf{1}$.
     """
+
+    @property
+    def is_associative(self) -> Literal[True]:
+        return True
 
     def sub(self, a: C, b: C) -> C:
         r"""Vector difference $a - b = a + (-b)$."""

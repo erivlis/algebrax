@@ -15,7 +15,6 @@ from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Generic, Protocol, TypeAlias, TypeVar, runtime_checkable
 
-from algebrax.algebra._homomorphisms import GroupHom
 from algebrax.group.finite import FiniteGroup
 from algebrax.matrix.core import add, dot, inverse, trace, transpose
 from algebrax.typing import SparseMatrix
@@ -75,10 +74,10 @@ def _scale_matrix(mat: SparseMatrix[int, Any], scalar: Any, tol: float = 1e-13) 
 
 
 @runtime_checkable
-class GroupRepresentation(GroupHom[G, SparseMatrix[int, K]], Protocol[K, G]):
+class GroupRepresentation(Protocol[K, G]):
     r"""Protocol for a linear representation $\rho : G \to \mathrm{GL}(V)$ over sparse matrices.
 
-    Refines `GroupHom[G, SparseMatrix[int, K]]` with representation space dimension.
+    Structurally conforms to `GroupHom[G, SparseMatrix[int, K]]` with representation space dimension.
 
     Algebraic Signature:
         $\rho : G \longrightarrow \mathrm{GL}_d(\mathbb{K}), \quad

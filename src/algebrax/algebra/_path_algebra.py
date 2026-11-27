@@ -13,31 +13,70 @@ unboxed sparse path basis `dict[tuple[V, tuple[E, ...]], T]`:
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from collections.abc import Hashable, Iterable, Mapping, Sequence
+from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
 
 from algebrax.algebra._monoid_algebra import QuotientMonoidAlgebra
 from algebrax.algebra._semiring import Semiring
 from algebrax.typing import SparseMatrix, SparseVector
-
-if TYPE_CHECKING:
-    from algebrax.rep.quiver import Quiver, QuiverRepresentation
 
 V = TypeVar('V', bound=Hashable)
 E = TypeVar('E', bound=Hashable)
 T = TypeVar('T', bound=float | int | complex)
 
 __all__ = [
+    'FiniteQuiverProtocol',
     'PathAlgebra',
+    'QuiverRepProtocol',
     'path_algebra',
 ]
 
 
-def _path_target(quiver: Quiver[V, E], path_key: tuple[V, tuple[E, ...]]) -> V:
+@runtime_checkable
+class FiniteQuiverProtocol(Protocol[V, E]):
+    r"""Structural Layer-2 protocol for finite directed quivers accepted by `PathAlgebra`.
+
+    Structurally compatible with `category.Quiver[V, E]` and `rep.quiver.FiniteQuiver[V, E]`.
+    """
+
+    @property
+    def vertices(self) -> tuple[V, ...]: ...
+
+    @property
+    def edges(self) -> tuple[E, ...]: ...
+
+    @property
+    def source_map(self) -> Mapping[E, V]: ...
+
+    @property
+    def target_map(self) -> Mapping[E, V]: ...
+
+    def source(self, arrow: E) -> V: ...
+
+    def target(self, arrow: E) -> V: ...
+
+    def all_paths(self, max_length: int | None = None) -> list[tuple[V, tuple[E, ...]]]: ...
+
+
+@runtime_checkable
+class QuiverRepProtocol(Protocol[V, E]):
+    """Structural Layer-2 protocol for finite-dimensional quiver representations."""
+
+    @property
+    def quiver(self) -> FiniteQuiverProtocol[V, E]: ...
+
+    @property
+    def dimensions(self) -> Mapping[V, int]: ...
+
+    @property
+    def edge_maps(self) -> Mapping[E, SparseMatrix[int, Any]]: ...
+
+
+def _path_target(quiver: FiniteQuiverProtocol[V, E], path_key: tuple[V, tuple[E, ...]]) -> V:
     start_v, edges = path_key
     if not edges:
         return start_v
-    return quiver.target[edges[-1]]
+    return quiver.target(edges[-1])
 
 
 class PathAlgebra(QuotientMonoidAlgebra[tuple[V, tuple[E, ...]], T], Generic[V, E, T]):
@@ -59,7 +98,7 @@ class PathAlgebra(QuotientMonoidAlgebra[tuple[V, tuple[E, ...]], T], Generic[V, 
 
     def __init__(
         self,
-        quiver: Quiver[V, E],
+        quiver: FiniteQuiverProtocol[V, E],
         coeff_semiring: Semiring[T] | None = None,
         max_path_length: int | None = None,
     ) -> None:
@@ -111,11 +150,11 @@ class PathAlgebra(QuotientMonoidAlgebra[tuple[V, tuple[E, ...]], T], Generic[V, 
 
     def arrow(self, edge: E) -> SparseVector[tuple[V, tuple[E, ...]], T]:
         r"""Return the length-1 path element for directed arrow `edge`."""
-        if edge not in self.quiver.source:
+        if edge not in self.quiver.source_map:
             raise KeyError(f'Edge {edge!r} not in quiver.')
         if self.max_path_length is not None and self.max_path_length < 1:
             return {}
-        return {(self.quiver.source[edge], (edge,)): self.coeff_semiring.one}
+        return {(self.quiver.source(edge), (edge,)): self.coeff_semiring.one}
 
     def path_element(
         self,
@@ -133,21 +172,21 @@ class PathAlgebra(QuotientMonoidAlgebra[tuple[V, tuple[E, ...]], T], Generic[V, 
             return {}
 
         first = edge_tuple[0]
-        if first not in self.quiver.source:
+        if first not in self.quiver.source_map:
             raise KeyError(f'Edge {first!r} not in quiver.')
-        origin = self.quiver.source[first]
+        origin = self.quiver.source(first)
         if start_vertex is not None and start_vertex != origin:
             raise ValueError(f'start_vertex {start_vertex!r} does not match source {origin!r} of {first!r}.')
 
-        cur_target = self.quiver.target[first]
+        cur_target = self.quiver.target(first)
         for nxt in edge_tuple[1:]:
-            if nxt not in self.quiver.source:
+            if nxt not in self.quiver.source_map:
                 raise KeyError(f'Edge {nxt!r} not in quiver.')
-            if self.quiver.source[nxt] != cur_target:
+            if self.quiver.source(nxt) != cur_target:
                 raise ValueError(
-                    f'Non-composable path: target {cur_target!r} != source {self.quiver.source[nxt]!r} of {nxt!r}.'
+                    f'Non-composable path: target {cur_target!r} != source {self.quiver.source(nxt)!r} of {nxt!r}.'
                 )
-            cur_target = self.quiver.target[nxt]
+            cur_target = self.quiver.target(nxt)
 
         return {(origin, edge_tuple): self.coeff_semiring.one}
 
@@ -159,7 +198,7 @@ class PathAlgebra(QuotientMonoidAlgebra[tuple[V, tuple[E, ...]], T], Generic[V, 
     def evaluate_in_rep(
         self,
         element: SparseVector[tuple[V, tuple[E, ...]], T],
-        rep: QuiverRepresentation[Any, V, E],
+        rep: QuiverRepProtocol[V, E],
     ) -> SparseMatrix[int, complex | float]:
         r"""Evaluate a path algebra element as an endomorphism of $\bigoplus_{v \in V_Q} V_v$.
 
@@ -190,7 +229,7 @@ class PathAlgebra(QuotientMonoidAlgebra[tuple[V, tuple[E, ...]], T], Generic[V, 
             end_v = start_v
             for e in edges:
                 mat = dot(rep.edge_maps[e], mat)
-                end_v = self.quiver.target[e]
+                end_v = self.quiver.target(e)
             off_row = offsets[end_v]
             off_col = offsets[start_v]
             for r, row in mat.items():
@@ -208,7 +247,7 @@ class PathAlgebra(QuotientMonoidAlgebra[tuple[V, tuple[E, ...]], T], Generic[V, 
 
 
 def path_algebra(
-    quiver: Quiver[V, E],
+    quiver: FiniteQuiverProtocol[V, E],
     coeff_semiring: Semiring[T] | None = None,
     max_path_length: int | None = None,
 ) -> PathAlgebra[V, E, T]:

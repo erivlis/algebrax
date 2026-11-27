@@ -4,14 +4,17 @@ Probability, expectation, and moment semirings.
 
 import math
 
-from algebrax.algebra import DualNumberAlgebra, Semiring
+from algebrax.algebra import DualNumberAlgebra, Semiring, StarSemiring
 from algebrax.semiring.algebraic import (
     BinomialConvolutionSemiring,
     MultivariateBinomialConvolutionSemiring,
 )
 
+_INF = float('inf')
+_NEG_INF = float('-inf')
 
-class LogSemiring(Semiring[float]):
+
+class LogSemiring(Semiring[float], StarSemiring[float]):
     r"""The Log-Sum-Exp semiring over the extended real numbers.
 
     Algebraic Signature:
@@ -27,7 +30,7 @@ class LogSemiring(Semiring[float]):
         - One Element ($\mathbb{1}$): $0.0$.
 
     Properties:
-        Commutative, associative, distributed, idempotent under zero.
+        Commutative, associative, distributive, `StarSemiring`.
 
     Applications:
         Numerically stable probabilistic inference, Hidden Markov Models, Forward-Backward algorithm.
@@ -35,7 +38,7 @@ class LogSemiring(Semiring[float]):
 
     @property
     def zero(self) -> float:
-        return float('-inf')
+        return _NEG_INF
 
     @property
     def one(self) -> float:
@@ -43,9 +46,9 @@ class LogSemiring(Semiring[float]):
 
     def add(self, a: float, b: float) -> float:
         # log(exp(a) + exp(b))
-        if a == float('-inf'):
+        if a == _NEG_INF:
             return b
-        if b == float('-inf'):
+        if b == _NEG_INF:
             return a
 
         # Numerical stability: log(exp(a) + exp(b)) = max + log(exp(a-max) + exp(b-max))
@@ -54,16 +57,16 @@ class LogSemiring(Semiring[float]):
 
     def mul(self, a: float, b: float) -> float:
         # Log-domain multiplication maps products to sums: log(exp(a) * exp(b)) -> a + b
+        if a == _NEG_INF or b == _NEG_INF:
+            return _NEG_INF
         return a + b
 
     def nsum(self, a: float, n: int) -> float:
         if n < 0:
             raise ValueError('LogSemiring does not support negative nsum')
         # Log-domain n-fold sum: log(n * exp(a)) -> log(n) + a
-        if n == 0:
-            return float('-inf')
-        if a == float('-inf'):
-            return float('-inf')
+        if n == 0 or a == _NEG_INF:
+            return _NEG_INF
         return a + math.log(n)
 
     def power(self, a: float, n: int) -> float:
@@ -73,7 +76,7 @@ class LogSemiring(Semiring[float]):
 
     def star(self, a: float) -> float:
         if a >= 0.0:
-            return float('inf')
+            return _INF
         return -math.log1p(-math.exp(a))
 
 
@@ -152,9 +155,6 @@ class BivariateVarianceSemiring(Semiring[tuple[float, float, float, float]]):
         if n == 0:
             return 0.0, 0.0, 0.0, 0.0
         return a[0] * n, a[1] * n, a[2] * n, a[3] * n
-
-    def star(self, a: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
-        raise NotImplementedError('Kleene star not implemented for BivariateVarianceSemiring')
 
 
 

@@ -403,15 +403,7 @@ def _sparse_mat_is_zero(mat: Any, tol: float) -> bool:
 
 def _eval_lie_rep_linear(rep: Any, coeffs: dict[int, Any]) -> dict[int, dict[int, Any]]:
     """Evaluate a Lie representation on a sparse linear combination of basis generators."""
-    from algebrax.matrix.core import add
-    from algebrax.rep.group import _scale_matrix
-
-    acc: dict[int, dict[int, Any]] = {}
-    for idx, c in coeffs.items():
-        if abs(complex(c)) == 0.0:
-            continue
-        acc = add(acc, _scale_matrix(rep(idx), c))
-    return acc
+    return rep(coeffs)
 
 
 def verify_lie_representation_homomorphism(
@@ -429,7 +421,7 @@ def verify_lie_representation_homomorphism(
 
     alg = _resolve_algebra(rep, algebra)
     n = alg.dim
-    gens = [rep(i) for i in range(n)]
+    gens = [rep({i: 1.0}) for i in range(n)]
 
     bracket_ok = True
     antisym_ok = True
@@ -484,7 +476,7 @@ def verify_casimir_commutativity(
     casimir = quadratic_casimir(rep, algebra=alg, killing_metric_inv=killing_metric_inv)
 
     commutes_ok = all(
-        _sparse_mat_is_zero(_sparse_mat_commutator(casimir, rep(k)), tol)
+        _sparse_mat_is_zero(_sparse_mat_commutator(casimir, rep({k: 1.0})), tol)
         for k in range(alg.dim)
     )
     results: dict[str, bool] = {'casimir_commutes': commutes_ok}
@@ -549,7 +541,11 @@ def verify_clebsch_gordan_coupling(
     coupled_rep = direct_sum_lie_rep([spin_representation(j_h, form='su2') for j_h in j_values])
 
     equiv_ok = all(
-        _sparse_mat_allclose(dot(dot(u_t, tensor_rep(k)), u_mat), coupled_rep(k), tol)
+        _sparse_mat_allclose(
+            dot(dot(u_t, tensor_rep.generator_matrix(k)), u_mat),
+            coupled_rep.generator_matrix(k),
+            tol,
+        )
         for k in range(tensor_rep.algebra.dim)
     )
 

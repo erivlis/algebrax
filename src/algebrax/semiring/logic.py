@@ -69,7 +69,7 @@ class BooleanSemiring(Semiring[bool], KleeneAlgebra[bool], ActionAlgebra[bool]):
         return (not b) or a
 
 
-class LukasiewiczSemiring(Semiring[float]):
+class LukasiewiczSemiring(Semiring[float], KleeneAlgebra[float]):
     r"""The Łukasiewicz multi-valued logic semiring (t-norm algebra).
 
     Algebraic Signature:
@@ -85,7 +85,7 @@ class LukasiewiczSemiring(Semiring[float]):
         - One Element ($\mathbb{1}$): $1.0$
 
     Properties:
-        MV-Algebra, Commutative, Idempotent addition, Nilpotent t-norm.
+        MV-Algebra, Commutative, Idempotent addition, Nilpotent t-norm, Kleene Algebra.
 
     Applications:
         Fuzzy reasoning, continuous logic, soft constraint satisfaction, degree-of-truth networks.
@@ -201,6 +201,3 @@ class DigitalSemiring(Semiring[float | int]):
         if n == 0:
             return float('inf')
         return a
-
-    def star(self, a: float | int) -> float | int:
-        raise NotImplementedError('Kleene star not implemented for DigitalSemiring')

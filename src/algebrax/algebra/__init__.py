@@ -19,6 +19,7 @@ from algebrax.algebra._field import (
     StandardField,
 )
 from algebrax.algebra._grothendieck import (
+    CommGrothendieckRing,
     GrothendieckGroup,
     GrothendieckRing,
 )
@@ -143,6 +144,7 @@ from algebrax.algebra._monoid import (
     OpMonoid,
 )
 from algebrax.algebra._monoid_algebra import (
+    CommMonoidAlgebra,
     MonoidAlgebra,
     MonoidAlgebraSemiring,
     QuotientMonoidAlgebra,
@@ -183,6 +185,7 @@ from algebrax.algebra._polynomial import (
     order_key_lex,
 )
 from algebrax.algebra._quotient import (
+    CommQuotientRing,
     QuotientAlgebra,
     QuotientRing,
     QuotientSemiring,
@@ -195,6 +198,7 @@ from algebrax.algebra._ring import (
 )
 from algebrax.algebra._semiring import (
     ClosedSemiring,
+    CommSemiring,
     ConwaySemiring,
     KleeneAlgebra,
     Semiring,
@@ -218,9 +222,13 @@ __all__ = [
     'CallableHomomorphism',
     'ClosedSemiring',
     'Coalgebra',
+    'CommGrothendieckRing',
     'CommGroup',
     'CommMonoid',
+    'CommMonoidAlgebra',
+    'CommQuotientRing',
     'CommRing',
+    'CommSemiring',
     'ComplexField',
     'ConwaySemiring',
     'DistributiveLattice',
