@@ -2,7 +2,7 @@
 title: "EP-0250: Protocol Integrity, Law Witnesses & Algebraic Soundness"
 description: "Restore strict mathematical soundness across algebraic law witnesses, GaloisField and CliffordAlgebra arithmetic, category/groupoid composition conventions, and Layer-2 protocol boundaries."
 icon: lucide/scale
-status: accepted
+status: final
 ---
 
 # EP-0250: Protocol Integrity, Law Witnesses & Algebraic Soundness
@@ -14,7 +14,7 @@ status: accepted
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                |
 | **Sponsor**       | Core Maintainers                                                           |
 | **Delegate**      | ⚖️ Noether (Symmetry) & 🧩 Russell (Consistency)                           |
-| **Status**        | Accepted                                                                   |
+| **Status**        | Final                                                                      |
 | **Type**          | Standards Track                                                            |
 | **Created**       | 2026-11-26                                                                 |
 | **Updated**       | 2026-11-27                                                                 |
@@ -145,7 +145,7 @@ Aligned with the Grand Council pillars:
 
 1. `isinstance(CliffordAlgebra(3, 0, 0), CommRing)` is `False`; `isinstance(PathAlgebra(...), CommRing)` is `False`; `isinstance(QuotientRing(...), CommRing)` is `False`; `isinstance(CommQuotientRing(...), CommRing)` is `True`; `isinstance(QuotientAlgebra(...), LawAssociative)` is `False`.
 2. `isinstance(so_n(3), LieAlgebra)`, `isinstance(so_n(3), LawAnticommutative)`, `isinstance(so_n(3), LawLie)`, and `isinstance(GroupHopfAlgebra(...), Algebra)` are all `True`; `NormedSpace.__parameters__ == (R, V)` and `InnerProductSpace.__parameters__ == (R, V)`.
-3. `GaloisField(3, [1, 0, 2])` (non-monic $2x^2 + 1$) passes `verify_field_laws` and matches SymPy; `GaloisField(2, [1, 0, 1])` ($x^2 + 1 = (x+1)^2$) raises `ValueError`.
+3. `GaloisField(3, [2, 0, 2])` (non-monic $2x^2 + 2 = 2(x^2 + 1)$ over $\mathbb{F}_3$) passes `verify_field_laws` and matches SymPy; reducible polynomials such as `GaloisField(3, [1, 0, 2])` ($2x^2 + 1$) and `GaloisField(2, [1, 0, 1])` ($x^2 + 1 = (x+1)^2$) raise `ValueError`.
 4. `CliffordAlgebra(0, 1, 0)` rejects `(0,)` and `(2,)` with `ValueError` and computes `e_1^2 == -1` for `(1,)`.
 5. `MinTimesSemiring().mul(0.0, float('inf')) == float('inf')`; `TropicalSemiring`, `ArcticSemiring`, and `LogSemiring` never return `NaN` on zero annihilation; `KCollapsedSemiring(0)` returns `0` for `.one`, `power(0, 0)`, and `star(0)` and raises `ValueError` for `k < 0`.
 6. `isinstance(s, HasStar)` is `False` for `DigitalSemiring`, `StringSemiring`, and `BivariateVarianceSemiring`; all 8 idempotent star semirings satisfy `KleeneAlgebra` and `KCollapsedSemiring`/`LogSemiring` satisfy `StarSemiring`.
@@ -215,3 +215,4 @@ None. All Council review items (composition order, `FiniteQuiver` rename, `Nilpo
   * Initial Draft authored from the Second Grand Council Codebase Audit (Noether, Russell, Popper).
 * **2026-11-27:**
   * Incorporated Grand Council Pre-Implementation Review revisions: fixed `NilpotentIdeal.reduce` carrier typing, mandated nominal `CommQuotientRing`/`CommMonoidAlgebra`/`CommGrothendieckRing`, fixed `NormedSpace`/`InnerProductSpace` inverted generics, added `Bialgebra`/`HopfAlgebra`/`PoissonAlgebra` law witnesses, partitioned `KleeneAlgebra` vs. `StarSemiring` (excluding `StandardSemiring`), added `LogSemiring` annihilation & `KCollapsedSemiring` `power`/`star`/`k < 0` fixes, adopted clean cuts (`FiniteQuiver`, `HasMorInv.inv`, left-to-right `symmetric_mul`, `ExplicitLieRep.__call__(LieElement)`), added Acceptance Criteria and AMDS/guide checklist, and promoted status to `Accepted`.
+  * Completed full clean-cut implementation across all 6 specification sections, added dedicated acceptance & SymPy differential tests (`tests/algebrax/test_protocol_integrity.py`, `tests/verifications/test_differential_sympy.py`), verified AMDS compliance (`tests/algebrax/test_docstrings.py`), updated all 13 user guides, corrected AC 3 non-monic irreducible example (`[2, 0, 2]` over $\mathbb{F}_3$), and promoted status to `Final`.
