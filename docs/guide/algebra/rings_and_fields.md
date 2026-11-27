@@ -43,22 +43,27 @@ assert F7.mul(3, F7.inv(3)) == 1  # 3 * 5 = 15 === 1 (mod 7)
 
 | Protocol | Atomic Mixin Composition | Algebraic Signature | Added Capability |
 |:---------|:-------------------------|:--------------------|:-----------------|
+| **`CommSemiring[V]`** | `(HasZero[V], HasAdd[V], HasOne[V], HasMul[V], LawCommutative, Protocol)` | $\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ | Commutative semiring ($a \cdot b = b \cdot a$) |
 | **`NonAssocRing[V]`** | `(HasZero[V], HasAdd[V], HasNeg[V], HasMul[V], Protocol)` | $\langle V, \mathbf{0}, +, -, \cdot \rangle$ | Additive abelian group + distributive (possibly non-associative) product |
-| **`Ring[V]`** | `(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol)` | $\langle V, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ | Associative multiplication with identity $\mathbf{1}$ and negation/subtraction |
-| **`CommRing[V]`** | `(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], Protocol)` | $\langle V, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ | Commutative multiplication ($a \cdot b = b \cdot a$) |
+| **`Ring[V]`** | `(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], LawAssociative, Protocol)` | $\langle V, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ | Associative multiplication with identity $\mathbf{1}$ and negation/subtraction |
+| **`CommRing[V]`** | `(HasZero[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], LawAssociative, LawCommutative, Protocol)` | $\langle V, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ | Commutative multiplication ($a \cdot b = b \cdot a$) |
 | **`DivisionRing[V]`** | `(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{0}, \operatorname{is\_zero}, +, -, \mathbf{1}, \cdot, {}^{-1} \rangle$ | Non-zero multiplicative inverses ($a \cdot a^{-1} = \mathbf{1}$) |
 | **`Field[V]`** | `(HasZero[V], HasZeroPred[V], HasAdd[V], HasNeg[V], HasOne[V], HasMul[V], HasInv[V], Protocol)` | $\langle V, \mathbf{0}, \operatorname{is\_zero}, +, -, \mathbf{1}, \cdot, {}^{-1} \rangle$ | Commutative division ring enabling full exact linear algebra |
+
+!!! tip "Sound Commutative Constructors"
+    Generic constructions (`QuotientRing`, `MonoidAlgebra`, `GrothendieckRing`) only inherit `Ring` so they never falsely advertise `CommRing` over non-commutative bases. When your base structure is provably commutative, use **`CommQuotientRing`**, **`CommMonoidAlgebra`**, or **`CommGrothendieckRing`**, which validate commutativity at construction time and nominally witness `CommRing`.
 
 ### Concrete Implementations
 
 1. **`StandardField[V]`**:
-   Wraps Python numeric types (`Fraction` for exact rationals $\mathbb{Q}$, `float` for $\mathbb{R}$, `complex` for $\mathbb{C}$). For exact integer ring arithmetic over $\mathbb{Z}$ (without division), use `StandardSemiring(int)` or `GrothendieckRing`.
+   Wraps Python numeric types (`Fraction` for exact rationals $\mathbb{Q}$, `float` for $\mathbb{R}$, `complex` for $\mathbb{C}$). For exact integer ring arithmetic over $\mathbb{Z}$ (without division), use `StandardSemiring(int)` or `CommGrothendieckRing`.
 2. **`ModularField` ($\mathbb{F}_p$) & `ModularSemiring` ($\mathbb{Z}/n\mathbb{Z}$)**:
-   Exact modular arithmetic over integers modulo $n$ (or prime $p$), computing multiplicative inverses via the Extended Euclidean Algorithm.
+   Exact modular arithmetic over integers modulo $n$ (or prime $p$), computing multiplicative inverses via the Extended Euclidean Algorithm and supporting signed `nsum(a, n)`.
 3. **`GaloisField` ($\operatorname{GF}(p^m)$)**:
-   Finite extension fields constructed as quotient polynomial rings $\mathbb{F}_p[x] / \langle P(x) \rangle$ over an irreducible polynomial $P(x)$, with exact multiplicative inverses via the polynomial Extended Euclidean Algorithm:
+   Finite extension fields constructed as quotient polynomial rings $\mathbb{F}_p[x] / \langle P(x) \rangle$ over an irreducible polynomial $P(x)$, with exact multiplicative inverses via the polynomial Extended Euclidean Algorithm. Non-monic polynomials (such as $2x^2 + 2$ over $\mathbb{F}_3$) are normalized automatically by the leading-coefficient inverse, and Rabin's irreducibility test (`validate_irreducible=True`, the default) rejects reducible polynomials at construction time with `ValueError`:
 
 ```python
+import pytest
 from algebrax.algebra import Field, GaloisField
 
 # Finite field GF(2^3) modulo x^3 + x + 1 (irreduc_poly=(1, 1, 0, 1))
@@ -69,6 +74,14 @@ x2 = {2: 1}     # x^2
 # x * x^2 = x^3 === x + 1 (mod x^3 + x + 1, characteristic 2)
 assert gf8.mul(x, x2) == {0: 1, 1: 1}
 assert gf8.mul(x, gf8.inv(x)) == gf8.one
+
+# Non-monic irreducible modulus 2x^2 + 2 over F_3 is normalized automatically
+gf9 = GaloisField(p=3, irreduc_poly=(2, 0, 2))
+assert gf9.mul({1: 1}, gf9.inv({1: 1})) == gf9.one
+
+# Reducible moduli such as x^2 + 1 = (x + 1)^2 over F_2 are rejected by Rabin's test
+with pytest.raises(ValueError, match="reducible"):
+    GaloisField(p=2, irreduc_poly=(1, 0, 1))
 ```
 
 ---

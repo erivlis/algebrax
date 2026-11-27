@@ -17,11 +17,12 @@ That structure is a **Lie Algebra** $\mathfrak{g}$ — the canonical archetype o
 
 ```python
 from algebrax import lie
-from algebrax.algebra import HasBracket, NonAssocAlgebra
+from algebrax.algebra import HasBracket, LawAnticommutative, LawLie, NonAssocAlgebra
 
 # 1. Initialize 3D spin / rotation Lie algebra su(2) ~= so(3)
 alg = lie.su_n(2, names=['J_x', 'J_y', 'J_z'])
 assert isinstance(alg, NonAssocAlgebra) and isinstance(alg, HasBracket)
+assert isinstance(alg, LawAnticommutative) and isinstance(alg, LawLie)
 
 # 2. Lie bracket [J_x, J_y] = J_z (accessible via both .bracket() and .mul())
 jx, jy = {'J_x': 1.0}, {'J_y': 1.0}
@@ -37,7 +38,7 @@ assert round(alg.to_named(z)['J_z'], 6) == 0.00125
 
 ## 3. Atomic Mixins & Protocol Contract
 
-`LieAlgebra` implements `NonAssocAlgebra[float, dict[int, float]]`, `NonAssocRing`, `Module`, `AddCommGroup`, and `HasBracket`:
+`LieAlgebra` implements `NonAssocAlgebra[float, dict[int, float]]`, `NonAssocRing`, `Module`, `AddCommGroup`, `HasBracket`, `LawAnticommutative` (`is_anticommutative = True`), and `LawLie` (`is_lie = True`):
 - **`zero` / `add(X, Y)` / `neg(X)` / `sub(X, Y)` / `smul(r, X)`**: Vector space operations on $\mathfrak{g}$.
 - **`bracket(X, Y)` & `mul(X, Y)`**: Evaluate the Lie bracket $[X, Y]_c = \sum_{a,b} f_{ab}^c X^a Y^b$.
 - **Why `LieAlgebra` is NOT an `Algebra` or `Ring`**: By antisymmetry $[X, X] = \mathbf{0}$, no non-trivial Lie algebra can possess a two-sided multiplicative identity $\mathbf{1}$ satisfying $[\mathbf{1}, X] = X$, nor is the bracket associative.

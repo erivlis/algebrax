@@ -135,7 +135,7 @@ print('Fuzzy Disjunction:', disj)  # 0.8
 
 ## 2. StringSemiring: Formal Language Powerset $\mathcal{P} (\Sigma^*)$
 
-The **StringSemiring** forms a Kleene algebra over sets of strings from an alphabet $\Sigma$:
+The **StringSemiring** forms an idempotent non-commutative `Semiring` over finite sets of strings from an alphabet $\Sigma$ (like `DigitalSemiring`, it does **not** implement `HasStar` because the Kleene star of any non-empty language is infinite and cannot be represented as a finite `set[str]`):
 
 $$\begin{aligned} A \oplus B &= A \cup B \quad \text{ (Union of languages)} \\ A \otimes B &= \{u \cdot v \mid u \in A, v \in B\} \quad \text{ (Pairwise string concatenation)} \\ \mathbf{0} &= \emptyset \quad \text{ (Empty language)} \\ \mathbf{1} &= \{\epsilon\} \quad \text{ (Empty string singleton)} \end{aligned}$$
 
@@ -163,21 +163,22 @@ print('Generated Words:', sorted(result))
 
 ## 3. KCollapsedSemiring: Saturated Threshold Counters
 
-In network buffer allocation, operating system semaphores, and database join size bounds, counts beyond a threshold $k$
-saturate to $k$:
+In network buffer allocation, operating system semaphores, and database join size bounds, counts beyond a non-negative threshold $k \ge 0$ saturate to $k$. Because addition is not idempotent for $k > 1$, `KCollapsedSemiring` implements **`StarSemiring`** (whereas `BooleanSemiring` and `LukasiewiczSemiring` implement **`KleeneAlgebra`**):
 
-$$\begin{aligned} a \oplus b &= \min (k, a + b) \\ a \otimes b &= \min (k, a \cdot b) \\ \mathbf{0} &= 0 \\ \mathbf{1} &= 1 \end{aligned}$$
+$$\begin{aligned} a \oplus b &= \min (k, a + b) \\ a \otimes b &= \min (k, a \cdot b) \\ \mathbf{0} &= 0 \\ \mathbf{1} &= \begin{cases} 0 & \text{if } k = 0 \text{ (zero ring)} \\ 1 & \text{if } k \ge 1 \end{cases} \end{aligned}$$
+
+Passing $k < 0$ raises `ValueError`.
 
 ```python
 import algebrax as ax
+from algebrax.algebra import KleeneAlgebra, StarSemiring
 
-# Capped resource threshold at k = 10
+# Capped resource threshold at k = 10 (StarSemiring, not KleeneAlgebra)
 k_sem = ax.semiring.KCollapsedSemiring(k=10)
+assert isinstance(k_sem, StarSemiring) and not isinstance(k_sem, KleeneAlgebra)
 
-# Saturated Addition
+# Saturated Addition & Multiplication
 print('5 + 7 mod k=10:', k_sem.add(5, 7))  # 10
-
-# Saturated Multiplication
 print('3 * 4 mod k=10:', k_sem.mul(3, 4))  # 10
 ```
 

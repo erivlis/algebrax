@@ -38,7 +38,15 @@ assert math.isclose(v_rot[(2,)], 3.0, abs_tol=1e-9)
 
 ## 3. Atomic Mixins & Protocol Contract
 
-`CliffordAlgebra`, `GeneralizedCliffordAlgebra`, and `QuantumCliffordAlgebra` live canonically in `algebrax.clifford` and satisfy `Algebra`, `Ring`, `Module`, and `Semiring`:
+`CliffordAlgebra`, `GeneralizedCliffordAlgebra`, and `QuantumCliffordAlgebra` live canonically in `algebrax.clifford` and satisfy `Algebra`, `Ring`, `Module`, and `Semiring` — and do **not** claim `CommRing`, because the geometric product is non-commutative for $p + q + r \ge 2$.
+
+!!! note "1-Based Blade Indexing & Strict Bounds Validation"
+    Generators of `CliffordAlgebra(p, q, r)` are strictly **1-based** (`1 <= idx <= p + q + r`):
+    - $1 \le i \le p$: $\mathbf{e}_i^2 = +1$
+    - $p < i \le p + q$: $\mathbf{e}_i^2 = -1$
+    - $p + q < i \le p + q + r$: $\mathbf{e}_i^2 = 0$
+
+    Passing blade index `0` or any index exceeding $p + q + r$ (whether paired or unpaired) raises `ValueError` immediately.
 
 | Class (`algebrax.clifford`) | Generator Relation | Metric Signature | Primary Applications |
 |:----------------------------|:-------------------|:-----------------|:---------------------|
@@ -70,11 +78,14 @@ assert qca.mul(e2, e1) == {(1, 1): -0.5 + 0j}
 ## 4. Falsifiability: Law Verification & Non-Commutativity
 
 ```python
+import pytest
+from algebrax.algebra import CommRing
 from algebrax.semiring import StandardSemiring
 from algebrax.verification import verify_algebra_laws
 
-# Positive verification: Cl(2, 0) satisfies all associative Algebra and Ring laws
+# Positive verification: Cl(2, 0) satisfies all associative Algebra and Ring laws (and is NOT a CommRing)
 cl2 = CliffordAlgebra(p=2, q=0)
+assert not isinstance(cl2, CommRing)
 samples = [{}, {(): 1.0}, {(1,): 1.0}, {(2,): 2.0}, {(1, 2): -1.0}]
 assert all(verify_algebra_laws(cl2, StandardSemiring(float), [0.0, 1.0, -2.0], samples).values())
 
@@ -82,6 +93,10 @@ assert all(verify_algebra_laws(cl2, StandardSemiring(float), [0.0, 1.0, -2.0], s
 assert cl2.mul({(1,): 1.0}, {(2,): 1.0}) == {(1, 2): 1.0}
 assert cl2.mul({(2,): 1.0}, {(1,): 1.0}) == {(1, 2): -1.0}
 assert cl2.sub({(1,): 2.0}, {(1,): 2.0}) == {}
+
+# Bounds safety: 0-based or out-of-range generator indices raise ValueError
+with pytest.raises(ValueError, match="out of range"):
+    cl2.mul({(0,): 1.0}, {(1,): 1.0})
 ```
 
 ---

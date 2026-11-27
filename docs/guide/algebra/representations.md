@@ -55,11 +55,11 @@ assert tbl.decompose(chi_def) == {'Trivial (A1)': 1, 'Standard (E)': 1}
 
 ## 3. Group Representations & Operations (`algebrax.rep.group`)
 
-Representations follow the zero-bloat sparse matrix philosophy: any callable matching the structural `GroupRepresentation[K, G]` protocol (`dimension: int` and `__call__(g) -> SparseMatrix[int, K]`) is accepted everywhere in `algebrax.rep`, with `ExplicitGroupRep` providing precomputed storage and algebraic combinators.
+Representations follow the zero-bloat sparse matrix philosophy: `GroupRepresentation[K, G]` is a flat, standalone `@runtime_checkable` protocol (`dimension: int` and `__call__(g) -> SparseMatrix[int, K]`, decoupled from Layer-2 `GroupHom`). Any callable matching this structural contract is accepted everywhere in `algebrax.rep`, with `ExplicitGroupRep` providing precomputed storage and algebraic combinators.
 
 | Symbol | Mathematical Formula | Description |
 |:-------|:---------------------|:------------|
-| `GroupRepresentation[K, G]` | $\rho : G \to \mathrm{GL}_d(\mathbb{K})$ | Structural `@runtime_checkable` protocol (`dimension`, `__call__`) |
+| `GroupRepresentation[K, G]` | $\rho : G \to \mathrm{GL}_d(\mathbb{K})$ | Flat structural `@runtime_checkable` protocol (`dimension`, `__call__`) |
 | `ExplicitGroupRep[K, G]` | $g \mapsto M_g \in \mathrm{SparseMatrix}[d \times d]$ | Immutable dataclass storing sparse matrix dictionaries |
 | `direct_sum` / `direct_sum_rep` | $(\rho_1 \oplus \rho_2)(g) = \mathrm{diag}(\rho_1(g), \rho_2(g))$ | Block-diagonal direct sum of representations |
 | `tensor_product` / `tensor_product_rep` | $(\rho_1 \otimes \rho_2)(g) = \rho_1(g) \otimes \rho_2(g)$ | Kronecker product representation with character $\chi_1 \cdot \chi_2$ |

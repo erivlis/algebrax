@@ -48,7 +48,14 @@ rot_one = spin_one.exp_map({2: 2.0 * math.pi})
 
 assert math.isclose(rot_half[0][0].real, -1.0, abs_tol=1e-9)
 assert math.isclose(rot_one[0][0].real, 1.0, abs_tol=1e-9)
+
+# Evaluate any LieElement linear combination via __call__, or fetch a single basis generator via generator_matrix(idx)
+j0 = spin_half.generator_matrix(0)
+assert spin_half({0: 1.0}) == j0
 ```
+
+!!! note "Protocol Contract: `LieRepresentation` & `ExplicitLieRep`"
+    `LieRepresentation[K]` is a flat `@runtime_checkable` protocol with `dimension: int` and `__call__(x: LieElement) -> SparseMatrix[int, K]`. Calling `rep(x)` evaluates arbitrary sparse linear combinations $x = \sum_i c_i T_i$; to fetch an individual basis generator matrix directly by integer index, use `rep.generator_matrix(idx)` (passing a bare `int` to `rep(...)` raises `TypeError`).
 
 ---
 

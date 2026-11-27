@@ -13,7 +13,7 @@ Many domains require computing with **formal linear combinations** $\sum_{m \in 
 - When $M = \mathbb{R}[\varepsilon] / (\varepsilon^2)$, elements $a + b\varepsilon$ are **dual numbers** that compute exact 1st-order derivatives alongside function evaluation (forward-mode automatic differentiation).
 - When a free monoid algebra $R[M]$ is reduced modulo an ideal of relations $I$ (such as $x^2 + 1 = 0$, Clifford blade anticommutation, or a polynomial variety ideal $I = \langle f_1, \dots, f_m \rangle$), it forms a **Quotient Ring** $R[M]/I$.
 
-In AlgebraX, `PolynomialAlgebra`, `MultivariatePolynomialAlgebra`, and `DualNumberAlgebra` implement the full `Algebra`, `CommRing`, `Ring`, `Module`, and `Semiring` protocols simultaneously with zero object-boxing overhead.
+In AlgebraX, `PolynomialAlgebra` and `MonoidAlgebra` implement `Algebra`, `Ring`, `Module`, and `Semiring` with zero object-boxing overhead; provably commutative variants (`CommMonoidAlgebra`, `MultivariatePolynomialAlgebra`, `DualNumberAlgebra`, `CommQuotientRing`) additionally witness `CommRing`.
 
 ---
 
@@ -23,20 +23,21 @@ In AlgebraX, `PolynomialAlgebra`, `MultivariatePolynomialAlgebra`, and `DualNumb
 from fractions import Fraction
 from algebrax.algebra import (
     Algebra,
+    CommQuotientRing,
     CommRing,
     DualNumberAlgebra,
     GroebnerIdeal,
     MonoidAlgebra,
     MultivariatePolynomialAlgebra,
     PolynomialAlgebra,
-    QuotientRing,
+    Ring,
     StandardField,
 )
 from algebrax.semiring import StandardSemiring
 
 # 1. PolynomialAlgebra (subclass of MonoidAlgebra) over integers Z[x]: (1 + 2x) - (1 - 3x) = 5x
 poly = PolynomialAlgebra(StandardSemiring(int))
-assert isinstance(poly, MonoidAlgebra) and isinstance(poly, Algebra) and isinstance(poly, CommRing)
+assert isinstance(poly, MonoidAlgebra) and isinstance(poly, Algebra) and isinstance(poly, Ring)
 p1 = {0: 1, 1: 2}
 p2 = {0: 1, 1: -3}
 assert poly.sub(p1, p2) == {1: 5}
@@ -45,10 +46,12 @@ assert poly.smul(3, p1) == {0: 3, 1: 6}
 # 2. MultivariatePolynomialAlgebra & exact GroebnerIdeal over Q[x, y]
 Q = StandardField(Fraction)
 R = MultivariatePolynomialAlgebra(Q, n_vars=2, order='grevlex')
+assert isinstance(R, CommRing)
 x, y = R.gen(0), R.gen(1)
 ideal = GroebnerIdeal(R, [R.sub(R.mul(x, x), y), R.sub(y, R.one)])
 assert R.sub(R.mul(x, x), R.one) in ideal
-coord_ring = QuotientRing(R, ideal)
+coord_ring = CommQuotientRing(R, ideal)
+assert isinstance(coord_ring, CommRing)
 assert coord_ring.mul(x, x) == R.one
 
 # 3. DualNumberAlgebra R[ε]/(ε²): exact derivative of f(x) = x² - 3x at x = 4.0
@@ -66,16 +69,18 @@ assert ft == (4.0, 5.0)
 | Class (`algebrax.algebra`) | Carrier Type | Satisfied Protocols | Algebraic Signature |
 |:---------------------------|:-------------|:--------------------|:--------------------|
 | `MonoidAlgebraSemiring[K, T]` | `dict[K, T]` | `Semiring`, `Semimodule`, `AddCommMonoid`, `Monoid` | $\langle S, S[M], \cdot_s, \mathbf{0}, +, \mathbf{1}, \ast \rangle$ |
-| `MonoidAlgebra[K, T]` | `dict[K, T]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle R, R[M], \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \ast \rangle$ |
+| `MonoidAlgebra[K, T]` | `dict[K, T]` | `Algebra`, `Ring`, `Module`, `Semiring` | $\langle R, R[M], \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \ast \rangle$ |
+| `CommMonoidAlgebra[K, T]` | `dict[K, T]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle R, R[M], \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \ast \rangle$ with $a \ast b = b \ast a$ |
 | `QuotientMonoidAlgebraSemiring[K, T]` | `dict[K, T]` | `Semiring`, `Semimodule`, `AddCommMonoid`, `Monoid` | $S[M] / \mathcal{I}$ with `quotient_fn` & `ideal` |
-| `QuotientMonoidAlgebra[K, T]` | `dict[K, T]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $R[M] / \mathcal{I}$ with `quotient_fn`, `ideal`, `neg`, `sub` |
-| `PolynomialAlgebra[T]` | `dict[int, T]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle R, R[x], \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
-| `MultivariatePolynomialAlgebra[V]` | `dict[tuple[int, ...], V]` | `Algebra`, `CommRing`, `HasDerivation`, `PoissonAlgebra` (even `n_vars`) | $\langle k, k[x_1, \dots, x_n], \cdot_s, \emptyset, +, -, \mathbf{1}, \cdot, \partial_i \rangle$ |
+| `QuotientMonoidAlgebra[K, T]` | `dict[K, T]` | `Algebra`, `Ring`, `Module`, `Semiring` | $R[M] / \mathcal{I}$ with `quotient_fn`, `ideal`, `neg`, `sub` |
+| `PolynomialAlgebra[T]` | `dict[int, T]` | `Algebra`, `Ring`, `Module`, `Semiring` | $\langle R, R[x], \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
+| `MultivariatePolynomialAlgebra[V]` | `dict[tuple[int, ...], V]` | `Algebra`, `CommRing`, `HasDerivation`, `PoissonAlgebra` (iff even `n_vars`) | $\langle k, k[x_1, \dots, x_n], \cdot_s, \emptyset, +, -, \mathbf{1}, \cdot, \partial_i \rangle$ |
 | `GroebnerIdeal[V]` | `dict[tuple[int, ...], V]` | `FinitelyGeneratedIdeal`, `Ideal`, `HasBasis`, `HasContains`, `HasReduce` | $\langle g_1, \dots, g_t \rangle \triangleleft k[x_1, \dots, x_n]$ |
 | `DualNumberAlgebra` | `tuple[float, float]` | `Algebra`, `CommRing`, `Ring`, `Module`, `Semiring` | $\langle \mathbb{R}, \mathbb{R}[\varepsilon]/(\varepsilon^2), \cdot_s, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
 | `QuotientSemiring[V]` | `V` (unboxed coset rep) | `Semiring` | $\langle S / I, \mathbf{0}, +, \mathbf{1}, \cdot \rangle$ |
-| `QuotientRing[V]` | `V` (unboxed coset rep) | `CommRing`, `Ring`, `Semiring` | $\langle R / I, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
-| `QuotientAlgebra[R, V]` | `V` (unboxed coset rep) | `NonAssocAlgebra`, `Algebra` | $\langle R, A / I, \cdot_s, \mathbf{0}, +, -, \cdot \rangle$ |
+| `QuotientRing[V]` | `V` (unboxed coset rep) | `Ring`, `Semiring` | $\langle R / I, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ |
+| `CommQuotientRing[V]` | `V` (unboxed coset rep) | `CommRing`, `Ring`, `Semiring` | $\langle R / I, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle$ with $[a][b] = [b][a]$ |
+| `QuotientAlgebra[R, V]` | `V` (unboxed coset rep) | `NonAssocAlgebra`, `QuotientSemiring` | $\langle R, A / I, \cdot_s, \mathbf{0}, +, -, \cdot \rangle$ |
 
 ---
 
@@ -88,13 +93,14 @@ $$\ker \phi = \{x \in R \mid \phi(x) = \mathbf{0}_S\}, \qquad R / \ker \phi \con
 AlgebraX provides zero-overhead, unboxed ideal and quotient primitives in `algebrax.algebra`:
 
 - **Homomorphism Protocols**: `Homomorphism`, `RingHom`, `GroupHom`, `LinearMap`, `LieAlgebraHom`, and `CallableHomomorphism`.
-- **Ideal Protocols & Implementations**: `Ideal`, `PrincipalIdeal`, `LieIdeal`, `IntegerModuloIdeal(n)`, `PolynomialTruncationIdeal(n)`, `NilpotentIdeal(k)`, `KernelIdeal(hom, cod_ring, reducer)`, and `SubspaceLieIdeal(keys)`.
-- **Canonical Quotients**: `QuotientRing(ring, ideal)`, `QuotientSemiring(semiring, ideal)`, and `QuotientAlgebra(algebra, ideal)`.
+- **Ideal Protocols & Implementations**: `Ideal`, `PrincipalIdeal`, `LieIdeal`, `IntegerModuloIdeal(n)`, `PolynomialTruncationIdeal(n)`, `NilpotentIdeal(k)` (`reduce(poly_dict)` for sparse polynomials and `reduce_degree(int) -> int | None` for bare exponents), `KernelIdeal(hom, cod_ring, reducer)`, and `SubspaceLieIdeal(keys)`.
+- **Canonical Quotients**: `QuotientRing(ring, ideal)`, `CommQuotientRing(comm_ring, ideal)`, `QuotientSemiring(semiring, ideal)`, and `QuotientAlgebra(algebra, ideal)`.
 
 ```python
 from fractions import Fraction
 from algebrax.algebra import (
     CallableHomomorphism,
+    CommQuotientRing,
     IntegerModuloIdeal,
     KernelIdeal,
     ModularField,
@@ -110,11 +116,11 @@ from algebrax.verification import (
     verify_ring_homomorphism_laws,
 )
 
-# 1. Modular Ring Z / 6Z via IntegerModuloIdeal
+# 1. Modular Ring Z / 6Z via IntegerModuloIdeal & CommQuotientRing
 # StandardField(int) supplies ring-level (+, -, *) arithmetic on Python int (note: Z is a ring, not a field)
 z_ring = StandardField(int)
 ideal_6 = IntegerModuloIdeal(6)
-z_mod_6 = QuotientRing(z_ring, ideal_6)
+z_mod_6 = CommQuotientRing(z_ring, ideal_6)
 
 assert 18 in ideal_6
 assert z_mod_6.add(4, 5) == 3

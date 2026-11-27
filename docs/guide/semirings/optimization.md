@@ -8,6 +8,9 @@ description: Tropical, Arctic, Viterbi, Reliability, Bottleneck, and MinTimes se
 Optimization semirings replace standard addition with extremum selection ($\min$ or $\max$), transforming
 linear algebraic matrix multiplication into dynamic programming, shortest-path, and bottleneck algorithms.
 
+!!! note "Kleene Algebra Conformance & IEEE 754 Zero-Annihilation Safety"
+    All six optimization semirings (`TropicalSemiring`, `ArcticSemiring`, `ViterbiSemiring`, `ReliabilitySemiring`, `BottleneckSemiring`, and `MinTimesSemiring`) are idempotent **`KleeneAlgebra`** (and **`StarSemiring`**) instances. Multiplicative operations guard against IEEE 754 `0.0 * inf` and `(+inf) + (-inf)` `NaN` traps so absorbing zero annihilation ($\mathbf{0} \otimes a = a \otimes \mathbf{0} = \mathbf{0}$) always holds.
+
 ---
 
 # Tropical Semiring (Shortest Path)

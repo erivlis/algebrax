@@ -36,9 +36,11 @@ a \otimes b &= a + b \\
 \mathbf{1} &= 0.0 \quad (\ln 1)
 \end{aligned}$$
 
-### Kleene Star (Geometric Series of Probabilities)
+### Star Closure (`StarSemiring`) & Zero-Annihilation Safety
 For an edge with log-probability $a < 0$ ($p = e^a < 1$), cyclic feedback sums infinitely to:
 $$a^* = \bigoplus_{k=0}^\infty a^{\otimes k} \implies \sum_{k=0}^\infty p^k = \frac{1}{1 - p} \implies \ln\left(\frac{1}{1 - e^a}\right) = -\ln(1 - e^a)$$
+
+`LogSemiring` satisfies **`StarSemiring`** (it is not additively idempotent, so it is not a `KleeneAlgebra`) and guards `mul(a, b)` against IEEE 754 `(-inf) + (+inf) -> NaN` so zero annihilation ($\mathbf{0} \otimes a = -\infty$) always holds.
 
 ### Python Example
 ```python
@@ -106,7 +108,7 @@ AlgebraX provides convenient named subclasses for standard literature compatibil
 
 ## 4. Bivariate Covariance Tracking: `BivariateVarianceSemiring`
 
-To track cross-covariances between **two distinct features** $X$ and $Y$ (e.g. path latency and monetary cost), **Li & Eisner (2009)** defined the second-order dual semiring over $\mathbb{R}[\epsilon_1, \epsilon_2]/(\epsilon_1^2, \epsilon_2^2)$:
+To track cross-covariances between **two distinct features** $X$ and $Y$ (e.g. path latency and monetary cost), **Li & Eisner (2009)** defined the second-order dual semiring over $\mathbb{R}[\epsilon_1, \epsilon_2]/(\epsilon_1^2, \epsilon_2^2)$ (a pure `Semiring` without `HasStar`):
 
 $$\mathbf{u} = (p, r, s, t) = \langle Z, \; \mathbb{E}[X]Z, \; \mathbb{E}[Y]Z, \; \mathbb{E}[XY]Z \rangle$$
 

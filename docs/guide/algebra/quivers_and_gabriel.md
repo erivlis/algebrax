@@ -9,7 +9,7 @@ A **quiver** $Q = (V_Q, E_Q, s, t)$ is simply a directed multigraph: a set of ve
 
 This seemingly modest abstraction unifies matrix pencils ($\bullet \rightrightarrows \bullet$), persistence modules in topological data analysis ($A_n$), 1-dimensional cellular sheaves, and — via Pierre Gabriel's landmark 1972 theorem — the **simply-laced ADE Dynkin classification** of simple Lie algebras.
 
-In AlgebraX, quiver representations, Gabriel's ADE classification, BGP/Weyl dimension reflections, and `CellularSheaf` bridges live in `algebrax.rep.quiver` (re-exported from `algebrax.rep`), while the associative unital path algebra $KQ$ lives in `algebrax.algebra.PathAlgebra` (`path_algebra`).
+In AlgebraX, concrete finite quivers (`FiniteQuiver`, conforming structurally to `algebrax.category.Quiver` via `source(e)`/`target(e)` with read-only `source_map`/`target_map` views), quiver representations, Gabriel's ADE classification, BGP/Weyl dimension reflections, and `CellularSheaf` bridges live in `algebrax.rep.quiver` (re-exported from `algebrax.rep`), while the associative unital path algebra $KQ$ lives in `algebrax.algebra.PathAlgebra` (`path_algebra`).
 
 ---
 
@@ -22,7 +22,9 @@ A **morphism** $f : M \to N$ between representations of the same quiver is a fam
 $$f_{t(\alpha)} \circ M_\alpha = N_\alpha \circ f_{s(\alpha)} \qquad \forall \alpha \in E_Q.$$
 
 ```python
+from algebrax.category import Quiver as CategoryQuiver
 from algebrax.rep import (
+    FiniteQuiver,
     QuiverRepresentation,
     direct_sum_quiver_rep,
     dynkin_quiver,
@@ -36,6 +38,8 @@ from algebrax.verification import (
 
 # Linear A_3 quiver: 0 --e0--> 1 --e1--> 2
 q_a3 = dynkin_quiver('A', 3)
+assert isinstance(q_a3, FiniteQuiver) and isinstance(q_a3, CategoryQuiver)
+assert q_a3.source('e0') == 0 and q_a3.target('e0') == 1
 assert q_a3.is_acyclic()
 assert q_a3.num_vertices == 3
 assert q_a3.num_edges == 2
@@ -74,7 +78,7 @@ Given any finite quiver $Q$, its **path algebra** $KQ$ (`PathAlgebra` / `path_al
 
 ```python
 from fractions import Fraction
-from algebrax.algebra import Algebra, PathAlgebra, Ring, path_algebra
+from algebrax.algebra import Algebra, CommRing, PathAlgebra, Ring, path_algebra
 from algebrax.matrix.core import dot
 from algebrax.rep import QuiverRepresentation, cycle_quiver, dynkin_quiver
 from algebrax.semiring import StandardSemiring
@@ -86,6 +90,7 @@ kq = path_algebra(q, coeff_semiring=qq)
 assert isinstance(kq, PathAlgebra)
 assert isinstance(kq, Ring)
 assert isinstance(kq, Algebra)
+assert not isinstance(kq, CommRing)  # Path algebras are non-commutative!
 
 e0, e1, e2 = (kq.vertex_idempotent(i) for i in range(3))
 a0 = kq.arrow('e0')

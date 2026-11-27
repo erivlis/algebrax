@@ -51,7 +51,7 @@ In `algebrax.algebra`, named protocols are flat, diamond-free compositions of **
 | `Magma[V]` | `(HasMul[V], Protocol)` | $\langle V, \cdot \rangle$ | Closure: $a \cdot b \in V$ |
 | `Semigroup[V]` | `(HasMul[V], Protocol)` | $\langle V, \cdot \rangle$ | Associativity: $(a \cdot b) \cdot c = a \cdot (b \cdot c)$ |
 | `Band[V]` | `(HasMul[V], Protocol)` | $\langle V, \cdot \rangle$ | Idempotence: $a \cdot a = a$ |
-| `Quasigroup[V]` | `(HasMul[V], Protocol)` | $\langle V, \cdot, \backslash, / \rangle$ | Latin square divisibility: $a \cdot (a \backslash b) = b$ |
+| `Quasigroup[V]` | `(HasMul[V], HasResiduals[V], Protocol)` | $\langle V, \cdot, \backslash, / \rangle$ | Latin square divisibility: `ldiv(a, b)` solves $a \cdot x = b$; `rdiv(a, b)` solves $x \cdot b = a$ |
 | `Monoid[V]` | `(HasOne[V], HasMul[V], Protocol)` | $\langle V, \mathbf{1}, \cdot \rangle$ | Identity: $\mathbf{1} \cdot a = a \cdot \mathbf{1} = a$ |
 | `CommMonoid[V]` | `(HasOne[V], HasMul[V], Protocol)` | $\langle V, \mathbf{1}, \cdot \rangle$ | Commutativity: $a \cdot b = b \cdot a$ |
 | `AddMagma[V]` / `AddSemigroup[V]` | `(HasAdd[V], Protocol)` | $\langle V, + \rangle$ | Additive closure / associativity |

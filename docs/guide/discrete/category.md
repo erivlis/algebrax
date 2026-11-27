@@ -201,7 +201,7 @@ In **Homotopy Type Theory (HoTT)** and algebraic topology, a space (or type) is 
 
 - **Objects (Terms / Points)**: Vertices $v \in K_0$.
 - **Morphisms (Identity Proofs / Paths)**: Edge walks $p = (v_0, v_1, \dots, v_n)$ in the 1-skeleton $K_1$.
-- **Composition & Inversion**: Path concatenation $p_1 \cdot p_2$ and path reversal $p^{-1} = (v_n, \dots, v_0)$.
+- **Diagrammatic Composition & Inversion (`HasMorInv.inv`)**: `compose(f, g)` follows diagrammatic left-to-right order ($f : a \to b$ followed by $g : b \to c$ yields $f ; g : a \to c$), matching `Category.compose`; `inv(p)` reverses the path $p^{-1} = (v_n, \dots, v_0)$.
 - **2-Simplex Homotopy (Higher Proofs)**: Two paths $p, q : u \to w$ are homotopic ($p \sim q$) if one can be deformed into the other by canceling backtracking spurs $(u, v, u) \sim (u,)$ and sliding across filled 2-simplices $(u, v, w) \sim (u, w)$ for $\{u, v, w\} \in K_2$.
 
 ```python
@@ -210,6 +210,8 @@ import algebrax as ax
 # 1. Filled triangle Delta^2: (0, 1, 2) is homotopic to the direct edge (0, 2)
 filled = ax.topology.SimplicialComplex([(0, 1, 2)])
 pi1_filled = ax.topology.SimplicialPathGroupoid.from_simplicial_complex(filled)
+assert pi1_filled.compose((0, 1), (1, 2)) == (0, 1, 2)  # diagrammatic order: f then g
+assert pi1_filled.inv((0, 1, 2)) == (2, 1, 0)           # HasMorInv.inv
 print('Contractible across filled 2-simplex?', pi1_filled.are_homotopic((0, 1, 2), (0, 2)))
 # Output: True
 

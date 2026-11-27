@@ -90,8 +90,9 @@ assert zsmul(svg, v, -3) == {'x': -6.0, 'y': 3.0}
 
 ### Permutation & Finite Group Operations (`algebrax.group`)
 
-Permutations $\pi \in S_n$ are represented as bijective dictionaries `{i: pi_i}`:
-- **`group.compose(p1, p2)`**: Evaluates $(\pi_1 \circ \pi_2)(x) = \pi_1(\pi_2(x))$.
+Permutations $\pi \in S_n$ are represented as bijective dictionaries `{i: pi_i}` (or tuples `(pi_0, ..., pi_{n-1})` in `symmetric_group(n)`), composed uniformly in **diagrammatic left-to-right order** ("apply first, then second"), matching `Category.compose`:
+- **`group.compose(p1, p2)`**: Evaluates $(p_1 ; p_2)(x) = p_2(p_1(x))$.
+- **`group.symmetric_mul(p, q)`**: Evaluates `tuple(q[p[i]] for i in range(n))`, matching `group.compose` identically on all pairs in $S_n$.
 - **`group.invert(p)`**: Computes the inverse bijection $\pi^{-1} = \{v: k\}$.
 - **`group.signature(p)`**: Computes the parity sign $\operatorname{sgn}(\pi) \in \{+1, -1\}$ via cycle decomposition in $O(N)$ time, powering exact symbolic determinants and exterior wedge products.
 
