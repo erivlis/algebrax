@@ -7,9 +7,10 @@ from fractions import Fraction
 import pytest
 
 from algebrax.algebra import Algebra, PathAlgebra, Ring, path_algebra
+from algebrax.category import Quiver as CategoryQuiver
 from algebrax.matrix.core import dot
 from algebrax.rep import (
-    Quiver,
+    FiniteQuiver,
     QuiverRepresentation,
     bgp_reflect_dimension,
     classify_dynkin_type,
@@ -37,20 +38,20 @@ from algebrax.verification import (
 )
 
 
-def _extended_d4_quiver() -> Quiver[int, str]:
+def _extended_d4_quiver() -> FiniteQuiver[int, str]:
     """4-subspace star quiver ~D4 (one central hub with 4 leaves)."""
-    return Quiver.from_edges((0, 1, 2, 3, 4), [('e0', 1, 0), ('e1', 2, 0), ('e2', 3, 0), ('e3', 4, 0)])
+    return FiniteQuiver.from_edges((0, 1, 2, 3, 4), [('e0', 1, 0), ('e1', 2, 0), ('e2', 3, 0), ('e3', 4, 0)])
 
 
-def _extended_d5_quiver() -> Quiver[int, str]:
+def _extended_d5_quiver() -> FiniteQuiver[int, str]:
     """Extended ~D5 quiver: two degree-3 hubs (0, 1) each with two leaves."""
-    return Quiver.from_edges(
+    return FiniteQuiver.from_edges(
         (0, 1, 2, 3, 4, 5),
         [('mid', 0, 1), ('a', 2, 0), ('b', 3, 0), ('c', 1, 4), ('d', 1, 5)],
     )
 
 
-def _tree_with_arms(arms: tuple[int, int, int]) -> Quiver[int, str]:
+def _tree_with_arms(arms: tuple[int, int, int]) -> FiniteQuiver[int, str]:
     """Build a rooted tree with one degree-3 hub (vertex 0) and three arms of given lengths."""
     verts = [0]
     edges: list[tuple[str, int, int]] = []
@@ -64,7 +65,7 @@ def _tree_with_arms(arms: tuple[int, int, int]) -> Quiver[int, str]:
             prev = next_v
             next_v += 1
             e_idx += 1
-    return Quiver.from_edges(verts, edges)
+    return FiniteQuiver.from_edges(verts, edges)
 
 
 # =============================================================================
@@ -73,10 +74,13 @@ def _tree_with_arms(arms: tuple[int, int, int]) -> Quiver[int, str]:
 
 
 class TestQuiverRepresentations:
-    """Verify Quiver construction, representations, morphisms, and direct sums."""
+    """Verify FiniteQuiver construction, representations, morphisms, and direct sums."""
 
     def test_quiver_construction_and_queries(self) -> None:
         q = dynkin_quiver('A', 3, orientation='linear')
+        assert isinstance(q, CategoryQuiver)
+        assert q.source('e0') == 0
+        assert q.target('e0') == 1
         assert q.num_vertices == 3
         assert q.num_edges == 2
         assert q.is_acyclic()
@@ -86,15 +90,15 @@ class TestQuiverRepresentations:
 
     def test_quiver_validation_errors(self) -> None:
         with pytest.raises(ValueError, match='unique'):
-            Quiver((0, 0), (), {}, {})
+            FiniteQuiver((0, 0), (), {}, {})
         with pytest.raises(ValueError, match='unique'):
-            Quiver((0, 1), ('a', 'a'), {'a': 0}, {'a': 1})
+            FiniteQuiver((0, 1), ('a', 'a'), {'a': 0}, {'a': 1})
         with pytest.raises(KeyError, match='present'):
-            Quiver((0, 1), ('a',), {'a': 0}, {})
+            FiniteQuiver((0, 1), ('a',), {'a': 0}, {})
         with pytest.raises(ValueError, match='Source vertex'):
-            Quiver((0, 1), ('a',), {'a': 99}, {'a': 1})
+            FiniteQuiver((0, 1), ('a',), {'a': 99}, {'a': 1})
         with pytest.raises(ValueError, match='Target vertex'):
-            Quiver((0, 1), ('a',), {'a': 0}, {'a': 99})
+            FiniteQuiver((0, 1), ('a',), {'a': 0}, {'a': 99})
 
     def test_representation_direct_sum_and_morphisms(self) -> None:
         # A3 persistence-module quiver: 0 -> 1 -> 2
@@ -176,7 +180,7 @@ class TestGabrielADETheorem:
 
     def test_tame_euclidean_quivers_classified_and_radical_zero(self) -> None:
         # ~A0 (Jordan loop), ~A1 (Kronecker 2-arrow), ~A2 (3-cycle), ~D4, ~D5, ~E6, ~E7, ~E8
-        tame_cases: list[tuple[Quiver[int, str], str, list[int]]] = [
+        tame_cases: list[tuple[FiniteQuiver[int, str], str, list[int]]] = [
             (cycle_quiver(1), '~A0', [1]),
             (kronecker_quiver(2), '~A1', [1, 1]),
             (cycle_quiver(3), '~A2', [1, 1, 1]),
@@ -199,8 +203,8 @@ class TestGabrielADETheorem:
         # 3-arrow Kronecker, 2-loop bouquet, 5-star, and (1, 2, 6) wild tree
         wild_cases = [
             kronecker_quiver(3),
-            Quiver.from_edges((0,), [('l1', 0, 0), ('l2', 0, 0)]),
-            Quiver.from_edges((0, 1, 2, 3, 4, 5), [(f'e{i}', i, 0) for i in range(1, 6)]),
+            FiniteQuiver.from_edges((0,), [('l1', 0, 0), ('l2', 0, 0)]),
+            FiniteQuiver.from_edges((0, 1, 2, 3, 4, 5), [(f'e{i}', i, 0) for i in range(1, 6)]),
             _tree_with_arms((1, 2, 6)),
         ]
         for q in wild_cases:
@@ -215,7 +219,7 @@ class TestGabrielADETheorem:
 
     def test_disconnected_quiver_classification(self) -> None:
         # Disjoint union A2 + D4 is still finite
-        q = Quiver.from_edges(
+        q = FiniteQuiver.from_edges(
             (0, 1, 2, 3, 4, 5),
             [('a', 0, 1), ('d1', 2, 3), ('d2', 2, 4), ('d3', 2, 5)],
         )

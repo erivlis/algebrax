@@ -115,7 +115,7 @@ class ModularSubtractionQuasigroup:
         return (a - b) % 5
 
     def rdiv(self, a: int, b: int) -> int:
-        # y - a = b (mod 5) => y = a + b (mod 5)
+        # x - b = a (mod 5) => x = a + b (mod 5)
         return (a + b) % 5
 
 

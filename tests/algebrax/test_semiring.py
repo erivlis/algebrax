@@ -418,8 +418,7 @@ def test_all_specialized_semirings_coverage():
     assert dig_s.power(5, 0) == float('inf')
     assert dig_s.power(5, 1) == 5
     assert dig_s.power(5, 2) == 5
-    with pytest.raises(NotImplementedError):
-        dig_s.star(5)
+    assert not hasattr(dig_s, 'star')
 
     str_s = StringSemiring()
     assert str_s.zero == set()
@@ -433,8 +432,7 @@ def test_all_specialized_semirings_coverage():
     assert str_s.power({'a'}, 0) == {''}
     assert str_s.power({'a'}, 1) == {'a'}
     assert str_s.power({'a'}, 2) == {'aa'}
-    with pytest.raises(NotImplementedError):
-        str_s.star({'a'})
+    assert not hasattr(str_s, 'star')
 
     dual_s = DualNumberAlgebra()
     assert dual_s.zero == (0.0, 0.0)
@@ -468,8 +466,7 @@ def test_all_specialized_semirings_coverage():
     assert bivar_s.nsum((1.0, 2.0, 3.0, 4.0), 2) == (2.0, 4.0, 6.0, 8.0)
     assert bivar_s.power((2.0, 1.0, 1.0, 1.0), 0) == (1.0, 0.0, 0.0, 0.0)
     assert bivar_s.power((2.0, 1.0, 1.0, 1.0), 2)[0] == 4.0
-    with pytest.raises(NotImplementedError):
-        bivar_s.star((1.0, 1.0, 1.0, 1.0))
+    assert not hasattr(bivar_s, 'star')
 
     var_s = VarianceSemiring()
     assert var_s.order == 2

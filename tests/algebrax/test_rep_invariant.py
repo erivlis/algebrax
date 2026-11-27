@@ -403,8 +403,8 @@ class TestCubicCasimirInvariants:
 
         # Commutativity [C_3, rho(X_a)] = 0 on fundamental and dual
         for a in range(alg.dim):
-            assert _sparse_is_zero(_sparse_commutator(c3_fund, fund(a)), tol=1e-9)
-            assert _sparse_is_zero(_sparse_commutator(c3_dual, dual(a)), tol=1e-9)
+            assert _sparse_is_zero(_sparse_commutator(c3_fund, fund.generator_matrix(a)), tol=1e-9)
+            assert _sparse_is_zero(_sparse_commutator(c3_dual, dual.generator_matrix(a)), tol=1e-9)
 
         # Scalar multiple of identity by Schur's lemma
         lam3_fund = complex(c3_fund[0][0])

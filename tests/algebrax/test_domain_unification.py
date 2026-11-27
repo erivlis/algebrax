@@ -139,10 +139,10 @@ def test_clifford_algebra_law_verification() -> None:
 
 
 def test_polynomial_algebra_protocol_conformance() -> None:
-    """Verify PolynomialAlgebra conforms to CommRing, Ring, and Algebra."""
+    """Verify PolynomialAlgebra conforms to Ring and Algebra (not unconditionally CommRing)."""
     assert DirectPolynomialAlgebra is PolynomialAlgebra
     p_alg = PolynomialAlgebra(StandardSemiring(float))
-    assert isinstance(p_alg, CommRing)
+    assert not isinstance(p_alg, CommRing)
     assert isinstance(p_alg, Ring)
     assert isinstance(p_alg, Algebra)
 

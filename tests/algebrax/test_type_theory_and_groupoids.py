@@ -302,7 +302,7 @@ def test_simplicial_path_groupoid_validation_and_falsification() -> None:
     with pytest.raises(ValueError, match='Path mismatch'):
         g.compose((1, 2), (0, 2))
     with pytest.raises(ValueError, match='empty'):
-        g.invert_path(())
+        g.inv(())
     with pytest.raises(ValueError, match='empty'):
         g.reduce_backtracking(())
 
@@ -313,7 +313,7 @@ def test_simplicial_path_groupoid_validation_and_falsification() -> None:
     assert not g.are_homotopic((0, 2), (0, 1, 2))  # invalid edge (0, 2)
 
     class _NonInvertingGroupoid(SimplicialPathGroupoid):
-        def invert_path(self, path: tuple[int, ...]) -> tuple[int, ...]:
+        def inv(self, path: tuple[int, ...]) -> tuple[int, ...]:
             return path
 
     broken = _NonInvertingGroupoid(vertices=[0, 1, 2], edges=[(0, 1), (1, 2), (0, 2)], triangles=[(0, 1, 2)])

@@ -397,34 +397,34 @@ def test_differential_clifford_rotor_rotation_vs_scipy_rotation() -> None:
 
     for _ in range(10):
         vec_np = rng.normal(0.0, 5.0, size=3)
-        vec_ax = {(0,): float(vec_np[0]), (1,): float(vec_np[1]), (2,): float(vec_np[2])}
+        vec_ax = {(1,): float(vec_np[0]), (2,): float(vec_np[1]), (3,): float(vec_np[2])}
         angle = float(rng.uniform(-math.pi, math.pi))
 
-        # Plane (0, 1) -> rotation around +z axis by angle
-        rot_xy_ax = ax.clifford.rotor_rotation(vec_ax, bivector=(0, 1), angle_rad=angle, p=3)
+        # Plane (1, 2) -> rotation around +z axis by angle
+        rot_xy_ax = ax.clifford.rotor_rotation(vec_ax, bivector=(1, 2), angle_rad=angle, p=3)
         rot_xy_sp = Rotation.from_rotvec([0.0, 0.0, angle]).apply(vec_np)
         np.testing.assert_allclose(
-            [rot_xy_ax.get((0,), 0.0), rot_xy_ax.get((1,), 0.0), rot_xy_ax.get((2,), 0.0)],
+            [rot_xy_ax.get((1,), 0.0), rot_xy_ax.get((2,), 0.0), rot_xy_ax.get((3,), 0.0)],
             rot_xy_sp,
             rtol=1e-11,
             atol=1e-11,
         )
 
-        # Plane (1, 2) -> rotation around +x axis by angle
-        rot_yz_ax = ax.clifford.rotor_rotation(vec_ax, bivector=(1, 2), angle_rad=angle, p=3)
+        # Plane (2, 3) -> rotation around +x axis by angle
+        rot_yz_ax = ax.clifford.rotor_rotation(vec_ax, bivector=(2, 3), angle_rad=angle, p=3)
         rot_yz_sp = Rotation.from_rotvec([angle, 0.0, 0.0]).apply(vec_np)
         np.testing.assert_allclose(
-            [rot_yz_ax.get((0,), 0.0), rot_yz_ax.get((1,), 0.0), rot_yz_ax.get((2,), 0.0)],
+            [rot_yz_ax.get((1,), 0.0), rot_yz_ax.get((2,), 0.0), rot_yz_ax.get((3,), 0.0)],
             rot_yz_sp,
             rtol=1e-11,
             atol=1e-11,
         )
 
-        # Plane (0, 2) -> e_0 ^ e_2 = - e_2 ^ e_0 -> rotation around -y axis by angle
-        rot_xz_ax = ax.clifford.rotor_rotation(vec_ax, bivector=(0, 2), angle_rad=angle, p=3)
+        # Plane (1, 3) -> e_1 ^ e_3 = - e_3 ^ e_1 -> rotation around -y axis by angle
+        rot_xz_ax = ax.clifford.rotor_rotation(vec_ax, bivector=(1, 3), angle_rad=angle, p=3)
         rot_xz_sp = Rotation.from_rotvec([0.0, -angle, 0.0]).apply(vec_np)
         np.testing.assert_allclose(
-            [rot_xz_ax.get((0,), 0.0), rot_xz_ax.get((1,), 0.0), rot_xz_ax.get((2,), 0.0)],
+            [rot_xz_ax.get((1,), 0.0), rot_xz_ax.get((2,), 0.0), rot_xz_ax.get((3,), 0.0)],
             rot_xz_sp,
             rtol=1e-11,
             atol=1e-11,
@@ -1027,7 +1027,7 @@ def test_differential_molien_series_and_cubic_casimir_vs_sympy() -> None:
     dual = fund.dual()
     d_ax = cubic_casimir_tensor(alg)
 
-    sp_gens = [_to_sympy_mat(fund(i), 3) for i in range(alg.dim)]
+    sp_gens = [_to_sympy_mat(fund.generator_matrix(i), 3) for i in range(alg.dim)]
     sp_d: dict[tuple[int, int, int], sp.Expr] = {}
     for i in range(alg.dim):
         for j in range(alg.dim):
@@ -1180,7 +1180,7 @@ def test_differential_quiver_tits_form_and_gabriel_ade_vs_sympy() -> None:
     """Verify Tits quadratic form, Gabriel ADE/tame/wild classification, and PathAlgebra against SymPy."""
     from algebrax.algebra import path_algebra
     from algebrax.rep import (
-        Quiver,
+        FiniteQuiver,
         QuiverRepresentation,
         classify_representation_type,
         cycle_quiver,
@@ -1190,7 +1190,7 @@ def test_differential_quiver_tits_form_and_gabriel_ade_vs_sympy() -> None:
         tits_quadratic_form,
     )
 
-    def _tree_arms(arms: tuple[int, int, int]) -> Quiver[int, str]:
+    def _tree_arms(arms: tuple[int, int, int]) -> FiniteQuiver[int, str]:
         verts = [0]
         edges: list[tuple[str, int, int]] = []
         nxt = 1
@@ -1203,7 +1203,7 @@ def test_differential_quiver_tits_form_and_gabriel_ade_vs_sympy() -> None:
                 prev = nxt
                 nxt += 1
                 e_idx += 1
-        return Quiver.from_edges(verts, edges)
+        return FiniteQuiver.from_edges(verts, edges)
 
     # 1. Exact SymPy positive-definite / semidefinite / indefinite oracle vs Gabriel classification
     ade_quivers = [
@@ -1254,7 +1254,7 @@ def test_differential_quiver_tits_form_and_gabriel_ade_vs_sympy() -> None:
     wild_quivers = [
         kronecker_quiver(3),
         _tree_arms((1, 2, 6)),
-        Quiver.from_edges((0, 1, 2, 3, 4, 5), [(f'e{i}', i, 0) for i in range(1, 6)]),
+        FiniteQuiver.from_edges((0, 1, 2, 3, 4, 5), [(f'e{i}', i, 0) for i in range(1, 6)]),
     ]
     for q_wild in wild_quivers:
         c_sp = sp.Matrix(q_wild.symmetric_cartan_matrix())
@@ -1521,3 +1521,49 @@ def test_differential_variety_jacobian_elimination_and_syzygy_vs_sympy() -> None
     sp_syz = [p for p in sp_syz_gb.polys if p.degree(xs) == 0 and p.degree(ys) == 0]
     assert len(syz.ideal.basis) == len(sp_syz) == 1
     assert _mpoly_to_sympy(syz.ideal.basis[0], (u1, u2, u3)) == sp.expand(sp_syz[0].as_expr())
+
+
+@pytest.mark.verification
+@pytest.mark.differential
+def test_differential_galois_field_non_monic_vs_sympy() -> None:
+    """Verify non-monic GaloisField(3, [2, 0, 2]) (2x^2 + 2 over F_3) matches SymPy Poly mod arithmetic."""
+    gf = ax.algebra.GaloisField(3, [2, 0, 2])
+    x = sp.Symbol('x')
+    mod_poly = sp.Poly(2 * x**2 + 2, x, domain=sp.GF(3))
+
+    def _to_poly(elem: dict[int, int]) -> sp.Poly:
+        expr = sum(c * x**deg for deg, c in elem.items())
+        return sp.Poly(expr, x, domain=sp.GF(3))
+
+    def _from_poly(poly: sp.Poly) -> dict[int, int]:
+        res: dict[int, int] = {}
+        for deg in range(2):
+            c = int(poly.nth(deg)) % 3
+            if c != 0:
+                res[deg] = c
+        return res
+
+    elems: list[dict[int, int]] = []
+    for c0 in range(3):
+        for c1 in range(3):
+            elem: dict[int, int] = {}
+            if c0:
+                elem[0] = c0
+            if c1:
+                elem[1] = c1
+            elems.append(elem)
+
+    for a in elems:
+        pa = _to_poly(a)
+        for b in elems:
+            pb = _to_poly(b)
+            sp_add = _from_poly(sp.rem(pa + pb, mod_poly, domain=sp.GF(3)))
+            assert gf.add(a, b) == sp_add
+            sp_mul = _from_poly(sp.rem(pa * pb, mod_poly, domain=sp.GF(3)))
+            assert gf.mul(a, b) == sp_mul
+        if a != gf.zero:
+            inv_a = gf.inv(a)
+            assert gf.mul(a, inv_a) == gf.one
+            sp_prod = _from_poly(sp.rem(pa * _to_poly(inv_a), mod_poly, domain=sp.GF(3)))
+            assert sp_prod == gf.one
+

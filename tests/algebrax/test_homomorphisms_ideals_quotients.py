@@ -10,6 +10,7 @@ import pytest
 
 from algebrax.algebra import (
     CallableHomomorphism,
+    CommQuotientRing,
     CommRing,
     GroupHom,
     Homomorphism,
@@ -97,7 +98,7 @@ def test_integer_modulo_ideal_and_quotient_ring():
 
     z_mod_6 = QuotientRing(z_ring, ideal_6)
     assert isinstance(z_mod_6, Ring)
-    assert isinstance(z_mod_6, CommRing)
+    assert not isinstance(z_mod_6, CommRing)
     assert z_mod_6.zero == 0
     assert z_mod_6.one == 1
     assert z_mod_6.add(4, 5) == 3
@@ -107,7 +108,11 @@ def test_integer_modulo_ideal_and_quotient_ring():
     assert z_mod_6.eq(10, 4) is True
     assert z_mod_6.eq(10, 5) is False
 
-    q_laws = verify_quotient_ring_laws(z_mod_6, [-3, 0, 1, 2, 5], [-6, 0, 6])
+    comm_z_mod_6 = CommQuotientRing(z_ring, ideal_6)
+    assert isinstance(comm_z_mod_6, Ring)
+    assert isinstance(comm_z_mod_6, CommRing)
+
+    q_laws = verify_quotient_ring_laws(comm_z_mod_6, [-3, 0, 1, 2, 5], [-6, 0, 6])
     assert all(q_laws.values())
 
 
@@ -206,10 +211,11 @@ def test_polynomial_truncation_and_nilpotent_ideals():
     assert qmas.mul(p1, p2) == {0: Fraction(1), 1: Fraction(3), 2: Fraction(3)}
     assert qmas.mul({}, p2) == {}
 
-    # Test MonoidAlgebra & QuotientMonoidAlgebra (full Algebra & CommRing with neg/sub)
+    # Test MonoidAlgebra & QuotientMonoidAlgebra (full Algebra & Ring with neg/sub)
     assert issubclass(PolynomialAlgebra, MonoidAlgebra)
     qma = QuotientMonoidAlgebra(StandardSemiring(Fraction), ideal=trunc_ideal)
-    assert isinstance(qma, CommRing)
+    assert isinstance(qma, Ring)
+    assert not isinstance(qma, CommRing)
     assert isinstance(qma, MonoidAlgebra)
     assert qma.neg({0: Fraction(1), 3: Fraction(7)}) == {0: Fraction(-1)}
     assert qma.sub({0: Fraction(3), 3: Fraction(7)}, {0: Fraction(1)}) == {0: Fraction(2)}
@@ -230,7 +236,8 @@ def test_polynomial_truncation_and_nilpotent_ideals():
     assert q_semi.eq(8, 3) is True
     assert q_semi.project(12) == 2
     assert issubclass(QuotientRing, QuotientSemiring)
-    assert issubclass(QuotientAlgebra, QuotientRing)
+    assert issubclass(CommQuotientRing, QuotientRing)
+    assert not issubclass(QuotientAlgebra, QuotientRing)
 
     qma_with_fn = QuotientMonoidAlgebra(
         StandardSemiring(Fraction),
@@ -241,11 +248,11 @@ def test_polynomial_truncation_and_nilpotent_ideals():
 
     # NilpotentIdeal (eps^2 = 0)
     nil_ideal = NilpotentIdeal(2)
-    assert nil_ideal.generator == 2
-    assert 2 in nil_ideal
-    assert 1 not in nil_ideal
-    assert nil_ideal.reduce(2) is None
-    assert nil_ideal.reduce(1) == 1
+    assert nil_ideal.generator == {2: 1.0}
+    assert {2: 1.0} in nil_ideal
+    assert {1: 1.0} not in nil_ideal
+    assert nil_ideal.reduce_degree(2) is None
+    assert nil_ideal.reduce_degree(1) == 1
     assert {2: 4.0, 3: -1.0} in nil_ideal
     assert nil_ideal.reduce({0: 3.0, 1: 2.0, 2: 9.0}) == {0: 3.0, 1: 2.0}
 

@@ -201,9 +201,9 @@ class TestQuantumSpinRepresentations:
         q_rep = QuantumSL2(1.0).spin_representation(j_halves)
         lie_rep = classical_spin_representation(j_halves, form='sl2')
         # In classical sl_2 form: generators=['E_{01}', 'E_{10}', 'H_0'] -> 0: E, 1: F, 2: H
-        e_classical = lie_rep(0)
-        f_classical = lie_rep(1)
-        h_classical = lie_rep(2)
+        e_classical = lie_rep.generator_matrix(0)
+        f_classical = lie_rep.generator_matrix(1)
+        h_classical = lie_rep.generator_matrix(2)
 
         assert _mat_close(q_rep['E'], e_classical, tol=1e-11)
         assert _mat_close(q_rep['F'], f_classical, tol=1e-11)

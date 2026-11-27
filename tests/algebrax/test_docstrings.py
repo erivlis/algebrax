@@ -8,6 +8,12 @@ Verifies:
 5. Registry immutability and metadata integrity.
 """
 
+from algebrax.algebra import (
+    CommGrothendieckRing,
+    CommMonoidAlgebra,
+    CommQuotientRing,
+    CommSemiring,
+)
 from algebrax.analysis import pagerank
 from algebrax.category import kan_extension_left, kleisli_compose
 from algebrax.display import (
@@ -17,6 +23,7 @@ from algebrax.display import (
     semiring_card,
 )
 from algebrax.lie import LieAlgebra, RootSystem, StructureConstants
+from algebrax.rep import FiniteQuiver
 from algebrax.semiring import Semiring, TropicalSemiring
 from algebrax.topology import SimplicialComplex, SparseChainComplex
 from algebrax.trie import AlgebraicTrie
@@ -98,6 +105,11 @@ def test_semiring_card_content():
 def test_non_semiring_algebraic_structures():
     """Verify AMDS signature extraction on extended domain classes and categorical functions."""
     targets = [
+        (CommSemiring, r'\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle'),
+        (CommMonoidAlgebra, r'\langle R, R[M], \cdot_s'),
+        (CommQuotientRing, r'\langle R / I, \mathbf{0}, +, -, \mathbf{1}, \cdot \rangle'),
+        (CommGrothendieckRing, r'\langle S \times S / \sim'),
+        (FiniteQuiver, r'Q = \langle V_Q, E_Q, s: E_Q \to V_Q, t: E_Q \to V_Q \rangle'),
         (SimplicialComplex, r'\cdots \xrightarrow{\partial_{k+1}}'),
         (SparseChainComplex, r'\cdots \xrightarrow{\partial_{k+1}} C_k'),
         (AlgebraicTrie, r'\mathcal{T}: \Sigma^* \to (S, \oplus, \otimes)'),

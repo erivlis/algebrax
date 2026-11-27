@@ -104,9 +104,11 @@ class TestProtocolsAndExports:
             ExplicitLieRep(algebra=alg, generator_matrices=({}, {}), dimension=2)
         rep_su2 = spin_representation(1, form='su2')
         with pytest.raises(IndexError):
-            rep_su2(3)
+            rep_su2.generator_matrix(3)
         with pytest.raises(IndexError):
-            rep_su2(-1)
+            rep_su2.generator_matrix(-1)
+        with pytest.raises(TypeError, match='generator_matrix'):
+            rep_su2(0)  # type: ignore[arg-type]
 
 
 class TestSpinAndStandardRepresentations:
@@ -131,8 +133,10 @@ class TestSpinAndStandardRepresentations:
         def_sl2 = defining_representation(sl2_alg)
 
         for idx in range(3):
-            assert _mat_allclose(spin_su2(idx), def_su2(idx))
-            assert _mat_allclose(spin_sl2(idx), def_sl2(idx))
+            assert _mat_allclose(spin_su2.generator_matrix(idx), def_su2.generator_matrix(idx))
+            assert _mat_allclose(spin_sl2.generator_matrix(idx), def_sl2.generator_matrix(idx))
+            assert _mat_allclose(spin_su2({idx: 1.0}), def_su2({idx: 1.0}))
+            assert _mat_allclose(spin_sl2({idx: 1.0}), def_sl2({idx: 1.0}))
 
     def test_spin_representation_invalid_inputs(self) -> None:
         with pytest.raises(ValueError, match='j_halves'):
@@ -212,7 +216,8 @@ class TestSpinAndStandardRepresentations:
         res = verify_lie_representation_homomorphism(triv)
         assert all(res.values())
         for idx in range(3):
-            assert triv(idx) == {}
+            assert triv.generator_matrix(idx) == {}
+            assert triv({idx: 1.0}) == {}
 
 
 class TestFunctorialConstructionsAndExpMap:
@@ -470,10 +475,10 @@ class TestPopperFalsification:
         alg = su_n(2)
         r_half = spin_representation(1, form='su2')
         # Perturb generator 0 by scaling it by 2.0 (breaks [T0, T1] = T2)
-        scaled_t0 = {r: {c: 2.0 * v for c, v in row.items()} for r, row in r_half(0).items()}
+        scaled_t0 = {r: {c: 2.0 * v for c, v in row.items()} for r, row in r_half.generator_matrix(0).items()}
         broken = ExplicitLieRep(
             algebra=alg,
-            generator_matrices=(scaled_t0, r_half(1), r_half(2)),
+            generator_matrices=(scaled_t0, r_half.generator_matrix(1), r_half.generator_matrix(2)),
             dimension=2,
         )
         res = verify_lie_representation_homomorphism(broken)

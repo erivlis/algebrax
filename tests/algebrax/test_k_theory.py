@@ -11,8 +11,16 @@ from typing import Any
 
 import pytest
 
-from algebrax.algebra import AddCommGroup, AddCommMonoid, CommRing, GrothendieckGroup, GrothendieckRing
-from algebrax.semiring import Semiring
+from algebrax.algebra import (
+    AddCommGroup,
+    AddCommMonoid,
+    CommGrothendieckRing,
+    CommRing,
+    CommSemiring,
+    GrothendieckGroup,
+    GrothendieckRing,
+    Ring,
+)
 from algebrax.topology import (
     DiscreteOrthogonalConnection,
     TopologicalKTheoryRing,
@@ -64,7 +72,7 @@ class _NatMonoid(AddCommMonoid[int]):
         return a + b
 
 
-class _NatSemiring(Semiring[int]):
+class _NatSemiring(CommSemiring[int]):
     """Commutative semiring (N, +, *, 0, 1)."""
 
     @property
@@ -147,9 +155,15 @@ def test_grothendieck_group_axiomatic_laws() -> None:
 
 
 def test_grothendieck_ring_mro_and_comm_ring_laws() -> None:
-    """Verify nominal CommRing inheritance and ring axioms on K_0(N, +, *)."""
-    k0_ring = GrothendieckRing(_NatSemiring(), normalize_fn=_canonical_int_pair)
+    """Verify GrothendieckRing (Ring) and CommGrothendieckRing (CommRing) on K_0(N, +, *)."""
+    k0_general = GrothendieckRing(_NatSemiring(), normalize_fn=_canonical_int_pair)
+    assert isinstance(k0_general, GrothendieckGroup)
+    assert isinstance(k0_general, Ring)
+    assert not isinstance(k0_general, CommRing)
 
+    k0_ring = CommGrothendieckRing(_NatSemiring(), normalize_fn=_canonical_int_pair)
+
+    assert isinstance(k0_ring, GrothendieckRing)
     assert isinstance(k0_ring, GrothendieckGroup)
     assert isinstance(k0_ring, CommRing)
     assert k0_ring.zero == (0, 0)
