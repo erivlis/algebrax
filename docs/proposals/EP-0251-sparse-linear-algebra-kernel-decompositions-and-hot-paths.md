@@ -2,7 +2,7 @@
 title: "EP-0251: Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance"
 description: "Fix critical correctness and complexity bugs in matrix decompositions and sparse hot paths, and promote a shared Field-polymorphic sparse elimination kernel across matrix, topology, and analysis."
 icon: lucide/cpu
-status: accepted
+status: final
 ---
 
 # EP-0251: Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance
@@ -14,10 +14,10 @@ status: accepted
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                |
 | **Sponsor**       | Core Maintainers                                                           |
 | **Delegate**      | ⚡ Shannon (Efficiency) & 🛡️ Golem (Safety)                                 |
-| **Status**        | Accepted                                                                   |
+| **Status**        | Final                                                                      |
 | **Type**          | Standards Track                                                            |
 | **Created**       | 2026-11-26                                                                 |
-| **Updated**       | 2026-11-27                                                                 |
+| **Updated**       | 2026-11-28                                                                 |
 | **Replaces**      | —                                                                          |
 | **Superseded-By** | —                                                                          |
 
@@ -207,3 +207,5 @@ None. Both `matrix.core.inverse` removal and lazy `_dirty` `SimplicialComplex.bo
   * Initial Draft authored from the Second Grand Council Codebase Audit (Shannon, Golem, Popper, Explorer, Feynman).
 * **2026-11-27:**
   * Incorporated Grand Council Pre-Implementation Review revisions: centralized `canonical_sort_keys` in `converters.py`, moved `RectSparseMatrix`/`typing.N` (`Fraction`) from `EP-0252`, added `_solve_float`/`_solve_field` `L`-index fix and rectangular `ValueError`-first guard, added two-regime pivoting + `cols` param + forward-only `rank` in `eliminate.py`, fixed `SimplicialComplex` integer signs + lazy `_dirty` `@property` + `FilteredSimplicialComplex` parity, fixed non-commutative `inner()` order and `mat_vec` fast path, fixed `fiedler_vector` symmetrized degrees and complex pruning, cleanly removed `matrix.core.inverse`, added Acceptance Criteria and AMDS/guide checklist, and promoted status to `Accepted`.
+* **2026-11-28:**
+  * Implemented full specification across `typing.py`, `converters.py`, `matrix/{core,decompose,eliminate}.py`, `topology/{_core,homology,persistence,sheaf}.py`, `analysis/{calculus,spectral}.py`, `variety/affine.py`, and `rep/{group,lie,invariant}.py`; added `tests/algebrax/test_linalg_kernel_and_hotpaths.py`, updated user guides, verified all 1,040 tests + Ruff + Pyrefly, and promoted status to `Final`.

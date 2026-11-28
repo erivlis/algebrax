@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                                                    |
 | **Type**    | Informational                                             |
 | **Created** | 2026-08-01                                                |
-| **Updated** | 2026-11-27                                                |
+aw| **Updated** | 2026-11-28                                                |
 
 ## Abstract
 
@@ -135,7 +135,7 @@ flowchart TD
 
     subgraph P85["Phase 8.5 — Second Grand Council Refinement Track"]
         EP0250_N["EP-0250 Protocol & Algebraic Soundness ✅\n⚖️ Noether & 🧩 Russell"]
-        EP0251_N["EP-0251 Sparse Linalg & Hot Paths 💡\n⚡ Shannon & 🛡️ Golem"]
+        EP0251_N["EP-0251 Sparse Linalg & Hot Paths ✅\n⚡ Shannon & 🛡️ Golem"]
         EP0252_N["EP-0252 Universal Semirings & Unification 💡\n🧭 Explorer & ⚖️ Noether"]
         EP0253_N["EP-0253 Verification & Grounded Proofs 💡\n🔬 Popper & 🧪 Bacon"]
         EP0254_N["EP-0254 Ergonomics, Safety & Hygiene 💡\n💡 Feynman, 🌿 Steward & 🛡️ Golem"]
@@ -351,7 +351,7 @@ Phase 0: Architecture Roadmap (EP-0099)
   │
   ├── Phase 8.5: Second Grand Council Refinement & Hardening Track  ⏳ IN PROGRESS
   │     ├── EP-0250: Protocol Integrity, Law Witnesses & Algebraic Soundness (Noether/Russell) [Final]
-  │     ├── EP-0251: Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance (Shannon/Golem) [Accepted]
+  │     ├── EP-0251: Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance (Shannon/Golem) [Final]
   │     ├── EP-0252: Universal Semiring Propagation, Parameterized Tries & Domain Unification (Explorer/Noether) [Accepted]
   │     ├── EP-0253: Verification Engine Hardening, Falsifiability & Grounded Formal Proofs (Popper/Bacon) [Accepted]
   │     ├── EP-0254: Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene (Feynman/Steward/Golem) [Accepted]
@@ -456,7 +456,7 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0242** | Hermite, Gosper, CT & Jets     | Shannon & Popper  | `algebrax.differential`                  | Draft    | `hermite_reduce`, `rothstein_trager_resultant`, `gosper_sum`, `creative_telescope`, `TaylorJetAlgebra`, `solve_ode_jet`, `solve_hamiltonian_jet` |
 | **EP-0243** | Differential Galois & Kovacic  | Noether & Popper  | `algebrax.differential`                  | Draft    | `wronskian_operator`, `symmetric_power`, `exterior_power`, `kovacic_classify`, `kovacic_factorize`, `PicardVessiotTorsor`                  |
 | **EP-0250** | Protocol & Algebraic Soundness | Noether & Russell | `algebra`, `semiring`, `group`, `rep`, `lie`, `clifford` | Final | *(Phase 8.5)* Law witnesses (`CommSemiring`, `CommQuotientRing`, `CommMonoidAlgebra`, `CommGrothendieckRing`), flat `GroupRepresentation`/`LieRepresentation`, `FiniteQuiver`, `GaloisField`/`ModularField` guards, unified diagrammatic composition |
-| **EP-0251** | Sparse Linalg & Hot Paths      | Shannon & Golem   | `matrix`, `tensor`, `topology`, `sheaf`, `variety` | Accepted | *(Phase 8.5)* Unified sparse RREF/`rank`/`nullspace`, QR/SVD/Cholesky/LU fixes, $O(\text{nnz})$ `mat_vec`/`inner`/Gram, `SimplicialComplex` fast rebuild & degenerate guard, `CellularSheaf` `tol` |
+| **EP-0251** | Sparse Linalg & Hot Paths      | Shannon & Golem   | `matrix`, `converters`, `topology`, `analysis`, `variety` | Final    | *(Phase 8.5)* Unified sparse `sparse_rref`/`rank`/`nullspace`, `canonical_sort_keys`, LU/Cholesky/single-LU `inv`, $O(\text{nnz})$ `mat_vec`/`inner`/VR, lazy `SimplicialComplex` & $\mathbb{Q}/\mathbb{F}_p$ torsion, `CellularSheaf` `tol`/`field`, graph Laplacian & Ramanujan fixes |
 | **EP-0252** | Universal Semirings & Unif.    | Explorer & Noether| `trie`, `analysis`, `matrix`, `typing`, `variety` | Accepted | *(Phase 8.5)* Parameterized `AlgebraicTrie`, `SparseChainComplex.hodge_laplacian(semiring=...)`, `RectSparseMatrix`, widened `typing.N` (`Fraction`), K-theory/Milnor exact guards |
 | **EP-0253** | Verification & Grounded Proofs | Popper & Bacon    | `verification/`, `tests/verifications/`  | Accepted | *(Phase 8.5)* Non-vacuous Popper sample guards (`_materialize_samples`), `NaN != NaN` equality guard, `verify_group_laws` identity/inverse fix, grounded Z3/PIT/hypothesis suites |
 | **EP-0254** | Ergonomics, Safety & Hygiene   | Feynman & Steward | `display`, `converters`, `verification/`, `tests/verifications/` | Accepted | *(Phase 8.5)* HTML-escaped `RichDisplayable`, safe `converters` bounds, immutable returns, split god modules (`verification/` & `tests/verifications/` + traceability CI), clean `__all__`, Ruff `F401`, zero `EP-XXXX` in `src/` |
@@ -522,3 +522,4 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-26 | Eran Rivlis & Antigravity | Convened Second Grand Council Codebase Audit across all 111 modules (36.6k LOC); established **Phase 8.5 — Second Grand Council Refinement & Hardening Track** (`EP-0250` through `EP-0254`, Draft) and aligned foundational & unimplemented EPs (`EP-0003`, `EP-0005`, `EP-0222`, `EP-0230`–`EP-0232`, `EP-0240`–`EP-0243`). |
 | 2026-11-27 | Eran Rivlis & Antigravity | Expanded `EP-0254` (`§3`) to include `tests/verifications/` namespace decomposition (`differential/` 10 domain modules + `_helpers.py`, `mms/` 2 modules, `pytest.importorskip` guards, `docs/verification.md` & `EP-0003` sync, and CI traceability check). |
 | 2026-11-27 | Eran Rivlis & Antigravity | Completed `EP-0250` (`Final`); convened Grand Council review for `EP-0255` (Unified Algebraic Structure Registry, Structure Cards & CLI Overhaul, `Draft`) and cleanly handed off `src/algebrax/__main__.py` CLI work from `EP-0254` to `EP-0255`. |
+| 2026-11-28 | Eran Rivlis & Antigravity | Completed `EP-0251` (`Final`): unified `Field[V]`-polymorphic sparse elimination (`algebrax.matrix.eliminate`: `sparse_rref`, `rank`, `nullspace`), `canonical_sort_keys`, `RectSparseMatrix`/`Fraction` typing, single-LU $O(N^3)$ `inv()` (cleanly removing `matrix.core.inverse`), rectangular/disjoint-key LU & Cholesky fixes, non-commutative $O(\min(\text{nnz}))$ `inner`/`mat_vec`, lazy integer-signed `SimplicialComplex` & $\mathbb{Q}/\mathbb{F}_p$ torsion homology, iterative Hopcroft–Karp, and graph Laplacian/Fiedler/Ramanujan fixes (**Phase 8.5 — 2/6 Final**). |
