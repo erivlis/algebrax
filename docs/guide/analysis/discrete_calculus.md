@@ -106,7 +106,7 @@ print('Eigenvector Centrality:', centrality)
 
 ### 5. Ramanujan Expander Graphs & Discrete Hecke Operators
 
-A $d$-regular network is an optimal **Ramanujan expander graph** if every non-trivial adjacency eigenvalue $|\lambda_i| < d$ satisfies the Alon–Boppana / Hasse–Weil bound $|\lambda_i| \le 2\sqrt{d - 1}$. Moreover, `hecke_graph_operator(adjacency, k)` generates the commutative algebra of non-backtracking walk operators $T_k$:
+A connected $d$-regular network is an optimal **Ramanujan expander graph** if every non-trivial adjacency eigenvalue beyond the single trivial $+d$ eigenvalue (and at most one $-d$ eigenvalue if bipartite) satisfies the Alon–Boppana / Hasse–Weil bound $|\lambda_i| \le 2\sqrt{d - 1}$. Disconnected $d$-regular graphs carry repeated $\lambda = +d$ eigenvalues and are strictly rejected (`is_ramanujan = False`). Moreover, `hecke_graph_operator(adjacency, k)` generates the commutative algebra of non-backtracking walk operators $T_k$:
 
 ```python
 from algebrax.analysis import hecke_graph_operator, is_ramanujan_graph
@@ -122,6 +122,13 @@ assert all(verify_ramanujan_spectral_gap(k4, degree=3).values())
 t2 = hecke_graph_operator(k4, 2, degree=3)
 assert t2[0][1] == 2.0 and t2[0].get(0, 0.0) == 0.0
 ```
+
+!!! note "Sparse Zero-Omission & Operator Parity"
+    `gradient(field, graph)` and `laplacian(field, graph)` respect implicit sparse zeros across all edges incident to
+    the support of `field` (matching `laplacian_matrix` symmetrization and self-loop exclusion), guaranteeing exact
+    operator identity `laplacian(f, G) == mat_vec(laplacian_matrix(G), f)` even for single-vertex impulses such as
+    `{0: 1.0}`. Similarly, `fiedler_vector` symmetrizes upper-triangular adjacency graphs before computing degrees and
+    normalized Laplacians.
 
 ---
 

@@ -9,14 +9,22 @@ The **`algebrax.matrix.decompose`** module provides factorizations and matrix de
 
 ---
 
-## Supported Decompositions
+## Supported Decompositions & Elimination Kernels
 
-| Decomposition         | Function        | Invariant                                    | Description                                                              |
-|:----------------------|:----------------|:---------------------------------------------|:-------------------------------------------------------------------------|
-| **LU (Pivoted)**      | `lu_decompose(A)` | $P \cdot A = L \cdot U$                    | Unit lower-triangular $L$, upper-triangular $U$, permutation matrix $P$. |
-| **QR (Gram-Schmidt)** | `qr(A)`         | $A = Q \cdot R$                              | Orthonormal column matrix $Q$ ($Q^T Q = I$), upper-triangular $R$.       |
-| **SVD (Truncated)**   | `svd(A, k=...)` | $A \approx U \cdot \text{diag}(S) \cdot V^T$ | Singular vectors $U, V^T$ and singular values vector $S$.                |
-| **Cholesky**          | `cholesky(A)`   | $A = L \cdot L^T$                            | Lower-triangular $L$ for symmetric positive-definite matrices.           |
+All matrix factorizations and triangular solvers order homogeneous comparable keys (`int`, `tuple`, `str`) naturally via
+`algebrax.converters.canonical_sort_keys` (preventing lexicographic `'10' < '2'` inversions) and preserve exact pivot
+alignment on rectangular and disjoint-key matrices.
+
+| Operation / Decomposition | Function | Invariant | Description |
+|:--------------------------|:---------|:----------|:------------|
+| **LU (Pivoted)** | `lu_decompose(A, field=...)` | $P \cdot A = L \cdot U$ | Unit lower-triangular $L$, upper-triangular $U$, permutation matrix $P$ over float/complex or exact `Field[V]`. |
+| **Linear Solve / Inverse** | `solve(A, b, field=...)`, `inv(A, field=...)` | $A x = b$, $A A^{-1} = I$ | Reuses a single $O(N^3)$ LU factorization; detects omitted-zero singular domains cleanly. |
+| **QR (Gram-Schmidt)** | `qr(A)` | $A = Q \cdot R$ | Orthonormal column matrix $Q$ ($Q^T Q = I$), upper-triangular $R$. |
+| **SVD (Truncated)** | `svd(A, k=...)` | $A \approx U \cdot \text{diag}(S) \cdot V^T$ | Singular vectors $U, V^T$ and singular values vector $S$. |
+| **Cholesky** | `cholesky(A)` | $A = L \cdot L^T$ | Lower-triangular $L$ for symmetric positive-definite matrices; validates symmetry across the full row/column domain. |
+| **Sparse RREF** | `sparse_rref(A, field=...)` | $(R, \text{pivots})$ | `Field[V]`-polymorphic sparse Reduced Row Echelon Form on `RectSparseMatrix[R, C, V]`. |
+| **Sparse Rank** | `rank(A, field=...)` | $\operatorname{rank}_{\mathbb{K}}(A)$ | Forward-only sparse elimination (no back-substitution fill-in) with exact or partial pivoting. |
+| **Sparse Nullspace** | `nullspace(A, cols=..., field=...)` | $\ker_{\mathbb{K}}(A)$ | Exact sparse kernel basis honoring omitted all-zero domain columns via `cols`. |
 
 ---
 

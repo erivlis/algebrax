@@ -25,10 +25,12 @@ description: Simplicial complexes, sparse chain complexes, boundary nilpotency, 
 
 ## Simplicial Complexes (`SimplicialComplex`)
 
-`SimplicialComplex` automatically enforces downward face closure ($\sigma \in K, \tau \subseteq \sigma \implies \tau \in K$), canonicalizes vertex ordering, constructs sparse boundary matrices $\partial_k$, and computes Betti numbers:
+`SimplicialComplex` automatically enforces downward face closure ($\sigma \in K, \tau \subseteq \sigma \implies \tau \in K$), canonicalizes vertex ordering, rejects degenerate repeated-vertex simplices (such as `(0, 0)`) with `ValueError`, lazily builds exact integer-signed (`+1`/`-1`) sparse boundary matrices $\partial_k$ on first access, and computes Betti numbers over $\mathbb{R}$, $\mathbb{Q}$, or any finite field $\mathbb{F}_p$:
 
 ```python
+from fractions import Fraction
 import algebrax as ax
+from algebrax.algebra import ModularField, StandardField
 
 # 1. 1D Hollow Circle Topology (S^1)
 ring_edges = [(0, 1), (1, 2), (2, 3), (0, 3)]
@@ -47,6 +49,15 @@ sc_tet = ax.topology.SimplicialComplex([(0, 1, 2, 3)])
 betti_tet = sc_tet.betti_numbers(max_k=2)
 print(f'Solid Tetrahedron Betti Numbers: {betti_tet}')
 # Output: {0: 1, 1: 0, 2: 0}
+
+# 3. Detecting Z/2Z Torsion on the Real Projective Plane RP^2
+rp2_triangles = [
+    (0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 5), (0, 5, 1),
+    (1, 2, 4), (2, 3, 5), (3, 4, 1), (4, 5, 2), (5, 1, 3),
+]
+sc_rp2 = ax.topology.SimplicialComplex(rp2_triangles)
+assert sc_rp2.betti_numbers(max_k=2, field=ModularField(2)) == {0: 1, 1: 1, 2: 1}
+assert sc_rp2.betti_numbers(max_k=2, field=StandardField(Fraction)) == {0: 1, 1: 0, 2: 0}
 ```
 
 ---

@@ -24,6 +24,10 @@ $$\rho_{v \trianglelefteq e}: \mathcal{F}(v) \to \mathcal{F}(e)$$
 
 ## Sheaf Cohomology ($H^0$, $H^1$) & Euler–Poincaré Characteristic
 
+Both `global_sections_dimension(tol=1e-9, field=None)` and `first_cohomology_dimension(tol=1e-9, field=None)` delegate
+to `algebrax.matrix.rank`, honoring caller `tol` in floating-point regimes and supporting exact cohomology over any
+`Field[V]` (such as `StandardField(Fraction)` or `ModularField(p)`):
+
 - **0-th Sheaf Cohomology / Global Sections (`global_sections_dimension`)**:
   A 0-cochain $x \in C^0(G; \mathcal{F})$ is a global section if neighbors agree across every edge ($\delta_{\mathcal{F}} x = 0 \iff L_{\mathcal{F}} x = 0$):
   $$\dim H^0(G; \mathcal{F}) = \dim \ker \delta_{\mathcal{F}} = \sum_{v \in V} d_v - \operatorname{rank}(\delta_{\mathcal{F}})$$

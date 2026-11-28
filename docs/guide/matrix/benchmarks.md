@@ -31,6 +31,16 @@ across varying sparsity densities and matrix sizes.
     Use `algebrax` when your data density is **below 50%** or when operating over non-field algebraic structures (tropical,
     arctic, boolean, fuzzy, path provenance, or Clifford multivectors) where hardware BLAS is inapplicable.
 
+### Output-Sensitive Sparse Hot Paths
+
+Beyond sparse matrix multiplication (`dot`), core linear algebra and topological kernels maintain output-sensitive
+complexity without dense allocations:
+
+- **`inner` & `mat_vec`**: Iterates over the smaller operand in $O(\min(\text{nnz}(u), \text{nnz}(v)))$ with zero intermediate `set` allocations and a native Python fast path when `semiring is None`.
+- **`inv`**: Factors $PA = LU$ **once** and reuses triangular solves across columns in $O(N^3)$ total time.
+- **`rank`**: Executes forward-only sparse elimination in `algebrax.matrix.eliminate`, skipping RREF back-substitution fill-in.
+- **`SimplicialComplex`**: Lazily constructs exact integer-signed `boundary_matrices` once on first access rather than rebuilding per face insertion.
+
 ---
 
 ### Benchmark Reproduction Script

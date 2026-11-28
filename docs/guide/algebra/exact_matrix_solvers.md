@@ -47,15 +47,18 @@ All exact matrix solvers accept an optional `field: Field[V]` instance implement
 
 | Solver Function (`algebrax.matrix`) | Mathematical Meaning | Complexity / Sparsity |
 |:------------------------------------|:---------------------|:----------------------|
-| `lu_decompose(m, field=...)` | Partial/row-pivoted $PA = LU$ factorization over `Field[V]` | Hoists `inv(pivot)` once per pivot row; skips zero factors |
+| `lu_decompose(m, field=...)` | Partial/row-pivoted $PA = LU$ factorization over `Field[V]` | Hoists `inv(pivot)` once per pivot row; skips zero factors; supports rectangular/disjoint keys |
 | `solve(a, b, field=...)` | Solves $Ax = b$ via exact forward/backward substitution | Exact over $\mathbb{Q}$, $\mathbb{F}_p$, $\mathbb{R}$, $\mathbb{C}$ |
-| `det(m, field=...)` | Determinant $\det(A) = \operatorname{sgn}(P) \prod_i U_{ii}$ | $O(N^3)$ worst-case, zero-skipping on sparse rows |
-| `inv(m, field=...)` | Exact matrix inverse $A^{-1}$ solving $AX = I$ | Raises `ValueError` if $\det(A) = \mathbf{0}$ |
+| `det(m, field=...)` | Determinant $\det(A) = \operatorname{sgn}(P) \prod_i U_{ii}$ | $O(N^3)$ worst-case; immediately returns $\mathbf{0}$ on disjoint omitted-zero domains |
+| `inv(m, field=...)` | Exact matrix inverse $A^{-1}$ solving $AX = I$ | Computes `lu_decompose` **once** ($O(N^3)$ total); raises `SingularMatrixError` if $\det(A) = \mathbf{0}$ |
+| `sparse_rref(m, field=...)` | Sparse Reduced Row Echelon Form $(R, \text{pivots})$ on `RectSparseMatrix[R, C, V]` | Sparsest-row pivot selection over exact fields; sparse partial pivoting over `float`/`complex` |
+| `rank(m, field=...)` | Exact matrix rank $\operatorname{rank}_{\mathbb{K}}(A)$ | Forward-only sparse elimination skipping RREF back-substitution fill-in |
+| `nullspace(m, cols=..., field=...)` | Canonical sparse basis of $\ker_{\mathbb{K}}(A)$ | Honors omitted zero columns via `cols`; satisfies $\operatorname{rank}(A) + \dim\ker(A) = |C|$ |
 
 ### Performance Engineering (The Shannon Principle)
 
-1. **Pivot Inversion Hoisting**: In `ModularField(p)` and `StandardField(Fraction)`, multiplicative inversion (`pow(a, -1, p)` or GCD reduction) is more expensive than multiplication. `lu_decompose` computes `inv_pivot = field.inv(pivot)` **once** per outer pivot step and multiplies across the row.
-2. **Inner Zero-Skipping**: Before updating $U_{ij} \leftarrow U_{ij} - \text{factor} \cdot U_{kj}$, the solver checks `field.is_zero(factor)` and `field.is_zero(U_kj)`, skipping empty coordinates to preserve dictionary sparsity.
+1. **Pivot Inversion Hoisting**: In `ModularField(p)` and `StandardField(Fraction)`, multiplicative inversion (`pow(a, -1, p)` or GCD reduction) is more expensive than multiplication. `lu_decompose`, `sparse_rref`, and `rank` compute `inv_pivot = field.inv(pivot)` **once** per outer pivot step and multiply across the row.
+2. **Inner Zero-Skipping & Two Pivot Regimes**: Before updating $U_{ij} \leftarrow U_{ij} - \text{factor} \cdot U_{kj}$, the solver checks `field.is_zero(...)`, preserving dictionary sparsity. `algebrax.matrix.eliminate` selects sparsest pivot rows in exact fields (minimizing fill-in) and maximum-magnitude partial pivots in `float`/`complex` regimes (preventing catastrophic cancellation).
 
 ---
 
@@ -71,7 +74,7 @@ with pytest.raises(ZeroDivisionError):
 with pytest.raises(ZeroDivisionError):
     f11.div(5, 0)
 
-# 2. Singular matrix inversion raises ValueError
+# 2. Singular matrix inversion raises SingularMatrixError (a ValueError subclass)
 singular = {0: {0: Fraction(1, 1), 1: Fraction(2, 1)}, 1: {0: Fraction(2, 1), 1: Fraction(4, 1)}}
 assert det(singular, field=q) == Fraction(0, 1)
 with pytest.raises(ValueError):
@@ -82,6 +85,7 @@ with pytest.raises(ValueError):
 
 ## 5. Frontier Horizons & Cross-Domain Bridges
 
+- **Exact $\mathbb{Q}$ & $\mathbb{F}_p$ Simplicial / Sheaf Homology**: `SimplicialComplex.betti_numbers(field=ModularField(2))` and `CellularSheaf.global_sections_dimension(field=...)` delegate directly to `algebrax.matrix.rank`, detecting torsion (such as $\beta_1(\mathbb{RP}^2; \mathbb{F}_2) = 1$ vs. $\beta_1(\mathbb{RP}^2; \mathbb{Q}) = 0$) with exact integer incidence signs and zero float coercion. See [Homology & Chain Complexes](../topology/homology.md).
 - **Persistent Homology Over $\mathbb{F}_2$**: Boundary matrix reduction in [Persistent Homology](../topology/persistence.md) is Gaussian elimination over $\mathbb{F}_2 = \text{ModularField}(2)$.
 - **Certified Solver Verification**: Every solution $x = \text{solve}(A, b, \text{field}=F)$ can be verified in $O(\text{nnz}(A))$ time by checking $A x - b = \mathbf{0}$.
-- **Affine Varieties & Stickelberger Linearization**: Exact field linear algebra powers Jacobian smoothness rank tests and Stickelberger companion matrix solvers in [Affine Varieties, Coordinate Rings & Stickelberger Solvers](varieties_and_geometry.md).
+- **Affine Varieties & Stickelberger Linearization**: Exact field `sparse_rref` and `nullspace` power Jacobian smoothness rank tests and Stickelberger companion matrix solvers in [Affine Varieties, Coordinate Rings & Stickelberger Solvers](varieties_and_geometry.md).
