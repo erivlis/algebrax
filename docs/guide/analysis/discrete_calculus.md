@@ -104,6 +104,20 @@ centrality = ax.analysis.eigen_centrality(network)
 print('Eigenvector Centrality:', centrality)
 ```
 
+### 4b. Semiring-Parameterized Algebraic PageRank (`pagerank`)
+
+`pagerank` propagates `semiring.add`, `semiring.mul`, and `semiring.zero` consistently across transition steps, dangling mass redistribution, damping, and teleportation blending. It accepts semiring instances, classes, or catalog strings (`StandardSemiring`, `ViterbiSemiring`, `BottleneckSemiring`) and validates real/numeric carriers upfront (raising `TypeError` for non-numeric semirings like `StringSemiring` or `BooleanSemiring`):
+
+```python
+from algebrax.analysis import pagerank
+from algebrax.semiring import BottleneckSemiring, StandardSemiring, ViterbiSemiring
+
+directed = {'A': {'B': 1.0, 'C': 1.0}, 'B': {'C': 1.0}, 'C': {'A': 1.0}}
+pr_std = pagerank(directed, semiring=StandardSemiring(float))
+pr_vit = pagerank(directed, semiring=ViterbiSemiring())
+pr_bot = pagerank(directed, semiring=BottleneckSemiring())
+```
+
 ### 5. Ramanujan Expander Graphs & Discrete Hecke Operators
 
 A connected $d$-regular network is an optimal **Ramanujan expander graph** if every non-trivial adjacency eigenvalue beyond the single trivial $+d$ eigenvalue (and at most one $-d$ eigenvalue if bipartite) satisfies the Alon–Boppana / Hasse–Weil bound $|\lambda_i| \le 2\sqrt{d - 1}$. Disconnected $d$-regular graphs carry repeated $\lambda = +d$ eigenvalues and are strictly rejected (`is_ramanujan = False`). Moreover, `hecke_graph_operator(adjacency, k)` generates the commutative algebra of non-backtracking walk operators $T_k$:

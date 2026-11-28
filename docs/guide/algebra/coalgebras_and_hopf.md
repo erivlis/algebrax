@@ -73,11 +73,25 @@ All tensor products $C \otimes C$ are represented using AlgebraX's native unboxe
 ## 4. Built-in Coalgebraic Models
 
 ### Group Hopf Algebra (`GroupHopfAlgebra`)
-Constructed from any group $G$, $K[G]$ formalizes group linear combinations:
-- **Multiplication**: Group convolution $\sum_{u \cdot v = w} a_u b_v$.
-- **Coproduct**: $\Delta(g) = g \otimes g$ (every group element is group-like).
-- **Counit**: $\epsilon(\sum c_g g) = \sum c_g$.
+Constructed from any group $G$ and coefficient `Ring` $R$ (`coeff_semiring`, defaulting to `StandardField(float)`), $R[G]$ formalizes group linear combinations with exact coefficient propagation across every Hopf operation:
+- **Multiplication**: Group convolution $\sum_{u \cdot v = w} a_u b_v$ over $R$.
+- **Coproduct**: $\Delta(g) = g \otimes g$ (pruning zeros via `make_zero_predicate(R)`).
+- **Counit**: $\epsilon(\sum c_g g) = \bigoplus_{g \in G} c_g \in R$.
 - **Antipode**: $S(g) = g^{-1}$.
+
+```python
+from fractions import Fraction
+from algebrax.algebra import GroupHopfAlgebra, ModularField, StandardField
+
+# Exact finite-field group Hopf algebra F_5[Z/4Z]
+f5 = ModularField(5)
+gh_mod = GroupHopfAlgebra(Z4(), coeff_semiring=f5)
+assert gh_mod.counit({1: 3, 3: 4}) == 2  # (3 + 4) mod 5 == 2
+
+# Exact rational group Hopf algebra Q[Z/4Z]
+gh_q = GroupHopfAlgebra(Z4(), coeff_semiring=StandardField(Fraction))
+assert gh_q.counit({1: Fraction(1, 3), 3: Fraction(1, 6)}) == Fraction(1, 2)
+```
 
 ### Divided Power Coalgebra (`DividedPowerCoalgebra`)
 Governs the polynomial sequence $x^{[n]}$ where $\Delta(x^{[n]}) = \sum_{k=0}^n x^{[k]} \otimes x^{[n-k]}$ and $\epsilon(x^{[n]}) = \delta_{n, 0}$, fundamental in characteristic-$p$ algebraic geometry, formal groups, and binomial moment convolutions.

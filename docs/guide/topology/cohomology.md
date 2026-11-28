@@ -76,17 +76,34 @@ print(tropical_cup)
 
 ### The Cohomology Ring as an `Algebra` Protocol Conformance
 
-In `algebrax.topology`, **`CochainAlgebra`** equips the cochain space with the Alexander–Whitney cup product, directly conforming to `algebrax.algebra.Algebra[float, Cochain]`:
+In `algebrax.topology`, **`CochainAlgebra`** equips the cochain space with the Alexander–Whitney cup product restricted to `complex`, routing `zero`, `one`, `add`, `neg`, `sub`, `smul`, and `mul` completely through `coefficient_ring`. Passing `ring=` to `Cochain` also routes orientation sign flips through `ring.neg`, enabling exact finite-field cohomology rings over `ModularField(p)` and `GaloisField`:
 
 ```python
-from algebrax.algebra import Algebra, StandardField
-from algebrax.topology import CochainAlgebra, SimplicialComplex
+from algebrax.algebra import Algebra, ModularField
+from algebrax.semiring import GaloisField, TropicalSemiring
+from algebrax.topology import Cochain, CochainAlgebra, SimplicialComplex, cup_product
 
-sc = SimplicialComplex([(0, 1, 2), (1, 2, 3)])
-f = StandardField(float)
-cochain_ring = CochainAlgebra(complex=sc, coefficient_ring=f)
+sc = SimplicialComplex([(0, 1, 2)])
 
+# Exact finite-field cohomology ring over GF(5)
+f5 = ModularField(5)
+cochain_ring = CochainAlgebra(complex=sc, coefficient_ring=f5)
 assert isinstance(cochain_ring, Algebra)
+
+# Orientation reversal uses f5.neg: -(2 mod 5) == 3 mod 5
+omega = Cochain({(0, 1): 2, (1, 2): 4}, degree=1, ring=f5)
+assert omega[(1, 0)] == 3
+
+# Exact characteristic-2 cohomology ring over GF(4) = F_2[x]/(x^2 + x + 1)
+gf4 = GaloisField(2, [1, 1, 1])
+ca_gf4 = CochainAlgebra(complex=sc, coefficient_ring=gf4)
+assert ca_gf4.mul(ca_gf4.one, ca_gf4.one) == ca_gf4.one
+
+# Tropical cup product preserves 0.0 (TropicalSemiring.one) without numeric zero pruning
+trop = TropicalSemiring()
+a_t = Cochain({(0, 1): 0.0}, degree=1, oriented=False, ring=trop)
+b_t = Cochain({(1, 2): 0.0}, degree=1, oriented=False, ring=trop)
+assert cup_product(a_t, b_t, semiring=trop)[(0, 1, 2)] == 0.0
 ```
 
 ---

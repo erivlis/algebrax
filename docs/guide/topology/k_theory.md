@@ -15,7 +15,7 @@ Given any additive commutative monoid $(M, +, 0)$, its **Grothendieck group** $K
 
 $$(a, b) \sim (c, d) \iff \exists k \in M \text{ such that } a + d + k = b + c + k$$
 
-When $S$ is a commutative semiring $(S, +, \cdot, 0, 1)$, `GrothendieckRing` equips $K_0(S)$ with formal difference multiplication (`CommRing`):
+When $S$ is a commutative semiring $(S, +, \cdot, 0, 1)$, `CommGrothendieckRing` equips $K_0(S)$ with formal difference multiplication (`CommRing`):
 
 $$(a - b) \cdot (c - d) = (a c + b d) - (a d + b c)$$
 
@@ -26,12 +26,11 @@ Every monoid homomorphism $f: M \to G$ into an abelian group $G$ factors uniquel
 $$\tilde{f}(a, b) = f(a) -_G f(b), \qquad \tilde{f} \circ \iota = f$$
 
 ```python
-from algebrax.algebra import AddCommGroup, AddCommMonoid, GrothendieckGroup, GrothendieckRing
-from algebrax.semiring import Semiring
+from algebrax.algebra import AddCommGroup, CommGrothendieckRing, CommSemiring
 from algebrax.verification import verify_comm_ring_laws, verify_grothendieck_universal_property
 
 
-class NatSemiring(Semiring[int]):
+class NatSemiring(CommSemiring[int]):
     @property
     def zero(self) -> int:
         return 0
@@ -60,7 +59,7 @@ class RealAddGroup(AddCommGroup[float]):
 
 
 # Construct K_0(N, +, *) = Z with canonical pair reduction (a - min(a,b), b - min(a,b))
-k0_z = GrothendieckRing(
+k0_z = CommGrothendieckRing(
     NatSemiring(),
     normalize_fn=lambda p: (p[0] - min(p), p[1] - min(p)),
 )
@@ -81,15 +80,17 @@ assert all(props.values())
 
 ---
 
-## 2. Whitney Direct Sums ($E_1 \oplus E_2$) & Tensor Products ($E_1 \otimes E_2$)
+## 2. Vector Bundle Semiring (`VectorBundleSemiring`), Whitney Sums & Tensor Products
 
-Over a 1-skeleton $K_1$, discrete orthogonal vector bundles (`DiscreteOrthogonalConnection`) form a commutative semiring under:
+Over a 1-skeleton $K_1$, discrete orthogonal vector bundles (`DiscreteOrthogonalConnection`, augmented with `None` for the rank-0 empty bundle $\mathbf{0}$) form the commutative semiring **`VectorBundleSemiring`** witnessing `CommSemiring[DiscreteOrthogonalConnection | None]`:
 
-1. **Whitney Direct Sum (`bundle_direct_sum`)**: Block-diagonal parallel transport of fiber dimension $d_1 + d_2$:
+1. **Whitney Direct Sum (`bundle_direct_sum` / `VectorBundleSemiring.add`)**: Block-diagonal parallel transport of fiber dimension $d_1 + d_2$:
    $$\rho_{E_1 \oplus E_2}(u, v) = \begin{pmatrix} \rho_1(u, v) & \mathbf{0} \\ \mathbf{0} & \rho_2(u, v) \end{pmatrix}$$
-2. **Bundle Tensor Product (`bundle_tensor_product`)**: Kronecker product parallel transport of fiber dimension $d_1 \cdot d_2$:
+2. **Bundle Tensor Product (`bundle_tensor_product` / `VectorBundleSemiring.mul`)**: Kronecker product parallel transport of fiber dimension $d_1 \cdot d_2$:
    $$\rho_{E_1 \otimes E_2}(u, v) = \rho_1(u, v) \otimes \rho_2(u, v)$$
-3. **Trivial Flat Bundle (`trivial_bundle`)**: Flat rank-$d$ identity bundle $\underline{\mathbb{R}}^d$ with $\rho(u, v) = I_d$.
+3. **Trivial Flat Bundle (`trivial_bundle` / `VectorBundleSemiring.one`)**: Flat rank-$d$ identity bundle $\underline{\mathbb{R}}^d$ with $\rho(u, v) = I_d$.
+
+**`TopologicalKTheoryRing`** directly subclasses `CommGrothendieckRing` over `VectorBundleSemiring`, inheriting formal-difference addition, negation, subtraction, multiplication, orthogonal-similarity equivalence (`equiv`), and `lift_homomorphism` while satisfying `verify_comm_ring_laws`.
 
 ---
 

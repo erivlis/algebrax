@@ -5,14 +5,47 @@ description: Deterministic and Non-Deterministic Finite Automata simulation and 
 
 # Automata & Formal Languages (`algebrax.automata`)
 
-`algebrax.automata` provides transition simulation over state machines and formal grammars:
+`algebrax.automata` provides transition simulation and Kleene reachability closure over state machines and formal grammars:
 
-* **`simulate_dfa`**: Evaluates Deterministic Finite Automaton paths over symbol sequences.
-* **`simulate_nfa`**: Evaluates Non-Deterministic Finite Automaton superposition sets.
+* **`simulate_dfa` / `dfa_step`**: Evaluates Deterministic Finite Automaton paths over symbol sequences.
+* **`simulate_nfa` / `nfa_step`**: Evaluates Non-Deterministic, Probabilistic, and Weighted Finite Automata over arbitrary semirings (`BooleanSemiring`, `TropicalSemiring`, `ViterbiSemiring`, `StringSemiring`, or default `float`). Always returns a fresh copy on empty input sequences.
+* **`nfa_closure`**: Projects an NFA transition tensor into a sparse matrix and computes all-symbol (`symbol=None`) or single-symbol/epsilon Kleene closure via `matrix_star` for any `StarSemiring` (`HasStar`).
 
 ---
 
-# CYK Parsing (Context-Free Grammars)
+## Weighted Finite Automata & Kleene Closure (`simulate_nfa`, `nfa_closure`)
+
+Passing a `semiring` to `nfa_step` or `simulate_nfa` turns the same NFA transition tensor into reachability (`BooleanSemiring`), minimum-cost pathfinding (`TropicalSemiring`), most-probable path decoding (`ViterbiSemiring`), or formal language transduction (`StringSemiring`):
+
+```python
+from algebrax.automata import nfa_closure, simulate_nfa
+from algebrax.semiring import BooleanSemiring, StringSemiring, TropicalSemiring, ViterbiSemiring
+
+# Shortest-path Weighted Finite Automaton over TropicalSemiring
+trop_trans = {
+    'q0': {'a': {'q1': 2.0, 'q2': 5.0}},
+    'q1': {'b': {'q3': 10.0}},
+    'q2': {'b': {'q3': 1.0}},
+}
+assert simulate_nfa({'q0': 0.0}, ['a', 'b'], trop_trans, semiring=TropicalSemiring) == {'q3': 6.0}
+
+# All-pairs minimum-cost Kleene closure (symbol=None sums across the alphabet)
+dist = nfa_closure(trop_trans, semiring=TropicalSemiring)
+assert dist['q0']['q0'] == 0.0 and dist['q0']['q3'] == 6.0
+
+# Epsilon-closure (single-symbol Kleene star over BooleanSemiring)
+eps_trans = {'q0': {'eps': {'q1': True}, 'a': {'q2': True}}, 'q1': {'eps': {'q3': True}}}
+eps = nfa_closure(eps_trans, symbol='eps', semiring=BooleanSemiring)
+assert eps['q0']['q3'] is True and 'q2' not in eps['q0']
+
+# Formal language transduction over StringSemiring (simulate_nfa works; nfa_closure requires HasStar)
+str_trans = {'q0': {'a': {'q1': {'x'}}}, 'q1': {'b': {'q2': {'1'}}}}
+assert simulate_nfa({'q0': {''}}, ['a', 'b'], str_trans, semiring=StringSemiring) == {'q2': {'x1'}}
+```
+
+---
+
+## CYK Parsing (Context-Free Grammars)
 
 The **CYK Algorithm** parses a string using a Context-Free Grammar (CFG).
 Surprisingly, this is just **Matrix Multiplication**!
