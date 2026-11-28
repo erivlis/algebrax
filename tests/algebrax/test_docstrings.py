@@ -16,8 +16,9 @@ from algebrax.algebra import (
     CommSemiring,
 )
 from algebrax.analysis import pagerank
+from algebrax.automata import nfa_closure
 from algebrax.category import kan_extension_left, kleisli_compose
-from algebrax.converters import canonical_sort_keys
+from algebrax.converters import canonical_sort_keys, make_zero_predicate
 from algebrax.display import (
     AlgebraicMeta,
     extract_algebraic_signature,
@@ -28,7 +29,7 @@ from algebrax.lie import LieAlgebra, RootSystem, StructureConstants
 from algebrax.matrix import nullspace, rank, sparse_rref
 from algebrax.rep import FiniteQuiver
 from algebrax.semiring import Semiring, TropicalSemiring
-from algebrax.topology import SimplicialComplex, SparseChainComplex
+from algebrax.topology import SimplicialComplex, SparseChainComplex, VectorBundleSemiring
 from algebrax.trie import AlgebraicTrie
 from algebrax.variety import (
     AffineVariety,
@@ -129,6 +130,12 @@ def test_non_semiring_algebraic_structures():
         (PolynomialMap, r'\phi^*: k[W] \to k[V]'),
         (CoordinateHopfAlgebra, r'\Delta, \epsilon, S'),
         (canonical_sort_keys, r'\operatorname{sort}: \mathcal{P}_{\text{fin}}(K) \to K^*'),
+        (make_zero_predicate, r'\mathrm{zero?}_{\mathcal{S}}: V \to \mathbb{B}'),
+        (nfa_closure, r'\delta^* = \left(\bigoplus_{a \in \Sigma} M_a\right)^*'),
+        (
+            VectorBundleSemiring,
+            r'\langle \mathrm{Vect}_{\mathbb{R}}(K), \mathbf{0}, \oplus, \underline{\mathbb{R}}^1, \otimes \rangle',
+        ),
         (sparse_rref, r'\mathrm{RREF}'),
         (rank, r'\operatorname{rank}_{\mathbb{K}}'),
         (nullspace, r'\ker_{\mathbb{K}}'),
