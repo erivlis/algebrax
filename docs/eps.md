@@ -257,5 +257,27 @@ creative telescoping, multivariate Taylor Jet solvers, and bounded-order Picard�
 | [EP-0242](proposals/EP-0242-hermite-gosper-reduction-creative-telescoping-and-taylor-jets.md)     | Exact Symbolic Integration, Hermite & Gosper Reduction, Creative Telescoping & Multivariate Taylor Jets  | ⚡ Shannon, 🔬 Popper & 🛡️ Golem     | :material-pencil: Draft |
 | [EP-0243](proposals/EP-0243-picard-vessiot-differential-galois-and-kovacic.md)                    | Picard–Vessiot Differential Galois Theory, Symmetric Powers & Kovacic Factorization                      | ⚖️ Noether, 🔬 Popper & 🛡️ Golem     | :material-pencil: Draft |
 
+---
+
+## Phase 12 — Order Theory, Lattices, Non-Classical Logics, Matroids & Quantales
+
+Proposals stemming from the **Subtraction-Free Idempotent Corners Exploration**
+([EXP-0012](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0012-subtraction-free-idempotent-corners/README.md))
+and the **Lattice & Order Continent Exploration**
+([EXP-0013](https://github.com/erivlis/algebrax/blob/main/references/explorations/EXP-0013-lattice-and-order-continent/README.md)),
+hardening lattice protocols with equational law witnesses, promoting `algebrax.lattice` into a backward-compatible
+package (Wave 1 `EP-0260` executes ahead of Phase 10 `EP-0231`), and delivering bitmask posets/lattices, Galois
+connections & Formal Concept Analysis, Heyting/MV/quantum orthomodular logics, matroids & Tutte polynomials, and
+subtraction-free non-associative quantales.
+
+| EP                                                                                                       | Title                                                                                           | Council Sponsor                           |         Status          |
+|:---------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------|:------------------------------------------|:-----------------------:|
+| [EP-0260](proposals/EP-0260-lattice-protocol-soundness-finite-posets-and-lattices.md)                    | Lattice Protocol Soundness, Package Promotion & Finite Posets/Lattices                          | 🧩 Russell, ⚖️ Noether & ⚡ Shannon       | :material-pencil: Draft |
+| [EP-0261](proposals/EP-0261-galois-connections-tarski-fixpoints-and-formal-concept-analysis.md)          | Galois Connections, Tarski Fixed Points & Formal Concept Analysis                               | ⚡ Shannon, ⚖️ Noether & 🔬 Popper        | :material-pencil: Draft |
+| [EP-0262](proposals/EP-0262-non-classical-and-quantum-logics-heyting-mv-and-orthomodular.md)             | Non-Classical & Quantum Logics — Heyting Locales, MV-Algebras & Orthomodular Lattices           | ⚖️ Noether, 🧩 Russell & 🔬 Popper        | :material-pencil: Draft |
+| [EP-0263](proposals/EP-0263-matroids-geometric-lattices-and-tutte-polynomials.md)                        | Matroids, Geometric Lattices, Characteristic & Tutte Polynomials                                | ⚡ Shannon, ⚖️ Noether & 🧭 Explorer      | :material-pencil: Draft |
+| [EP-0264](proposals/EP-0264-quantales-scott-domains-and-subtraction-free-non-associative-quantales.md)   | Quantales, Scott Domains & Subtraction-Free Non-Associative Quantales                           | 🧭 Explorer, ⚖️ Noether & 🔬 Popper       | :material-pencil: Draft |
+
+
 
 
