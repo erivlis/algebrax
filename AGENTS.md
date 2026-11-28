@@ -59,3 +59,13 @@ To prevent hallucination of objective facts (Time, Math), you must use the stand
 * **The Trigger:** Any request involving current time, arithmetic, or complex calculation.
 * **The Action:** Do not guess. Propose or execute the verification command.
 * **The Goal:** Ensure factual accuracy and reliability.
+
+### 5. Command Execution Hygiene (Windows / PowerShell)
+
+To prevent lingering ConPTY handles and stuck background tasks in Windows PowerShell sessions:
+
+* **Single-Command Calls:** Never chain multiple executables with `;` in a single `run_command` invocation (e.g., run `ruff`, `pyrefly`, `pytest`, and `zensical` as separate commands so each has one clean process exit handle).
+* **Synchronous Fast Commands:** Use `WaitMsBeforeAsync=10000` for fast commands (targeted `pytest`, `ruff`, `pyrefly`, `git`, `validate_ep.py`) so they finish synchronously without entering the background task manager.
+* **Bounded Background Runs:** Only let genuinely long commands (full `pytest` suite, `zensical build`) run asynchronously, and always set `NotificationTimeoutSeconds`.
+* **Zombie Task Recovery:** Follow the verification and session-rotation guidance in `TOOLS.md` if a finished background task remains stuck as `RUNNING`.
+

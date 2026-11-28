@@ -77,3 +77,13 @@ sonar analyze --file {file_path}
 - Single file: `sonar analyze --file src/algebrax/analysis.py`
 - Multiple files: `sonar analyze --file src/algebrax/matrix/core.py --file src/algebrax/transforms.py`
 - Check authentication: `sonar auth status`
+
+## Shell Execution Hygiene (Windows / PowerShell)
+
+When running verification tools (`pytest`, `ruff`, `pyrefly`, `zensical`, `git`) on Windows PowerShell:
+
+1. **One executable per `run_command` call:** Do not chain multiple tools with `;` (e.g., `ruff ...; pytest ...`), which can leave lingering ConPTY handles and zombie `RUNNING` background tasks.
+2. **Keep fast checks synchronous:** Pass `WaitMsBeforeAsync=10000` for targeted tests, linters, type checks, and git queries so they return directly instead of registering background tasks.
+3. **Set timeouts on long runs:** Reserve background execution for full-suite `pytest` or `zensical build` and always specify `NotificationTimeoutSeconds`.
+4. **Handle zombie tasks early:** If `manage_task(list)` shows a finished task stuck as `RUNNING` even after `manage_task(kill)` and no OS process remains, finish the current milestone and advise rotating to a fresh conversation to reset the task registry.
+
