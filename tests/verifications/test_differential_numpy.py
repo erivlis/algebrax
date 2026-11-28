@@ -171,7 +171,7 @@ def test_differential_mat_vec_and_vec_ops() -> None:
 
 
 def test_differential_inverse_and_determinant() -> None:
-    """Verify ax.matrix.inverse and determinant against np.linalg.inv and np.linalg.det."""
+    """Verify ax.matrix.inv and determinant against np.linalg.inv and np.linalg.det."""
     rng = np.random.default_rng(2026)
     n = 4
     # Construct a well-conditioned non-singular matrix: A = R + 3 * I
@@ -179,7 +179,7 @@ def test_differential_inverse_and_determinant() -> None:
     sparse_m = _dense_to_sparse(vals)
 
     # Matrix inverse
-    ax_inv = ax.matrix.inverse(sparse_m)
+    ax_inv = ax.matrix.inv(sparse_m)
     np_inv = np.linalg.inv(vals)
     ax_inv_dense = _sparse_to_dense(ax_inv, n)
     np.testing.assert_allclose(ax_inv_dense, np_inv, rtol=1e-9, atol=1e-9)

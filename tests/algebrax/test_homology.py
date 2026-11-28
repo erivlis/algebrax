@@ -562,9 +562,10 @@ def test_filtered_simplicial_complex_monotonicity_and_subcomplex():
     fsc.add_simplex((0,), 0.5)
     assert fsc[(0,)] == pytest.approx(0.5)
 
-    # Empty or degenerate simplices are ignored; NaN raises ValueError
+    # Empty simplices are ignored; degenerate simplices and NaN raise ValueError
     fsc.add_simplex((), 1.0)
-    fsc.add_simplex((0, 0), 1.0)
+    with pytest.raises(ValueError, match='Degenerate'):
+        fsc.add_simplex((0, 0), 1.0)
     assert len(fsc) == 7
     with pytest.raises(ValueError, match='NaN'):
         fsc.add_simplex((0,), math.nan)
@@ -880,6 +881,7 @@ def test_topology_core_cochain_algebra_and_sheaf_edge_cases():
     """Cover mixed-type vertex simplices, CochainAlgebra, SparseChainComplex cohomology_rank, and CellularSheaf."""
     import pytest
 
+    from algebrax.matrix import rank as matrix_rank
     from algebrax.semiring import StandardSemiring
     from algebrax.topology import (
         CellularSheaf,
@@ -889,7 +891,6 @@ def test_topology_core_cochain_algebra_and_sheaf_edge_cases():
         SparseChainComplex,
         cohomology_rank,
     )
-    from algebrax.topology._core import _matrix_rank
 
     # 1. Mixed-type uncomparable vertices (int and str) in _count_inversions_and_sort and _canonical_edge
     c_mixed = Cochain([([2, 'a', 1], 3.0)])  # non-tuple simplex converted to tuple & mixed-type sorted
@@ -897,9 +898,9 @@ def test_topology_core_cochain_algebra_and_sheaf_edge_cases():
     assert 'Cochain(' in repr(c_mixed)
     assert '\\omega' in c_mixed._repr_latex_()
 
-    # _matrix_rank on empty or all-empty-row dict
-    assert _matrix_rank({}) == 0
-    assert _matrix_rank({0: {}, 1: {}}) == 0
+    # rank on empty or all-empty-row dict
+    assert matrix_rank({}) == 0
+    assert matrix_rank({0: {}, 1: {}}) == 0
 
     # 2. Cochain equality and operator edge cases
     c1 = Cochain({(0, 1): 2.0})

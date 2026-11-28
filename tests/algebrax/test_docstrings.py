@@ -8,6 +8,7 @@ Verifies:
 5. Registry immutability and metadata integrity.
 """
 
+from algebrax import RectSparseMatrix
 from algebrax.algebra import (
     CommGrothendieckRing,
     CommMonoidAlgebra,
@@ -16,6 +17,7 @@ from algebrax.algebra import (
 )
 from algebrax.analysis import pagerank
 from algebrax.category import kan_extension_left, kleisli_compose
+from algebrax.converters import canonical_sort_keys
 from algebrax.display import (
     AlgebraicMeta,
     extract_algebraic_signature,
@@ -23,6 +25,7 @@ from algebrax.display import (
     semiring_card,
 )
 from algebrax.lie import LieAlgebra, RootSystem, StructureConstants
+from algebrax.matrix import nullspace, rank, sparse_rref
 from algebrax.rep import FiniteQuiver
 from algebrax.semiring import Semiring, TropicalSemiring
 from algebrax.topology import SimplicialComplex, SparseChainComplex
@@ -104,6 +107,7 @@ def test_semiring_card_content():
 
 def test_non_semiring_algebraic_structures():
     """Verify AMDS signature extraction on extended domain classes and categorical functions."""
+    assert RectSparseMatrix is not None
     targets = [
         (CommSemiring, r'\langle V, \mathbf{0}, +, \mathbf{1}, \cdot \rangle'),
         (CommMonoidAlgebra, r'\langle R, R[M], \cdot_s'),
@@ -124,6 +128,10 @@ def test_non_semiring_algebraic_structures():
         (AffineVariety, r'V(I)'),
         (PolynomialMap, r'\phi^*: k[W] \to k[V]'),
         (CoordinateHopfAlgebra, r'\Delta, \epsilon, S'),
+        (canonical_sort_keys, r'\operatorname{sort}: \mathcal{P}_{\text{fin}}(K) \to K^*'),
+        (sparse_rref, r'\mathrm{RREF}'),
+        (rank, r'\operatorname{rank}_{\mathbb{K}}'),
+        (nullspace, r'\ker_{\mathbb{K}}'),
     ]
 
     for target, expected_frag in targets:

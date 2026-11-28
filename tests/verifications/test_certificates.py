@@ -27,9 +27,10 @@ import pytest
 
 import algebrax as ax
 from algebrax.analysis import algebraic_connectivity, fiedler_vector, pagerank
-from algebrax.matrix.core import cg_solve, dot, inverse, laplacian_matrix, mat_vec, subtract, transpose, vec_norm
+from algebrax.matrix.core import cg_solve, dot, laplacian_matrix, mat_vec, subtract, transpose, vec_norm
 from algebrax.matrix.decompose import (
     cholesky,
+    inv,
     lu_decompose,
     qr,
     recompose_cholesky,
@@ -208,7 +209,7 @@ def test_linear_solver_and_spectral_eigenpair_certificates() -> None:
     assert vec_norm(residual) / vec_norm(b) < 1e-9
 
     # 2. Matrix Inverse certificate: ||A A^{-1} - I||_inf <= tol
-    inv_spd = inverse(spd)
+    inv_spd = inv(spd)
     ident = {i: {i: 1.0} for i in range(3)}
     assert _max_abs_entry(subtract(dot(spd, inv_spd), ident)) < 1e-11
 

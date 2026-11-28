@@ -18,7 +18,8 @@ from algebrax.group import (
     symmetric_group,
 )
 from algebrax.lie.classical import se_n, sl_n, so_n, sp_n, su_n
-from algebrax.matrix.core import dot, inverse, subtract
+from algebrax.matrix.core import dot, subtract
+from algebrax.matrix.decompose import inv
 from algebrax.rep.canonical import (
     cyclic_rep,
     dihedral_rep,
@@ -247,7 +248,7 @@ class TestComputeMolienSeries:
         group = dihedral_group(4)
         base_rep = dihedral_rep(4)
         s_mat = {0: {0: 2.0, 1: 1.0}, 1: {0: 0.5, 1: 1.5}}
-        s_inv = inverse(s_mat)
+        s_inv = inv(s_mat)
         conj_mats = {g: dot(dot(s_mat, base_rep(g)), s_inv) for g in group.elements}
         conj_rep = ExplicitGroupRep(conj_mats, dimension=2)
 
@@ -317,7 +318,7 @@ class TestReynoldsAndInvariantBases:
         base_rep = dihedral_rep(4)
         # Non-orthogonal basis change S * rho(g) * S^{-1}
         s_mat = {0: {0: 2.0, 1: 0.7}, 1: {0: -0.4, 1: 1.3}}
-        s_inv = inverse(s_mat)
+        s_inv = inv(s_mat)
         conj_rep = ExplicitGroupRep(
             {g: dot(dot(s_mat, base_rep(g)), s_inv) for g in group.elements},
             dimension=2,

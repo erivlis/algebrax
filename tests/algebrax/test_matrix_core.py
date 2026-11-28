@@ -6,7 +6,6 @@ from algebrax.matrix.core import (
     frobenius_inner,
     hstack,
     inner,
-    inverse,
     kronecker_delta,
     laplacian_matrix,
     mat_vec,
@@ -16,6 +15,7 @@ from algebrax.matrix.core import (
     vec_mat,
     vstack,
 )
+from algebrax.matrix.decompose import SingularMatrixError, inv
 
 
 def test_add():
@@ -320,7 +320,7 @@ def test_invert_sparse():
 
     # 1. 2x2 Real matrix inversion
     a = {0: {0: 2.0, 1: 1.0}, 1: {0: 1.0, 1: 3.0}}
-    a_inv = inverse(a)
+    a_inv = inv(a)
     # A^-1 = [[0.6, -0.2], [-0.2, 0.4]]
     assert pytest.approx(a_inv[0][0]) == 0.6
     assert pytest.approx(a_inv[0][1]) == -0.2
@@ -336,26 +336,25 @@ def test_invert_sparse():
 
     # 2. String keys
     s = {'u': {'u': 1.0, 'v': 2.0}, 'v': {'u': 3.0, 'v': 4.0}}
-    s_inv = inverse(s)
+    s_inv = inv(s)
     s_prod = dot(s, s_inv)
     assert pytest.approx(s_prod['u']['u']) == 1.0
     assert pytest.approx(s_prod['v']['v']) == 1.0
 
     # 3. Permuted/Diagonal matrix
     d = {0: {1: 2.0}, 1: {0: 5.0}}
-    d_inv = inverse(d)
+    d_inv = inv(d)
     d_prod = dot(d, d_inv)
     assert pytest.approx(d_prod[0][0]) == 1.0
     assert pytest.approx(d_prod[1][1]) == 1.0
 
     # 4. Singular matrix error
     singular = {0: {0: 1.0, 1: 2.0}, 1: {0: 2.0, 1: 4.0}}
-    with pytest.raises(ValueError, match='singular'):
-        inverse(singular)
+    with pytest.raises(SingularMatrixError, match='singular'):
+        inv(singular)
 
-    # 5. Empty matrix error
-    with pytest.raises(ValueError, match='empty'):
-        inverse({})
+    # 5. Empty matrix inverse is empty
+    assert inv({}) == {}
 
 
 def test_semiring_add_and_trace():
