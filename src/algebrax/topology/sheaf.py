@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Mapping, Sequence
+from fractions import Fraction
 from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeAlias, runtime_checkable
 
+from algebrax.algebra._field import Field, ModularField, StandardField
 from algebrax.category._mixins import HasMapMor, HasMapObj
 from algebrax.category.poset import Cell, CellPosetCategory, FaceInclusion
-from algebrax.topology._core import _matrix_rank
+from algebrax.matrix.eliminate import rank as _sparse_rank
 from algebrax.typing import K, SparseMatrix, SparseVector
 
 if TYPE_CHECKING:
@@ -432,7 +434,45 @@ class CellularSheaf(FunctorialSheaf, Generic[K]):
         dx = mat_vec(delta, section)
         return 0.5 * float(inner(dx, dx))
 
-    def global_sections_dimension(self, tol: float = 1e-9) -> int:
+    @staticmethod
+    def _rank_coboundary(
+        delta: SparseMatrix[EdgeStalkCoord, float],
+        *,
+        tol: float,
+        field: Field[Any] | None,
+    ) -> int:
+        """Compute coboundary rank over float or exact `Field[V]`."""
+        if field is None:
+            return _sparse_rank(delta, tol=tol)
+        if isinstance(field, ModularField):
+            coerced_mod: dict[EdgeStalkCoord, dict[StalkCoord, int]] = {}
+            for r, row in delta.items():
+                mod_row: dict[StalkCoord, int] = {}
+                for c, val in row.items():
+                    rounded = round(val)
+                    if abs(val - rounded) > tol:
+                        raise ValueError(
+                            f'Non-integer sheaf restriction entry {val!r} cannot be reduced modulo {field.p}.'
+                        )
+                    reduced = field.mul(field.one, int(rounded))
+                    if not field.is_zero(reduced):
+                        mod_row[c] = reduced
+                if mod_row:
+                    coerced_mod[r] = mod_row
+            return _sparse_rank(coerced_mod, field=field, tol=tol)
+        if isinstance(field, StandardField) and field._dtype is Fraction:
+            coerced_q: dict[EdgeStalkCoord, dict[StalkCoord, Fraction]] = {
+                r: {c: Fraction(val).limit_denominator() for c, val in row.items()} for r, row in delta.items()
+            }
+            return _sparse_rank(coerced_q, field=field, tol=tol)
+        return _sparse_rank(delta, field=field, tol=tol)
+
+    def global_sections_dimension(
+        self,
+        tol: float = 1e-9,
+        *,
+        field: Field[Any] | None = None,
+    ) -> int:
         r"""Compute the space of global sections dimension $\dim H^0(G; \mathcal{F}) = \dim \ker L_{\mathcal{F}}$."""
         total_dim = sum(self.vertex_stalks.values())
         if total_dim == 0:
@@ -440,10 +480,15 @@ class CellularSheaf(FunctorialSheaf, Generic[K]):
         delta = self.coboundary_matrix()
         if not delta:
             return total_dim
-        rank_delta = _matrix_rank(delta)
+        rank_delta = self._rank_coboundary(delta, tol=tol, field=field)
         return max(total_dim - rank_delta, 0)
 
-    def first_cohomology_dimension(self, tol: float = 1e-9) -> int:
+    def first_cohomology_dimension(
+        self,
+        tol: float = 1e-9,
+        *,
+        field: Field[Any] | None = None,
+    ) -> int:
         r"""Compute the 1st sheaf cohomology dimension $\dim H^1(G; \mathcal{F})$.
 
         Defined as $\dim \operatorname{coker} \delta_{\mathcal{F}}$.
@@ -456,7 +501,7 @@ class CellularSheaf(FunctorialSheaf, Generic[K]):
         delta = self.coboundary_matrix()
         if not delta:
             return total_edge_dim
-        rank_delta = _matrix_rank(delta)
+        rank_delta = self._rank_coboundary(delta, tol=tol, field=field)
         return max(total_edge_dim - rank_delta, 0)
 
     def euler_characteristic(self) -> int:

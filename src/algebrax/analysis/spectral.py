@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import math
 
+from algebrax.converters import canonical_sort_keys
 from algebrax.matrix.core import add, dot, subtract
 from algebrax.matrix.decompose import _symmetric_jacobi_eigh
 from algebrax.typing import K, SparseMatrix
@@ -17,7 +18,7 @@ from algebrax.typing import K, SparseMatrix
 
 def _infer_regular_degree(adjacency: SparseMatrix[K, float], degree: int | None, tol: float = 1e-7) -> int:
     """Validate or infer the regularity degree d of an undirected graph."""
-    nodes = sorted(set(adjacency.keys()) | {v for row in adjacency.values() for v in row}, key=str)
+    nodes = canonical_sort_keys(set(adjacency.keys()) | {v for row in adjacency.values() for v in row})
     if not nodes:
         raise ValueError('Cannot determine degree of an empty graph.')
 
@@ -47,7 +48,7 @@ def adjacency_spectrum(adjacency: SparseMatrix[K, float]) -> list[float]:
     Returns:
         List of eigenvalues sorted in descending order.
     """
-    nodes = sorted(set(adjacency.keys()) | {v for row in adjacency.values() for v in row}, key=str)
+    nodes = canonical_sort_keys(set(adjacency.keys()) | {v for row in adjacency.values() for v in row})
     n = len(nodes)
     if n == 0:
         return []
@@ -70,10 +71,10 @@ def is_ramanujan_graph(
         $\lambda(G) = \max_{|\lambda_i| < d} |\lambda_i| \le 2\sqrt{d - 1}$
 
     Properties:
-        - Trivial eigenvalues satisfy $|\lambda_i| = d$ ($\lambda_1 = d$ for each connected component,
-          and $\lambda_n = -d$ if the graph is bipartite).
-        - Every non-trivial eigenvalue $\lambda_i$ with $|\lambda_i| < d$ must lie in the Hasse-Weil
-          interval $[-2\sqrt{d - 1}, 2\sqrt{d - 1}]$.
+        - Removes at most one trivial eigenvalue $\lambda_1 = +d$ (and at most one $\lambda_n = -d$
+          if the graph is bipartite), so disconnected $d$-regular graphs with repeated $+d$ eigenvalues
+          are not certified as Ramanujan expanders.
+        - Every remaining eigenvalue must lie in the Hasse-Weil interval $[-2\sqrt{d - 1}, 2\sqrt{d - 1}]$.
 
     Args:
         adjacency: Sparse symmetric adjacency matrix of a $d$-regular graph.
@@ -87,8 +88,19 @@ def is_ramanujan_graph(
     threshold = 2.0 * math.sqrt(d - 1)
     spectrum = adjacency_spectrum(adjacency)
 
-    # Filter out trivial eigenvalues |lambda| == d
-    nontrivial = [abs(lam) for lam in spectrum if abs(abs(lam) - d) > 1e-5]
+    # Remove at most one trivial +d eigenvalue (and at most one -d eigenvalue if bipartite)
+    removed_pos = False
+    removed_neg = False
+    nontrivial: list[float] = []
+    for lam in spectrum:
+        if not removed_pos and abs(lam - d) <= 1e-5:
+            removed_pos = True
+            continue
+        if not removed_neg and abs(lam + d) <= 1e-5:
+            removed_neg = True
+            continue
+        nontrivial.append(abs(lam))
+
     max_nontrivial = max(nontrivial) if nontrivial else 0.0
     is_ram = max_nontrivial <= threshold + tol
     return is_ram, float(max_nontrivial), float(threshold)
@@ -133,7 +145,7 @@ def hecke_graph_operator(
     if k < 0:
         raise ValueError(f'Hecke operator index k must be >= 0, got {k}.')
     d = _infer_regular_degree(adjacency, degree)
-    nodes = sorted(set(adjacency.keys()) | {v for row in adjacency.values() for v in row}, key=str)
+    nodes = canonical_sort_keys(set(adjacency.keys()) | {v for row in adjacency.values() for v in row})
     ident: SparseMatrix[K, float] = {u: {u: 1.0} for u in nodes}
 
     if k == 0:

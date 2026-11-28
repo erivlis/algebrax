@@ -212,9 +212,11 @@ def cmd_inspect(args: argparse.Namespace) -> int:
     else:
         print(f'\nSparse Matrix Inspector ({rows} rows, {cols} cols, {nnz} non-zero entries)')
         print(f'{"-" * 60}')
-        for r, row_entries in sorted(matrix.items(), key=str):
+        for r in ax.converters.canonical_sort_keys(matrix.keys()):
+            row_entries = matrix[r]
             if isinstance(row_entries, dict):
-                entries_str = ', '.join(f'{c}: {v}' for c, v in sorted(row_entries.items(), key=str))
+                col_keys = ax.converters.canonical_sort_keys(row_entries.keys())
+                entries_str = ', '.join(f'{c}: {row_entries[c]}' for c in col_keys)
                 print(f'  Row {r}: {{{entries_str}}}')
             else:
                 print(f'  Row {r}: {row_entries}')

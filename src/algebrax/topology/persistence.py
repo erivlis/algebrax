@@ -67,30 +67,25 @@ def _extract_vr_edges(
     max_edge_length: float,
 ) -> tuple[set[int], dict[tuple[int, int], float], dict[int, set[int]]]:
     nodes: set[int] = set(distance_matrix.keys())
-    for row in distance_matrix.values():
-        nodes.update(row.keys())
+    raw_edges: dict[tuple[int, int], float] = {}
+
+    for u, row_u in distance_matrix.items():
+        for v, raw_dist in row_u.items():
+            nodes.add(v)
+            if u == v:
+                continue
+            a, b = (u, v) if u < v else (v, u)
+            d_val = float(raw_dist)
+            prev = raw_edges.get((a, b))
+            if prev is None or d_val > prev:
+                raw_edges[(a, b)] = d_val
 
     edge_weights: dict[tuple[int, int], float] = {}
     upper_neighbors: dict[int, set[int]] = {u: set() for u in nodes}
-
-    sorted_nodes = sorted(nodes)
-    for idx_u, u in enumerate(sorted_nodes):
-        row_u = distance_matrix.get(u, {})
-        for v in sorted_nodes[idx_u + 1 :]:
-            row_v = distance_matrix.get(v, {})
-            has_uv = v in row_u
-            has_vu = u in row_v
-            if not has_uv and not has_vu:
-                continue
-            if has_uv and has_vu:
-                dist = max(float(row_u[v]), float(row_v[u]))
-            elif has_uv:
-                dist = float(row_u[v])
-            else:
-                dist = float(row_v[u])
-            if dist <= max_edge_length:
-                edge_weights[(u, v)] = dist
-                upper_neighbors[u].add(v)
+    for (a, b), dist in raw_edges.items():
+        if dist <= max_edge_length:
+            edge_weights[(a, b)] = dist
+            upper_neighbors[a].add(b)
 
     return nodes, edge_weights, upper_neighbors
 
@@ -159,9 +154,13 @@ class FilteredSimplicialComplex:
         if math.isnan(f_val):
             raise ValueError('Filtration value cannot be NaN.')
 
-        s_tuple = tuple(sorted(simplex))
+        s_raw = tuple(simplex)
+        if len(set(s_raw)) != len(s_raw):
+            raise ValueError(f'Degenerate simplex with repeated vertices is not allowed: {s_raw!r}.')
+
+        s_tuple = tuple(sorted(s_raw))
         k = len(s_tuple) - 1
-        if k < 0 or len(set(s_tuple)) < len(s_tuple):
+        if k < 0:
             return
 
         existing = self._filtration.get(s_tuple)
@@ -506,21 +505,50 @@ def _has_perfect_bipartite_matching(adj: list[list[int]], num_left: int, num_rig
                     queue.append(pu)
         return found_augmenting
 
-    def dfs(u: int) -> bool:
-        for v in adj[u]:
-            pu = pair_v[v]
-            if pu == -1 or (dist[pu] == dist[u] + 1 and dfs(pu)):
-                pair_u[u] = v
-                pair_v[v] = u
-                return True
-        dist[u] = -1
-        return False
-
     matched = 0
     while bfs():
-        for u in range(num_left):
-            if pair_u[u] == -1 and dfs(u):
-                matched += 1
+        ptr = [0] * num_left
+        for start_u in range(num_left):
+            if pair_u[start_u] != -1:
+                continue
+            path_u: list[int] = [start_u]
+            path_v: list[int] = []
+            while path_u:
+                u = path_u[-1]
+                adj_u = adj[u]
+                idx = ptr[u]
+                advanced = False
+                while idx < len(adj_u):
+                    v = adj_u[idx]
+                    idx += 1
+                    pu = pair_v[v]
+                    if pu == -1:
+                        ptr[u] = idx
+                        pair_u[u] = v
+                        pair_v[v] = u
+                        dist[u] = -1
+                        for k in range(len(path_v) - 1, -1, -1):
+                            uk = path_u[k]
+                            vk = path_v[k]
+                            pair_u[uk] = vk
+                            pair_v[vk] = uk
+                            dist[uk] = -1
+                        matched += 1
+                        path_u.clear()
+                        advanced = True
+                        break
+                    if dist[pu] == dist[u] + 1:
+                        ptr[u] = idx
+                        path_v.append(v)
+                        path_u.append(pu)
+                        advanced = True
+                        break
+                if not advanced:
+                    ptr[u] = idx
+                    dist[u] = -1
+                    path_u.pop()
+                    if path_v:
+                        path_v.pop()
 
     return matched == num_left
 

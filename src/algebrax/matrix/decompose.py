@@ -13,7 +13,13 @@ import math
 from typing import Any
 
 from algebrax.algebra._field import Field
-from algebrax.converters import get_matrix_keys, grid_to_sparse, prune_sparse, sparse_to_grid
+from algebrax.converters import (
+    canonical_sort_keys,
+    get_matrix_keys,
+    grid_to_sparse,
+    prune_sparse,
+    sparse_to_grid,
+)
 from algebrax.typing import K, SparseMatrix, SparseVector, V
 
 
@@ -21,7 +27,7 @@ class SingularMatrixError(ArithmeticError, ValueError):
     """Raised when a matrix is singular or has no unique inverse/decomposition."""
 
 
-def cholesky(matrix: SparseMatrix) -> SparseMatrix:
+def cholesky(matrix: SparseMatrix, *, tol: float = 1e-12) -> SparseMatrix:
     """
     Compute the Cholesky decomposition of a symmetric positive-definite sparse matrix A:
         A = L @ L^T
@@ -29,14 +35,24 @@ def cholesky(matrix: SparseMatrix) -> SparseMatrix:
 
     Args:
         matrix: A symmetric positive-definite sparse matrix dict[i, dict[j, float]].
+        tol: Absolute tolerance for symmetry validation and pruning.
 
     Returns:
         The lower-triangular sparse matrix L.
 
     Raises:
-        ValueError: If matrix is not positive-definite.
+        ValueError: If matrix is not symmetric or not positive-definite.
     """
-    keys = sorted(matrix.keys(), key=str)
+    keys = canonical_sort_keys(set(matrix.keys()) | {c for row in matrix.values() for c in row})
+    for r, row in matrix.items():
+        for c, val in row.items():
+            sym_val = matrix.get(c, {}).get(r, 0.0)
+            if abs(val - sym_val) > tol:
+                raise ValueError(
+                    f'Matrix must be symmetric for Cholesky decomposition: '
+                    f'A[{r!r}][{c!r}]={val!r} != A[{c!r}][{r!r}]={sym_val!r}.'
+                )
+
     l_dict: dict[Any, dict[Any, float]] = {r: {} for r in keys}
 
     for i_idx, i in enumerate(keys):
@@ -53,10 +69,10 @@ def cholesky(matrix: SparseMatrix) -> SparseMatrix:
                 pivot = l_dict[j].get(j, 0.0)
                 if pivot != 0:  # NOSONAR - exact zero denominator singularity check
                     val = s / pivot
-                    if abs(val) > 1e-12:
+                    if abs(val) > tol:
                         l_dict[i][j] = val
 
-    return prune_sparse(l_dict)
+    return prune_sparse(l_dict, tol=tol)
 
 
 def _lu_decompose_float(
@@ -65,7 +81,7 @@ def _lu_decompose_float(
     cols: list[K],
     tol: float,
 ) -> tuple[SparseMatrix[K, Any], SparseMatrix[K, Any], SparseMatrix[K, Any]]:
-    """Optimized native float64 partial-pivoted LU decomposition."""
+    """Optimized native float64/complex partial-pivoted LU decomposition."""
     n_rows = len(rows)
     n_cols = len(cols)
     min_dim = min(n_rows, n_cols)
@@ -92,14 +108,15 @@ def _lu_decompose_float(
                     if akj != 0.0:  # NOSONAR - exact sparse zero-skipping
                         w_mat[i][j] -= factor * akj
 
+    pivot_keys = rows[:min_dim]
     p_res = {rows[i]: {rows[p_perm[i]]: 1.0} for i in range(n_rows)}
     l_grid = [[1.0 if i == j else (w_mat[i][j] if j < i else 0.0) for j in range(min_dim)] for i in range(n_rows)]
     u_grid = [[w_mat[i][j] if j >= i else 0.0 for j in range(n_cols)] for i in range(min_dim)]
 
     return (
         prune_sparse(p_res),
-        grid_to_sparse(l_grid, rows, cols[:min_dim]),
-        grid_to_sparse(u_grid, rows[:min_dim], cols),
+        grid_to_sparse(l_grid, rows, pivot_keys),
+        grid_to_sparse(u_grid, pivot_keys, cols),
     )
 
 
@@ -152,7 +169,7 @@ def _extract_field_lu(
             else:
                 continue
             if not is_zero(val):
-                r_dict[cols[j]] = val
+                r_dict[rows[j]] = val
         if r_dict:
             l_sparse[rows[i]] = r_dict
 
@@ -528,20 +545,20 @@ def solve_triangular(
     Raises:
         SingularMatrixError: If any diagonal element on the solve path is zero.
     """
-    all_keys = sorted(set(matrix.keys()) | set(rhs.keys()) | {k for r in matrix.values() for k in r}, key=str)
+    all_keys = canonical_sort_keys(set(matrix.keys()) | set(rhs.keys()) | {k for r in matrix.values() for k in r})
     if not all_keys:
         return {}
 
     keys = all_keys if lower else list(reversed(all_keys))
 
     if field is None:
-        x_float: dict[K, float] = {}
+        x_float: dict[K, Any] = {}
         for k in keys:
             row = matrix.get(k, {})
             diag = row.get(k, 0.0)
             if abs(diag) <= 1e-14:
                 raise SingularMatrixError(f'Singular matrix: zero diagonal element at key {k!r}.')
-            s = 0.0
+            s: Any = 0.0
             for col_k, val in row.items():
                 if col_k != k and col_k in x_float:
                     s += val * x_float[col_k]
@@ -611,6 +628,13 @@ def solve(
     if n == 0:
         return {}
 
+    rows_set = set(rows)
+    cols_set = set(cols)
+    if rows_set != cols_set and not rows_set.isdisjoint(cols_set):
+        raise SingularMatrixError(
+            'Matrix is singular (omitted zero rows/columns across overlapping row and column key domains).'
+        )
+
     p_mat, l_mat, u_mat = lu_decompose(matrix, field=field, tol=tol)
 
     # Check rank/singularity on U diagonal
@@ -627,30 +651,30 @@ def solve(
 
 
 def _solve_float(
-    p_mat: SparseMatrix[K, float],
-    l_mat: SparseMatrix[K, float],
-    u_mat: SparseMatrix[K, float],
-    rhs: SparseVector[K, float],
+    p_mat: SparseMatrix[K, Any],
+    l_mat: SparseMatrix[K, Any],
+    u_mat: SparseMatrix[K, Any],
+    rhs: SparseVector[K, Any],
     rows: list[K],
     cols: list[K],
     n: int,
     tol: float,
-) -> SparseVector[K, float]:
+) -> SparseVector[K, Any]:
     p_b_list = [rhs.get(next(iter(p_mat.get(rows[i], {}).keys()), rows[i]), 0.0) for i in range(n)]
 
-    # 1. Forward substitution: L y = P b
-    y = [0.0] * n
+    # 1. Forward substitution: L y = P b (L columns are indexed by rows[:n])
+    y: list[Any] = [0.0] * n
     for i in range(n):
         s = p_b_list[i]
         l_row = l_mat.get(rows[i], {})
         for j in range(i):
-            val = l_row.get(cols[j], 0.0)
+            val = l_row.get(rows[j], 0.0)
             if val != 0.0:  # NOSONAR - exact sparse zero-skipping
                 s -= val * y[j]
         y[i] = s
 
     # 2. Backward substitution: U x = y
-    x = [0.0] * n
+    x: list[Any] = [0.0] * n
     for i in range(n - 1, -1, -1):
         s = y[i]
         u_row = u_mat.get(rows[i], {})
@@ -661,7 +685,7 @@ def _solve_float(
         diag = u_row.get(cols[i], 0.0)
         x[i] = s / diag
 
-    sol: dict[K, float] = {}
+    sol: dict[K, Any] = {}
     for i in range(n):
         if abs(x[i]) > tol:
             sol[cols[i]] = x[i]
@@ -686,13 +710,13 @@ def _solve_field(
 
     p_b_list = [rhs.get(next(iter(p_mat.get(rows[i], {}).keys()), rows[i]), f_zero) for i in range(n)]
 
-    # 1. Forward substitution: L y = P b
+    # 1. Forward substitution: L y = P b (L columns are indexed by rows[:n])
     y = [f_zero] * n
     for i in range(n):
         s = p_b_list[i]
         l_row = l_mat.get(rows[i], {})
         for j in range(i):
-            val = l_row.get(cols[j], f_zero)
+            val = l_row.get(rows[j], f_zero)
             if not is_zero(val):
                 s = sub(s, mul(val, y[j]))
         y[i] = s
@@ -746,6 +770,8 @@ def det(
     n = len(rows)
     if n == 0:
         return 1.0 if field is None else field.one  # type: ignore[return-value]
+    if set(rows) != set(cols):
+        return 0.0 if field is None else field.zero  # type: ignore[return-value]
 
     p_mat, _, u_mat = lu_decompose(matrix, field=field, tol=tol)
 
@@ -762,7 +788,7 @@ def det(
     sign = 1 if (n - num_cycles) % 2 == 0 else -1
 
     if field is None:
-        res_float = float(sign)
+        res_float: Any = float(sign)
         for i in range(n):
             diag = u_mat.get(rows[i], {}).get(cols[i], 0.0)
             res_float *= diag
@@ -783,8 +809,9 @@ def inv(
 ) -> SparseMatrix[K, V]:
     """Compute the inverse A^-1 of a square sparse matrix in O(N^3) time.
 
-    Solves A x_j = e_j for each standard basis vector e_j using precomputed LU decomposition.
-    Generically supports any Field (e.g. float, Fraction, ModularField/GaloisField).
+    Computes LU decomposition once and solves A x_j = e_j for each standard basis
+    vector e_j via forward and backward substitution.
+    Generically supports any Field (e.g. float, complex, Fraction, ModularField/GaloisField).
 
     Args:
         matrix: Square sparse matrix.
@@ -804,14 +831,33 @@ def inv(
     n = len(rows)
     if n == 0:
         return {}
+    if set(rows) != set(cols):
+        raise SingularMatrixError(
+            'Matrix is singular (omitted zero rows/columns: row and column key sets do not match).'
+        )
 
-    f_one = 1.0 if field is None else field.one
+    p_mat, l_mat, u_mat = lu_decompose(matrix, field=field, tol=tol)
 
-    inv_matrix: dict[K, dict[K, V]] = {c: {} for c in cols}
+    if field is None:
+        for i in range(n):
+            if abs(u_mat.get(rows[i], {}).get(cols[i], 0.0)) <= tol:
+                raise SingularMatrixError(f'Matrix is singular (zero pivot at row {rows[i]!r}).')
+        inv_matrix: dict[K, dict[K, Any]] = {c: {} for c in cols}
+        for r in rows:
+            x_r = _solve_float(p_mat, l_mat, u_mat, {r: 1.0}, rows, cols, n, tol)
+            for c, val in x_r.items():
+                inv_matrix[c][r] = val
+        return {c: row for c, row in inv_matrix.items() if row}  # type: ignore[return-value]
+
+    for i in range(n):
+        if field.is_zero(u_mat.get(rows[i], {}).get(cols[i], field.zero)):
+            raise SingularMatrixError(f'Matrix is singular (zero pivot at row {rows[i]!r}).')
+
+    f_one = field.one
+    inv_field: dict[K, dict[K, V]] = {c: {} for c in cols}
     for r in rows:
-        e_r = {r: f_one}
-        x_r = solve(matrix, e_r, field=field, tol=tol)
-        for c, val in x_r.items():
-            inv_matrix[c][r] = val
+        x_r_f = _solve_field(p_mat, l_mat, u_mat, {r: f_one}, rows, cols, n, field)
+        for c, val in x_r_f.items():
+            inv_field[c][r] = val
 
-    return {c: row for c, row in inv_matrix.items() if row}
+    return {c: row for c, row in inv_field.items() if row}

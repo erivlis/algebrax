@@ -16,7 +16,8 @@ from dataclasses import dataclass
 from typing import Any, Generic, Protocol, TypeAlias, TypeVar, runtime_checkable
 
 from algebrax.group.finite import FiniteGroup
-from algebrax.matrix.core import add, dot, inverse, trace, transpose
+from algebrax.matrix.core import add, dot, trace, transpose
+from algebrax.matrix.decompose import inv
 from algebrax.typing import SparseMatrix
 
 K = TypeVar('K')
@@ -173,7 +174,7 @@ class ExplicitGroupRep(Generic[K, G]):
             if resolved_inv is not None:
                 dual_mats[g] = transpose(self(resolved_inv(g)))
             else:
-                inv_mat = inverse(self(g))  # type: ignore[type-var]
+                inv_mat = inv(self(g))  # type: ignore[arg-type]
                 dual_mats[g] = transpose(inv_mat)  # type: ignore[assignment]
         return ExplicitGroupRep(matrices=dual_mats, dimension=self.dimension)
 
@@ -344,7 +345,7 @@ def reynolds_average(
     order = len(elem_list)
     acc: dict[int, dict[int, Any]] = {}
     for g in elem_list:
-        r2_inv = rep2(resolved_inv(g)) if resolved_inv is not None else inverse(rep2(g))
+        r2_inv = rep2(resolved_inv(g)) if resolved_inv is not None else inv(rep2(g))
         conj_term = dot(r2_inv, dot(op, rep1(g)))
         if conj_term:
             acc = dict(add(acc, conj_term))  # type: ignore[arg-type]

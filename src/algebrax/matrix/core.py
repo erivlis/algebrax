@@ -1,9 +1,10 @@
 import math
 import operator
-from collections import defaultdict
+from collections import defaultdict, deque
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from typing import Literal
+from typing import Any, Literal
 
+from algebrax.converters import canonical_sort_keys
 from algebrax.semiring import Semiring, StandardSemiring
 from algebrax.typing import K, N, SparseMatrix, SparseVector, V
 
@@ -17,7 +18,6 @@ __all__ = [
     'frobenius_inner',
     'hstack',
     'inner',
-    'inverse',
     'kronecker_delta',
     'laplacian_matrix',
     'mat_vec',
@@ -309,16 +309,31 @@ def inner(
     Returns:
         The scalar dot product.
     """
-    sr = StandardSemiring() if semiring is None else Semiring.normalize(semiring)
+    if semiring is None:
+        acc: Any = 0
+        if len(v1) <= len(v2):
+            for k, val1 in v1.items():
+                if k in v2:
+                    acc += val1 * v2[k]  # type: ignore[operator]
+        else:
+            for k, val2 in v2.items():
+                if k in v1:
+                    acc += v1[k] * val2  # type: ignore[operator]
+        return acc
 
+    sr = Semiring.normalize(semiring)
     sr_add = sr.add
     sr_mul = sr.mul
-
-    common = set(v1.keys()) & set(v2.keys())
     result = sr.zero
-    for k in common:
-        term = sr_mul(v1[k], v2[k])
-        result = sr_add(result, term)
+
+    if len(v1) <= len(v2):
+        for k, val1 in v1.items():
+            if k in v2:
+                result = sr_add(result, sr_mul(val1, v2[k]))
+    else:
+        for k, val2 in v2.items():
+            if k in v1:
+                result = sr_add(result, sr_mul(v1[k], val2))
 
     return result
 
@@ -468,6 +483,29 @@ def laplacian_matrix(
     }
 
 
+def _mat_vec_standard(
+    matrix: SparseMatrix[K, V],
+    vector: SparseVector[K, V],
+) -> SparseVector[K, V]:
+    v_len = len(vector)
+    result: dict[K, V] = {}
+    for r, row in matrix.items():
+        if not row:
+            continue
+        acc: Any = 0
+        if len(row) <= v_len:
+            for k, rv in row.items():
+                if k in vector:
+                    acc += rv * vector[k]  # type: ignore[operator]
+        else:
+            for k, vv in vector.items():
+                if k in row:
+                    acc += row[k] * vv  # type: ignore[operator]
+        if acc != 0:
+            result[r] = acc
+    return result
+
+
 def mat_vec(
     matrix: SparseMatrix[K, V],
     vector: SparseVector[K, V],
@@ -485,17 +523,38 @@ def mat_vec(
     Returns:
         The resulting vector.
     """
-    sr = StandardSemiring() if semiring is None else Semiring.normalize(semiring)
+    if not matrix or not vector:
+        return {}
 
+    if semiring is None:
+        return _mat_vec_standard(matrix, vector)
+
+    sr = Semiring.normalize(semiring)
+    sr_add = sr.add
+    sr_mul = sr.mul
     zero = sr.zero
-    result = {}
+    is_zero_fn = getattr(sr, 'is_zero', None)
+    v_len = len(vector)
 
+    result_sr: dict[K, V] = {}
     for r, row in matrix.items():
-        # row * vector (inner product)
-        val = inner(row, vector, sr)
-        if val != zero:
-            result[r] = val
-    return result
+        if not row:
+            continue
+        acc_sr = zero
+        if len(row) <= v_len:
+            for k, rv in row.items():
+                if k in vector:
+                    acc_sr = sr_add(acc_sr, sr_mul(rv, vector[k]))
+        else:
+            for k, vv in vector.items():
+                if k in row:
+                    acc_sr = sr_add(acc_sr, sr_mul(row[k], vv))
+        if is_zero_fn is not None:
+            if not is_zero_fn(acc_sr):
+                result_sr[r] = acc_sr
+        elif acc_sr != zero:
+            result_sr[r] = acc_sr
+    return result_sr
 
 
 def power(
@@ -526,11 +585,13 @@ def power(
     result = {k: {k: one} for k in keys}
 
     base = matrix
-    while n > 0:
-        if n % 2 == 1:
+    exp = n
+    while exp > 0:
+        if exp % 2 == 1:
             result = dot(result, base, sr)
-        base = dot(base, base, sr)
-        n //= 2
+        exp //= 2
+        if exp > 0:
+            base = dot(base, base, sr)
     return result
 
 
@@ -884,88 +945,6 @@ def frobenius_inner(
     return val.real if abs(val.imag) < 1e-14 else val  # type: ignore[return-value]
 
 
-def inverse(  # noqa: C901  # NOSONAR - Gauss-Jordan sparse elimination kernel with partial pivoting
-    matrix: SparseMatrix[K, N],
-    tol: float = 1e-12,
-) -> SparseMatrix[K, N]:
-    r"""Compute the inverse of a square sparse matrix using Gauss-Jordan elimination with partial pivoting.
-
-    Operates natively on sparse dictionary mappings (`SparseMatrix[K, V]`) without converting
-    to dense arrays. Supports real numbers, complex numbers, and arbitrary hashable row/column keys.
-
-    Args:
-        matrix: Input square sparse matrix (`dict[K, dict[K, V]]`).
-        tol: Tolerance for zero detection and singularity checks (default 1e-12).
-
-    Returns:
-        The sparse inverse matrix $A^{-1}$ satisfying $\mathrm{dot}(A, A^{-1}) = I$.
-
-    Raises:
-        ValueError: If the matrix is singular (cannot be inverted) or empty.
-    """
-    keys = sorted(set(matrix.keys()) | {c for row in matrix.values() for c in row}, key=str)
-    n = len(keys)
-    if n == 0:
-        raise ValueError('Cannot invert an empty sparse matrix.')
-
-    key_map = {k: i for i, k in enumerate(keys)}
-
-    # Single augmented matrix [A | I] where columns 0..n-1 are A and n..2n-1 are I
-    aug: dict[int, dict[int, N]] = {i: {n + i: 1.0} for i in range(n)}
-
-    for r, row in matrix.items():
-        if r in key_map:
-            r_idx = key_map[r]
-            for c, val in row.items():
-                if c in key_map and abs(val) > tol:
-                    aug[r_idx][key_map[c]] = val
-
-    for k in range(n):
-        pivot_r = k
-        max_val = abs(aug[k].get(k, 0.0))
-        for p in range(k + 1, n):
-            val = abs(aug[p].get(k, 0.0))
-            if val > max_val:
-                max_val = val
-                pivot_r = p
-
-        if max_val < tol:
-            raise ValueError(f'Matrix is singular at pivot column {k} (tolerance={tol}).')
-
-        if pivot_r != k:
-            aug[k], aug[pivot_r] = aug[pivot_r], aug[k]
-
-        pivot = aug[k][k]
-        aug[k] = {c: v / pivot for c, v in aug[k].items()}
-        row_k = aug[k]
-
-        # Single-pass elimination across the entire augmented row [A | I]
-        for r in range(n):
-            if r != k and k in aug[r]:
-                factor = aug[r][k]
-                if abs(factor) > tol:
-                    for c, val in row_k.items():
-                        new_val = aug[r].get(c, 0.0) - factor * val
-                        if abs(new_val) > tol:
-                            aug[r][c] = new_val
-                        elif c in aug[r]:
-                            del aug[r][c]
-
-    result: dict[K, dict[K, N]] = {}
-    for i, row in aug.items():
-        r_key = keys[i]
-        row_dict = {}
-        for c, v in row.items():
-            if c >= n:
-                col_key = keys[c - n]
-                clean_v = v.real if abs(getattr(v, 'imag', 0.0)) < tol else v
-                if abs(clean_v) > tol:
-                    row_dict[col_key] = clean_v
-        if row_dict:
-            result[r_key] = row_dict
-    return result
-
-
 def _find_matrix_components(matrix: SparseMatrix[K, float], keys: list[K]) -> list[list[K]]:
     """Partition matrix keys into undirected connected components for component-wise nullspace deflation."""
     adj: dict[K, set[K]] = {k: set() for k in keys}
@@ -981,10 +960,10 @@ def _find_matrix_components(matrix: SparseMatrix[K, float], keys: list[K]) -> li
     for k in keys:
         if k not in visited:
             comp: list[K] = []
-            queue = [k]
+            queue: deque[K] = deque([k])
             visited.add(k)
             while queue:
-                curr = queue.pop(0)
+                curr = queue.popleft()
                 comp.append(curr)
                 for nxt in adj[curr]:
                     if nxt not in visited:
@@ -1055,7 +1034,7 @@ def cg_solve(
     if not matrix or not rhs:
         return {}
 
-    keys = sorted(set(matrix.keys()) | {c for row in matrix.values() for c in row}, key=str)
+    keys = canonical_sort_keys(set(matrix.keys()) | {c for row in matrix.values() for c in row})
     if not keys:
         return {}
 

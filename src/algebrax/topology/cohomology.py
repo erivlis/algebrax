@@ -7,8 +7,9 @@ from collections.abc import Iterable, Iterator, Mapping
 from typing import Any, Literal, TypeAlias
 
 from algebrax.algebra import Algebra, Ring
+from algebrax.matrix.eliminate import rank as _sparse_rank
 from algebrax.semiring import Semiring
-from algebrax.topology._core import _canonicalize_simplex, _is_non_zero, _matrix_rank
+from algebrax.topology._core import _canonicalize_simplex, _is_non_zero
 from algebrax.topology.homology import SimplicialComplex, SparseChainComplex
 from algebrax.typing import K, SparseMatrix, SparseVector, V
 
@@ -429,8 +430,8 @@ def cohomology_rank(complex: SparseChainComplex, k: int) -> int:
     d_k = complex.boundary_matrices.get(k, {})
     d_k1 = complex.boundary_matrices.get(k + 1, {})
 
-    rank_dk = _matrix_rank(d_k)
-    rank_dk1 = _matrix_rank(d_k1)
+    rank_dk = _sparse_rank(d_k, tol=1e-9)
+    rank_dk1 = _sparse_rank(d_k1, tol=1e-9)
 
     num_k = len({c for row in d_k.values() for c in row}) if d_k else 0
     if not num_k and d_k1:

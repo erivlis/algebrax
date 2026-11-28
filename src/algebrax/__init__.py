@@ -79,6 +79,7 @@ from algebrax import (
 from algebrax.typing import (
     DenseMatrix,
     DenseVector,
+    RectSparseMatrix,
     Simplex,
     SparseMatrix,
     SparseTensor,
@@ -95,6 +96,7 @@ except Exception:
 __all__ = [
     'DenseMatrix',
     'DenseVector',
+    'RectSparseMatrix',
     'Simplex',
     'SparseMatrix',
     'SparseTensor',

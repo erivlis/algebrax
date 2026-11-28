@@ -19,6 +19,7 @@ from typing import Any, TypeVar
 
 from algebrax.group.finite import FiniteGroup
 from algebrax.matrix.core import add, dot, mat_vec, trace
+from algebrax.matrix.eliminate import sparse_rref
 from algebrax.rep.group import GroupRepresentation, _prune_matrix, _resolve_elements
 from algebrax.typing import SparseMatrix
 
@@ -624,33 +625,6 @@ def _homogeneous_monomials(dim: int, degree: int) -> list[tuple[int, ...]]:
     return monomials
 
 
-def _rref_row_basis(rows: list[list[complex]], tol: float = 1e-9) -> list[list[complex]]:
-    """Compute a reduced row-echelon basis of the non-zero row space of `rows`."""
-    if not rows:
-        return []
-    mat = [list(r) for r in rows]
-    n_rows = len(mat)
-    n_cols = len(mat[0])
-    r_idx = 0
-
-    for col in range(n_cols):
-        if r_idx >= n_rows:
-            break
-        pivot_row = max(range(r_idx, n_rows), key=lambda i, c=col: abs(mat[i][c]))
-        if abs(mat[pivot_row][col]) <= tol:
-            continue
-        mat[r_idx], mat[pivot_row] = mat[pivot_row], mat[r_idx]
-        piv = mat[r_idx][col]
-        mat[r_idx] = [v / piv for v in mat[r_idx]]
-        for i in range(n_rows):
-            if i != r_idx and abs(mat[i][col]) > tol:
-                factor = mat[i][col]
-                mat[i] = [mat[i][j] - factor * mat[r_idx][j] for j in range(n_cols)]
-        r_idx += 1
-
-    return mat[:r_idx]
-
-
 def invariant_basis_at_degree(
     rep: GroupRepresentation[Any, G],
     elements_or_group: FiniteGroup[G] | Sequence[G],
@@ -668,25 +642,22 @@ def invariant_basis_at_degree(
     dim = rep.dimension
     monomials = _homogeneous_monomials(dim, degree)
     mon_index = {m: idx for idx, m in enumerate(monomials)}
-    n_cols = len(monomials)
 
-    dense_rows: list[list[complex]] = []
-    for mon in monomials:
+    sparse_rows: dict[int, dict[int, complex]] = {}
+    for row_idx, mon in enumerate(monomials):
         proj = reynolds_monomial_projection(mon, rep, elements_or_group, tol=tol)
         if not proj:
             continue
-        row = [0.0 + 0.0j] * n_cols
-        for key, val in proj.items():
-            row[mon_index[key]] = complex(val)
-        dense_rows.append(row)
+        sparse_rows[row_idx] = {mon_index[key]: complex(val) for key, val in proj.items()}
 
-    basis_rows = _rref_row_basis(dense_rows, tol=tol)
+    rref_mat, _ = sparse_rref(sparse_rows, tol=tol)
     basis_polys: list[dict[tuple[int, ...], float | complex]] = []
-    for row in basis_rows:
+    for row_idx in range(len(rref_mat)):
         poly: dict[tuple[int, ...], float | complex] = {}
-        for mon, val in zip(monomials, row):
-            if abs(val) > tol:
-                poly[mon] = float(val.real) if abs(val.imag) <= tol else val
+        for col_idx, val in rref_mat[row_idx].items():
+            c_val = complex(val)
+            if abs(c_val) > tol:
+                poly[monomials[col_idx]] = float(c_val.real) if abs(c_val.imag) <= tol else c_val
         if poly:
             basis_polys.append(poly)
     return basis_polys

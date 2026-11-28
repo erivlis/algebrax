@@ -1,6 +1,7 @@
 import warnings
 from collections import defaultdict
 
+from algebrax.converters import canonical_sort_keys
 from algebrax.matrix.core import transpose
 from algebrax.typing import K, N, SparseMatrix
 
@@ -64,7 +65,7 @@ def cofactor(  # NOSONAR - academic O(N^5) recursive minor expansion demonstrati
         PerformanceWarning,
         stacklevel=2,
     )
-    keys = sorted(set(matrix.keys()) | {k for row in matrix.values() for k in row}, key=str)
+    keys = canonical_sort_keys(set(matrix.keys()) | {k for row in matrix.values() for k in row})
     n = len(keys)
     if n == 0:
         return {}
@@ -148,7 +149,7 @@ def determinant(  # NOSONAR - academic O(N^3) Gaussian elimination pivot demonst
 
     if n is None:
         # Identify the universe of keys
-        keys = sorted(set(matrix.keys()) | {k for row in matrix.values() for k in row}, key=str)
+        keys = canonical_sort_keys(set(matrix.keys()) | {k for row in matrix.values() for k in row})
         n = len(keys)
         # Map keys to indices 0..n-1
         key_map = {k: i for i, k in enumerate(keys)}

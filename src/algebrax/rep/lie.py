@@ -20,7 +20,9 @@ from typing import Any, Generic, Literal, Protocol, TypeVar, runtime_checkable
 from algebrax.lie.classical import sl_n, su_n
 from algebrax.lie.core import LieAlgebra, LieElement
 from algebrax.lie.roots import RootSystem
-from algebrax.matrix.core import add, dot, inverse, trace, transpose
+from algebrax.matrix.core import add, dot, trace, transpose
+from algebrax.matrix.decompose import inv
+from algebrax.matrix.eliminate import nullspace
 from algebrax.rep.group import _prune_matrix, _scale_matrix
 from algebrax.tensor.coupling import (
     clebsch_gordan_coefficient,
@@ -91,50 +93,6 @@ def _normalize_weight_scalar(val: float | complex, tol: float) -> float | comple
     if im == 0.0:
         return float(re)
     return complex(re, im)
-
-
-def _rref_nullspace(
-    rows: list[list[complex]],
-    n_cols: int,
-    tol: float = 1e-9,
-) -> list[list[complex]]:
-    """Compute an orthonormal-normalized basis for the right nullspace of a small dense matrix."""
-    if not rows:
-        return [[1.0 + 0.0j if j == i else 0.0 + 0.0j for j in range(n_cols)] for i in range(n_cols)]
-
-    mat = [list(r) for r in rows]
-    n_rows = len(mat)
-    pivot_cols: list[int] = []
-    r_idx = 0
-
-    for col in range(n_cols):
-        if r_idx >= n_rows:
-            break
-        pivot_row = max(range(r_idx, n_rows), key=lambda i, c=col: abs(mat[i][c]))
-        if abs(mat[pivot_row][col]) <= tol:
-            continue
-        mat[r_idx], mat[pivot_row] = mat[pivot_row], mat[r_idx]
-        piv = mat[r_idx][col]
-        mat[r_idx] = [v / piv for v in mat[r_idx]]
-        for i in range(n_rows):
-            if i != r_idx and abs(mat[i][col]) > tol:
-                factor = mat[i][col]
-                mat[i] = [mat[i][j] - factor * mat[r_idx][j] for j in range(n_cols)]
-        pivot_cols.append(col)
-        r_idx += 1
-
-    pivot_set = set(pivot_cols)
-    free_cols = [c for c in range(n_cols) if c not in pivot_set]
-    basis: list[list[complex]] = []
-    for free_c in free_cols:
-        vec = [0.0 + 0.0j] * n_cols
-        vec[free_c] = 1.0 + 0.0j
-        for row_i, piv_c in enumerate(pivot_cols):
-            vec[piv_c] = -mat[row_i][free_c]
-        norm = math.sqrt(sum(abs(x) ** 2 for x in vec))
-        if norm > tol:
-            basis.append([x / norm for x in vec])
-    return basis
 
 
 @runtime_checkable
@@ -523,28 +481,6 @@ def weight_space_decomposition(
     return spaces
 
 
-def _raising_subspace_rows(
-    basis_indices: list[int],
-    raising_mats: Sequence[SparseMatrix[int, Any]],
-    tol: float,
-) -> list[list[complex]]:
-    """Assemble dense rows of stacked raising operators restricted to a single weight subspace."""
-    col_map = {b_idx: pos for pos, b_idx in enumerate(basis_indices)}
-    k = len(basis_indices)
-    rows: list[list[complex]] = []
-    for e_mat in raising_mats:
-        for row_dict in e_mat.values():
-            sub_row = [0.0 + 0.0j] * k
-            non_zero = False
-            for c_idx, val in row_dict.items():
-                if c_idx in col_map and abs(complex(val)) > tol:
-                    sub_row[col_map[c_idx]] = complex(val)
-                    non_zero = True
-            if non_zero:
-                rows.append(sub_row)
-    return rows
-
-
 def highest_weight_vectors(
     rep: LieRepresentation[Any],
     cartan_indices: Sequence[int],
@@ -571,11 +507,28 @@ def highest_weight_vectors(
 
     for weight, basis_vecs in spaces.items():
         basis_indices = [next(iter(v.keys())) for v in basis_vecs]
-        rows = _raising_subspace_rows(basis_indices, raising_mats, tol)
-        null_basis = _rref_nullspace(rows, len(basis_indices), tol=tol)
-        for coeffs in null_basis:
+        basis_set = set(basis_indices)
+        sub_mat: dict[int, dict[int, complex]] = {}
+        row_idx = 0
+        for e_mat in raising_mats:
+            for row_dict in e_mat.values():
+                sub_row = {
+                    c_idx: complex(val)
+                    for c_idx, val in row_dict.items()
+                    if c_idx in basis_set and abs(complex(val)) > tol
+                }
+                if sub_row:
+                    sub_mat[row_idx] = sub_row
+                    row_idx += 1
+
+        null_basis = nullspace(sub_mat, cols=basis_indices, tol=tol)
+        for vec in null_basis:
+            norm = math.sqrt(sum(abs(complex(v)) ** 2 for v in vec.values()))
+            if norm <= tol:
+                continue
             sparse_vec: dict[int, float | complex] = {}
-            for b_idx, c_val in zip(basis_indices, coeffs):
+            for b_idx, raw_val in vec.items():
+                c_val = complex(raw_val) / norm
                 if abs(c_val) > tol:
                     sparse_vec[b_idx] = c_val.real if abs(c_val.imag) <= tol else c_val
             if sparse_vec:
@@ -616,7 +569,7 @@ def quadratic_casimir(
             )
         k_mat = alg.killing_matrix()
         try:
-            g_inv: Mapping[int, Mapping[int, Any]] = inverse(k_mat, tol=tol)
+            g_inv: Mapping[int, Mapping[int, Any]] = inv(k_mat, tol=tol)
         except ValueError as exc:
             raise ValueError(
                 'Lie algebra Killing form is singular (not semisimple); '
@@ -686,7 +639,7 @@ def freudenthal_casimir_eigenvalue(
         if row_i:
             b_cartan[i] = row_i
 
-    b_inv = inverse(b_cartan, tol=1e-12)
+    b_inv = inv(b_cartan, tol=1e-12)
     lam = [float(x) for x in highest_weight_dynkin]
     lam_plus_2rho = [x + 2.0 for x in lam]
 
@@ -840,7 +793,7 @@ def cubic_casimir_operator(
                 'Lie algebra Killing form is singular (not semisimple); '
                 'provide an explicit killing_metric_inv to compute a cubic Casimir operator.'
             )
-        g_inv: Mapping[int, Mapping[int, Any]] = inverse(alg.killing_matrix(), tol=tol)
+        g_inv: Mapping[int, Mapping[int, Any]] = inv(alg.killing_matrix(), tol=tol)
     else:
         g_inv = killing_metric_inv
 

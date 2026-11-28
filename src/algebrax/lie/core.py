@@ -18,7 +18,7 @@ from algebrax.algebra import HasBracket, LawAnticommutative, LawLie, NonAssocAlg
 from algebrax.matrix import (
     commutator,
     frobenius_inner,
-    inverse,
+    inv,
     mat_vec,
     vec_add,
     vec_axpy,
@@ -89,7 +89,7 @@ def _matrix_gram_inverse(
                 if i not in g:
                     g[i] = {}
                 g[i][j] = val
-    return inverse(g, tol=tol)
+    return inv(g, tol=tol)
 
 
 def _project_commutators(
@@ -427,7 +427,7 @@ class LieAlgebra(
         if len(k_mat) < self.dim or any(i not in k_mat for i in range(self.dim)):
             return False
         try:
-            inverse(k_mat, tol=tol)
+            inv(k_mat, tol=tol)
         except ValueError:
             return False
         else:

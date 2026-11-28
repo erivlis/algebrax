@@ -10,14 +10,18 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from decimal import Decimal
+from fractions import Fraction
 from typing import TypeAlias, TypeVar
 
 __all__ = [
     'A',
+    'C',
     'DenseMatrix',
     'DenseVector',
     'K',
     'N',
+    'R',
+    'RectSparseMatrix',
     'S',
     'Simplex',
     'SparseMatrix',
@@ -30,8 +34,14 @@ __all__ = [
 K = TypeVar('K')  # Key type (hashable)
 """Generic type for keys in sparse mappings (e.g., int, str, tuple)."""
 
-N = TypeVar('N', int, float, complex, Decimal)  # Numeric value type
-"""Generic type for numeric values (int, float, complex, Decimal)."""
+R = TypeVar('R')  # Row key type (hashable)
+"""Generic type for row keys in rectangular sparse matrices."""
+
+C = TypeVar('C')  # Column key type (hashable)
+"""Generic type for column keys in rectangular sparse matrices."""
+
+N = TypeVar('N', int, float, complex, Decimal, Fraction)  # Numeric value type
+"""Generic type for numeric values (int, float, complex, Decimal, Fraction)."""
 
 V = TypeVar('V')  # Generic value type
 """Generic type for any value (used in structural operations like transpose)."""
@@ -60,6 +70,16 @@ SparseMatrix: TypeAlias = Mapping[K, Mapping[K, V]]
 """
 A sparse matrix represented as a nested mapping (row -> column -> value).
 Example: `{0: {1: 5.0}}` represents a matrix with value 5.0 at row 0, column 1.
+"""
+
+RectSparseMatrix: TypeAlias = Mapping[R, Mapping[C, V]]
+r"""
+A rectangular sparse matrix mapping row keys in $R$ and column keys in $C$ to values in $V$.
+
+Algebraic Signature:
+    $\operatorname{Hom}(C, R; V) \cong V^{R \times C}$
+
+Example: `{(0, 1): {(0, 1, 2): 1}}` represents a simplicial boundary operator $\partial_2: C_2 \to C_1$.
 """
 
 SparseTensor: TypeAlias = Mapping[K, 'SparseTensor[K, V] | V']  # Recursive definition

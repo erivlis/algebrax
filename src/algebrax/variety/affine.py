@@ -33,6 +33,8 @@ from algebrax.algebra import (
     monomial_divides,
     monomial_sub,
 )
+from algebrax.matrix.core import transpose
+from algebrax.matrix.eliminate import sparse_rref
 from algebrax.typing import SparseMatrix
 from algebrax.variety._mixins import SmoothableVariety
 
@@ -52,41 +54,6 @@ def _fields_compatible(f1: Field[Any], f2: Field[Any]) -> bool:
     if isinstance(f1, StandardField) and isinstance(f2, StandardField):
         return f1._dtype is f2._dtype
     return True
-
-
-def _sparse_jacobian_pivot_rows(
-    matrix: SparseMatrix[int, V],
-    field: Field[V],
-) -> list[int]:
-    """Return row indices forming a maximal linearly independent subset via exact Gaussian elimination."""
-    pivots: dict[int, dict[int, V]] = {}
-    pivot_rows: list[int] = []
-    is_zero = field.is_zero
-    f_mul = field.mul
-    f_sub = field.sub
-    f_inv = field.inv
-
-    for row_idx in sorted(matrix.keys()):
-        row = matrix[row_idx]
-        cur = {c: v for c, v in row.items() if not is_zero(v)}
-        while cur:
-            col = min(cur.keys())
-            piv = pivots.get(col)
-            if piv is not None:
-                factor = cur[col]
-                for pc, pv in piv.items():
-                    updated = f_sub(cur.get(pc, field.zero), f_mul(factor, pv))
-                    if is_zero(updated):
-                        cur.pop(pc, None)
-                    else:
-                        cur[pc] = updated
-            else:
-                inv_lead = f_inv(cur[col])
-                pivots[col] = {c: f_mul(inv_lead, v) for c, v in cur.items()}
-                pivot_rows.append(row_idx)
-                break
-
-    return pivot_rows
 
 
 def _exact_poly_quotient(
@@ -576,7 +543,7 @@ class AffineVariety(SmoothableVariety[V]):
             return True
 
         jac = self.jacobian_at(point)
-        pivot_rows = _sparse_jacobian_pivot_rows(jac, self.ring.field)
+        _, pivot_rows = sparse_rref(transpose(jac), field=self.ring.field)
         rank = len(pivot_rows)
         if rank == self.ambient_dimension:
             return True

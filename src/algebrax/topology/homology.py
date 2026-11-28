@@ -6,8 +6,9 @@ from collections.abc import Iterable
 from itertools import combinations
 from typing import Any
 
+from algebrax.algebra._field import Field
+from algebrax.matrix.eliminate import rank as _sparse_rank
 from algebrax.semiring import Semiring
-from algebrax.topology._core import _matrix_rank
 from algebrax.typing import K, SparseMatrix, V
 
 __all__ = [
@@ -127,8 +128,9 @@ class SimplicialComplex(SparseChainComplex):
 
     Operations:
         - Face Addition: Adds a simplex and closes downwards under sub-faces.
-        - Boundary Maps: Generates oriented boundary matrices $D_k$.
-        - Betti Numbers ($\beta_k$): $\beta_k = \dim(\ker \partial_k) - \mathrm{rank}(\partial_{k+1})$.
+        - Boundary Maps: Generates oriented boundary matrices $D_k$ lazily on first read.
+        - Betti Numbers ($\beta_k$): $\beta_k = \dim(\ker \partial_k) - \mathrm{rank}(\partial_{k+1})$
+          over $\mathbb{R}$, $\mathbb{Q}$, or any finite field $\mathbb{F}_p$.
 
     Properties:
         Abstract simplicial closure: $\sigma \in K, \tau \subseteq \sigma \implies \tau \in K$.
@@ -139,41 +141,64 @@ class SimplicialComplex(SparseChainComplex):
 
     def __init__(self, simplices: Iterable[tuple[int, ...]] | None = None):
         self._simplices: dict[int, set[tuple[int, ...]]] = {}
+        self._boundary_matrices: dict[int, SparseMatrix[Any, Any]] = {}
+        self._dirty: bool = False
         super().__init__(boundary_matrices={})
         if simplices:
             for s in simplices:
                 self.add_simplex(s)
 
+    @property
+    def boundary_matrices(self) -> dict[int, SparseMatrix[Any, Any]]:
+        """Lazily materialized mapping from dimension `k` to sparse integer boundary matrix `D_k`."""
+        if self._dirty:
+            self._rebuild_boundary_matrices()
+        return self._boundary_matrices
+
+    @boundary_matrices.setter
+    def boundary_matrices(self, value: dict[int, SparseMatrix[Any, Any]]) -> None:
+        self._boundary_matrices = value
+        self._dirty = False
+
+    def _insert_simplex_no_rebuild(self, s_tuple: tuple[int, ...]) -> bool:
+        """Insert canonical non-degenerate simplex and all sub-faces without rebuilding boundaries."""
+        k = len(s_tuple) - 1
+        if k < 0:
+            return False
+
+        dim_set = self._simplices.setdefault(k, set())
+        if s_tuple in dim_set:
+            return False
+
+        dim_set.add(s_tuple)
+        if k > 0:
+            for face in combinations(s_tuple, k):
+                self._insert_simplex_no_rebuild(face)
+        return True
+
     def add_simplex(self, simplex: tuple[int, ...]) -> None:
         """
         Add a simplex and all of its sub-faces to the complex.
+
+        Raises:
+            ValueError: If `simplex` contains repeated (degenerate) vertices.
         """
-        s_tuple = tuple(sorted(simplex))
-        k = len(s_tuple) - 1
-        if k < 0:
+        s_raw = tuple(simplex)
+        if len(set(s_raw)) != len(s_raw):
+            raise ValueError(f'Degenerate simplex with repeated vertices is not allowed: {s_raw!r}.')
+        if not s_raw:
             return
 
-        if k not in self._simplices:
-            self._simplices[k] = set()
-
-        if s_tuple in self._simplices[k]:
-            return
-
-        self._simplices[k].add(s_tuple)
-
-        # Recursively add sub-faces
-        if k > 0:
-            for face in combinations(s_tuple, k):
-                self.add_simplex(face)
-
-        self._rebuild_boundary_matrices()
+        s_tuple = tuple(sorted(s_raw))
+        if self._insert_simplex_no_rebuild(s_tuple):
+            self._dirty = True
 
     def _rebuild_boundary_matrices(self) -> None:
         """
-        Reconstruct boundary matrices D_k for all dimensions k.
+        Reconstruct boundary matrices D_k for all dimensions k with exact integer signs.
         D_k maps k-simplices (columns) to (k-1)-simplices (rows).
         """
-        self.boundary_matrices.clear()
+        self._boundary_matrices.clear()
         max_k = max(self._simplices.keys()) if self._simplices else 0
 
         for k in range(1, max_k + 1):
@@ -181,31 +206,58 @@ class SimplicialComplex(SparseChainComplex):
                 continue
 
             k_simplices = sorted(self._simplices[k])
-            d_k: SparseMatrix = {}
+            d_k: dict[tuple[int, ...], dict[tuple[int, ...], int]] = {}
             for col_simplex in k_simplices:
                 for i, _v in enumerate(col_simplex):
                     face = col_simplex[:i] + col_simplex[i + 1 :]
-                    sign = -1.0 if i % 2 == 1 else 1.0
+                    sign = -1 if i % 2 == 1 else 1
 
                     if face not in d_k:
                         d_k[face] = {}
                     d_k[face][col_simplex] = sign
 
-            self.boundary_matrices[k] = d_k
+            self._boundary_matrices[k] = d_k
 
-    def betti_numbers(self, max_k: int = 2) -> dict[int, int]:
+        self._dirty = False
+
+    def betti_numbers(
+        self,
+        max_k: int = 2,
+        *,
+        field: Field[Any] | None = None,
+        tol: float = 1e-12,
+    ) -> dict[int, int]:
         """
         Compute Betti numbers [beta_0, beta_1, ..., beta_max_k].
         beta_k = dim(ker D_k) - rank(D_{k+1})
                = num_simplices(k) - rank(D_k) - rank(D_{k+1})
+
+        Args:
+            max_k: Maximum homology dimension to compute (default 2).
+            field: Optional `Field[V]` (e.g., `StandardField(Fraction)`, `ModularField(2)`)
+                for exact torsion-sensitive homology computation.
+            tol: Zero-detection tolerance for floating-point rank computation (default `1e-12`).
         """
         betti: dict[int, int] = {}
         ranks: dict[int, int] = {}
 
+        b_mats = self.boundary_matrices
         max_dim = max(max_k, max(self._simplices.keys()) if self._simplices else 0)
+        pos_sign = field.one if field is not None else 1
+        neg_sign = field.neg(field.one) if field is not None else -1
+
         for k in range(max_dim + 2):
-            d_k = self.boundary_matrices.get(k, {})
-            ranks[k] = _matrix_rank(d_k)
+            d_k = b_mats.get(k, {})
+            if not d_k:
+                ranks[k] = 0
+            elif field is not None:
+                d_k_field = {
+                    r: {c: (pos_sign if val > 0 else neg_sign) for c, val in row.items()}
+                    for r, row in d_k.items()
+                }
+                ranks[k] = _sparse_rank(d_k_field, field=field, tol=tol)
+            else:
+                ranks[k] = _sparse_rank(d_k, tol=tol)
 
         for k in range(max_k + 1):
             num_k = len(self._simplices.get(k, set()))

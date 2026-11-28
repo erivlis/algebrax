@@ -6,6 +6,7 @@ import inspect
 import re
 from typing import Any, NamedTuple
 
+from algebrax.converters import canonical_sort_keys
 from algebrax.typing import SparseMatrix, SparseVector
 
 __all__ = [
@@ -34,8 +35,8 @@ def display_matrix(matrix: SparseMatrix[Any, Any], title: str = '') -> str:
         caption = f'<caption><b>{title}</b> (empty)</caption>' if title else ''
         return f'<table>{caption}<tbody><tr><td><i>empty matrix</i></td></tr></tbody></table>'
 
-    col_keys = sorted({c for row in matrix.values() for c in row}, key=str)
-    row_keys = sorted(matrix.keys(), key=str)
+    col_keys = canonical_sort_keys({c for row in matrix.values() for c in row})
+    row_keys = canonical_sort_keys(matrix.keys())
 
     html_parts = ["<table border='1' style='border-collapse: collapse; font-family: monospace;'>"]
     if title:
@@ -79,7 +80,7 @@ def display_vector(vector: SparseVector[Any, Any], title: str = '') -> str:
         caption = f'<b>{title}: </b>' if title else ''
         return f'<div>{caption}<i>empty vector</i></div>'
 
-    keys = sorted(vector.keys(), key=str)
+    keys = canonical_sort_keys(vector.keys())
     html_parts = ["<table border='1' style='border-collapse: collapse; font-family: monospace;'>"]
     if title:
         html_parts.append(f'<caption><b>{title}</b></caption>')

@@ -8,12 +8,13 @@ spectral partitioning (Fiedler vector, algebraic connectivity), and centrality m
 import math
 import random
 import warnings
-from collections import defaultdict
+from collections import defaultdict, deque
 from collections.abc import Iterable, Mapping
 from typing import Literal
 
+from algebrax.converters import canonical_sort_keys
 from algebrax.matrix.academic import PerformanceWarning
-from algebrax.matrix.core import laplacian_matrix, mat_vec, vec_mat
+from algebrax.matrix.core import _symmetrize_adjacency, laplacian_matrix, mat_vec, vec_mat
 from algebrax.matrix.decompose import _symmetric_jacobi_eigh
 from algebrax.semiring import Semiring
 from algebrax.topology import (
@@ -327,17 +328,21 @@ def gradient(field: SparseVector, graph: Mapping[K, Iterable[K]]) -> SparseMatri
     Returns:
         A sparse matrix representing the gradient 1-form along edges.
     """
+    if not field or not graph:
+        return {}
+
     result = {}
     for u, neighbors in graph.items():
-        if u not in field:
-            continue
-
-        val_u = field[u]
+        in_u = u in field
+        val_u = field[u] if in_u else 0
         row = {}
         for v in neighbors:
-            if v in field:
-                # d f(u, v) = f(v) - f(u)
-                row[v] = field[v] - val_u
+            if not in_u and v not in field:
+                continue
+            val_v = field.get(v, 0)
+            diff = val_v - val_u
+            if diff != 0:
+                row[v] = diff
 
         if row:
             result[u] = row
@@ -355,7 +360,8 @@ def laplacian(field: SparseVector, graph: SparseMatrix) -> SparseVector:
 
     Operations:
         - Weighted Neighborhood Diffusion: Sums weighted potential differences $w_{uv}(f_u - f_v)$
-          directly without materializing intermediate edge matrices.
+          over symmetrized edges incident to the support of `field`, matching
+          `mat_vec(laplacian_matrix(graph), field)`.
 
     Properties:
         Self-adjoint positive semi-definite operator satisfying
@@ -373,29 +379,30 @@ def laplacian(field: SparseVector, graph: SparseMatrix) -> SparseVector:
     Returns:
         A sparse vector representing the Laplacian evaluated at each vertex.
     """
-    # L = div(grad(f))
-    # But calculating grad then div is expensive (creates intermediate matrix).
-    # Direct calculation:
-    result = defaultdict(int)
+    if not field or not graph:
+        return {}
 
-    for u, neighbors in graph.items():
-        if u not in field:
-            continue
+    nodes: set = set(graph.keys())
+    for row in graph.values():
+        nodes.update(row.keys())
 
-        val_u = field[u]
-        # Degree (weighted)
-        # For standard Laplacian, we sum w_ij * (f_u - f_v)
+    adj = _symmetrize_adjacency(graph, nodes, symmetrize=True)
+    active: set = set()
+    for u in field:
+        if u in adj:
+            active.add(u)
+            active.update(adj[u].keys())
 
-        local_sum = 0
-        for v, weight in neighbors.items():
-            if v in field:
-                diff = val_u - field[v]
-                local_sum += weight * diff
-
-        if local_sum != 0:
+    result: dict = {}
+    for u in active:
+        val_u = float(field.get(u, 0.0))
+        local_sum = 0.0
+        for v, weight in adj[u].items():
+            local_sum += weight * (val_u - float(field.get(v, 0.0)))
+        if abs(local_sum) > 1e-14:
             result[u] = local_sum
 
-    return dict(result)
+    return result
 
 
 def _normalize_distribution_vector(
@@ -702,12 +709,18 @@ def fiedler_vector(  # NOSONAR - numerical Rayleigh quotient iteration and defla
     Returns:
         Tuple of `(lambda_2, fiedler_vector)`.
     """
-    nodes = sorted(set(graph.keys()) | {v for row in graph.values() for v in row}, key=str)
+    node_set: set[K] = set(graph.keys())
+    for row in graph.values():
+        node_set.update(row.keys())
+    nodes = canonical_sort_keys(node_set)
     n = len(nodes)
     if n == 0:
         return 0.0, {}
     if n == 1:
         return 0.0, {nodes[0]: 0.0}
+
+    # Build symmetrized undirected adjacency once for O(V + E) BFS and degrees
+    adj = _symmetrize_adjacency(graph, node_set, symmetrize=True)
 
     # Detect connected components via BFS to handle disconnected graphs safely
     visited: set[K] = set()
@@ -715,13 +728,13 @@ def fiedler_vector(  # NOSONAR - numerical Rayleigh quotient iteration and defla
     for node in nodes:
         if node not in visited:
             comp: list[K] = []
-            queue = [node]
+            queue: deque[K] = deque([node])
             visited.add(node)
             while queue:
-                curr = queue.pop(0)
+                curr = queue.popleft()
                 comp.append(curr)
-                for neighbor, w in graph.get(curr, {}).items():
-                    if w != 0 and neighbor in nodes and neighbor not in visited:
+                for neighbor in adj[curr]:
+                    if neighbor not in visited:
                         visited.add(neighbor)
                         queue.append(neighbor)
             components.append(comp)
@@ -737,7 +750,7 @@ def fiedler_vector(  # NOSONAR - numerical Rayleigh quotient iteration and defla
 
     lap = laplacian_matrix(graph, normalized='sym' if normalized else None)
 
-    degrees = {u: sum(w for v, w in graph.get(u, {}).items() if u != v and w > 0) for u in nodes}
+    degrees = {u: sum(w for w in adj[u].values() if w > 0) for u in nodes}
     z0 = {u: math.sqrt(max(degrees.get(u, 0.0), 1e-12)) for u in nodes} if normalized else dict.fromkeys(nodes, 1.0)
 
     norm_z0 = math.sqrt(sum(v * v for v in z0.values()))
@@ -909,7 +922,7 @@ def spectral_bipartition(
     if method not in ('sign', 'median'):
         raise ValueError(f"method must be 'sign' or 'median', got '{method}'")
 
-    nodes = sorted(set(graph.keys()) | {v for row in graph.values() for v in row}, key=str)
+    nodes = canonical_sort_keys(set(graph.keys()) | {v for row in graph.values() for v in row})
     n = len(nodes)
     if n <= 1:
         return set(nodes), set(), {'cut_size': 0.0, 'ratio_cut': 0.0, 'normalized_cut': 0.0, 'conductance': 0.0}
@@ -997,7 +1010,7 @@ def laplacian_spectrum(  # NOSONAR - cyclic Jacobi orthogonal similarity sweeps 
     Returns:
         Tuple of `(eigenvalues, eigenvectors)` where eigenvalues are in ascending order.
     """
-    nodes = sorted(set(graph.keys()) | {v for row in graph.values() for v in row}, key=str)
+    nodes = canonical_sort_keys(set(graph.keys()) | {v for row in graph.values() for v in row})
     n = len(nodes)
     if n > 150:
         warnings.warn(

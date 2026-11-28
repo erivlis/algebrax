@@ -32,6 +32,7 @@ from algebrax.typing import (
 )
 
 __all__ = [
+    'canonical_sort_keys',
     'dense_to_sparse_matrix',
     'dense_to_sparse_tensor',
     'dense_to_sparse_vector',
@@ -164,9 +165,33 @@ def sparse_to_dense_matrix(
     return sparse_to_grid(matrix, rows, cols, fill_value=default)
 
 
+def canonical_sort_keys(keys: Iterable[K]) -> list[K]:
+    r"""Sort sparse container keys using natural comparison with safe string fallback.
+
+    Algebraic Signature:
+        $\operatorname{sort}: \mathcal{P}_{\text{fin}}(K) \to K^*$
+
+    Preserves native total orderings for homogeneous comparable keys (`int`, `str`,
+    `tuple[int, ...]`, etc.) so integer indices satisfy $2 < 10$ instead of lexicographic
+    `'10' < '2'`, falling back to `key=str` only when `TypeError` arises from mixed
+    incomparable key types.
+
+    Args:
+        keys: Any finite iterable of sparse container keys.
+
+    Returns:
+        A canonically ordered list of keys.
+    """
+    key_list = list(keys)
+    try:
+        return sorted(key_list)  # type: ignore[type-var]
+    except TypeError:
+        return sorted(key_list, key=str)
+
+
 def get_matrix_keys(matrix: SparseMatrix) -> tuple[list[Any], list[Any]]:
     """
-    Extract sorted row keys and column keys from a sparse matrix.
+    Extract canonically sorted row keys and column keys from a sparse matrix.
 
     Args:
         matrix: A sparse matrix dict[i, dict[j, val]].
@@ -174,11 +199,11 @@ def get_matrix_keys(matrix: SparseMatrix) -> tuple[list[Any], list[Any]]:
     Returns:
         A tuple (sorted_rows, sorted_cols).
     """
-    rows = sorted(matrix.keys(), key=str)
+    rows = canonical_sort_keys(matrix.keys())
     cols_set: set[Any] = set()
     for r in rows:
         cols_set.update(matrix[r].keys())
-    cols = sorted(cols_set, key=str)
+    cols = canonical_sort_keys(cols_set)
     return rows, cols
 
 
@@ -226,7 +251,7 @@ def grid_to_sparse(
         row_dict: dict[Any, Any] = {}
         for j, c in enumerate(cols):
             val = grid[i][j]
-            if isinstance(val, (int, float)):
+            if isinstance(val, (int, float, complex)):
                 if abs(val) > tol:
                     row_dict[c] = val
             elif val != 0:
@@ -251,7 +276,7 @@ def prune_sparse(matrix: SparseMatrix, tol: float = 1e-12) -> SparseMatrix:
     for r, row in matrix.items():
         clean_row = {}
         for c, v in row.items():
-            if isinstance(v, (int, float)):
+            if isinstance(v, (int, float, complex)):
                 if abs(v) > tol:
                     clean_row[c] = v
             elif v != 0:

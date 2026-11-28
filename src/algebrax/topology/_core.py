@@ -1,11 +1,11 @@
-"""Shared low-level kernels for simplicial canonicalization, orientation parity, and sparse rank."""
+"""Shared low-level kernels for simplicial canonicalization and orientation parity."""
 
 from __future__ import annotations
 
 from collections.abc import Iterable
 from typing import Any
 
-from algebrax.typing import K, SparseMatrix
+from algebrax.typing import K
 
 
 def _count_inversions_and_sort(s: tuple[K, ...], oriented: bool) -> tuple[tuple[K, ...], int]:
@@ -50,45 +50,3 @@ def _is_non_zero(val: Any, tol: float) -> bool:
     if isinstance(val, (int, float, complex)) and not isinstance(val, bool):
         return (abs(val) > tol) if tol > 0.0 else (val != 0)
     return bool(val)
-
-
-def _matrix_rank(matrix: SparseMatrix) -> int:
-    """Compute the rank of a sparse dictionary matrix over real numbers using Gaussian elimination."""
-    if not matrix:
-        return 0
-
-    rows: list[dict[object, float]] = [dict(row) for row in matrix.values() if row]
-    if not rows:
-        return 0
-
-    rank = 0
-    pivots: set[object] = set()
-
-    while rows:
-        rows.sort(key=lambda r: len(r))
-        row = rows.pop(0)
-
-        pivot_col = None
-        for col in row:
-            if col not in pivots and abs(row[col]) > 1e-9:
-                pivot_col = col
-                break
-
-        if pivot_col is None:
-            continue
-
-        rank += 1
-        pivots.add(pivot_col)
-        pivot_val = row[pivot_col]
-
-        for other in rows:
-            if pivot_col in other:
-                factor = other[pivot_col] / pivot_val
-                for col, val in row.items():
-                    new_val = other.get(col, 0.0) - factor * val
-                    if abs(new_val) < 1e-9:
-                        other.pop(col, None)
-                    else:
-                        other[col] = new_val
-
-    return rank
