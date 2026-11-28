@@ -19,6 +19,7 @@ formal Enhancement Proposals (EPs).
 | **EXP-0009** | Algebraic & Tropical Varieties — Exact Quotients, Companion Matrices & Polyhedral Duals             | **Concluded** | 2026-11-14 | EP-0220, EP-0221, EP-0222          | [EXP-0009](./EXP-0009-algebraic-and-tropical-varieties/README.md)              |
 | **EXP-0010** | Generalized Harmonic Analysis — Non-Abelian Peter–Weyl, Algebraic Signal Models, Spectral Wavelets & Exact NTT | **Concluded** | 2026-11-14 | EP-0230, EP-0231, EP-0232          | [EXP-0010](./EXP-0010-generalized-harmonic-analysis/README.md)                 |
 | **EXP-0011** | Differential & Ore Algebras — Weyl D-Modules, Skew Polynomials, Hermite Integration & Taylor Jets              | **Concluded** | 2026-11-14 | EP-0240, EP-0241, EP-0242          | [EXP-0011](./EXP-0011-differential-and-ore-algebras/README.md)                 |
-| **EXP-0012** | Subtraction-Free Idempotent Corners — Kleene–Hopf Bialgebras, Exceptional Jordan Quantales, Shattered Artin–Moufang Tiers & Drift Derivations | **Concluded** | 2026-11-28 | EP-0005, EP-0198, EP-0204, EP-0206, EP-0250 | [EXP-0012](./EXP-0012-subtraction-free-idempotent-corners/README.md) |
+| **EXP-0012** | Subtraction-Free Idempotent Corners — Kleene–Hopf Bialgebras, Exceptional Jordan Quantales, Shattered Artin–Moufang Tiers & Drift Derivations | **Concluded** | 2026-11-28 | EP-0005, EP-0250, EP-0264 | [EXP-0012](./EXP-0012-subtraction-free-idempotent-corners/README.md) |
+| **EXP-0013** | Expanding the Lattice & Order Continent — Finite Posets, Galois/FCA, Non-Classical & Quantum Logics, Matroids & Residuated Quantales | **Concluded** | 2026-11-28 | EP-0260 through EP-0264 | [EXP-0013](./EXP-0013-lattice-and-order-continent/README.md) |
 
 
