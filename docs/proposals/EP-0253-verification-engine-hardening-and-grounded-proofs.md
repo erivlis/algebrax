@@ -21,7 +21,7 @@ status: accepted
 | **Replaces**      | —                                                                          |
 | **Superseded-By** | —                                                                          |
 
-**Prerequisites**: Depends on [`EP-0250`](EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md) (`CommQuotientRing`, `GaloisField`, `CliffordAlgebra`, `HasStar`), [`EP-0251`](EP-0251-sparse-linear-algebra-kernel-decompositions-and-hot-paths.md) (matrix/spectral regressions), and [`EP-0252`](EP-0252-universal-semiring-propagation-and-domain-unification.md) (`GroupHopfAlgebra`). Must land **before** [`EP-0254`](EP-0254-ergonomics-state-safety-ecosystem-bridges-and-hygiene.md)'s internal split of `verification/_algebra.py` and `verification/_rep.py`.
+**Prerequisites**: Depends on [`EP-0250`](EP-0250-protocol-integrity-law-witnesses-and-algebraic-soundness.md) (`CommQuotientRing`, `GaloisField`, `CliffordAlgebra`, `HasStar`), [`EP-0251`](EP-0251-sparse-linear-algebra-kernel-decompositions-and-hot-paths.md) (matrix/spectral regressions), and [`EP-0252`](EP-0252-universal-semiring-propagation-and-domain-unification.md) (`GroupHopfAlgebra`). Must land **before** [`EP-0254`](EP-0254-ergonomics-state-safety-ecosystem-bridges-and-hygiene.md)'s internal split of `verification/_algebra.py`, `verification/_rep.py`, and `tests/verifications/`.
 
 ---
 

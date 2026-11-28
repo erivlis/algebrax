@@ -208,6 +208,7 @@ universal semiring propagation, falsifiable verification, and codebase ergonomic
 | [EP-0252](proposals/EP-0252-universal-semiring-propagation-and-domain-unification.md)             | Universal Semiring Propagation, Parameterized Tries & Domain Unification                | 🧭 Explorer & ⚖️ Noether               | :material-check: Accepted |
 | [EP-0253](proposals/EP-0253-verification-engine-hardening-and-grounded-proofs.md)                 | Verification Engine Hardening, Falsifiability & Grounded Formal Proofs                  | 🔬 Popper & 🧪 Bacon                   | :material-check: Accepted |
 | [EP-0254](proposals/EP-0254-ergonomics-state-safety-ecosystem-bridges-and-hygiene.md)             | Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene                          | 💡 Feynman, 🌿 Steward & 🛡️ Golem      | :material-check: Accepted |
+| [EP-0255](proposals/EP-0255-unified-algebraic-structure-registry-and-cli.md)                      | Unified Algebraic Structure Registry, Structure Cards & CLI Overhaul                    | ⚖️ Noether, 🧩 Russell, ⚡ Shannon & 💡 Feynman | :material-check: Accepted |
 
 ---
 

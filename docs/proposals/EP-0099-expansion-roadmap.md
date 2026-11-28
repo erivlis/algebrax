@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                                                    |
 | **Type**    | Informational                                             |
 | **Created** | 2026-08-01                                                |
-| **Updated** | 2026-11-26                                                |
+| **Updated** | 2026-11-27                                                |
 
 ## Abstract
 
@@ -32,7 +32,7 @@ and Fiedler partitioning (`EP-0152`), the **Phase 4 Algebraic Continents & Next 
 the **Phase 6 Pure Algebraic Hierarchy** (`EXP-0004`, `EP-0190` through `EP-0198`),
 the **Phase 7 Categorical Foundations & Morphisms** (`EXP-0005`, `EP-0200` through `EP-0209`),
 the **Phase 8 Representation Theory & Quantum Symmetries** (`EXP-0006`, `EP-0210` through `EP-0215`),
-the **Phase 8.5 Second Grand Council Refinement & Hardening Track** (`EP-0250` through `EP-0254`),
+the **Phase 8.5 Second Grand Council Refinement & Hardening Track** (`EP-0250` through `EP-0255`),
 the **Phase 9 Commutative Algebra, Algebraic Varieties & Tropical Geometry** (`EXP-0009`, `EP-0220` through `EP-0222`),
 the **Phase 10 Generalized Harmonic Analysis & Spectral Signal Theory** (`EXP-0010`, `EP-0230` through `EP-0232`), and
 the **Phase 11 Algebraic Analysis, Differential Rings & Ore Algebras** (`EXP-0011`, `EP-0240` through `EP-0243`).
@@ -134,11 +134,12 @@ flowchart TD
     end
 
     subgraph P85["Phase 8.5 — Second Grand Council Refinement Track"]
-        EP0250_N["EP-0250 Protocol & Algebraic Soundness 💡\n⚖️ Noether & 🧩 Russell"]
+        EP0250_N["EP-0250 Protocol & Algebraic Soundness ✅\n⚖️ Noether & 🧩 Russell"]
         EP0251_N["EP-0251 Sparse Linalg & Hot Paths 💡\n⚡ Shannon & 🛡️ Golem"]
         EP0252_N["EP-0252 Universal Semirings & Unification 💡\n🧭 Explorer & ⚖️ Noether"]
         EP0253_N["EP-0253 Verification & Grounded Proofs 💡\n🔬 Popper & 🧪 Bacon"]
         EP0254_N["EP-0254 Ergonomics, Safety & Hygiene 💡\n💡 Feynman, 🌿 Steward & 🛡️ Golem"]
+        EP0255_N["EP-0255 Unified Structure Registry & CLI 💡\n⚖️ Noether, 🧩 Russell, ⚡ Shannon & 💡 Feynman"]
     end
 
     subgraph P9["Phase 9 — Algebraic & Tropical Varieties (EXP-0009)"]
@@ -348,12 +349,13 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0214: Invariant Theory, Molien Series & Casimir Polynomials (Noether/Shannon) [Final]
   │     └── EP-0215: Quantum Groups, Yang–Baxter Equation & Braided Categories (Noether/Golem) [Final]
   │
-  ├── Phase 8.5: Second Grand Council Refinement & Hardening Track  ⏳ PLANNED
-  │     ├── EP-0250: Protocol Integrity, Law Witnesses & Algebraic Soundness (Noether/Russell) [Draft]
-  │     ├── EP-0251: Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance (Shannon/Golem) [Draft]
-  │     ├── EP-0252: Universal Semiring Propagation, Parameterized Tries & Domain Unification (Explorer/Noether) [Draft]
-  │     ├── EP-0253: Verification Engine Hardening, Falsifiability & Grounded Formal Proofs (Popper/Bacon) [Draft]
-  │     └── EP-0254: Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene (Feynman/Steward/Golem) [Draft]
+  ├── Phase 8.5: Second Grand Council Refinement & Hardening Track  ⏳ IN PROGRESS
+  │     ├── EP-0250: Protocol Integrity, Law Witnesses & Algebraic Soundness (Noether/Russell) [Final]
+  │     ├── EP-0251: Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance (Shannon/Golem) [Accepted]
+  │     ├── EP-0252: Universal Semiring Propagation, Parameterized Tries & Domain Unification (Explorer/Noether) [Accepted]
+  │     ├── EP-0253: Verification Engine Hardening, Falsifiability & Grounded Formal Proofs (Popper/Bacon) [Accepted]
+  │     ├── EP-0254: Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene (Feynman/Steward/Golem) [Accepted]
+  │     └── EP-0255: Unified Algebraic Structure Registry, Structure Cards & CLI Overhaul (Noether/Russell/Shannon/Feynman) [Accepted]
   │
   ├── Phase 9: Commutative Algebra, Algebraic Varieties & Tropical Geometry (EXP-0009)  ⏳ IN PROGRESS
   │     ├── EP-0220: Multivariate Polynomial Algebra & Exact Gröbner Ideals (Shannon/Popper/Noether) [Final]
@@ -453,11 +455,12 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0241** | Ore Algebras, D-Finite & Frob  | Noether & Popper  | `algebrax.differential`                  | Draft    | Mode-parameterized `OreAlgebra`, `right_divmod`, `gcrd`, `lclm`, `symmetric_product`, `indicial_polynomial`, `differential_newton_polygon`, `guess_ore_operator`, `differential_companion_matrix` |
 | **EP-0242** | Hermite, Gosper, CT & Jets     | Shannon & Popper  | `algebrax.differential`                  | Draft    | `hermite_reduce`, `rothstein_trager_resultant`, `gosper_sum`, `creative_telescope`, `TaylorJetAlgebra`, `solve_ode_jet`, `solve_hamiltonian_jet` |
 | **EP-0243** | Differential Galois & Kovacic  | Noether & Popper  | `algebrax.differential`                  | Draft    | `wronskian_operator`, `symmetric_power`, `exterior_power`, `kovacic_classify`, `kovacic_factorize`, `PicardVessiotTorsor`                  |
-| **EP-0250** | Protocol & Algebraic Soundness | Noether & Russell | `algebra`, `semiring`, `group`, `rep`, `lie`, `clifford` | Draft | *(Phase 8.5)* Law witnesses (`CommRing`, `DivisionRing`, `Semiring`), flat `GroupRepresentation`, non-comm `MonoidAlgebra`/`QuotientRing`, `GaloisField`/`ModularField` guards, unified permutation composition |
-| **EP-0251** | Sparse Linalg & Hot Paths      | Shannon & Golem   | `matrix`, `tensor`, `topology`, `sheaf`, `variety` | Draft | *(Phase 8.5)* Unified sparse RREF/`rank`/`nullspace`, QR/SVD/Cholesky/LU fixes, $O(\text{nnz})$ `mat_vec`/`inner`/Gram, `SimplicialComplex` fast rebuild & degenerate guard, `CellularSheaf` `tol` |
-| **EP-0252** | Universal Semirings & Unif.    | Explorer & Noether| `trie`, `analysis`, `matrix`, `typing`, `variety` | Draft | *(Phase 8.5)* Parameterized `AlgebraicTrie`, `SparseChainComplex.hodge_laplacian(semiring=...)`, `RectSparseMatrix`, widened `typing.N` (`Fraction`), K-theory/Milnor exact guards |
-| **EP-0253** | Verification & Grounded Proofs | Popper & Bacon    | `verification/`, `tests/verifications/`  | Draft    | *(Phase 8.5)* Non-vacuous Popper sample guards (`_materialize_samples`), `NaN != NaN` equality guard, `verify_group_laws` identity/inverse fix, grounded Z3/PIT/hypothesis suites |
-| **EP-0254** | Ergonomics, Safety & Hygiene   | Feynman & Steward | `__main__`, `display`, `converters`, core| Draft    | *(Phase 8.5)* CLI strict errors, HTML-escaped `RichDisplayable`, safe `converters` bounds, immutable returns, split god modules, clean `__all__`, Ruff `F401`, zero `EP-XXXX` in `src/` |
+| **EP-0250** | Protocol & Algebraic Soundness | Noether & Russell | `algebra`, `semiring`, `group`, `rep`, `lie`, `clifford` | Final | *(Phase 8.5)* Law witnesses (`CommSemiring`, `CommQuotientRing`, `CommMonoidAlgebra`, `CommGrothendieckRing`), flat `GroupRepresentation`/`LieRepresentation`, `FiniteQuiver`, `GaloisField`/`ModularField` guards, unified diagrammatic composition |
+| **EP-0251** | Sparse Linalg & Hot Paths      | Shannon & Golem   | `matrix`, `tensor`, `topology`, `sheaf`, `variety` | Accepted | *(Phase 8.5)* Unified sparse RREF/`rank`/`nullspace`, QR/SVD/Cholesky/LU fixes, $O(\text{nnz})$ `mat_vec`/`inner`/Gram, `SimplicialComplex` fast rebuild & degenerate guard, `CellularSheaf` `tol` |
+| **EP-0252** | Universal Semirings & Unif.    | Explorer & Noether| `trie`, `analysis`, `matrix`, `typing`, `variety` | Accepted | *(Phase 8.5)* Parameterized `AlgebraicTrie`, `SparseChainComplex.hodge_laplacian(semiring=...)`, `RectSparseMatrix`, widened `typing.N` (`Fraction`), K-theory/Milnor exact guards |
+| **EP-0253** | Verification & Grounded Proofs | Popper & Bacon    | `verification/`, `tests/verifications/`  | Accepted | *(Phase 8.5)* Non-vacuous Popper sample guards (`_materialize_samples`), `NaN != NaN` equality guard, `verify_group_laws` identity/inverse fix, grounded Z3/PIT/hypothesis suites |
+| **EP-0254** | Ergonomics, Safety & Hygiene   | Feynman & Steward | `display`, `converters`, `verification/`, `tests/verifications/` | Accepted | *(Phase 8.5)* HTML-escaped `RichDisplayable`, safe `converters` bounds, immutable returns, split god modules (`verification/` & `tests/verifications/` + traceability CI), clean `__all__`, Ruff `F401`, zero `EP-XXXX` in `src/` |
+| **EP-0255** | Unified Structure Registry & CLI | Noether, Russell, Shannon & Feynman | `registry`, `display`, `verification`, `__main__` | Accepted | *(Phase 8.5)* Pure-data frozen `StructureEntry` registry (`algebrax.registry`, zero `Structure` ABC), `MappingProxyType` views, `CommSemiring` alignment, decoupled `display.structure_card`, `verify_structure` bridge, 4-subcommand CLI overhaul (`catalog`, `describe`, `inspect`, `verify`) & `--format json` |
 
 ---
 
@@ -517,3 +520,5 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-25 | Eran Rivlis & Antigravity | Implemented EP-0220 (Multivariate Polynomial Algebra & Exact Gröbner Ideals): `HasBasis`/`HasDerivation`, `MultivariatePolynomialAlgebra`, hybrid Gebauer–Möller Buchberger & $F_4$ sparse Macaulay engine, `GroebnerIdeal`, exact `Field` operations on `GaloisField`, `verify_groebner_basis_laws`, SymPy oracles & guide; status Final (**Phase 9 Launched — 1/3 Final**). |
 | 2026-11-25 | Eran Rivlis & Antigravity | Implemented EP-0221 (Affine Algebraic Varieties, Coordinate Rings & Stickelberger Solvers): `algebrax.variety` (4 geometric mixins, `AffineVariety`, Stickelberger companion solvers, finite-field varieties & $\mathbb{F}_2$ SAT, `PolynomialMap`, `syzygy_variety`, `plucker_grassmannian_variety`, `CoordinateHopfAlgebra`, $K_0/K_1/K_2^M$ bridges), verifiers, SymPy oracles, guide & 2 Tier-4 recipes; status Final (**Phase 9 — 2/3 Final**). |
 | 2026-11-26 | Eran Rivlis & Antigravity | Convened Second Grand Council Codebase Audit across all 111 modules (36.6k LOC); established **Phase 8.5 — Second Grand Council Refinement & Hardening Track** (`EP-0250` through `EP-0254`, Draft) and aligned foundational & unimplemented EPs (`EP-0003`, `EP-0005`, `EP-0222`, `EP-0230`–`EP-0232`, `EP-0240`–`EP-0243`). |
+| 2026-11-27 | Eran Rivlis & Antigravity | Expanded `EP-0254` (`§3`) to include `tests/verifications/` namespace decomposition (`differential/` 10 domain modules + `_helpers.py`, `mms/` 2 modules, `pytest.importorskip` guards, `docs/verification.md` & `EP-0003` sync, and CI traceability check). |
+| 2026-11-27 | Eran Rivlis & Antigravity | Completed `EP-0250` (`Final`); convened Grand Council review for `EP-0255` (Unified Algebraic Structure Registry, Structure Cards & CLI Overhaul, `Draft`) and cleanly handed off `src/algebrax/__main__.py` CLI work from `EP-0254` to `EP-0255`. |
