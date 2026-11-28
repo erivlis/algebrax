@@ -17,7 +17,7 @@ status: active
 | **Status**        | Active                                                                            |
 | **Type**          | Process                                                                           |
 | **Created**       | 2026-11-12                                                                        |
-| **Updated**       | 2026-11-26                                                                        |
+| **Updated**       | 2026-11-28                                                                        |
 | **Replaces**      | —                                                                                 |
 | **Superseded-By** | —                                                                                 |
 
@@ -139,6 +139,7 @@ Domain-specific subjects (such as semiring catalogs, homology, differential form
 - **`EP-0230` – `EP-0239`**: Generalized Harmonic Analysis, Peter–Weyl Group FT, Algebraic Signal Processing, Exact NTT & Spectral Wavelets.
 - **`EP-0240` – `EP-0249`**: Algebraic Analysis, Differential Rings, Weyl Algebras, Ore Skew-Polynomials, Hermite/Gosper Reduction, Taylor Jets & Differential Galois Theory.
 - **`EP-0250` – `EP-0259`**: Second Grand Council Refinement & Hardening Track (Phase 8.5).
+- **`EP-0260` – `EP-0269`**: Order Theory, Finite Lattices, Galois/FCA, Non-Classical & Quantum Logics, Matroids & Residuated Quantales (Phase 12; Wave 1 `EP-0260` executes ahead of Phase 10 `EP-0231`).
 
 ---
 
@@ -191,3 +192,4 @@ None. `EP-0131`, `EP-0150`, `EP-0180`, and `EP-0194` have been formally supersed
 - **2026-11-12**: Initial constitutional draft authored following Grand Council consensus.
 - **2026-11-15**: Registered Phase 11 Differential & Ore Algebras domain track (`EP-0240` – `EP-0249`) from `EXP-0011`.
 - **2026-11-26**: Promoted to `Active` status as living constitutional canon; registered Phase 8.5 hardening track (`EP-0250` – `EP-0259`); closed resolved supersession open question.
+- **2026-11-28**: Registered Phase 12 Order Theory, Lattices, Non-Classical Logics, Matroids & Quantales domain track (`EP-0260` – `EP-0269`) from `EXP-0012` & `EXP-0013` (Wave 1 `EP-0260` scheduled ahead of Phase 10 `EP-0231`).

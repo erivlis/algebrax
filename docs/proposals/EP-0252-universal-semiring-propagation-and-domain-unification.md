@@ -2,7 +2,7 @@
 title: "EP-0252: Universal Semiring Propagation, Parameterized Tries & Domain Unification"
 description: "Fix silent semiring/ring drops across AlgebraicTrie, tensor.einsum, Hodge Laplacians, CochainAlgebra, GroupHopfAlgebra, and automata, and unify topological K-theory on GrothendieckRing."
 icon: lucide/network
-status: accepted
+status: final
 ---
 
 # EP-0252: Universal Semiring Propagation, Parameterized Tries & Domain Unification
@@ -14,10 +14,10 @@ status: accepted
 | **Author**        | Eran Rivlis <eran@rivlis.info>, Antigravity                                |
 | **Sponsor**       | Core Maintainers                                                           |
 | **Delegate**      | 🧭 Explorer (Vision) & ⚖️ Noether (Symmetry)                               |
-| **Status**        | Accepted                                                                   |
+| **Status**        | Final                                                                      |
 | **Type**          | Standards Track                                                            |
 | **Created**       | 2026-11-26                                                                 |
-| **Updated**       | 2026-11-27                                                                 |
+| **Updated**       | 2026-11-28                                                                 |
 | **Replaces**      | —                                                                          |
 | **Superseded-By** | —                                                                          |
 
@@ -72,15 +72,16 @@ def is_algebraic_zero(structure: Any, value: Any) -> bool:
 Callers in inner loops **must** hoist `is_zero = make_zero_predicate(sr)` once outside the loop (never calling `@runtime_checkable isinstance(sr, HasZeroPred)` per entry).
 
 ### 1. Instance-Aware `AlgebraicTrie` & Hash-Join `tensor.core`
-- **`src/algebrax/trie.py` & `src/algebrax/clifford.py`**:
+- **`src/algebrax/trie.py`, `src/algebrax/clifford.py` & `src/algebrax/algebra/_field.py`**:
   - Update `AlgebraicTrie.__init__(self, semiring: Semiring[V] | type[Semiring[V]] | str = StandardSemiring)` to normalize via `Semiring.normalize(semiring)`, preserving live parameterized instances and serializing the live `semiring` instance cleanly in `__getstate__`/`__setstate__`.
-  - Convert local closures `key_op`/`quotient_fn` inside `CliffordAlgebra.__init__` (`clifford.py:104-109`) to picklable bound methods/callables so `AlgebraicTrie(CliffordAlgebra(...))` pickles cleanly.
-  - Maintain an exact $O(1)$ `_size` counter across `__setitem__` (insert vs. overwrite), `__delitem__`, and zero-pruning in `add()` (using `make_zero_predicate(self.semiring)` and pruning emptied intermediate trie branches so dead subtrees do not accumulate).
+  - Convert local closures `key_op`/`quotient_fn` inside `CliffordAlgebra`/`GeneralizedCliffordAlgebra`/`QuantumCliffordAlgebra` (`clifford.py`) and `GaloisField` (`algebra/_field.py`) to picklable bound methods so `AlgebraicTrie(CliffordAlgebra(...))` and `AlgebraicTrie(GaloisField(...))` pickle cleanly.
+  - Maintain an exact $O(1)$ `_size` counter across `__setitem__` (insert, overwrite, and algebraic-zero pruning), `__delitem__`, and zero-pruning in `add()` (using `make_zero_predicate(self.semiring)` and pruning emptied intermediate trie branches so dead subtrees do not accumulate).
 - **`src/algebrax/tensor/core.py`**:
   - Add `Semiring.normalize(semiring)` and accept `Semiring[V] | type[Semiring[V]] | str | None` in `einsum`, `outer_product`, and `dot`.
+  - When `semiring=None` and multiple `AlgebraicTrie` operands are supplied, verify that their live semirings are structurally equivalent and raise `ValueError` on mismatch (pass `semiring=...` explicitly to override).
   - Pass the normalized live `semiring` instance directly to `AlgebraicTrie(semiring=semiring)` in `einsum`, `outer_product`, and `dot`.
   - In `einsum`: contract left-to-right with hash-join indexing on shared already-bound subscripts, accumulating results in a flat `dict[tuple[Any, ...], V]` (pruning zeros via hoisted `is_zero`) before loading the final `AlgebraicTrie` once.
-  - In `dot(tensor_a, tensor_b, ...)`: return an empty `AlgebraicTrie(semiring=semiring)` early whenever either operand has zero non-zero entries.
+  - In `dot(tensor_a, tensor_b, ...)`: check emptiness in $O(1)$ via `len(...)` and inspect keys directly without double-materializing items, returning an empty `AlgebraicTrie(semiring=semiring)` early whenever either operand is empty.
 
 ### 2. End-to-End Coefficient Propagation
 - **`src/algebrax/topology/homology.py` & `dec.py`**:
@@ -90,14 +91,14 @@ Callers in inner loops **must** hoist `is_zero = make_zero_predicate(sr)` once o
 - **`src/algebrax/topology/cohomology.py`**:
   - Upgrade `Cochain` to support an optional `ring: Ring[V] | None = None` (or `neg_fn` + `zero` + `tol=0.0` for exact rings) so orientation sign flips in `__init__`, `__getitem__`, and `get` use `ring.neg(val)` instead of Python unary `-val` (making `ModularField(p)` and `GaloisField` work end-to-end).
   - Fix `cup_product` and `cap_product` to prune zeros strictly via `make_zero_predicate(s_inst)` (applying `abs(v) <= tol` **only** when `s_inst.zero == 0` and `isinstance(v, (int, float, complex))`) so `TropicalSemiring.one == 0.0` is never deleted.
-  - Route `CochainAlgebra.add`, `neg`, `sub`, `smul`, and `mul` completely through `self._ring` and `self._complex` (passing `complex=self._complex, semiring=self._ring` to `cup_product`).
+  - Route `CochainAlgebra.add`, `neg`, `sub`, `smul`, and `mul` completely through `self._ring` and `self._complex` (passing `complex=self._complex, semiring=self._ring` to `cup_product`), and validate in `CochainAlgebra.__init__` that `coefficient_ring` is a `Ring` (or `StandardSemiring` for backwards compatibility), rejecting non-negatable semirings (`BooleanSemiring`, `TropicalSemiring`, etc.) upfront with `TypeError`.
 - **`src/algebrax/algebra/_hopf.py`**:
-  - Generalize `GroupHopfAlgebra` class generics to `Generic[T]` (`MonoidAlgebra[Any, T], HopfAlgebra[T, SparseVector[Any, T]]`), validating that `coeff_semiring` satisfies `Ring` when ring operations (`neg`/`sub`) are required, and route `coproduct`, `counit`, and `antipode` through `self.coeff_semiring` (`zero`, `add`, `mul`, and hoisted `make_zero_predicate`) instead of hardcoded `float`/`sum`/`1e-15`.
+  - Generalize `GroupHopfAlgebra` class generics to `Generic[T]` (`MonoidAlgebra[Any, T], HopfAlgebra[T, SparseVector[Any, T]]`), type and validate `coeff_semiring: Ring[T] | None = None` upfront with `TypeError` for non-`Ring` semirings, and route `coproduct`, `counit`, and `antipode` through `self.coeff_semiring` (`zero`, `add`, `mul`, and hoisted `make_zero_predicate`) instead of hardcoded `float`/`sum`/`1e-15`.
 - **`src/algebrax/analysis/calculus.py`**:
-  - In `pagerank`, accept `str` in the `semiring` annotation, propagate `sem.add`/`sem.mul`/`sem.zero` consistently across the damping and teleportation blend, and validate real/probability-compatible numeric carriers (raising `TypeError` upfront for non-numeric carriers like `StringSemiring` instead of mid-loop crashes).
+  - In `pagerank`, accept `str` in the `semiring` annotation, propagate `sem.add`/`sem.mul`/`sem.zero` consistently across the damping and teleportation blend, validate real/numeric carriers (raising `TypeError` upfront for non-numeric carriers like `StringSemiring` and `BooleanSemiring`), and document that probability-sum normalization gives coherent semantics for multiplicative $[0, 1]$ semirings (`StandardSemiring`, `ViterbiSemiring`, `BottleneckSemiring`) rather than additive-cost semirings.
 
 ### 3. Semiring-Parameterized Weighted Automata (`src/algebrax/automata.py`)
-- Add optional `semiring: Semiring[V] | type[Semiring[V]] | str | None = None` to `nfa_step` and `simulate_nfa` (retaining a fast native path when `semiring is None` / `StandardSemiring(float)`). Return a fresh shallow copy `dict(start_states)` on 0-step `simulate_nfa` calls.
+- Add optional `semiring: Semiring[V] | type[Semiring[V]] | str | None = None` to `nfa_step` and `simulate_nfa` (retaining a fast native float path when `semiring is None` that skips zero weights and prunes zero cancellations for exact parity with `semiring=StandardSemiring(float)`). Return a fresh shallow copy `dict(start_states)` on 0-step `simulate_nfa` calls.
 - Add Kleene reachability bridge:
   ```python
   def nfa_closure(
@@ -114,19 +115,20 @@ Callers in inner loops **must** hoist `is_zero = make_zero_predicate(sr)` once o
 ### 4. Unified `GrothendieckRing` K-Theory Bridge (`src/algebrax/topology/k_theory.py`)
 - Define `VectorBundleSemiring` witnessing `CommSemiring[DiscreteOrthogonalConnection | None]` (with `.zero = None`, direct sum $\oplus$, tensor product $\otimes$, and trivial line bundle as `.one`).
 - Compose `TopologicalKTheoryRing` directly on `algebra.CommGrothendieckRing` (from `EP-0250`) over `VectorBundleSemiring`, eliminating duplicated `(pos, neg)` formal-difference arithmetic.
+- Define bundle equivalence `_bundles_equiv` via **spanning-tree axial-gauge fundamental cycle holonomies** $H_e = P[v]^T \rho(u, v) P[u] \in O(d)$ per connected component, verifying full Newton spectral power traces $\operatorname{tr}(H_e^k)$ for $k = 1, \dots, d$ (exact $O(d)$-conjugacy for all dimensions $d$) and pairwise chord product traces $\operatorname{tr}(H_i H_j), \operatorname{tr}(H_i H_j^T)$ for simultaneous conjugacy across multi-cycle components.
 
 ---
 
 ## Acceptance Criteria
 
-1. `AlgebraicTrie(ModularField(7))`, `AlgebraicTrie(GaloisField(3, [1, 0, 2]))`, and `AlgebraicTrie(CliffordAlgebra(2, 0, 0))` preserve live instances across `einsum`, `outer_product`, `dot`, and `pickle.loads(pickle.dumps(trie))`; `len(trie)` runs in $O(1)$ and matches `sum(1 for _ in trie)` after inserts, overwrites, deletions, and zero-cancelling `add()`.
-2. `tensor.dot` on empty tensors returns an empty `AlgebraicTrie` without `IndexError`; `tensor.einsum('ii,ii,ii->i', t, t, t)` scales linearly $O(N)$ rather than $O(N^3)$.
+1. `AlgebraicTrie(ModularField(7))`, `AlgebraicTrie(GaloisField(3, [1, 0, 2]))`, and `AlgebraicTrie(CliffordAlgebra(2, 0, 0))` preserve live instances across `einsum`, `outer_product`, `dot`, and `pickle.loads(pickle.dumps(trie))`; `len(trie)` runs in $O(1)$ and matches `sum(1 for _ in trie)` after inserts, overwrites, zero-pruning `__setitem__`, deletions, and zero-cancelling `add()`.
+2. `tensor.dot` on empty tensors returns an empty `AlgebraicTrie` without `IndexError`; `tensor.einsum('ii,ii,ii->i', t, t, t)` scales linearly $O(N)$ rather than $O(N^3)$; conflicting `AlgebraicTrie` semirings raise `ValueError` unless `semiring=...` is explicitly provided.
 3. `SparseChainComplex.hodge_laplacian(k, semiring=ModularSemiring(5))` equals `add(l_down, l_up, semiring=ModularSemiring(5))`, and mutating caller `boundary_matrices` after construction does not affect the complex.
-4. `CochainAlgebra(complex, ModularField(5))` and `CochainAlgebra(complex, GaloisField(2, [1, 1, 1]))` pass `verify_ring_laws`; `cup_product(..., semiring=TropicalSemiring())` preserves `0.0` (`TropicalSemiring.one`) entries.
+4. `CochainAlgebra(complex, ModularField(5))` and `CochainAlgebra(complex, GaloisField(2, [1, 1, 1]))` pass `verify_ring_laws` while non-negatable semirings (`BooleanSemiring`, `TropicalSemiring`) raise `TypeError` upfront; `cup_product(..., semiring=TropicalSemiring())` preserves `0.0` (`TropicalSemiring.one`) entries.
 5. `GroupHopfAlgebra(S3, coeff_semiring=ModularField(5))` and `GroupHopfAlgebra(S3, coeff_semiring=StandardField(Fraction))` pass `verify_hopf_algebra_laws` with exact arithmetic.
 6. `pagerank` propagates `StandardSemiring`, `ViterbiSemiring`, and `BottleneckSemiring` consistently and raises `TypeError` on `StringSemiring`.
-7. `simulate_nfa` works over `BooleanSemiring`, `TropicalSemiring`, `ViterbiSemiring`, and `StringSemiring`, returns a non-aliased copy on `symbols=[]`, and `nfa_closure` computes Kleene reachability over `BooleanSemiring`/`TropicalSemiring` while raising `TypeError` on `StringSemiring`.
-8. `TopologicalKTheoryRing` delegates formal-difference arithmetic to `algebra.CommGrothendieckRing` and passes `verify_comm_ring_laws`; `VectorBundleSemiring` complies with `EP-0002` (AMDS) and `tests/algebrax/test_docstrings.py`.
+7. `simulate_nfa` works over `BooleanSemiring`, `TropicalSemiring`, `ViterbiSemiring`, and `StringSemiring`, returns a non-aliased copy on `symbols=[]`, maintains exact zero-pruning parity between `semiring=None` and `semiring=StandardSemiring(float)` in `nfa_step`, and `nfa_closure` computes Kleene reachability over `BooleanSemiring`/`TropicalSemiring` while raising `TypeError` on `StringSemiring`.
+8. `TopologicalKTheoryRing` delegates formal-difference arithmetic to `algebra.CommGrothendieckRing` and passes `verify_comm_ring_laws`, distinguishes opposite-holonomy, multi-cycle, and $d \ge 5$ bundles while identifying gauge-transformed bundles via spanning-tree axial-gauge holonomy invariants; `VectorBundleSemiring` complies with `EP-0002` (AMDS) and `tests/algebrax/test_docstrings.py`.
 
 ---
 
@@ -150,9 +152,9 @@ Callers in inner loops **must** hoist `is_zero = make_zero_predicate(sr)` once o
 ## Reference Implementation
 
 Target files verified in the Second Grand Council Audit & Review:
-- `src/algebrax/converters.py`, `src/algebrax/trie.py`, `src/algebrax/clifford.py`, `src/algebrax/tensor/core.py`
+- `src/algebrax/converters.py`, `src/algebrax/trie.py`, `src/algebrax/clifford.py`, `src/algebrax/algebra/_field.py`, `src/algebrax/tensor/core.py`
 - `src/algebrax/topology/{homology.py,cohomology.py,dec.py,k_theory.py}`
-- `src/algebrax/algebra/_hopf.py`, `src/algebrax/automata.py`, `src/algebrax/analysis/calculus.py`
+- `src/algebrax/algebra/{_hopf.py,_monoid_algebra.py}`, `src/algebrax/automata.py`, `src/algebrax/analysis/calculus.py`, `src/algebrax/verification/_algebra.py`
 
 ---
 
@@ -171,7 +173,7 @@ Target files verified in the Second Grand Council Audit & Review:
 
 ## Open Questions
 
-None. All Council review items (`is_algebraic_zero`, `Cochain`/`cup_product`, `pagerank`, `nfa_closure`, `VarietySemiring` drop, `einsum` order, and `persistence.py` deferral) are resolved.
+None. All Council review items (`is_algebraic_zero`, `Cochain`/`cup_product`, `pagerank`, `nfa_closure`, `VarietySemiring` drop, `einsum` order, `persistence.py` deferral, and Post-Implementation Council Review refinements) are resolved.
 
 ---
 
@@ -181,3 +183,7 @@ None. All Council review items (`is_algebraic_zero`, `Cochain`/`cup_product`, `p
   * Initial Draft authored from the Second Grand Council Codebase Audit (Explorer, Noether, Shannon, Russell).
 * **2026-11-27:**
   * Incorporated Grand Council Pre-Implementation Review revisions: added shared `make_zero_predicate`/`is_algebraic_zero` in `converters.py`, moved `typing.N`/`RectSparseMatrix` to `EP-0251`, fixed `Cochain` orientation negation & `cup_product` tropical `0.0` bug, generalized `GroupHopfAlgebra` generics and Ring contract, resolved `pagerank` and `nfa_closure` specs (aligning with `EP-0250` on `StringSemiring`), ensured `CliffordAlgebra` picklability and flat-dict `einsum` accumulation, absorbed `automata`/`homology` defensive copies from `EP-0254`, dropped speculative `VarietySemiring`, added Acceptance Criteria and AMDS/guide checklist, and promoted status to `Accepted`.
+* **2026-11-28:**
+  * Implemented all 8 Acceptance Criteria (`make_zero_predicate`/`is_algebraic_zero`, live parameterized `AlgebraicTrie` with $O(1)$ `len()` and picklable `CliffordAlgebra`/`GaloisField`, $O(N)$ hash-join `tensor.einsum` & empty-safe `tensor.dot`, `SparseChainComplex.hodge_laplacian` propagation & defensive copy, `Cochain`/`CochainAlgebra` finite-field rings & tropical `0.0` preservation, Ring-parameterized `GroupHopfAlgebra` + semiring-aware Hopf verifiers, validated `pagerank` semiring propagation, weighted `automata` + `nfa_closure`, and `TopologicalKTheoryRing` composed on `CommGrothendieckRing` over `VectorBundleSemiring`), updated all 7 user guides and AMDS docstring tests, and promoted status to `Final`.
+  * Incorporated Grand Council Post-Implementation Review refinements: upgraded `TopologicalKTheoryRing._bundles_equiv` to spanning-tree axial-gauge fundamental cycle holonomies with full Newton spectral power traces ($k = 1, \dots, d$) and pairwise chord product traces for simultaneous conjugacy; aligned `automata.nfa_step` zero-pruning parity between `semiring=None` and `StandardSemiring(float)`; added algebraic-zero pruning and branch cleanup to `AlgebraicTrie.__setitem__`; guarded `CochainAlgebra.__init__` against non-negatable semirings and tightened `GroupHopfAlgebra.__init__` annotation to `Ring[T] | None`; added operand semiring mismatch validation in `tensor._resolve_semiring` and eliminated duplicate item materialization in `tensor.dot`; clarified probability-normalization semiring semantics in `pagerank` docstring.
+

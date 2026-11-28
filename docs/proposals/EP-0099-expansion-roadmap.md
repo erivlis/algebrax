@@ -15,7 +15,7 @@ status: active
 | **Status**  | Active                                                    |
 | **Type**    | Informational                                             |
 | **Created** | 2026-08-01                                                |
-aw| **Updated** | 2026-11-28                                                |
+| **Updated** | 2026-11-28                                                |
 
 ## Abstract
 
@@ -34,8 +34,10 @@ the **Phase 7 Categorical Foundations & Morphisms** (`EXP-0005`, `EP-0200` throu
 the **Phase 8 Representation Theory & Quantum Symmetries** (`EXP-0006`, `EP-0210` through `EP-0215`),
 the **Phase 8.5 Second Grand Council Refinement & Hardening Track** (`EP-0250` through `EP-0255`),
 the **Phase 9 Commutative Algebra, Algebraic Varieties & Tropical Geometry** (`EXP-0009`, `EP-0220` through `EP-0222`),
-the **Phase 10 Generalized Harmonic Analysis & Spectral Signal Theory** (`EXP-0010`, `EP-0230` through `EP-0232`), and
-the **Phase 11 Algebraic Analysis, Differential Rings & Ore Algebras** (`EXP-0011`, `EP-0240` through `EP-0243`).
+the **Phase 10 Generalized Harmonic Analysis & Spectral Signal Theory** (`EXP-0010`, `EP-0230` through `EP-0232`),
+the **Phase 11 Algebraic Analysis, Differential Rings & Ore Algebras** (`EXP-0011`, `EP-0240` through `EP-0243`), and
+the **Phase 12 Order Theory, Lattices, Non-Classical Logics, Matroids & Quantales** (`EXP-0012` & `EXP-0013`,
+`EP-0260` through `EP-0264`, with Wave 1 `EP-0260` scheduled to execute ahead of Phase 10 `EP-0231`).
 
 ---
 
@@ -136,7 +138,7 @@ flowchart TD
     subgraph P85["Phase 8.5 — Second Grand Council Refinement Track"]
         EP0250_N["EP-0250 Protocol & Algebraic Soundness ✅\n⚖️ Noether & 🧩 Russell"]
         EP0251_N["EP-0251 Sparse Linalg & Hot Paths ✅\n⚡ Shannon & 🛡️ Golem"]
-        EP0252_N["EP-0252 Universal Semirings & Unification 💡\n🧭 Explorer & ⚖️ Noether"]
+        EP0252_N["EP-0252 Universal Semirings & Unification ✅\n🧭 Explorer & ⚖️ Noether"]
         EP0253_N["EP-0253 Verification & Grounded Proofs 💡\n🔬 Popper & 🧪 Bacon"]
         EP0254_N["EP-0254 Ergonomics, Safety & Hygiene 💡\n💡 Feynman, 🌿 Steward & 🛡️ Golem"]
         EP0255_N["EP-0255 Unified Structure Registry & CLI 💡\n⚖️ Noether, 🧩 Russell, ⚡ Shannon & 💡 Feynman"]
@@ -159,6 +161,14 @@ flowchart TD
         EP0241_N["EP-0241 Ore Algebras, D-Finite & Frobenius 💡\n⚖️ Noether, ⚡ Shannon & 🔬 Popper"]
         EP0242_N["EP-0242 Hermite, Gosper, Telescoping & Jets 💡\n⚡ Shannon, 🔬 Popper & 🛡️ Golem"]
         EP0243_N["EP-0243 Picard-Vessiot & Kovacic 💡\n⚖️ Noether, 🔬 Popper & 🛡️ Golem"]
+    end
+
+    subgraph P12["Phase 12 — Lattice & Order Continent (EXP-0012 & EXP-0013)"]
+        EP0260_N["EP-0260 Posets, Finite Lattices & Rota Möbius 💡\n🧩 Russell, ⚖️ Noether & ⚡ Shannon"]
+        EP0261_N["EP-0261 Galois Connections, Tarski & FCA 💡\n⚡ Shannon, ⚖️ Noether & 🔬 Popper"]
+        EP0262_N["EP-0262 Heyting, MV & Quantum Orthomodular 💡\n⚖️ Noether, 🧩 Russell & 🔬 Popper"]
+        EP0263_N["EP-0263 Matroids, Geometric Lattices & Tutte 💡\n⚡ Shannon, ⚖️ Noether & 🧭 Explorer"]
+        EP0264_N["EP-0264 Quantales, Scott Domains & EXP-0012 💡\n🧭 Explorer, ⚖️ Noether & 🔬 Popper"]
     end
 
     EP0152_N --> EP0160_N
@@ -199,6 +209,7 @@ flowchart TD
     EP0221_N --> EP0231_N
     EP0112 --> EP0231_N
     EP0250_N --> EP0231_N
+    EP0260_N --> EP0231_N
     EP0160_N --> EP0232_N
     EP0161_N --> EP0232_N
     EP0251_N --> EP0232_N
@@ -214,6 +225,15 @@ flowchart TD
     EP0149_N --> EP0242_N
     EP0241_N --> EP0243_N
     EP0242_N --> EP0243_N
+    P85 --> EP0260_N
+    EP0250_N --> EP0260_N
+    EP0255_N --> EP0260_N
+    EP0260_N --> EP0261_N
+    EP0260_N --> EP0262_N
+    EP0260_N --> EP0263_N
+    EP0261_N --> EP0264_N
+    EP0262_N --> EP0264_N
+    EP0204_N --> EP0264_N
     style CORE fill: #4a90d9, color: #fff
     style P3 fill: #2d7d46, color: #fff
     style P35 fill: #8b5cf6, color: #fff
@@ -352,7 +372,7 @@ Phase 0: Architecture Roadmap (EP-0099)
   ├── Phase 8.5: Second Grand Council Refinement & Hardening Track  ⏳ IN PROGRESS
   │     ├── EP-0250: Protocol Integrity, Law Witnesses & Algebraic Soundness (Noether/Russell) [Final]
   │     ├── EP-0251: Sparse Linear Algebra Kernel, Decomposition Correctness & Hot-Path Performance (Shannon/Golem) [Final]
-  │     ├── EP-0252: Universal Semiring Propagation, Parameterized Tries & Domain Unification (Explorer/Noether) [Accepted]
+  │     ├── EP-0252: Universal Semiring Propagation, Parameterized Tries & Domain Unification (Explorer/Noether) [Final]
   │     ├── EP-0253: Verification Engine Hardening, Falsifiability & Grounded Formal Proofs (Popper/Bacon) [Accepted]
   │     ├── EP-0254: Ergonomics, State Safety, Ecosystem Bridges & Codebase Hygiene (Feynman/Steward/Golem) [Accepted]
   │     └── EP-0255: Unified Algebraic Structure Registry, Structure Cards & CLI Overhaul (Noether/Russell/Shannon/Feynman) [Accepted]
@@ -367,11 +387,18 @@ Phase 0: Architecture Roadmap (EP-0099)
   │     ├── EP-0231: Algebraic Signal Processing, Exact Finite-Field NTT & Poset Möbius Transforms (Russell/Popper/Shannon) [Draft]
   │     └── EP-0232: Geometric, Simplicial Hodge & Cellular Sheaf Spectral Wavelets (Shannon/Noether/Popper) [Draft]
   │
-  └── Phase 11: Algebraic Analysis, Differential Rings & Ore Algebras (EXP-0011)  ⏳ PLANNED
-        ├── EP-0240: Differential Rings, Weyl Algebras, Characteristic Varieties & Kähler Differentials (Noether/Shannon/Golem) [Draft]
-        ├── EP-0241: Unified Ore Skew-Polynomial Algebras, D-Finite Closure & Frobenius Solvers (Noether/Shannon/Popper) [Draft]
-        ├── EP-0242: Exact Symbolic Integration, Hermite & Gosper Reduction, Creative Telescoping & Multivariate Taylor Jets (Shannon/Popper/Golem) [Draft]
-        └── EP-0243: Picard–Vessiot Differential Galois Theory, Symmetric Powers & Kovacic Factorization (Noether/Popper/Golem) [Draft]
+  ├── Phase 11: Algebraic Analysis, Differential Rings & Ore Algebras (EXP-0011)  ⏳ PLANNED
+  │     ├── EP-0240: Differential Rings, Weyl Algebras, Characteristic Varieties & Kähler Differentials (Noether/Shannon/Golem) [Draft]
+  │     ├── EP-0241: Unified Ore Skew-Polynomial Algebras, D-Finite Closure & Frobenius Solvers (Noether/Shannon/Popper) [Draft]
+  │     ├── EP-0242: Exact Symbolic Integration, Hermite & Gosper Reduction, Creative Telescoping & Multivariate Taylor Jets (Shannon/Popper/Golem) [Draft]
+  │     └── EP-0243: Picard–Vessiot Differential Galois Theory, Symmetric Powers & Kovacic Factorization (Noether/Popper/Golem) [Draft]
+  │
+  └── Phase 12: Order Theory, Lattices, Non-Classical Logics, Matroids & Quantales (EXP-0012 & EXP-0013)  ⏳ PLANNED (Wave 1 Pre-Phase-10)
+        ├── EP-0260: Lattice Protocol Soundness, Package Promotion & Finite Posets/Lattices (Russell/Noether/Shannon) [Draft — executes ahead of EP-0231]
+        ├── EP-0261: Galois Connections, Tarski Fixed Points & Formal Concept Analysis (Shannon/Noether/Popper) [Draft]
+        ├── EP-0262: Non-Classical & Quantum Logics — Heyting Locales, MV-Algebras & Orthomodular Lattices (Noether/Russell/Popper) [Draft]
+        ├── EP-0263: Matroids, Geometric Lattices, Characteristic & Tutte Polynomials (Shannon/Noether/Explorer) [Draft]
+        └── EP-0264: Quantales, Scott Domains & Subtraction-Free Non-Associative Quantales (Explorer/Noether/Popper) [Draft]
 ```
 
 ---
@@ -457,10 +484,15 @@ Phase 0: Architecture Roadmap (EP-0099)
 | **EP-0243** | Differential Galois & Kovacic  | Noether & Popper  | `algebrax.differential`                  | Draft    | `wronskian_operator`, `symmetric_power`, `exterior_power`, `kovacic_classify`, `kovacic_factorize`, `PicardVessiotTorsor`                  |
 | **EP-0250** | Protocol & Algebraic Soundness | Noether & Russell | `algebra`, `semiring`, `group`, `rep`, `lie`, `clifford` | Final | *(Phase 8.5)* Law witnesses (`CommSemiring`, `CommQuotientRing`, `CommMonoidAlgebra`, `CommGrothendieckRing`), flat `GroupRepresentation`/`LieRepresentation`, `FiniteQuiver`, `GaloisField`/`ModularField` guards, unified diagrammatic composition |
 | **EP-0251** | Sparse Linalg & Hot Paths      | Shannon & Golem   | `matrix`, `converters`, `topology`, `analysis`, `variety` | Final    | *(Phase 8.5)* Unified sparse `sparse_rref`/`rank`/`nullspace`, `canonical_sort_keys`, LU/Cholesky/single-LU `inv`, $O(\text{nnz})$ `mat_vec`/`inner`/VR, lazy `SimplicialComplex` & $\mathbb{Q}/\mathbb{F}_p$ torsion, `CellularSheaf` `tol`/`field`, graph Laplacian & Ramanujan fixes |
-| **EP-0252** | Universal Semirings & Unif.    | Explorer & Noether| `trie`, `analysis`, `matrix`, `typing`, `variety` | Accepted | *(Phase 8.5)* Parameterized `AlgebraicTrie`, `SparseChainComplex.hodge_laplacian(semiring=...)`, `RectSparseMatrix`, widened `typing.N` (`Fraction`), K-theory/Milnor exact guards |
+| **EP-0252** | Universal Semirings & Unif.    | Explorer & Noether| `converters`, `trie`, `tensor`, `topology`, `algebra`, `automata`, `analysis` | Final | *(Phase 8.5)* `make_zero_predicate`/`is_algebraic_zero`, live parameterized `AlgebraicTrie` ($O(1)$ `len()` & pickle), $O(N)$ hash-join `tensor.einsum`, `hodge_laplacian` & `CochainAlgebra` finite-field propagation, exact `GroupHopfAlgebra`, `pagerank` validation, weighted `automata`/`nfa_closure`, `TopologicalKTheoryRing` on `CommGrothendieckRing` (`VectorBundleSemiring`) |
 | **EP-0253** | Verification & Grounded Proofs | Popper & Bacon    | `verification/`, `tests/verifications/`  | Accepted | *(Phase 8.5)* Non-vacuous Popper sample guards (`_materialize_samples`), `NaN != NaN` equality guard, `verify_group_laws` identity/inverse fix, grounded Z3/PIT/hypothesis suites |
 | **EP-0254** | Ergonomics, Safety & Hygiene   | Feynman & Steward | `display`, `converters`, `verification/`, `tests/verifications/` | Accepted | *(Phase 8.5)* HTML-escaped `RichDisplayable`, safe `converters` bounds, immutable returns, split god modules (`verification/` & `tests/verifications/` + traceability CI), clean `__all__`, Ruff `F401`, zero `EP-XXXX` in `src/` |
 | **EP-0255** | Unified Structure Registry & CLI | Noether, Russell, Shannon & Feynman | `registry`, `display`, `verification`, `__main__` | Accepted | *(Phase 8.5)* Pure-data frozen `StructureEntry` registry (`algebrax.registry`, zero `Structure` ABC), `MappingProxyType` views, `CommSemiring` alignment, decoupled `display.structure_card`, `verify_structure` bridge, 4-subcommand CLI overhaul (`catalog`, `describe`, `inspect`, `verify`) & `--format json` |
+| **EP-0260** | Posets, Finite Lattices & Möbius | Russell, Noether & Shannon | `algebra`, `lattice/` | Draft | *(Phase 12 — Wave 1, executes ahead of `EP-0231`)* `LawModular`/`LawDistributive`/`LawOrthomodular`/`HasImplication`/`HasOrthocomplement`, `DistributiveLattice` isomer fix, `lattice/` package promotion (100% compat `_mapping`), `FinitePoset`, `FiniteLattice`, Birkhoff $M_3$/$N_5$ witnesses & duality, Dedekind–MacNeille, canonical families (`Sub(G)`, `Subspace(F_q^n)`, `Pi_n`), Rota Zeta/Möbius substrate |
+| **EP-0261** | Galois, Tarski & FCA             | Shannon, Noether & Popper  | `lattice/`            | Draft | *(Phase 12)* `GaloisConnection`, `ClosureOperator`, `InteriorOperator`, `tarski_fixpoints`, `FormalContext` (bitmask NextClosure concept lattice & Duquenne–Guigues canonical implication basis) |
+| **EP-0262** | Non-Classical & Quantum Logics   | Noether, Russell & Popper  | `lattice/`, `algebra` | Draft | *(Phase 12)* `FiniteHeytingAlgebra` / Alexandroff Locale, `MVAlgebra` (`LukasiewiczSemiring` bridge), `OrthomodularLattice` ($O_6$ failure witness, $MO_2$ & subspace quantum lattices), `ResiduatedLattice` |
+| **EP-0263** | Matroids & Geometric Lattices    | Shannon, Noether & Explorer | `lattice/`           | Draft | *(Phase 12)* `FiniteMatroid` (graphic, linear over `ModularField`/`GaloisField`, uniform), geometric flat lattice cryptomorphism, Rota Möbius characteristic polynomial $\chi_M(t)$ & Tutte polynomial $T_M(x, y)$ |
+| **EP-0264** | Quantales, Domains & EXP-0012    | Explorer, Noether & Popper | `lattice/`, `verification/` | Draft | *(Phase 12)* `FiniteQuantale`, `ActionAlgebra` & Scott domain unification, `EXP-0012` subtraction-free non-associative quantale & $J_4$/$E_5$/$A_5$/$F_5$/$M_7$ falsification suite |
 
 ---
 
@@ -523,3 +555,6 @@ Phase 0: Architecture Roadmap (EP-0099)
 | 2026-11-27 | Eran Rivlis & Antigravity | Expanded `EP-0254` (`§3`) to include `tests/verifications/` namespace decomposition (`differential/` 10 domain modules + `_helpers.py`, `mms/` 2 modules, `pytest.importorskip` guards, `docs/verification.md` & `EP-0003` sync, and CI traceability check). |
 | 2026-11-27 | Eran Rivlis & Antigravity | Completed `EP-0250` (`Final`); convened Grand Council review for `EP-0255` (Unified Algebraic Structure Registry, Structure Cards & CLI Overhaul, `Draft`) and cleanly handed off `src/algebrax/__main__.py` CLI work from `EP-0254` to `EP-0255`. |
 | 2026-11-28 | Eran Rivlis & Antigravity | Completed `EP-0251` (`Final`): unified `Field[V]`-polymorphic sparse elimination (`algebrax.matrix.eliminate`: `sparse_rref`, `rank`, `nullspace`), `canonical_sort_keys`, `RectSparseMatrix`/`Fraction` typing, single-LU $O(N^3)$ `inv()` (cleanly removing `matrix.core.inverse`), rectangular/disjoint-key LU & Cholesky fixes, non-commutative $O(\min(\text{nnz}))$ `inner`/`mat_vec`, lazy integer-signed `SimplicialComplex` & $\mathbb{Q}/\mathbb{F}_p$ torsion homology, iterative Hopcroft–Karp, and graph Laplacian/Fiedler/Ramanujan fixes (**Phase 8.5 — 2/6 Final**). |
+| 2026-11-28 | Eran Rivlis & Antigravity | Completed `EP-0252` (`Final`): shared `make_zero_predicate`/`is_algebraic_zero`, live parameterized `AlgebraicTrie` ($O(1)$ `len()`, branch pruning, picklable `CliffordAlgebra`/`GaloisField`), $O(N)$ hash-join `tensor.einsum` & empty-safe `tensor.dot`, `SparseChainComplex.hodge_laplacian` propagation & defensive copy, finite-field `Cochain`/`CochainAlgebra` & tropical `0.0` `cup_product`, Ring-parameterized `GroupHopfAlgebra` & semiring-aware Hopf verifiers, validated `pagerank` propagation, weighted `automata`/`nfa_closure`, and `TopologicalKTheoryRing` composed on `CommGrothendieckRing` over `VectorBundleSemiring` (**Phase 8.5 — 3/6 Final**). |
+| 2026-11-28 | Eran Rivlis & Antigravity | Concluded `EXP-0012` & `EXP-0013`; added **Phase 12 — Order Theory, Lattices, Non-Classical Logics, Matroids & Quantales** (`EP-0260` through `EP-0264`, Draft), with Wave 1 (`EP-0260`) scheduled to execute ahead of Phase 10 (`EP-0231`) so Rota Poset Zeta/Möbius transforms build on a canonical `algebrax.lattice/` package. |
+
