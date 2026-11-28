@@ -1,0 +1,247 @@
+{
+  "module_shells": [
+    {
+      "module": "algebra/_magma.py",
+      "lines": 161,
+      "protocols": [
+        "Magma",
+        "Semigroup",
+        "Band",
+        "Quasigroup",
+        "AddMagma",
+        "AddSemigroup",
+        "OpMagma",
+        "OpSemigroup"
+      ],
+      "concrete_classes": [],
+      "public_functions": []
+    },
+    {
+      "module": "algebra/_monoid.py",
+      "lines": 126,
+      "protocols": [
+        "Monoid",
+        "CommMonoid",
+        "AddMonoid",
+        "AddCommMonoid",
+        "OpMonoid",
+        "OpCommMonoid"
+      ],
+      "concrete_classes": [],
+      "public_functions": []
+    },
+    {
+      "module": "algebra/_module.py",
+      "lines": 143,
+      "protocols": [
+        "Semimodule",
+        "Module",
+        "VectorSpace",
+        "NonAssocAlgebra",
+        "Algebra"
+      ],
+      "concrete_classes": [],
+      "public_functions": []
+    },
+    {
+      "module": "algebra/_lattice.py",
+      "lines": 121,
+      "protocols": [
+        "JoinSemilattice",
+        "MeetSemilattice",
+        "Lattice",
+        "BoundedLattice",
+        "DistributiveLattice",
+        "BooleanAlgebra"
+      ],
+      "concrete_classes": [],
+      "public_functions": []
+    },
+    {
+      "module": "algebra/_action.py",
+      "lines": 193,
+      "protocols": [
+        "ActionAlgebra"
+      ],
+      "concrete_classes": [
+        "RelationActionAlgebra"
+      ],
+      "public_functions": []
+    },
+    {
+      "module": "algebra/_padic.py",
+      "lines": 223,
+      "protocols": [],
+      "concrete_classes": [
+        "PAdicField"
+      ],
+      "public_functions": []
+    },
+    {
+      "module": "galois.py",
+      "lines": 49,
+      "protocols": [],
+      "concrete_classes": [],
+      "public_functions": [
+        "gf_matrix_mul"
+      ]
+    },
+    {
+      "module": "automata.py",
+      "lines": 254,
+      "protocols": [],
+      "concrete_classes": [],
+      "public_functions": [
+        "dfa_step",
+        "nfa_step",
+        "simulate_dfa",
+        "simulate_nfa",
+        "nfa_closure"
+      ]
+    },
+    {
+      "module": "probability.py",
+      "lines": 394,
+      "protocols": [],
+      "concrete_classes": [],
+      "public_functions": [
+        "bayes_update",
+        "cross_entropy",
+        "entropy",
+        "expected_value",
+        "kl_divergence",
+        "kurtosis",
+        "marginalize",
+        "markov_steady_state",
+        "markov_step",
+        "mode",
+        "mutual_information",
+        "normalize",
+        "skewness",
+        "variance"
+      ]
+    },
+    {
+      "module": "category/core.py",
+      "lines": 132,
+      "protocols": [
+        "Quiver",
+        "Category",
+        "Groupoid",
+        "Functor"
+      ],
+      "concrete_classes": [
+        "OppositeCategory"
+      ],
+      "public_functions": []
+    },
+    {
+      "module": "category/ccc.py",
+      "lines": 184,
+      "protocols": [
+        "CartesianCategory",
+        "CartesianClosedCategory"
+      ],
+      "concrete_classes": [
+        "FiniteSetCCC"
+      ],
+      "public_functions": []
+    },
+    {
+      "module": "category/enriched.py",
+      "lines": 118,
+      "protocols": [],
+      "concrete_classes": [
+        "LawvereMetricCategory"
+      ],
+      "public_functions": []
+    },
+    {
+      "module": "category/matrix.py",
+      "lines": 127,
+      "protocols": [],
+      "concrete_classes": [
+        "MatrixCategory",
+        "TransposeFunctor",
+        "SemiringChangeOfBaseFunctor"
+      ],
+      "public_functions": []
+    },
+    {
+      "module": "category/poset.py",
+      "lines": 138,
+      "protocols": [],
+      "concrete_classes": [
+        "Cell",
+        "FaceInclusion",
+        "CellPosetCategory"
+      ],
+      "public_functions": []
+    }
+  ],
+  "protocol_isomers": [
+    {
+      "pair": "Magma vs Semigroup",
+      "weak_protocol": "Magma",
+      "strong_protocol": "Semigroup",
+      "weak_match": true,
+      "strong_false_positive": true
+    },
+    {
+      "pair": "Magma vs Band",
+      "weak_protocol": "Magma",
+      "strong_protocol": "Band",
+      "weak_match": true,
+      "strong_false_positive": true
+    },
+    {
+      "pair": "AddMagma vs AddSemigroup",
+      "weak_protocol": "AddMagma",
+      "strong_protocol": "AddSemigroup",
+      "weak_match": true,
+      "strong_false_positive": true
+    },
+    {
+      "pair": "OpMagma vs OpSemigroup",
+      "weak_protocol": "OpMagma",
+      "strong_protocol": "OpSemigroup",
+      "weak_match": true,
+      "strong_false_positive": true
+    },
+    {
+      "pair": "Monoid vs CommMonoid",
+      "weak_protocol": "Monoid",
+      "strong_protocol": "CommMonoid",
+      "weak_match": true,
+      "strong_false_positive": true
+    },
+    {
+      "pair": "AddMonoid vs AddCommMonoid",
+      "weak_protocol": "AddMonoid",
+      "strong_protocol": "AddCommMonoid",
+      "weak_match": true,
+      "strong_false_positive": true
+    },
+    {
+      "pair": "OpMonoid vs OpCommMonoid",
+      "weak_protocol": "OpMonoid",
+      "strong_protocol": "OpCommMonoid",
+      "weak_match": true,
+      "strong_false_positive": true
+    },
+    {
+      "pair": "Module vs VectorSpace",
+      "weak_protocol": "Module",
+      "strong_protocol": "VectorSpace",
+      "weak_match": true,
+      "strong_false_positive": true
+    },
+    {
+      "pair": "Lattice vs DistributiveLattice",
+      "weak_protocol": "Lattice",
+      "strong_protocol": "DistributiveLattice",
+      "weak_match": true,
+      "strong_false_positive": true
+    }
+  ]
+}

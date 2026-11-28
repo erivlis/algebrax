@@ -21,5 +21,6 @@ formal Enhancement Proposals (EPs).
 | **EXP-0011** | Differential & Ore Algebras — Weyl D-Modules, Skew Polynomials, Hermite Integration & Taylor Jets              | **Concluded** | 2026-11-14 | EP-0240, EP-0241, EP-0242          | [EXP-0011](./EXP-0011-differential-and-ore-algebras/README.md)                 |
 | **EXP-0012** | Subtraction-Free Idempotent Corners — Kleene–Hopf Bialgebras, Exceptional Jordan Quantales, Shattered Artin–Moufang Tiers & Drift Derivations | **Concluded** | 2026-11-28 | EP-0005, EP-0250, EP-0264 | [EXP-0012](./EXP-0012-subtraction-free-idempotent-corners/README.md) |
 | **EXP-0013** | Expanding the Lattice & Order Continent — Finite Posets, Galois/FCA, Non-Classical & Quantum Logics, Matroids & Residuated Quantales | **Concluded** | 2026-11-28 | EP-0260 through EP-0264 | [EXP-0013](./EXP-0013-lattice-and-order-continent/README.md) |
+| **EXP-0014** | Uncharted Continents & Protocol Shells — Semigroups, Homological Algebra, Symmetric Functions, Coding Theory, Free Probability & Higher Categories | **Active** | 2026-11-28 | *Radar / Backlog (Post-Phase 12)* | [EXP-0014](./EXP-0014-uncharted-continents-and-protocol-shells/README.md) |
 
 
