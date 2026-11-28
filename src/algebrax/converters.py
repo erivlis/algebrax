@@ -41,6 +41,8 @@ __all__ = [
     'from_scipy',
     'get_matrix_keys',
     'grid_to_sparse',
+    'is_algebraic_zero',
+    'make_zero_predicate',
     'nested_to_flat',
     'prune_sparse',
     'sample',
@@ -687,3 +689,77 @@ def from_scipy(sp_matrix: Any) -> SparseMatrix[int, Any]:
 
 
 # endregion
+
+# region Zero Predicates
+
+
+def make_zero_predicate(structure: Any, tol: float = 0.0) -> Callable[[Any], bool]:
+    r"""Return a hoisted zero-check callable for an algebraic structure.
+
+    Algebraic Signature:
+        $\mathrm{zero?}_{\mathcal{S}}: V \to \mathbb{B}$
+
+    Uses `structure.is_zero` when present (honoring `HasZeroPred` without per-iteration
+    `isinstance` checks). Otherwise compares values against `structure.zero`, applying
+    numeric `tol` pruning only when `tol > 0.0`, `structure.zero == 0` (excluding `bool`),
+    and the candidate value is a `float` or `complex` so non-zero-identity semirings such
+    as `TropicalSemiring` (where `one == 0.0` and `zero == +inf`) never misclassify `0.0`
+    as zero.
+
+    Args:
+        structure: Algebraic structure exposing `.zero` and optionally `.is_zero(v)`.
+        tol: Optional non-negative tolerance for floating-point/complex zero pruning when
+            `structure.zero` is numeric zero.
+
+    Returns:
+        A unary predicate `is_zero(value) -> bool`.
+    """
+    is_zero_fn = getattr(structure, 'is_zero', None)
+    if callable(is_zero_fn):
+        if tol > 0.0:
+            zero_val = getattr(structure, 'zero', None)
+            if (
+                isinstance(zero_val, (int, float, complex))
+                and not isinstance(zero_val, bool)
+                and zero_val == 0
+            ):
+                def _pred_with_tol(value: Any) -> bool:
+                    if is_zero_fn(value):
+                        return True
+                    if isinstance(value, (float, complex)) and not isinstance(value, bool):
+                        return abs(value) <= tol
+                    return False
+
+                return _pred_with_tol
+        return is_zero_fn
+
+    zero = structure.zero
+    if (
+        tol > 0.0
+        and isinstance(zero, (int, float, complex))
+        and not isinstance(zero, bool)
+        and zero == 0
+    ):
+        def _numeric_tol_zero(value: Any) -> bool:
+            if isinstance(value, (float, complex)) and not isinstance(value, bool):
+                return abs(value) <= tol
+            return bool(value == zero)
+
+        return _numeric_tol_zero
+
+    def _exact_zero(value: Any) -> bool:
+        return bool(value == zero)
+
+    return _exact_zero
+
+
+def is_algebraic_zero(structure: Any, value: Any) -> bool:
+    """Single-value zero check delegating to `structure.is_zero` when available, else `value == structure.zero`."""
+    is_zero_fn = getattr(structure, 'is_zero', None)
+    if callable(is_zero_fn):
+        return bool(is_zero_fn(value))
+    return bool(value == structure.zero)
+
+
+# endregion
+

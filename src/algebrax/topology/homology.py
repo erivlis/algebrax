@@ -52,12 +52,15 @@ class SparseChainComplex:
     """
 
     def __init__(self, boundary_matrices: dict[int, SparseMatrix[K, V]]):
-        self.boundary_matrices = boundary_matrices
+        self.boundary_matrices = {
+            k: {r: dict(row) for r, row in mat.items()}
+            for k, mat in boundary_matrices.items()
+        }
 
     def verify_nilpotency(
         self,
         k: int,
-        semiring: Semiring[V] | type[Semiring[V]] | None = None,
+        semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
     ) -> bool:
         """
         Verify that D_{k-1} o D_k == 0 (empty sparse matrix).
@@ -80,7 +83,7 @@ class SparseChainComplex:
     def hodge_laplacian(
         self,
         k: int,
-        semiring: Semiring[V] | type[Semiring[V]] | None = None,
+        semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
     ) -> SparseMatrix[K, V]:
         """
         Compute the k-th Hodge-Laplacian matrix Delta_k = D_{k+1} D_{k+1}^T + D_k^T D_k.
@@ -114,7 +117,7 @@ class SparseChainComplex:
         if not l_up:
             return l_down
 
-        return add(l_down, l_up)
+        return add(l_down, l_up, semiring=s_inst)
 
 
 class SimplicialComplex(SparseChainComplex):

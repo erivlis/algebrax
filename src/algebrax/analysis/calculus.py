@@ -10,7 +10,7 @@ import random
 import warnings
 from collections import defaultdict, deque
 from collections.abc import Iterable, Mapping
-from typing import Literal
+from typing import Any, Literal
 
 from algebrax.converters import canonical_sort_keys
 from algebrax.matrix.academic import PerformanceWarning
@@ -443,11 +443,36 @@ def _build_transition_matrix(
     return trans_matrix, dangling_nodes
 
 
+def _validate_pagerank_semiring(sem: Semiring[Any]) -> None:
+    """Validate that a semiring has a real/numeric carrier suitable for PageRank propagation."""
+    z, o = sem.zero, sem.one
+    if (
+        isinstance(z, bool)
+        or isinstance(o, bool)
+        or not isinstance(z, (int, float))
+        or not isinstance(o, (int, float))
+    ):
+        raise TypeError(
+            f'pagerank requires a real/numeric semiring carrier (int/float), '
+            f'got {type(sem).__name__} with zero={z!r}, one={o!r}.'
+        )
+    try:
+        sample = sem.add(sem.mul(0.5, 0.5), sem.mul(0.5, 0.5))
+    except Exception as exc:
+        raise TypeError(
+            f'Semiring {type(sem).__name__} does not support numeric PageRank arithmetic.'
+        ) from exc
+    if isinstance(sample, bool) or not isinstance(sample, (int, float)):
+        raise TypeError(
+            f'Semiring {type(sem).__name__} produced non-numeric result {type(sample).__name__} in pagerank.'
+        )
+
+
 def pagerank(
     graph: SparseMatrix[K, float],
     damping: float = 0.85,
     personalization: SparseVector[K, float] | None = None,
-    semiring: Semiring[float] | type[Semiring[float]] | None = None,
+    semiring: Semiring[float] | type[Semiring[float]] | str | None = None,
     max_iter: int = 100,
     tol: float = 1e-6,
     dangling: SparseVector[K, float] | None = None,
@@ -477,7 +502,14 @@ def pagerank(
         graph: Sparse adjacency matrix representing directed weighted edges `u -> {v: weight}`.
         damping: Random walk continuation probability $\alpha \in [0, 1]$ (default 0.85).
         personalization: Teleportation restart probability vector $\mathbf{v}$ (default uniform).
-        semiring: Semiring instance or class used for vector-matrix multiplication (default StandardSemiring).
+        semiring: Semiring instance, class, or catalog name used for PageRank propagation
+            (default `StandardSemiring`). Must have a real/numeric carrier (`int`/`float`).
+            Because transition rows and teleportation vectors are normalized as probability
+            distributions summing to `1.0`, multiplicative $[0, 1]$ semirings (`StandardSemiring`,
+            `ViterbiSemiring`, `BottleneckSemiring`) carry coherent probabilistic/max-path/bottleneck
+            semantics, whereas additive-cost semirings (e.g., `TropicalSemiring`) are not
+            probability-normalized. Single-node graphs return `{node: 1.0}` and `damping == 0.0`
+            returns the normalized restart vector `personalization`.
         max_iter: Maximum number of power iterations (default 100).
         tol: Convergence tolerance under L1 norm (default 1e-6).
         dangling: Probability distribution for redistributing mass from sink vertices (default equals personalization).
@@ -488,6 +520,7 @@ def pagerank(
     Raises:
         ValueError: If damping is not in [0, 1], max_iter < 1, tol < 0, or
             personalization/dangling has non-positive sum.
+        TypeError: If `semiring` has a non-numeric carrier (e.g., `StringSemiring`, `BooleanSemiring`).
 
     Example:
         >>> g = {'a': {'b': 1.0}, 'b': {'a': 1.0}}
@@ -501,6 +534,9 @@ def pagerank(
         raise ValueError(f'max_iter must be a positive integer, got {max_iter}')
     if tol < 0.0:
         raise ValueError(f'tol must be non-negative, got {tol}')
+
+    sem = Semiring.normalize(semiring)
+    _validate_pagerank_semiring(sem)
 
     nodes: set[K] = set(graph.keys())
     for row in graph.values():
@@ -522,25 +558,37 @@ def pagerank(
 
     d_vec = p_vec if dangling is None else _normalize_distribution_vector(dangling, nodes, 'Dangling')
     trans_matrix, dangling_nodes = _build_transition_matrix(graph, nodes)
-    sem = Semiring.normalize(semiring)
 
     rank: dict[K, float] = dict(p_vec)
     one_minus_alpha = 1.0 - damping
+    add_op = sem.add
+    mul_op = sem.mul
+    zero = sem.zero
 
     for _ in range(max_iter):
-        dangling_mass = sum(rank.get(u, 0.0) for u in dangling_nodes)
-        next_rank = vec_mat(rank, trans_matrix, semiring=sem)
+        dangling_mass = zero
+        for u in dangling_nodes:
+            dangling_mass = add_op(dangling_mass, rank.get(u, zero))
 
-        dangling_term = damping * dangling_mass
+        next_rank = vec_mat(rank, trans_matrix, semiring=sem)
+        dangling_term = mul_op(damping, dangling_mass)
         total_err = 0.0
         updated_rank: dict[K, float] = {}
 
         for u in nodes:
-            walk_val = damping * next_rank.get(u, 0.0)
-            restart_val = one_minus_alpha * p_vec.get(u, 0.0) + dangling_term * d_vec.get(u, 0.0)
-            val = walk_val + restart_val
+            walk_val = mul_op(damping, next_rank.get(u, zero))
+            tele_val = mul_op(one_minus_alpha, p_vec.get(u, zero))
+            if dangling_nodes:
+                sink_val = mul_op(dangling_term, d_vec.get(u, zero))
+                restart_val = add_op(tele_val, sink_val)
+            else:
+                restart_val = tele_val
+            val = add_op(walk_val, restart_val)
             updated_rank[u] = val
-            total_err += abs(val - rank.get(u, 0.0))
+            prev = rank.get(u, zero)
+            if val != prev:
+                diff = abs(val - prev)
+                total_err += diff if not math.isnan(diff) else float('inf')
 
         rank = updated_rank
         if total_err < tol:

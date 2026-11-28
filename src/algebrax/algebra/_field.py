@@ -473,18 +473,19 @@ class GaloisField(QuotientMonoidAlgebraSemiring[int, int], Field[dict[int, int]]
         self.p = p
         self.irreduc_poly: tuple[int, ...] = monic_poly
 
-        def key_op(k1: int, k2: int) -> int:
-            return k1 + k2
-
-        def quotient_fn(key: int, coeff: int) -> Iterable[tuple[int, int]]:
-            return _gf_poly_mod(key, coeff, p=self.p, irreduc_poly=self.irreduc_poly)
-
         super().__init__(
             coeff_semiring=ModularField(self.p),  # type: ignore[arg-type]
-            key_op=key_op,
+            key_op=self._key_op,
             zero_key=0,
-            quotient_fn=quotient_fn,
+            quotient_fn=self._quotient_fn,
         )
+
+    @staticmethod
+    def _key_op(k1: int, k2: int) -> int:
+        return k1 + k2
+
+    def _quotient_fn(self, key: int, coeff: int) -> Iterable[tuple[int, int]]:
+        return _gf_poly_mod(key, coeff, p=self.p, irreduc_poly=self.irreduc_poly)
 
     @property
     def is_associative(self) -> Literal[True]:

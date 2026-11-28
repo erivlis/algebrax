@@ -12,14 +12,18 @@ Classes:
     with algebraic operations over a Semiring.
 """
 
+import contextlib
 from collections import defaultdict
 from collections.abc import Iterable, MutableMapping
-from typing import TypeVar
+from typing import Any, TypeVar
 
+from algebrax.converters import make_zero_predicate
 from algebrax.semiring import Semiring, StandardSemiring
 
 V = TypeVar('V')
 K = TypeVar('K')
+
+__all__ = ['AlgebraicTrie']
 
 
 class AlgebraicTrie(MutableMapping[tuple[K, ...], V]):
@@ -43,26 +47,27 @@ class AlgebraicTrie(MutableMapping[tuple[K, ...], V]):
         Compressed n-gram language models, sparse provenance tracking, routing tables.
 
     Args:
-        semiring: The Semiring class to use for operations (default: StandardSemiring).
+        semiring: Semiring instance, class, or catalog name (default: StandardSemiring).
     """
 
-    def __init__(self, semiring: type[Semiring[V]] = StandardSemiring):
-        # Instantiate the semiring to access properties like zero/one
-        self.semiring = semiring()
+    def __init__(self, semiring: Semiring[V] | type[Semiring[V]] | str = StandardSemiring):
+        self.semiring: Semiring[V] = Semiring.normalize(semiring)  # type: ignore[arg-type]
+        self._is_zero = make_zero_predicate(self.semiring)
         # The recursive factory for the sparse structure: infinite depth
         self._factory = lambda: defaultdict(self._factory)
         self._data = self._factory()
         self._value_key = object()  # Unique sentinel key to store the value at a node
+        self._size: int = 0
 
-    def __getstate__(self) -> dict:
+    def __getstate__(self) -> dict[str, Any]:
         return {
-            'semiring_type': type(self.semiring),
+            'semiring': self.semiring,
             'items': dict(self.items()),
         }
 
-    def __setstate__(self, state: dict) -> None:
-        sem_type = state.get('semiring_type', StandardSemiring)
-        self.__init__(semiring=sem_type)
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        sem = state.get('semiring', state.get('semiring_type', StandardSemiring))
+        self.__init__(semiring=sem)
         for k, v in state.get('items', {}).items():
             self[k] = v
 
@@ -70,10 +75,17 @@ class AlgebraicTrie(MutableMapping[tuple[K, ...], V]):
         """
         Sets the value at the given path.
         Note: This OVERWRITES the existing value. To merge, use `add`.
+        Assigning algebraic zero removes the entry and prunes any emptied branches.
         """
+        if self._is_zero(value):
+            with contextlib.suppress(KeyError):
+                del self[key]
+            return
         node = self._data
         for k in key:
             node = node[k]
+        if self._value_key not in node:
+            self._size += 1
         node[self._value_key] = value
 
     def __getitem__(self, key: Iterable[K]) -> V:
@@ -98,6 +110,7 @@ class AlgebraicTrie(MutableMapping[tuple[K, ...], V]):
         if not path:
             if self._value_key in self._data:
                 del self._data[self._value_key]
+                self._size -= 1
             else:
                 raise KeyError(key)
             return
@@ -115,6 +128,7 @@ class AlgebraicTrie(MutableMapping[tuple[K, ...], V]):
             raise KeyError(key)
 
         del target_node[self._value_key]
+        self._size -= 1
 
         # Cleanup empty branches up the tree
         while len(stack) > 1:
@@ -139,21 +153,53 @@ class AlgebraicTrie(MutableMapping[tuple[K, ...], V]):
                     stack.append((v, (*path, k)))
 
     def __len__(self) -> int:
-        """Returns the number of set values in the Trie."""
-        return sum(1 for _ in self)
+        """Returns the number of set values in the Trie in O(1) time."""
+        return self._size
 
     def add(self, key: Iterable[K], value: V) -> None:
         """
         Algebraic Addition: Merges the value into the given path using `semiring.add`.
 
+        Prunes entries that cancel to algebraic zero and removes emptied intermediate branches.
+
         T[key] = T[key] + value
         """
+        path = list(key)
         node = self._data
-        for k in key:
+        stack: list[tuple[Any, Any]] = [(None, node)]
+        exists = True
+        for k in path:
+            if k not in node:
+                exists = False
+                break
             node = node[k]
+            stack.append((k, node))
 
-        current = node.get(self._value_key, self.semiring.zero)
-        node[self._value_key] = self.semiring.add(current, value)
+        if exists and self._value_key in node:
+            new_val = self.semiring.add(node[self._value_key], value)
+            if self._is_zero(new_val):
+                del node[self._value_key]
+                self._size -= 1
+                while len(stack) > 1:
+                    k_step, child = stack.pop()
+                    parent = stack[-1][1]
+                    if not child:
+                        del parent[k_step]
+                    else:
+                        break
+            else:
+                node[self._value_key] = new_val
+            return
+
+        new_val = self.semiring.add(self.semiring.zero, value)
+        if self._is_zero(new_val):
+            return
+
+        node = self._data
+        for k in path:
+            node = node[k]
+        node[self._value_key] = new_val
+        self._size += 1
 
     def contract(self, prefix: Iterable[K] = ()) -> V:
         """

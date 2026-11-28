@@ -12,6 +12,7 @@ from algebrax.algebra._mixins import LawCommutative
 from algebrax.algebra._module import Algebra, Semimodule
 from algebrax.algebra._ring import CommRing, Ring
 from algebrax.algebra._semiring import Semiring
+from algebrax.converters import make_zero_predicate
 from algebrax.typing import K, SparseVector
 
 if TYPE_CHECKING:
@@ -63,9 +64,10 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVe
         result = dict(a)
         coeff_add = self.coeff_semiring.add
         zero = self.coeff_semiring.zero
+        is_zero = make_zero_predicate(self.coeff_semiring)
         for exp, coeff in b.items():
             new_coeff = coeff_add(result.get(exp, zero), coeff)
-            if new_coeff == zero:
+            if is_zero(new_coeff):
                 result.pop(exp, None)
             else:
                 result[exp] = new_coeff
@@ -73,11 +75,11 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVe
 
     def smul(self, r: T, m: SparseVector[K, T]) -> SparseVector[K, T]:
         """Scale monoid algebra element by scalar r in S."""
-        zero = self.coeff_semiring.zero
         mul_fn = self.coeff_semiring.mul
-        if r == zero:
+        is_zero = make_zero_predicate(self.coeff_semiring)
+        if is_zero(r):
             return {}
-        return {k: prod for k, c in m.items() if (prod := mul_fn(r, c)) != zero}
+        return {k: prod for k, c in m.items() if not is_zero(prod := mul_fn(r, c))}
 
     def mul(self, a: SparseVector[K, T], b: SparseVector[K, T]) -> SparseVector[K, T]:
         if not a or not b:
@@ -88,6 +90,7 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVe
         coeff_mul = self.coeff_semiring.mul
         coeff_add = self.coeff_semiring.add
         zero = self.coeff_semiring.zero
+        is_zero = make_zero_predicate(self.coeff_semiring)
 
         for e1, c1 in a.items():
             for e2, c2 in b.items():
@@ -97,7 +100,7 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVe
                 current_coeff = result.get(new_key, zero)
                 sum_coeff = coeff_add(current_coeff, new_coeff)
 
-                if sum_coeff == zero:
+                if is_zero(sum_coeff):
                     result.pop(new_key, None)
                 else:
                     result[new_key] = sum_coeff
@@ -113,10 +116,10 @@ class MonoidAlgebraSemiring(Semiring[SparseVector[K, T]], Semimodule[T, SparseVe
 
             def coeff_nsum(coeff: T, count: int) -> T:
                 return _nsum(self.coeff_semiring, coeff, count)
-        zero = self.coeff_semiring.zero
+        is_zero = make_zero_predicate(self.coeff_semiring)
         for exp, coeff in a.items():
             scaled = coeff_nsum(coeff, n)
-            if scaled != zero:
+            if not is_zero(scaled):
                 result[exp] = scaled
         return result
 
@@ -143,10 +146,10 @@ class MonoidAlgebra(MonoidAlgebraSemiring[K, T], Algebra[T, SparseVector[K, T]],
     def neg(self, a: SparseVector[K, T]) -> SparseVector[K, T]:
         """Negate coefficients, delegating to coefficient ring if available."""
         neg_fn = getattr(self.coeff_semiring, 'neg', None)
-        zero = self.coeff_semiring.zero
+        is_zero = make_zero_predicate(self.coeff_semiring)
         if neg_fn is not None:
-            return {k: neg_fn(c) for k, c in a.items() if c != zero}
-        return {k: -c for k, c in a.items() if c != zero}  # type: ignore[operator]
+            return {k: neg_fn(c) for k, c in a.items() if not is_zero(c)}
+        return {k: -c for k, c in a.items() if not is_zero(c)}  # type: ignore[operator]
 
     def sub(self, a: SparseVector[K, T], b: SparseVector[K, T]) -> SparseVector[K, T]:
         """Direct sparse difference: a - b."""

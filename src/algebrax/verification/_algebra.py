@@ -50,6 +50,7 @@ from algebrax.algebra._ideals import GroebnerIdeal, Ideal
 from algebrax.algebra._normed import InnerProductSpace, NormedSpace
 from algebrax.algebra._polynomial import MultivariatePolynomialAlgebra, SparseMPoly, monomial_divides
 from algebrax.algebra._quotient import CommQuotientRing, QuotientRing
+from algebrax.converters import make_zero_predicate
 from algebrax.verification._common import _float_equal, _require_samples, semiring_elements_equal
 
 C = TypeVar('C')
@@ -60,6 +61,18 @@ M = TypeVar('M')
 R = TypeVar('R')
 V = TypeVar('V')
 X = TypeVar('X')
+
+
+def _elements_eq(structure: Any, a: Any, b: Any, tol: float) -> bool:
+    """Compare elements using Grothendieck equivalence when verifying quotient completions."""
+    if isinstance(structure, GrothendieckGroup):
+        if structure._eq_fn is not None:
+            return structure.equiv(a, b)
+        lhs = structure.monoid.add(a[0], b[1])
+        rhs = structure.monoid.add(a[1], b[0])
+        return semiring_elements_equal(lhs, rhs, tol)
+    return semiring_elements_equal(a, b, tol)
+
 
 def verify_magma_laws(
     magma: Magma[V],
@@ -93,7 +106,7 @@ def verify_semigroup_laws(
     for a, b, c in itertools.product(elements, repeat=3):
         lhs = mul(mul(a, b), c)
         rhs = mul(a, mul(b, c))
-        if not semiring_elements_equal(lhs, rhs, tol):
+        if not _elements_eq(semigroup, lhs, rhs, tol):
             assoc = False
             break
     res['mul_associativity'] = assoc
@@ -111,7 +124,7 @@ def verify_band_laws(
     mul = band.mul
     idemp = True
     for a in elements:
-        if not semiring_elements_equal(mul(a, a), a, tol):
+        if not _elements_eq(band, mul(a, a), a, tol):
             idemp = False
             break
     res['mul_idempotence'] = idemp
@@ -131,9 +144,9 @@ def verify_monoid_laws(
     left_id = True
     right_id = True
     for a in elements:
-        if not semiring_elements_equal(mul(one, a), a, tol):
+        if not _elements_eq(monoid, mul(one, a), a, tol):
             left_id = False
-        if not semiring_elements_equal(mul(a, one), a, tol):
+        if not _elements_eq(monoid, mul(a, one), a, tol):
             right_id = False
     res['left_identity'] = left_id
     res['right_identity'] = right_id
@@ -151,7 +164,7 @@ def verify_comm_monoid_laws(
     mul = monoid.mul
     comm = True
     for a, b in itertools.combinations(elements, 2):
-        if not semiring_elements_equal(mul(a, b), mul(b, a), tol):
+        if not _elements_eq(monoid, mul(a, b), mul(b, a), tol):
             comm = False
             break
     res['mul_commutativity'] = comm
@@ -175,13 +188,13 @@ def verify_group_laws(
     quotient = True
     for a in elements:
         a_inv = inv(a)
-        if not semiring_elements_equal(mul(a_inv, a), one, tol):
+        if not _elements_eq(group, mul(a_inv, a), one, tol):
             left_inv = False
-        if not semiring_elements_equal(mul(a, a_inv), one, tol):
+        if not _elements_eq(group, mul(a, a_inv), one, tol):
             right_inv = False
         for b in elements:
             expected_div = mul(a, inv(b))
-            if not semiring_elements_equal(div(a, b), expected_div, tol):
+            if not _elements_eq(group, div(a, b), expected_div, tol):
                 quotient = False
                 break
     res['left_inverse'] = left_inv
@@ -201,7 +214,7 @@ def verify_comm_group_laws(
     mul = group.mul
     comm = True
     for a, b in itertools.combinations(elements, 2):
-        if not semiring_elements_equal(mul(a, b), mul(b, a), tol):
+        if not _elements_eq(group, mul(a, b), mul(b, a), tol):
             comm = False
             break
     res['mul_commutativity'] = comm
@@ -243,7 +256,7 @@ def verify_add_semigroup_laws(
     for a, b, c in itertools.product(elements, repeat=3):
         lhs = add(add(a, b), c)
         rhs = add(a, add(b, c))
-        if not semiring_elements_equal(lhs, rhs, tol):
+        if not _elements_eq(semigroup, lhs, rhs, tol):
             assoc = False
             break
     res['add_associativity'] = assoc
@@ -263,9 +276,9 @@ def verify_add_monoid_laws(
     left_id = True
     right_id = True
     for a in elements:
-        if not semiring_elements_equal(add(zero, a), a, tol):
+        if not _elements_eq(monoid, add(zero, a), a, tol):
             left_id = False
-        if not semiring_elements_equal(add(a, zero), a, tol):
+        if not _elements_eq(monoid, add(a, zero), a, tol):
             right_id = False
     res['left_add_identity'] = left_id
     res['right_add_identity'] = right_id
@@ -283,7 +296,7 @@ def verify_add_comm_monoid_laws(
     add = monoid.add
     comm = True
     for a, b in itertools.combinations(elements, 2):
-        if not semiring_elements_equal(add(a, b), add(b, a), tol):
+        if not _elements_eq(monoid, add(a, b), add(b, a), tol):
             comm = False
             break
     res['add_commutativity'] = comm
@@ -307,13 +320,13 @@ def verify_add_group_laws(
     diff = True
     for a in elements:
         neg_a = neg(a)
-        if not semiring_elements_equal(add(neg_a, a), zero, tol):
+        if not _elements_eq(group, add(neg_a, a), zero, tol):
             left_inv = False
-        if not semiring_elements_equal(add(a, neg_a), zero, tol):
+        if not _elements_eq(group, add(a, neg_a), zero, tol):
             right_inv = False
         for b in elements:
             expected_sub = add(a, neg(b))
-            if not semiring_elements_equal(sub(a, b), expected_sub, tol):
+            if not _elements_eq(group, sub(a, b), expected_sub, tol):
                 diff = False
                 break
     res['left_negation'] = left_inv
@@ -333,7 +346,7 @@ def verify_add_comm_group_laws(
     add = group.add
     comm = True
     for a, b in itertools.combinations(elements, 2):
-        if not semiring_elements_equal(add(a, b), add(b, a), tol):
+        if not _elements_eq(group, add(a, b), add(b, a), tol):
             comm = False
             break
     res['add_commutativity'] = comm
@@ -562,9 +575,9 @@ def verify_non_assoc_ring_laws(
     left_dist = True
     right_dist = True
     for a, b, c in itertools.product(elements, repeat=3):
-        if not semiring_elements_equal(mul(a, add(b, c)), add(mul(a, b), mul(a, c)), tol):
+        if not _elements_eq(ring, mul(a, add(b, c)), add(mul(a, b), mul(a, c)), tol):
             left_dist = False
-        if not semiring_elements_equal(mul(add(a, b), c), add(mul(a, c), mul(b, c)), tol):
+        if not _elements_eq(ring, mul(add(a, b), c), add(mul(a, c), mul(b, c)), tol):
             right_dist = False
         if not left_dist or not right_dist:
             break
@@ -597,7 +610,7 @@ def verify_comm_ring_laws(
     mul = ring.mul
     comm = True
     for a, b in itertools.combinations(elements, 2):
-        if not semiring_elements_equal(mul(a, b), mul(b, a), tol):
+        if not _elements_eq(ring, mul(a, b), mul(b, a), tol):
             comm = False
             break
     res['mul_commutativity'] = comm
@@ -1417,13 +1430,15 @@ def verify_inner_product_space_laws(
 # Coalgebra, Bialgebra & Hopf Algebra Axiom Verifiers
 # =============================================================================
 
-C = TypeVar('C')
+def _coeff_semiring(coalgebra: Any) -> Semiring[Any] | None:
+    sr = getattr(coalgebra, 'coeff_semiring', None)
+    return sr if isinstance(sr, Semiring) else None
 
 
-def _carrier_basis(val: Any) -> Any:
+def _carrier_basis(val: Any, sr: Semiring[Any] | None = None) -> Any:
     if isinstance(val, dict):
         return val
-    return {val: 1.0}
+    return {val: sr.one if sr is not None else 1.0}
 
 
 def _to_scalar(val: Any) -> float | complex:
@@ -1432,8 +1447,37 @@ def _to_scalar(val: Any) -> float | complex:
     return float(val)
 
 
-def _scalar_close(a: Any, b: Any, tol: float) -> bool:
+def _scalar_close(a: Any, b: Any, tol: float, sr: Semiring[Any] | None = None) -> bool:
+    if sr is not None:
+        return semiring_elements_equal(a, b, tol)
     return cmath.isclose(complex(a), complex(b), rel_tol=tol, abs_tol=tol)
+
+
+def _accumulate_tensor_term(
+    acc: dict[tuple[Any, Any, Any], Any],
+    key: tuple[Any, Any, Any],
+    alpha: Any,
+    beta: Any,
+    sr: Semiring[Any] | None,
+) -> None:
+    if sr is not None:
+        prod = sr.mul(alpha, beta)
+        acc[key] = sr.add(acc[key], prod) if key in acc else prod
+    else:
+        acc[key] = acc.get(key, 0.0) + _to_scalar(alpha) * _to_scalar(beta)
+
+
+def _clean_sparse(val: Any, tol: float, sr: Semiring[Any] | None = None) -> Any:
+    if isinstance(val, dict):
+        if sr is not None:
+            is_zero = make_zero_predicate(sr, tol=tol)
+            return {k: v for k, v in val.items() if not is_zero(v)}
+        return {
+            k: v
+            for k, v in val.items()
+            if (abs(v) > tol if isinstance(v, (int, float, complex)) else True)
+        }
+    return val
 
 
 def verify_coassociativity(
@@ -1442,46 +1486,33 @@ def verify_coassociativity(
     tol: float = 1e-9,
 ) -> bool:
     r"""Verify that $(\Delta \otimes \mathrm{id}) \circ \Delta(c) == (\mathrm{id} \otimes \Delta) \circ \Delta(c)$."""
+    sr = _coeff_semiring(coalgebra)
     for c in samples:
         delta_c = coalgebra.coproduct(c)
 
         # 1. Left parenthesization: (Delta (x) id) Delta(c)
-        tensor_left: dict[tuple[Any, Any, Any], float | complex] = {}
+        tensor_left: dict[tuple[Any, Any, Any], Any] = {}
         for (u, v), alpha in delta_c.items():
-            af = _to_scalar(alpha)
-            u_basis = _carrier_basis(u)
+            u_basis = _carrier_basis(u, sr)
             delta_u = coalgebra.coproduct(u_basis)
             for (x, y), beta in delta_u.items():
-                key = (x, y, v)
-                tensor_left[key] = tensor_left.get(key, 0.0) + af * _to_scalar(beta)
+                _accumulate_tensor_term(tensor_left, (x, y, v), alpha, beta, sr)
 
         # 2. Right parenthesization: (id (x) Delta) Delta(c)
-        tensor_right: dict[tuple[Any, Any, Any], float | complex] = {}
+        tensor_right: dict[tuple[Any, Any, Any], Any] = {}
         for (u, v), alpha in delta_c.items():
-            af = _to_scalar(alpha)
-            v_basis = _carrier_basis(v)
+            v_basis = _carrier_basis(v, sr)
             delta_v = coalgebra.coproduct(v_basis)
             for (y, z), gamma in delta_v.items():
-                key = (u, y, z)
-                tensor_right[key] = tensor_right.get(key, 0.0) + af * _to_scalar(gamma)
+                _accumulate_tensor_term(tensor_right, (u, y, z), alpha, gamma, sr)
 
-        tl_clean = {k: val for k, val in tensor_left.items() if abs(val) > tol}
-        tr_clean = {k: val for k, val in tensor_right.items() if abs(val) > tol}
+        tl_clean = _clean_sparse(tensor_left, tol, sr)
+        tr_clean = _clean_sparse(tensor_right, tol, sr)
 
         if not semiring_elements_equal(tl_clean, tr_clean, tol):
             return False
 
     return True
-
-
-def _clean_sparse(val: Any, tol: float) -> Any:
-    if isinstance(val, dict):
-        return {
-            k: v
-            for k, v in val.items()
-            if (abs(v) > tol if isinstance(v, (int, float, complex)) else True)
-        }
-    return val
 
 
 def verify_counitality(
@@ -1492,32 +1523,35 @@ def verify_counitality(
     r"""Verify counitality:
     $(\epsilon \otimes \mathrm{id})\Delta(c) == c == (\mathrm{id} \otimes \epsilon)\Delta(c)$.
     """
+    sr = _coeff_semiring(coalgebra)
     for c in samples:
         delta_c = coalgebra.coproduct(c)
 
         # Left counitality: sum_{(u, v)} alpha * epsilon(u) * v
         left_eval = coalgebra.zero
         for (u, v), alpha in delta_c.items():
-            u_basis = _carrier_basis(u)
-            v_basis = _carrier_basis(v)
+            u_basis = _carrier_basis(u, sr)
+            v_basis = _carrier_basis(v, sr)
             eps_u = coalgebra.counit(u_basis)
-            scaled_v = coalgebra.smul(_to_scalar(alpha) * _to_scalar(eps_u), v_basis)
+            coeff = sr.mul(alpha, eps_u) if sr is not None else _to_scalar(alpha) * _to_scalar(eps_u)
+            scaled_v = coalgebra.smul(coeff, v_basis)
             left_eval = coalgebra.add(left_eval, scaled_v)
 
-        c_clean = _clean_sparse(c, tol)
-        if not semiring_elements_equal(_clean_sparse(left_eval, tol), c_clean, tol):
+        c_clean = _clean_sparse(c, tol, sr)
+        if not semiring_elements_equal(_clean_sparse(left_eval, tol, sr), c_clean, tol):
             return False
 
         # Right counitality: sum_{(u, v)} alpha * epsilon(v) * u
         right_eval = coalgebra.zero
         for (u, v), alpha in delta_c.items():
-            u_basis = _carrier_basis(u)
-            v_basis = _carrier_basis(v)
+            u_basis = _carrier_basis(u, sr)
+            v_basis = _carrier_basis(v, sr)
             eps_v = coalgebra.counit(v_basis)
-            scaled_u = coalgebra.smul(_to_scalar(alpha) * _to_scalar(eps_v), u_basis)
+            coeff = sr.mul(alpha, eps_v) if sr is not None else _to_scalar(alpha) * _to_scalar(eps_v)
+            scaled_u = coalgebra.smul(coeff, u_basis)
             right_eval = coalgebra.add(right_eval, scaled_u)
 
-        if not semiring_elements_equal(_clean_sparse(right_eval, tol), c_clean, tol):
+        if not semiring_elements_equal(_clean_sparse(right_eval, tol, sr), c_clean, tol):
             return False
 
     return True
@@ -1531,6 +1565,7 @@ def verify_antipode_axiom(
     r"""Verify the antipode axiom:
     $$\sum S(c_{(1)}) \cdot c_{(2)} = \epsilon(c) \mathbf{1} = \sum c_{(1)} \cdot S(c_{(2)})$$
     """
+    sr = _coeff_semiring(hopf)
     one = hopf.one
     for c in samples:
         delta_c = hopf.coproduct(c)
@@ -1540,28 +1575,28 @@ def verify_antipode_axiom(
         # Left condition: sum S(u) * v
         left_val = hopf.zero
         for (u, v), alpha in delta_c.items():
-            u_basis = _carrier_basis(u)
-            v_basis = _carrier_basis(v)
+            u_basis = _carrier_basis(u, sr)
+            v_basis = _carrier_basis(v, sr)
             s_u = hopf.antipode(u_basis)
             prod = hopf.mul(s_u, v_basis)
-            scaled = hopf.smul(_to_scalar(alpha), prod)
+            scaled = hopf.smul(alpha if sr is not None else _to_scalar(alpha), prod)
             left_val = hopf.add(left_val, scaled)
 
-        exp_clean = _clean_sparse(expected, tol)
-        if not semiring_elements_equal(_clean_sparse(left_val, tol), exp_clean, tol):
+        exp_clean = _clean_sparse(expected, tol, sr)
+        if not semiring_elements_equal(_clean_sparse(left_val, tol, sr), exp_clean, tol):
             return False
 
         # Right condition: sum u * S(v)
         right_val = hopf.zero
         for (u, v), alpha in delta_c.items():
-            u_basis = _carrier_basis(u)
-            v_basis = _carrier_basis(v)
+            u_basis = _carrier_basis(u, sr)
+            v_basis = _carrier_basis(v, sr)
             s_v = hopf.antipode(v_basis)
             prod = hopf.mul(u_basis, s_v)
-            scaled = hopf.smul(_to_scalar(alpha), prod)
+            scaled = hopf.smul(alpha if sr is not None else _to_scalar(alpha), prod)
             right_val = hopf.add(right_val, scaled)
 
-        if not semiring_elements_equal(_clean_sparse(right_val, tol), exp_clean, tol):
+        if not semiring_elements_equal(_clean_sparse(right_val, tol, sr), exp_clean, tol):
             return False
 
     return True
@@ -1628,23 +1663,34 @@ def verify_bialgebra_laws(
     res = verify_coalgebra_laws(bialgebra, r_elements, c_elements, tol)
     res.update(verify_monoid_laws(bialgebra, c_elements, tol))
 
+    sr = _coeff_semiring(bialgebra)
+    one_scalar: Any = sr.one if sr is not None else 1.0
+
     # Counit homomorphism: epsilon(a * b) == epsilon(a) * epsilon(b), epsilon(1) == 1
     counit_hom = True
     one = bialgebra.one
     eps_one = bialgebra.counit(one)
-    if not _scalar_close(eps_one, 1.0, tol):
+    if not _scalar_close(eps_one, one_scalar, tol, sr):
         counit_hom = False
 
     for a, b in itertools.combinations(c_elements, 2):
         eps_ab = bialgebra.counit(bialgebra.mul(a, b))
-        eps_a_eps_b = _to_scalar(bialgebra.counit(a)) * _to_scalar(bialgebra.counit(b))
-        if not _scalar_close(eps_ab, eps_a_eps_b, tol):
+        eps_a = bialgebra.counit(a)
+        eps_b = bialgebra.counit(b)
+        eps_a_eps_b = sr.mul(eps_a, eps_b) if sr is not None else _to_scalar(eps_a) * _to_scalar(eps_b)
+        if not _scalar_close(eps_ab, eps_a_eps_b, tol, sr):
             counit_hom = False
             break
 
     # Coproduct unit preservation: Delta(1) has sum of coeffs 1
     delta_one = bialgebra.coproduct(one)
-    coprod_unit = len(delta_one) >= 1 and _scalar_close(sum(delta_one.values()), 1.0, tol)
+    if sr is not None:
+        delta_sum: Any = sr.zero
+        for val in delta_one.values():
+            delta_sum = sr.add(delta_sum, val)
+    else:
+        delta_sum = sum(delta_one.values())
+    coprod_unit = len(delta_one) >= 1 and _scalar_close(delta_sum, one_scalar, tol, sr)
 
     res['counit_homomorphism'] = counit_hom
     res['coproduct_unit_preservation'] = coprod_unit

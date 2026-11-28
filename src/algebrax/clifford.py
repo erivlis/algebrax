@@ -105,20 +105,20 @@ class CliffordAlgebra(QuotientMonoidAlgebra[tuple[int, ...], float]):
         self.p = p
         self.q = q
         self.r = r
-
-        def key_op(k1: tuple[int, ...], k2: tuple[int, ...]) -> tuple[int, ...]:
-            return k1 + k2
-
-        def quotient_fn(key: tuple[int, ...], coeff: float) -> Iterable[tuple[tuple[int, ...], float]]:
-            reds = _clifford_blade_mul(key, (), p=self.p, q=self.q, r=self.r)
-            return [(k, c * coeff) for k, c in reds]
-
         super().__init__(
             coeff_semiring=StandardSemiring[float](),
-            key_op=key_op,
+            key_op=self._key_op,
             zero_key=(),
-            quotient_fn=quotient_fn,
+            quotient_fn=self._quotient_fn,
         )
+
+    @staticmethod
+    def _key_op(k1: tuple[int, ...], k2: tuple[int, ...]) -> tuple[int, ...]:
+        return k1 + k2
+
+    def _quotient_fn(self, key: tuple[int, ...], coeff: float) -> Iterable[tuple[tuple[int, ...], float]]:
+        reds = _clifford_blade_mul(key, (), p=self.p, q=self.q, r=self.r)
+        return [(k, c * coeff) for k, c in reds]
 
     def neg(self, a: SparseVector[tuple[int, ...], float]) -> SparseVector[tuple[int, ...], float]:
         """Additive inverse of a multivector with zero-cleaning."""
@@ -217,26 +217,25 @@ class GeneralizedCliffordAlgebra(QuotientMonoidAlgebra[tuple[int, ...], complex]
         self.n_order = n_order
         self.num_generators = num_generators
         self.signatures = signatures
-
-        def key_op(k1: tuple[int, ...], k2: tuple[int, ...]) -> tuple[int, ...]:
-            k1_p = tuple(k1) + (0,) * max(0, self.num_generators - len(k1))
-            k2_p = tuple(k2) + (0,) * max(0, self.num_generators - len(k2))
-            return k1_p + k2_p
-
-        def quotient_fn(key: tuple[int, ...], coeff: complex) -> Iterable[tuple[tuple[int, ...], complex]]:
-            k1 = key[: self.num_generators]
-            k2 = key[self.num_generators :]
-            reds = _gca_blade_mul(
-                k1, k2, n_order=self.n_order, num_generators=self.num_generators, signatures=self.signatures
-            )
-            return [(k, c * coeff) for k, c in reds]
-
         super().__init__(
             coeff_semiring=StandardSemiring[complex](),
-            key_op=key_op,
+            key_op=self._key_op,
             zero_key=tuple([0] * num_generators),
-            quotient_fn=quotient_fn,
+            quotient_fn=self._quotient_fn,
         )
+
+    def _key_op(self, k1: tuple[int, ...], k2: tuple[int, ...]) -> tuple[int, ...]:
+        k1_p = tuple(k1) + (0,) * max(0, self.num_generators - len(k1))
+        k2_p = tuple(k2) + (0,) * max(0, self.num_generators - len(k2))
+        return k1_p + k2_p
+
+    def _quotient_fn(self, key: tuple[int, ...], coeff: complex) -> Iterable[tuple[tuple[int, ...], complex]]:
+        k1 = key[: self.num_generators]
+        k2 = key[self.num_generators :]
+        reds = _gca_blade_mul(
+            k1, k2, n_order=self.n_order, num_generators=self.num_generators, signatures=self.signatures
+        )
+        return [(k, c * coeff) for k, c in reds]
 
 
 
@@ -309,26 +308,25 @@ class QuantumCliffordAlgebra(QuotientMonoidAlgebra[tuple[int, ...], complex]):
         self.q = q
         self.num_generators = num_generators
         self.signatures = signatures
-
-        def key_op(k1: tuple[int, ...], k2: tuple[int, ...]) -> tuple[int, ...]:
-            k1_p = tuple(k1) + (0,) * max(0, self.num_generators - len(k1))
-            k2_p = tuple(k2) + (0,) * max(0, self.num_generators - len(k2))
-            return k1_p + k2_p
-
-        def quotient_fn(key: tuple[int, ...], coeff: complex) -> Iterable[tuple[tuple[int, ...], complex]]:
-            k1 = key[: self.num_generators]
-            k2 = key[self.num_generators :]
-            reds = _quantum_clifford_blade_mul(
-                k1, k2, q=self.q, num_generators=self.num_generators, signatures=self.signatures
-            )
-            return [(k, c * coeff) for k, c in reds]
-
         super().__init__(
             coeff_semiring=StandardSemiring[complex](),
-            key_op=key_op,
+            key_op=self._key_op,
             zero_key=tuple([0] * num_generators),
-            quotient_fn=quotient_fn,
+            quotient_fn=self._quotient_fn,
         )
+
+    def _key_op(self, k1: tuple[int, ...], k2: tuple[int, ...]) -> tuple[int, ...]:
+        k1_p = tuple(k1) + (0,) * max(0, self.num_generators - len(k1))
+        k2_p = tuple(k2) + (0,) * max(0, self.num_generators - len(k2))
+        return k1_p + k2_p
+
+    def _quotient_fn(self, key: tuple[int, ...], coeff: complex) -> Iterable[tuple[tuple[int, ...], complex]]:
+        k1 = key[: self.num_generators]
+        k2 = key[self.num_generators :]
+        reds = _quantum_clifford_blade_mul(
+            k1, k2, q=self.q, num_generators=self.num_generators, signatures=self.signatures
+        )
+        return [(k, c * coeff) for k, c in reds]
 
 
 

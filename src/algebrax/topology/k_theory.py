@@ -15,13 +15,17 @@ import math
 from collections.abc import Iterable, Sequence
 from typing import Any
 
-from algebrax.algebra._ring import CommRing
+from algebrax.algebra._grothendieck import CommGrothendieckRing
+from algebrax.algebra._semiring import CommSemiring
+from algebrax.matrix.core import dot as _mat_dot
+from algebrax.matrix.core import transpose as _mat_transpose
 from algebrax.topology.bundle import DiscreteConnection, DiscreteOrthogonalConnection, compute_face_holonomy
 from algebrax.topology.cohomology import Cochain, cup_product
 from algebrax.typing import SparseMatrix
 
 __all__ = [
     'TopologicalKTheoryRing',
+    'VectorBundleSemiring',
     'bundle_direct_sum',
     'bundle_tensor_product',
     'chern_character',
@@ -243,13 +247,190 @@ def chern_character(
     return rank, ch1, ch2
 
 
-class TopologicalKTheoryRing(
-    CommRing[tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None]],
-):
+def _sparse_trace(mat: SparseMatrix[int, float]) -> float:
+    """Compute the trace of a sparse square matrix."""
+    return sum(row.get(i, 0.0) for i, row in mat.items())
+
+
+def _orthogonal_matrices_similar(
+    m1: SparseMatrix[int, float],
+    m2: SparseMatrix[int, float],
+    dim: int,
+    tol: float = 1e-7,
+) -> bool:
+    """Check orthogonal similarity via full Newton spectral power-trace invariants tr(M^k) for k=1..dim."""
+    if dim == 0:
+        return True
+    p1: SparseMatrix[int, float] = m1
+    p2: SparseMatrix[int, float] = m2
+    for k in range(1, dim + 1):
+        if abs(_sparse_trace(p1) - _sparse_trace(p2)) > tol:
+            return False
+        if k < dim:
+            p1 = _mat_dot(p1, m1)
+            p2 = _mat_dot(p2, m2)
+    return True
+
+
+def _deduplicate_undirected_edges(edges: Iterable[tuple[Any, Any]]) -> list[tuple[Any, Any]]:
+    seen: set[frozenset[Any]] = set()
+    canonical: list[tuple[Any, Any]] = []
+    for u, v in edges:
+        undir = frozenset((u, v))
+        if undir in seen:
+            continue
+        seen.add(undir)
+        canonical.append((u, v))
+    return canonical
+
+
+def _build_spanning_forests(
+    canonical_edges: Sequence[tuple[Any, Any]],
+) -> list[tuple[Any, list[tuple[Any, Any]], list[tuple[Any, Any]]]]:
+    """Decompose the 1-skeleton into connected spanning trees and fundamental cycle chord edges."""
+    adj: dict[Any, list[Any]] = {}
+    vertices: list[Any] = []
+    seen_verts: set[Any] = set()
+    for u, v in canonical_edges:
+        for vert in (u, v):
+            if vert not in seen_verts:
+                seen_verts.add(vert)
+                vertices.append(vert)
+        adj.setdefault(u, []).append(v)
+        adj.setdefault(v, []).append(u)
+
+    visited: set[Any] = set()
+    forests: list[tuple[Any, list[tuple[Any, Any]], list[tuple[Any, Any]]]] = []
+    for root in vertices:
+        if root in visited:
+            continue
+        comp_verts: set[Any] = {root}
+        visited.add(root)
+        tree_edges: list[tuple[Any, Any]] = []
+        tree_edge_set: set[frozenset[Any]] = set()
+        queue: list[Any] = [root]
+        idx = 0
+        while idx < len(queue):
+            curr = queue[idx]
+            idx += 1
+            for nbr in adj.get(curr, ()):
+                if nbr not in visited:
+                    visited.add(nbr)
+                    comp_verts.add(nbr)
+                    tree_edges.append((curr, nbr))
+                    tree_edge_set.add(frozenset((curr, nbr)))
+                    queue.append(nbr)
+        chords = [
+            (u, v)
+            for u, v in canonical_edges
+            if u in comp_verts and frozenset((u, v)) not in tree_edge_set
+        ]
+        forests.append((root, tree_edges, chords))
+    return forests
+
+
+def _component_holonomies(
+    bundle: DiscreteOrthogonalConnection,
+    root: Any,
+    tree_edges: Sequence[tuple[Any, Any]],
+    chords: Sequence[tuple[Any, Any]],
+) -> list[SparseMatrix[int, float]]:
+    """Compute axial-gauge fundamental cycle holonomies H_e = P[v]^T rho(u, v) P[u] rooted at `root`."""
+    if not chords:
+        return []
+    dim = bundle.fiber_dim
+    ident: SparseMatrix[int, float] = {i: {i: 1.0} for i in range(dim)}
+    tree_transport: dict[Any, SparseMatrix[int, float]] = {root: ident}
+    for parent, child in tree_edges:
+        tree_transport[child] = _mat_dot(bundle.transport(parent, child), tree_transport[parent])
+
+    holonomies: list[SparseMatrix[int, float]] = []
+    for u, v in chords:
+        step = _mat_dot(bundle.transport(u, v), tree_transport[u])
+        holonomies.append(_mat_dot(_mat_transpose(tree_transport[v]), step))
+    return holonomies
+
+
+class VectorBundleSemiring(CommSemiring[DiscreteOrthogonalConnection | None]):
+    r"""Commutative semiring $\mathrm{Vect}_{\mathbb{R}}(K)$ of discrete orthogonal vector bundles.
+
+    Algebraic Signature:
+        $\langle \mathrm{Vect}_{\mathbb{R}}(K), \mathbf{0}, \oplus, \underline{\mathbb{R}}^1, \otimes \rangle$
+
+    Carrier:
+        Discrete orthogonal connections `DiscreteOrthogonalConnection` over a fixed edge set,
+        augmented with `None` representing the rank-0 zero bundle $\mathbf{0}$.
+
+    Operations:
+        - `zero`: `None`, the empty rank-0 bundle acting as additive identity and multiplicative annihilator.
+        - `add` ($\oplus$): Whitney direct sum with block-diagonal parallel transport.
+        - `one`: Rank-1 flat trivial bundle $\underline{\mathbb{R}}^1$ with identity transport on every edge.
+        - `mul` ($\otimes$): Tensor product with Kronecker-product parallel transport.
+
+    Properties:
+        - Commutative semiring up to orthogonal bundle isomorphism ($\oplus$ and $\otimes$ commute
+          and distribute up to orthogonal basis permutation).
+        - Its Grothendieck completion $K_0(\mathrm{Vect}_{\mathbb{R}}(K))$ yields the topological
+          K-theory ring `TopologicalKTheoryRing`.
+
+    Applications:
+        - Base semiring for constructing $K^0(K)$ via `CommGrothendieckRing`.
+        - Composing discrete gauge bundles before evaluating Chern character invariants.
+    """
+
+    def __init__(self, edges: Iterable[tuple[Any, Any]]) -> None:
+        self._edges = list(edges)
+
+    @property
+    def zero(self) -> DiscreteOrthogonalConnection | None:
+        r"""Rank-0 empty bundle $\mathbf{0}$."""
+        return None
+
+    @property
+    def one(self) -> DiscreteOrthogonalConnection | None:
+        r"""Rank-1 flat trivial bundle $\underline{\mathbb{R}}^1$."""
+        return trivial_bundle(1, self._edges)
+
+    def add(
+        self,
+        a: DiscreteOrthogonalConnection | None,
+        b: DiscreteOrthogonalConnection | None,
+    ) -> DiscreteOrthogonalConnection | None:
+        r"""Whitney direct sum $E_1 \oplus E_2$ with `None` as additive identity."""
+        if a is None:
+            return b
+        if b is None:
+            return a
+        return bundle_direct_sum(a, b, self._edges)
+
+    def mul(
+        self,
+        a: DiscreteOrthogonalConnection | None,
+        b: DiscreteOrthogonalConnection | None,
+    ) -> DiscreteOrthogonalConnection | None:
+        r"""Tensor product $E_1 \otimes E_2$ with `None` as multiplicative annihilator."""
+        if a is None or b is None:
+            return None
+        return bundle_tensor_product(a, b, self._edges)
+
+
+class TopologicalKTheoryRing(CommGrothendieckRing[DiscreteOrthogonalConnection | None]):
     r"""Topological K-Theory ring $K^0(K)$ of virtual orthogonal vector bundles $[E] - [F]$.
 
     Algebraic Signature:
         $\langle K^0(K), [\mathbf{0}], \oplus, -, [\underline{\mathbb{R}}^1], \otimes \rangle$
+
+    Constructed as the Grothendieck ring completion $K_0(\mathrm{Vect}_{\mathbb{R}}(K))$ of
+    `VectorBundleSemiring`, inheriting formal difference addition, negation, subtraction,
+    virtual tensor multiplication, equivalence testing, and universal homomorphism lifting
+    from `CommGrothendieckRing`.
+
+    Bundle Equivalence:
+        Two rank-$d$ connections are compared in spanning-tree axial gauge via their rooted
+        fundamental cycle holonomies $H_e \in O(d)$: checking full Newton spectral power traces
+        $\operatorname{tr}(H_e^k)$ for $k = 1, \dots, d$ on every fundamental cycle and pairwise
+        product traces $\operatorname{tr}(H_i H_j), \operatorname{tr}(H_i H_j^T)$ for simultaneous
+        conjugacy across multi-cycle components.
 
     Carrier:
         Pairs `(pos_bundle, neg_bundle)` where `None` denotes the zero-rank trivial bundle $\mathbf{0}$.
@@ -262,78 +443,47 @@ class TopologicalKTheoryRing(
 
     def __init__(self, edges: Iterable[tuple[Any, Any]]) -> None:
         self._edges = list(edges)
+        self._canonical_edges = _deduplicate_undirected_edges(self._edges)
+        self._component_forests = _build_spanning_forests(self._canonical_edges)
+        super().__init__(VectorBundleSemiring(self._edges), eq_fn=self._bundles_equiv)
 
-    @property
-    def zero(self) -> tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None]:
-        """Zero virtual bundle (0, 0)."""
-        return (None, None)
-
-    @property
-    def one(self) -> tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None]:
-        r"""Multiplicative identity $[\underline{\mathbb{R}}^1] - [\mathbf{0}]$."""
-        return (trivial_bundle(1, self._edges), None)
-
-    def embed(
-        self,
-        bundle: DiscreteOrthogonalConnection,
-    ) -> tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None]:
-        """Embed a concrete vector bundle E as virtual class [E] - [0]."""
-        return (bundle, None)
-
-    def _sum_opt(
+    def _bundles_equiv(
         self,
         b1: DiscreteOrthogonalConnection | None,
         b2: DiscreteOrthogonalConnection | None,
-    ) -> DiscreteOrthogonalConnection | None:
+    ) -> bool:
+        """Check gauge isomorphism via axial-gauge fundamental cycle holonomy invariants."""
+        if b1 is None and b2 is None:
+            return True
         if b1 is None:
-            return b2
+            return b2 is not None and b2.fiber_dim == 0
         if b2 is None:
-            return b1
-        return bundle_direct_sum(b1, b2, self._edges)
-
-    def _tensor_opt(
-        self,
-        b1: DiscreteOrthogonalConnection | None,
-        b2: DiscreteOrthogonalConnection | None,
-    ) -> DiscreteOrthogonalConnection | None:
-        if b1 is None or b2 is None:
-            return None
-        return bundle_tensor_product(b1, b2, self._edges)
-
-    def add(
-        self,
-        a: tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None],
-        b: tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None],
-    ) -> tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None]:
-        """Whitney sum of virtual bundles."""
-        return (self._sum_opt(a[0], b[0]), self._sum_opt(a[1], b[1]))
-
-    def neg(
-        self,
-        a: tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None],
-    ) -> tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None]:
-        """Formal virtual inverse -([E] - [F]) = [F] - [E]."""
-        return (a[1], a[0])
-
-    def sub(
-        self,
-        a: tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None],
-        b: tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None],
-    ) -> tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None]:
-        """Virtual bundle difference."""
-        return self.add(a, self.neg(b))
-
-    def mul(
-        self,
-        a: tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None],
-        b: tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None],
-    ) -> tuple[DiscreteOrthogonalConnection | None, DiscreteOrthogonalConnection | None]:
-        """Virtual bundle tensor product."""
-        e1, f1 = a
-        e2, f2 = b
-        pos = self._sum_opt(self._tensor_opt(e1, e2), self._tensor_opt(f1, f2))
-        neg = self._sum_opt(self._tensor_opt(e1, f2), self._tensor_opt(f1, e2))
-        return (pos, neg)
+            return b1.fiber_dim == 0
+        if b1.fiber_dim != b2.fiber_dim:
+            return False
+        dim = b1.fiber_dim
+        tol = 1e-7
+        for root, tree_edges, chords in self._component_forests:
+            if not chords:
+                continue
+            hols1 = _component_holonomies(b1, root, tree_edges, chords)
+            hols2 = _component_holonomies(b2, root, tree_edges, chords)
+            for h1, h2 in zip(hols1, hols2, strict=True):
+                if not _orthogonal_matrices_similar(h1, h2, dim, tol=tol):
+                    return False
+            # Simultaneous conjugacy check across multiple fundamental cycles in a component
+            n_chords = len(hols1)
+            for i in range(n_chords):
+                for j in range(i + 1, n_chords):
+                    p1 = _mat_dot(hols1[i], hols1[j])
+                    p2 = _mat_dot(hols2[i], hols2[j])
+                    if abs(_sparse_trace(p1) - _sparse_trace(p2)) > tol:
+                        return False
+                    q1 = _mat_dot(hols1[i], _mat_transpose(hols1[j]))
+                    q2 = _mat_dot(hols2[i], _mat_transpose(hols2[j]))
+                    if abs(_sparse_trace(q1) - _sparse_trace(q2)) > tol:
+                        return False
+        return True
 
     def virtual_rank(
         self,

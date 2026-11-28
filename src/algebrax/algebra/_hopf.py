@@ -13,8 +13,9 @@ All tensor products $C \otimes C$ are represented using unboxed sparse tuple key
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Literal, Protocol, TypeVar, runtime_checkable
+from typing import Any, Generic, Literal, Protocol, TypeVar, runtime_checkable
 
+from algebrax.algebra._field import StandardField
 from algebrax.algebra._group import Group
 from algebrax.algebra._mixins import (
     HasAdd,
@@ -29,11 +30,13 @@ from algebrax.algebra._mixins import (
     LawAssociative,
 )
 from algebrax.algebra._monoid_algebra import MonoidAlgebra
-from algebrax.algebra._semiring import Semiring
+from algebrax.algebra._ring import Ring
+from algebrax.converters import make_zero_predicate
 from algebrax.typing import SparseVector
 
 R = TypeVar('R')
 C = TypeVar('C')
+T = TypeVar('T')
 
 
 @runtime_checkable
@@ -122,8 +125,8 @@ class HopfAlgebra(
         return self.add(a, self.neg(b))
 
 
-class GroupHopfAlgebra(MonoidAlgebra[Any, float], HopfAlgebra[float, SparseVector[Any, float]]):
-    r"""Group Hopf algebra $R[G]$ over unboxed sparse group linear combinations `dict[G, float]`.
+class GroupHopfAlgebra(MonoidAlgebra[Any, T], HopfAlgebra[T, SparseVector[Any, T]], Generic[T]):
+    r"""Group Hopf algebra $R[G]$ over unboxed sparse group linear combinations `dict[G, T]`.
 
     - Multiplication: Group convolution $g \cdot h$ (inherited from `MonoidAlgebra`).
     - Coproduct: $\Delta(\sum c_g g) = \sum c_g (g \otimes g)$ (all group elements are group-like).
@@ -131,31 +134,49 @@ class GroupHopfAlgebra(MonoidAlgebra[Any, float], HopfAlgebra[float, SparseVecto
     - Antipode: $S(\sum c_g g) = \sum c_g g^{-1}$.
     """
 
-    def __init__(self, group: Group[Any], coeff_semiring: Semiring[float] | None = None) -> None:
+    def __init__(self, group: Group[Any], coeff_semiring: Ring[T] | None = None) -> None:
         if coeff_semiring is None:
-            from algebrax.semiring.arithmetic import StandardSemiring
-
-            coeff_semiring = StandardSemiring(float)
+            coeff_semiring = StandardField(float)  # type: ignore[assignment]
+        elif not isinstance(coeff_semiring, Ring):
+            raise TypeError(
+                f'GroupHopfAlgebra requires a Ring coefficient structure, got {type(coeff_semiring).__name__}.'
+            )
         key_op = getattr(group, 'mul', getattr(group, 'op', None))
         zero_key = getattr(group, 'one', getattr(group, 'identity', getattr(group, 'zero', 0)))
         super().__init__(coeff_semiring, key_op=key_op, zero_key=zero_key)
         self.group = group
+        self._is_zero = make_zero_predicate(self.coeff_semiring)
 
-    def coproduct(self, x: SparseVector[Any, float]) -> dict[tuple[Any, Any], float]:
+    def coproduct(self, x: SparseVector[Any, T]) -> dict[tuple[Any, Any], T]:
         r"""Comultiplication $\Delta(g) = g \otimes g$."""
-        return {(g, g): float(coeff) for g, coeff in x.items() if abs(float(coeff)) > 1e-15}
+        is_zero = self._is_zero
+        return {(g, g): coeff for g, coeff in x.items() if not is_zero(coeff)}
 
-    def counit(self, x: SparseVector[Any, float]) -> float:
+    def counit(self, x: SparseVector[Any, T]) -> T:
         r"""Counit $\epsilon(\sum c_g g) = \sum c_g$."""
-        return float(sum(x.values()))
+        acc = self.coeff_semiring.zero
+        add_fn = self.coeff_semiring.add
+        for coeff in x.values():
+            acc = add_fn(acc, coeff)
+        return acc
 
-    def antipode(self, x: SparseVector[Any, float]) -> SparseVector[Any, float]:
+    def antipode(self, x: SparseVector[Any, T]) -> SparseVector[Any, T]:
         r"""Antipode $S(g) = g^{-1}$ extended by linearity."""
-        res: dict[Any, float] = {}
+        res: dict[Any, T] = {}
+        add_fn = self.coeff_semiring.add
+        zero = self.coeff_semiring.zero
+        inv_fn = self.group.inv
+        is_zero = self._is_zero
         for g, coeff in x.items():
-            inv_g = self.group.inv(g)
-            res[inv_g] = res.get(inv_g, 0.0) + float(coeff)
-        return {g: c for g, c in res.items() if abs(c) > 1e-15}
+            if is_zero(coeff):
+                continue
+            inv_g = inv_fn(g)
+            new_c = add_fn(res.get(inv_g, zero), coeff)
+            if is_zero(new_c):
+                res.pop(inv_g, None)
+            else:
+                res[inv_g] = new_c
+        return res
 
 
 class DividedPowerCoalgebra(Coalgebra[float, SparseVector[int, float]]):

@@ -71,6 +71,7 @@ from algebrax.topology.homology import (
 )
 from algebrax.topology.k_theory import (
     TopologicalKTheoryRing,
+    VectorBundleSemiring,
     bundle_direct_sum,
     bundle_tensor_product,
     chern_character,
@@ -126,6 +127,7 @@ __all__ = [
     'SparseChainComplex',
     'StalkCoord',
     'TopologicalKTheoryRing',
+    'VectorBundleSemiring',
     'apply_gauge_transformation',
     'betti_curve',
     'bottleneck_distance',

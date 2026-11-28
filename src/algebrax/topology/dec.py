@@ -176,7 +176,7 @@ def hodge_star(
 def hodge_laplacian(
     complex: SparseChainComplex,
     k: int,
-    semiring: Semiring[V] | type[Semiring[V]] | None = None,
+    semiring: Semiring[V] | type[Semiring[V]] | str | None = None,
 ) -> SparseMatrix:
     r"""Construct the $k$-th discrete Hodge Laplacian operator $\Delta_k = d_{k-1} \delta_k + \delta_{k+1} d_k$.
 
